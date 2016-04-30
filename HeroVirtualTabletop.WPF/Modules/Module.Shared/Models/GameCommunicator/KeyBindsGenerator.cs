@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Module.Shared.Enumerations;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,44 +7,12 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.Shared.Models.GameCommunicator
 {
-    public enum GameEvent
-    {
-        TargetName,
-        PrevSpawn,
-        NextSpawn,
-        RandomSpawn,
-        Fly,
-        EditPos,
-        DetachCamera,
-        NoClip,
-        AccessLevel,
-        Command,
-        SpawnNpc,
-        Rename,
-        LoadCostume,
-        MoveNPC,
-        DeleteNPC,
-        ClearNPC,
-        Move,
-        TargetEnemyNear,
-        LoadBind,
-        BeNPC,
-        SaveBind,
-        GetPos,
-        CamDist,
-        Follow,
-        LoadMap,
-        BindLoadFile,
-        Macro
-    }
-
-    public static class KeyBindsGenerator
+    public class KeyBindsGenerator
     {
         #region KeyBinds Strings
-        private static Dictionary<GameEvent, string> _keyBindsStrings = new Dictionary<GameEvent, string>()
+        private Dictionary<GameEvent, string> _keyBindsStrings = new Dictionary<GameEvent, string>()
         {
             { GameEvent.TargetName , "target_name"},
             { GameEvent.PrevSpawn , "prev_spawn"},
@@ -75,10 +44,10 @@ namespace Module.Shared.Models.GameCommunicator
         };
         #endregion
 
-        private static string directory;
-        internal static string bindFile;
+        private string directory;
+        private string bindFile;
 
-        static KeyBindsGenerator()
+        public KeyBindsGenerator()
         {
             if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.ToLowerInvariant().Contains("unittesting")))
             {
@@ -92,13 +61,13 @@ namespace Module.Shared.Models.GameCommunicator
             bindFile = directory + LoaderKey + ".txt";
         }
 
-        public static GameEvent LastEvent;
-        public static string GeneratedKeybindText;
-        public static string TriggerKey = "Y";
-        public static string LoaderKey = "B";
-        public static string LastKeyBindGenerated;
+        private GameEvent LastEvent;
+        private string GeneratedKeybindText;
+        private string TriggerKey = "Y";
+        private string LoaderKey = "B";
+        private string LastKeyBindGenerated;
 
-        public static string GenerateKeyBindsForEvent(GameEvent gameEvent, params string[] parameters)
+        public string GenerateKeyBindsForEvent(GameEvent gameEvent, params string[] parameters)
         {
             string generatedKeybindText = "";
             string command = _keyBindsStrings[gameEvent];
@@ -124,14 +93,14 @@ namespace Module.Shared.Models.GameCommunicator
             return command + " " + generatedKeybindText;
         }
 
-        private static string PopEvents()
+        private string PopEvents()
         {
             string generatedKeybindText = GeneratedKeybindText;
             GeneratedKeybindText = "";
             return "\"" + generatedKeybindText + "\"";
         }
 
-        public static string CompleteEvent()
+        public string CompleteEvent()
         {
             string command = string.Empty;
             string generatedKeyBindText = string.Empty;

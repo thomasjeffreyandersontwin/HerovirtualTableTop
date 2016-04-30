@@ -11,20 +11,6 @@ namespace Module.HeroVirtualTabletop.Models
 {
     public class CrowdModel : Crowd
     {
-        private ObservableCollection<BaseCrowdMember> childCrowdCollection;
-        public ObservableCollection<BaseCrowdMember> ChildCrowdCollection
-        {
-            get
-            {
-                return childCrowdCollection;
-            }
-            set
-            {
-                childCrowdCollection = value;
-                OnPropertyChanged("ChildCrowdCollection");
-            }
-        }
-
         private bool isExpanded;
         public bool IsExpanded
         {
@@ -42,7 +28,7 @@ namespace Module.HeroVirtualTabletop.Models
 
         public CrowdModel()
         {
-            this.ChildCrowdCollection = new ObservableCollection<BaseCrowdMember>();
+            this.CrowdMemberCollection = new ObservableCollection<ICrowdMember>();
         }
         public CrowdModel(string name)
         {

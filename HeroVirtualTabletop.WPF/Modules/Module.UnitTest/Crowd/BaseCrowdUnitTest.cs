@@ -33,20 +33,20 @@ namespace Module.UnitTest
 
         protected void InitializeDefaultList(bool nestCrowd = false)
         {
-            CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters", OriginalName = "" };
-            CrowdModel crowd1 = new CrowdModel { Name = "Crowd 1", OriginalName = "" };
-            CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1.1", OriginalName = "" };
-            Character character1 = new Character { Name = "Character 1.1", OriginalName = "" };
-            Character character2 = new Character { Name = "Character 1.1.1 Under Child Crowd 1.1", OriginalName = "" };
-            crowd1.ChildCrowdCollection = new System.Collections.ObjectModel.ObservableCollection<BaseCrowdMember>() { character1, childCrowd };
-            childCrowd.ChildCrowdCollection = new System.Collections.ObjectModel.ObservableCollection<BaseCrowdMember>() { character2 };
-            crowd1.ChildCrowdCollection.Add(new Character() { Name = "Character 1.2" });
-            CrowdModel crowd2 = new CrowdModel { Name = "Crowd 2", OriginalName = "" };
-            Character character3 = new Character { Name = "Character 2.1", OriginalName = "" };
-            crowd2.ChildCrowdCollection = new System.Collections.ObjectModel.ObservableCollection<BaseCrowdMember>() { character3 };
+            CrowdModel crowdAllChars = new CrowdModel { Name = "All CrowdMembers"};
+            CrowdModel crowd1 = new CrowdModel { Name = "Crowd 1"};
+            CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1.1"};
+            CrowdMember crowdMember1 = new CrowdMember { Name = "CrowdMember 1.1"};
+            CrowdMember crowdMember2 = new CrowdMember { Name = "CrowdMember 1.1.1 Under Child Crowd 1.1"};
+            crowd1.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd };
+            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember2 };
+            crowd1.CrowdMemberCollection.Add(new CrowdMember() { Name = "CrowdMember 1.2" });
+            CrowdModel crowd2 = new CrowdModel { Name = "Crowd 2"};
+            CrowdMember crowdMember3 = new CrowdMember { Name = "CrowdMember 2.1"};
+            crowd2.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember3 };
             if (nestCrowd)
-                crowd2.ChildCrowdCollection.Add(childCrowd);
-            crowdAllChars.ChildCrowdCollection = new System.Collections.ObjectModel.ObservableCollection<BaseCrowdMember>() { character1, character2, character3};
+                crowd2.CrowdMemberCollection.Add(childCrowd);
+            crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, crowdMember2, crowdMember3};
             this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2 };
         }
 

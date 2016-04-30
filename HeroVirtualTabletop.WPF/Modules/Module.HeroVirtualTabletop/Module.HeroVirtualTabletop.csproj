@@ -99,12 +99,12 @@
     </Compile>
     <Compile Include="DomainModels\Character\BaseCharacterProperty.cs" />
     <Compile Include="DomainModels\Character\Identity.cs" />
-    <Compile Include="DomainModels\Character\ManagedCharacter.cs" />
+    <Compile Include="DomainModels\Crowd\CrowdMember.cs" />
     <Compile Include="Enumerations\Enumerations.cs" />
     <Compile Include="HeroVirtualTabletopModule.cs" />
     <Compile Include="DomainModels\Character\Character.cs" />
     <Compile Include="DomainModels\Crowd\Crowd.cs" />
-    <Compile Include="DomainModels\Crowd\BaseCrowdMember.cs" />
+    <Compile Include="DomainModels\Crowd\ICrowdMember.cs" />
     <Compile Include="Models\CrowdModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Repositories\Character\ICharacterRepository.cs" />

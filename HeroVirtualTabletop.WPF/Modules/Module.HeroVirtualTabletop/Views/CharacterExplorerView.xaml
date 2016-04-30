@@ -42,8 +42,8 @@
                     <MenuItem Command="{Binding}"></MenuItem>
                 </ContextMenu>-->
                 <!--Will need to bind the source to a collection in viewmodel-->
-                <HierarchicalDataTemplate DataType = "{x:Type models:CrowdModel}"
-                                    ItemsSource = "{Binding ChildCrowdCollection}">
+                <HierarchicalDataTemplate DataType="{x:Type models:CrowdModel}"
+                                    ItemsSource="{Binding CrowdMemberCollection}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>

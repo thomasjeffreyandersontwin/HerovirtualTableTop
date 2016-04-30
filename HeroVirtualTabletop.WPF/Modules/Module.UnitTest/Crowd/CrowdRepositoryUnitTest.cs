@@ -117,12 +117,12 @@ namespace Module.UnitTest
         [TestMethod]
         public void SaveCrowdCollection_SaveConsistencyTest()
         {
-            CrowdModel crowd = new CrowdModel { Name = "Test Crowd 1", OriginalName = "Test Crowd Original" };
-            CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1", OriginalName = "Child Crowd Original" };
-            Character character1 = new Character { Name = "Test Character 1", OriginalName = "Test Character Original" };
-            Character character2 = new Character { Name = "Test Character 1.1", OriginalName = "Test Character Original" };
-            crowd.ChildCrowdCollection = new System.Collections.ObjectModel.ObservableCollection<BaseCrowdMember>() { character1, childCrowd};
-            childCrowd.ChildCrowdCollection = new System.Collections.ObjectModel.ObservableCollection<BaseCrowdMember>() { character2};
+            CrowdModel crowd = new CrowdModel { Name = "Test Crowd 1"};
+            CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1"};
+            CrowdMember crowdMember1 = new CrowdMember { Name = "Test CrowdMember 1" };
+            CrowdMember crowdMember2 = new CrowdMember { Name = "Test CrowdMember 1.1" };
+            crowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd};
+            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember2};
             string testRepoFileName = "test.data";
             CrowdRepository crowdRepository = new CrowdRepository();
             crowdRepository.CrowdRepositoryPath = testRepoFileName;
@@ -136,7 +136,7 @@ namespace Module.UnitTest
                 {
                     // More crowd members being added, repository shouldn't know
                     crowdCollection.Add(new CrowdModel() { Name = "New Crowd 1" });
-                    crowd.ChildCrowdCollection.Add(new Character() { Name = "New Character 1" });
+                    crowd.CrowdMemberCollection.Add(new CrowdMember() { Name = "New CrowdMember 1" });
 
                     List<CrowdModel> retrievedCrowdList = null;
                     crowdRepository.GetCrowdCollection((List<CrowdModel> crowdList) =>
@@ -144,14 +144,14 @@ namespace Module.UnitTest
                         retrievedCrowdList = crowdList;
                         try
                         {
-                            CrowdModel cr1 = retrievedCrowdList.Where(c => c.Name == "New Crowd 1").FirstOrDefault();
-                            Assert.IsNull(cr1);
-                            Character ch1 = retrievedCrowdList[0].ChildCrowdCollection.Where(c => c.Name == "New Character 1").FirstOrDefault() as Character;
-                            Assert.IsNull(ch1);
-                            CrowdModel cr2 = retrievedCrowdList[0].ChildCrowdCollection.Where(c => c.Name == "Child Crowd 1").FirstOrDefault() as CrowdModel;
-                            Assert.IsNotNull(cr2);
-                            Character ch2 = cr2.ChildCrowdCollection.Where(c => c.Name == "Test Character 1.1").FirstOrDefault() as Character;
-                            Assert.IsNotNull(ch2);
+                            CrowdModel cmodel1 = retrievedCrowdList.Where(c => c.Name == "New Crowd 1").FirstOrDefault();
+                            Assert.IsNull(cmodel1);
+                            CrowdMember cm1 = retrievedCrowdList[0].CrowdMemberCollection.Where(c => c.Name == "New CrowdMember 1").FirstOrDefault() as CrowdMember;
+                            Assert.IsNull(cm1);
+                            CrowdModel cmodel2 = retrievedCrowdList[0].CrowdMemberCollection.Where(c => c.Name == "Child Crowd 1").FirstOrDefault() as CrowdModel;
+                            Assert.IsNotNull(cmodel2);
+                            CrowdMember cm2 = cmodel2.CrowdMemberCollection.Where(c => c.Name == "Test CrowdMember 1.1").FirstOrDefault() as CrowdMember;
+                            Assert.IsNotNull(cm2);
                         }
                         catch (AssertFailedException ex)
                         {
@@ -165,14 +165,14 @@ namespace Module.UnitTest
                                 retrievedCrowdList = crowdListAnother;
                                 try
                                 {
-                                    CrowdModel cr1 = retrievedCrowdList.Where(c => c.Name == "New Crowd 1").FirstOrDefault();
-                                    Assert.IsNotNull(cr1);
-                                    Character ch1 = retrievedCrowdList[0].ChildCrowdCollection.Where(c => c.Name == "New Character 1").FirstOrDefault() as Character;
-                                    Assert.IsNotNull(ch1);
-                                    CrowdModel cr2 = retrievedCrowdList[0].ChildCrowdCollection.Where(c => c.Name == "Child Crowd 1").FirstOrDefault() as CrowdModel;
-                                    Assert.IsNotNull(cr2);
-                                    Character ch2 = cr2.ChildCrowdCollection.Where(c => c.Name == "Test Character 1.1").FirstOrDefault() as Character;
-                                    Assert.IsNotNull(ch2);
+                                    CrowdModel cmodel1 = retrievedCrowdList.Where(c => c.Name == "New Crowd 1").FirstOrDefault();
+                                    Assert.IsNotNull(cmodel1);
+                                    CrowdMember cm1 = retrievedCrowdList[0].CrowdMemberCollection.Where(c => c.Name == "New CrowdMember 1").FirstOrDefault() as CrowdMember;
+                                    Assert.IsNotNull(cm1);
+                                    CrowdModel cmodel2 = retrievedCrowdList[0].CrowdMemberCollection.Where(c => c.Name == "Child Crowd 1").FirstOrDefault() as CrowdModel;
+                                    Assert.IsNotNull(cmodel2);
+                                    CrowdMember cm2 = cmodel2.CrowdMemberCollection.Where(c => c.Name == "Test CrowdMember 1.1").FirstOrDefault() as CrowdMember;
+                                    Assert.IsNotNull(cm2);
                                     File.Delete(testRepoFileName);
                                     testPassed = true;
                                 }

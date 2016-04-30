@@ -17,4 +17,36 @@ namespace Module.Shared.Enumerations
     { 
         HeroVirtualTabletop
     }
+
+    public enum GameEvent
+    {
+        TargetName,
+        PrevSpawn,
+        NextSpawn,
+        RandomSpawn,
+        Fly,
+        EditPos,
+        DetachCamera,
+        NoClip,
+        AccessLevel,
+        Command,
+        SpawnNpc,
+        Rename,
+        LoadCostume,
+        MoveNPC,
+        DeleteNPC,
+        ClearNPC,
+        Move,
+        TargetEnemyNear,
+        LoadBind,
+        BeNPC,
+        SaveBind,
+        GetPos,
+        CamDist,
+        Follow,
+        LoadMap,
+        BindLoadFile,
+        Macro
+    }
+
 }
