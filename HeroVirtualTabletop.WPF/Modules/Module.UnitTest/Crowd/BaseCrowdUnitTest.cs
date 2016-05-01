@@ -35,8 +35,8 @@ namespace Module.UnitTest
         {
             CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters"};
             CrowdModel crowd1 = new CrowdModel { Name = "Crowd 1"};
+            CrowdMember crowdMember1 = new CrowdMember { Name = "CrowdMember 1.1" };
             CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1.1"};
-            CrowdMember crowdMember1 = new CrowdMember { Name = "CrowdMember 1.1"};
             CrowdMember crowdMember2 = new CrowdMember { Name = "CrowdMember 1.1.1 Under Child Crowd 1.1"};
             crowd1.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd };
             childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember2 };
@@ -53,6 +53,24 @@ namespace Module.UnitTest
         protected void DeleteTempRepositoryFile(string path = "test.data")
         {
             File.Delete(path);
+        }
+
+        protected int numberOfItemsFound = 0;
+        protected void CountNumberOfCrowdMembersByName(List<ICrowdMember> collection, string name)
+        {
+            foreach (ICrowdMember bcm in collection)
+            {
+                if (bcm.Name == name)
+                    numberOfItemsFound++;
+                if (bcm is CrowdModel)
+                {
+                    CrowdModel cm = bcm as CrowdModel;
+                    if (cm.CrowdMemberCollection != null && cm.CrowdMemberCollection.Count > 0)
+                    {
+                        CountNumberOfCrowdMembersByName(cm.CrowdMemberCollection.ToList(), name);
+                    }
+                }
+            }
         }
     }
 }

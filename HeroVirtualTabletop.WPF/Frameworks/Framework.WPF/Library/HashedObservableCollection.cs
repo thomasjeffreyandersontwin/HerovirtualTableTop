@@ -113,7 +113,13 @@ namespace Framework.WPF.Library
         public virtual TValue this[TKey key]
         {
 
-            get { return this[indices[key]]; }
+            get 
+            {
+                if (indices.ContainsKey(key))
+                    return this[indices[key]];
+                else
+                    return default(TValue);
+            }
             set
             {
                 //confirm key matches

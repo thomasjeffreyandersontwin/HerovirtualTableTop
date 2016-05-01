@@ -73,7 +73,7 @@ namespace Module.UnitTest
         }
 
         [TestMethod]
-        public void GetCrowdCollection_NoExistingRepositoryFileTest()
+        public void CrowdRepository_GetCrowdCollection_NoExistingRepositoryFileTest()
         {
             string testRepoFileName = "test.data";
             string fullFilePath = Path.Combine(testRepoFileName);
@@ -115,7 +115,7 @@ namespace Module.UnitTest
         }
 
         [TestMethod]
-        public void SaveCrowdCollection_SaveConsistencyTest()
+        public void CrowdRepository_SaveCrowdCollection_SaveConsistencyTest()
         {
             CrowdModel crowd = new CrowdModel { Name = "Test Crowd 1"};
             CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1"};

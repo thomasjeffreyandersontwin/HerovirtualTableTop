@@ -49,5 +49,14 @@ namespace Module.HeroVirtualTabletop.DomainModels
                 OnPropertyChanged("CrowdMemberCollection");
             }
         }
+
+        public CrowdMember():this("")
+        { 
+            
+        }
+        public CrowdMember(string name)
+        {
+            this.Name = name;
+        }
     }
 }

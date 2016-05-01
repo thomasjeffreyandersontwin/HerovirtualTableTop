@@ -11,6 +11,7 @@ using Module.Shared;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +25,7 @@ namespace Module.HeroVirtualTabletop.ViewModels
 
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
+        private HashedObservableCollection<ICrowdMember, string> characterCollection;
 
         #endregion
 
@@ -59,6 +61,8 @@ namespace Module.HeroVirtualTabletop.ViewModels
 
         public DelegateCommand<object> AddCrowdCommand { get; private set; }
 
+        public DelegateCommand<object> AddCharacterCommand { get; private set; }
+
         public ICommand UpdateSelectedCrowdMemberCommand { get; private set; }
 
         #endregion
@@ -81,6 +85,7 @@ namespace Module.HeroVirtualTabletop.ViewModels
         private void InitializeCommands()
         {
             this.AddCrowdCommand = new DelegateCommand<object>(this.AddCrowd);
+            this.AddCharacterCommand = new DelegateCommand<object>(this.AddCharacter);
 
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
@@ -107,8 +112,15 @@ namespace Module.HeroVirtualTabletop.ViewModels
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }
                 );
+            CrowdModel allCharactersModel = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+            if (allCharactersModel == null)
+                allCharactersModel = new CrowdModel();
+            this.characterCollection = new HashedObservableCollection<ICrowdMember, string>(allCharactersModel.CrowdMemberCollection,
+                (ICrowdMember c) => { return c.Name; }
+                );
             //this.BusyService.HideBusy();
         }
+
         #endregion
 
         #region Update Selected Crowd
@@ -129,19 +141,18 @@ namespace Module.HeroVirtualTabletop.ViewModels
             // Add the crowd to List of Crowd Members as a new Crowd Member
             this.CrowdCollection.Add(crowdModel);
             // Also add the crowd under any currently selected crowd
-            if(this.SelectedCrowdModel is CrowdModel && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+            if(this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
-                CrowdModel selectedCrowdModel = this.SelectedCrowdModel as CrowdModel;
-                if (selectedCrowdModel.CrowdMemberCollection == null)
-                    selectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>();
-                selectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
+                if (this.SelectedCrowdModel.CrowdMemberCollection == null)
+                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>();
+                this.SelectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
             }
             // Update Repository asynchronously
             this.SaveCrowdCollection();
         }
         private CrowdModel GetNewCrowdModel()
         {
-            //if (string.IsNullOrEmpty(name))
+            
             string name = "Crowd";
             string suffix = string.Empty;
             int i = 0;
@@ -150,6 +161,50 @@ namespace Module.HeroVirtualTabletop.ViewModels
                 suffix = string.Format(" ({0})", ++i);
             }
             return new CrowdModel(name + suffix);
+        }
+
+        #endregion
+
+        #region Add Character
+
+        private void AddCharacter(object state)
+        {
+            // Create a new Character
+            Character character = this.GetNewCharacter();
+            // Create All Characters List if not already there
+            CrowdModel crowdModelAllCharacters = this.CrowdCollection.Where(c => c.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
+            if (crowdModelAllCharacters == null || crowdModelAllCharacters.CrowdMemberCollection == null || crowdModelAllCharacters.CrowdMemberCollection.Count == 0)
+            {
+                crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
+                this.CrowdCollection.Add(crowdModelAllCharacters);
+                crowdModelAllCharacters.CrowdMemberCollection = new ObservableCollection<ICrowdMember>();
+                this.characterCollection = new HashedObservableCollection<ICrowdMember, string>(crowdModelAllCharacters.CrowdMemberCollection,
+                    (ICrowdMember c) => { return c.Name; });
+            }
+            // Add the Character under All Characters List
+            crowdModelAllCharacters.CrowdMemberCollection.Add(character as CrowdMember);
+            this.characterCollection.Add(character as CrowdMember);
+            // Also add the character under any currently selected crowd
+            if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+            {
+                if (this.SelectedCrowdModel.CrowdMemberCollection == null)
+                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>();
+                this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMember);
+            }
+            // Update Repository asynchronously
+            this.SaveCrowdCollection();
+        }
+
+        private Character GetNewCharacter()
+        {
+            string name = "Character";
+            string suffix = string.Empty;
+            int i = 0;
+            while (this.characterCollection.ContainsKey(name + suffix))
+            {
+                suffix = string.Format(" ({0})", ++i);
+            }
+            return new CrowdMember(name + suffix);
         }
 
         #endregion
