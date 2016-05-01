@@ -1,0 +1,115 @@
+#SingleInstance force
+#Include Yunit\Yunit.ahk
+#Include Yunit\Window.ahK
+#Include Yunit\StdOut.ahk
+
+Class UITestSuite{
+	Class UiControlTest{
+		Begin(){
+			this.UserInterface:= new UserInterface("TestUI", 10,20, 30,40)
+			controlDimensions:=new Position(,,15,30)
+			controlOptions:=new ControlOptions("TestText", "Text", "TestTextContent")
+			this.ControlDefinition:= new ControlDefintion(controlOptions,controlDimensions)
+		}
+		TestControlCreatedOnGui(){
+
+			
+			this.UserInterface.DrawControl(this.ControlDefinition)
+			this.UserInterface.Render()
+			GuiControlGet, actual,TestUI:, TestText
+			valid:=this.COntrolDefinition.Options.Content
+			Yunit.AssertEquals(actual, valid)
+			
+		}
+	}
+}
+
+Class ControlDefintion{
+	Position:=""
+	Options:=""
+	__New(options:="",position:=""){
+		this.Position:= position
+		this.Options:=options
+	}
+	
+	Draw(lastDrawnCOntrol){
+		local dummy
+		type:=this.Options.type
+		content:=this.Options.Content
+		UI:=this.UserInterface.Name . ":"
+		;x10 y10 w50 h50
+		Gui, %UI% Add, %type%,  , %content%
+		;Gui, Add,ListBox, vCharacterList w170 h300 x%x% y%y% sort,  % listString
+		
+		;x%x% y%y% w96 h28 +BackgroundTrans, %label%:
+	}
+	
+	Duplicate{
+		Get{
+			duplicate:= new ControlDefintion()
+			duplicate.Position:=this.Position.Duplicate
+			duplicate.Options:=this.Options.Duplicate
+			return duplicate
+		}
+	}
+}
+Class ControlOptions{
+	Name:=""
+	Type:=""
+	Content:=""
+	__New(Name, Type, content){
+		this.content:=content
+		this.Type:=Type
+		this.Name:=name
+	}
+	Duplicate{
+		Get{
+			duplicate:= new ControlOptions(this.Name,this.Type,this.Content)
+			return duplicate
+		}
+	}
+			
+}
+Class Position{
+	X:=0
+	Y:=0
+	Width:=0
+	Height:=0
+	__New(x:=0,y:=0,height:=0,width:=0){
+		this.x:=x
+		this.y:=y
+		this.height:=height
+		this.width:=width
+	}
+	Duplicate{
+		Get{
+			duplicate:= new Position(this.x, this.y, this.height, this.width)
+			return duplicate
+		}
+	}
+
+}
+Class UserInterface{
+	Position:=""
+	Name:=""
+	__New(name, x,y, height, width){
+		this.Name:=name
+		this.Position:= new Position(x,y,height, height)
+		;x0 y0 w100 h100 
+	}
+	DrawControl(controlDef){
+		controlDef:=controlDef.Duplicate
+		controlDef.UserInterface:=this
+		controlDef.Draw(this.LastDrawnControl)
+		this.LastDrawnControl:=controlDef
+		this.Controls[controlDef.Options.Name]:= controlDef
+	}
+	Render(){
+		name:=this.Name
+		
+		Gui %name%: Show, x0 y0 
+	}
+}
+
+Yunit.Use(YunitWindow).Test(UITestSuite)
+	

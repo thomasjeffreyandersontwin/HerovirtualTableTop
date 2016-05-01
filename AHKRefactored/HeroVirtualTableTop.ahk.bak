@@ -1,0 +1,5 @@
+#Include HeroVirtualTabletopEventLoader.ahk
+#Include CharacterGUI.AHK
+#Include HeroVirtualTabletopEventHandler.ahk
+l:= new EventLoader()
+l.Bootstrap()
