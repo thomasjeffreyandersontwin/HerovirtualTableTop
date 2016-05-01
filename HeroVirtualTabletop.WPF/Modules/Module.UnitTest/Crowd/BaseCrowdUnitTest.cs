@@ -33,7 +33,7 @@ namespace Module.UnitTest
 
         protected void InitializeDefaultList(bool nestCrowd = false)
         {
-            CrowdModel crowdAllChars = new CrowdModel { Name = "All CrowdMembers"};
+            CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters"};
             CrowdModel crowd1 = new CrowdModel { Name = "Crowd 1"};
             CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1.1"};
             CrowdMember crowdMember1 = new CrowdMember { Name = "CrowdMember 1.1"};

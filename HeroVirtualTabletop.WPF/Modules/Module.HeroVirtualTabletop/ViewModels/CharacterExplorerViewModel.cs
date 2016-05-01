@@ -6,6 +6,8 @@ using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.DomainModels;
 using Module.HeroVirtualTabletop.Models;
 using Module.HeroVirtualTabletop.Repositories;
+using Module.HeroVirtualTabletop.Utility;
+using Module.Shared;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -45,7 +47,7 @@ namespace Module.HeroVirtualTabletop.ViewModels
             }
         }
 
-        public ICrowdMember SelectedCrowdMember
+        public CrowdModel SelectedCrowdModel
         {
             get;
             set;
@@ -98,25 +100,6 @@ namespace Module.HeroVirtualTabletop.ViewModels
         {
             //this.BusyService.ShowBusy();
             this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
-            //List<CrowdModel> crowdList = new List<CrowdModel>();
-            //CrowdModel crowd1 = new CrowdModel { Name = "All Characters" };
-            //CrowdMember cm1 = new CrowdMember { Name = "SuperMan" };
-            //CrowdMember cm2 = new CrowdMember { Name = "BatMan"};
-            //crowd1.CrowdMemberCollection.Add(cm1);
-            //crowd1.CrowdMemberCollection.Add(cm2);
-            //CrowdModel crowd2 = new CrowdModel { Name = "Gotham City" };
-            //CrowdModel crowd3 = new CrowdModel { Name = "Arkheim City" };
-            //CrowdMember cm3 = new CrowdMember { Name = "Bane" };
-            //CrowdMember cm4 = new CrowdMember { Name = "Kyle" };
-            //crowd3.CrowdMemberCollection.Add(cm3);
-            //crowd2.CrowdMemberCollection.Add(cm4);
-            //crowd2.CrowdMemberCollection.Add(crowd3);
-            //crowdList.Add(crowd1);
-            //crowdList.Add(crowd2);
-            //this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
-            //    (CrowdModel c) => { return c.Name; }
-            //    );
-            //this.SaveCrowdCollection();
         }
 
         private void LoadCrowdCollectionCallback(List<CrowdModel> crowdList)
@@ -131,8 +114,10 @@ namespace Module.HeroVirtualTabletop.ViewModels
         #region Update Selected Crowd
         private void UpdateSelectedCrowdMember(object state)
         {
-            ICrowdMember crowdMember = state as ICrowdMember;
-            this.SelectedCrowdMember = crowdMember;
+            Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state);
+            CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
+            this.SelectedCrowdModel = crowdModel;
+            
         }
         #endregion
 
@@ -144,9 +129,9 @@ namespace Module.HeroVirtualTabletop.ViewModels
             // Add the crowd to List of Crowd Members as a new Crowd Member
             this.CrowdCollection.Add(crowdModel);
             // Also add the crowd under any currently selected crowd
-            if(this.SelectedCrowdMember is CrowdModel)
+            if(this.SelectedCrowdModel is CrowdModel && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
-                CrowdModel selectedCrowdModel = this.SelectedCrowdMember as CrowdModel;
+                CrowdModel selectedCrowdModel = this.SelectedCrowdModel as CrowdModel;
                 if (selectedCrowdModel.CrowdMemberCollection == null)
                     selectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>();
                 selectedCrowdModel.CrowdMemberCollection.Add(crowdModel);

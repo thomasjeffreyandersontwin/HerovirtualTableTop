@@ -87,6 +87,7 @@
     <Compile Include="Behaviors\AttachedCommandBehavior\ExecutionStrategy.cs" />
     <Compile Include="Behaviors\AttachedCommandBehavior\SimpleCommand.cs" />
     <Compile Include="Events\Events.cs" />
+    <Compile Include="Extensions\TreeViewExtensions.cs" />
     <Compile Include="Library\BaseModule.cs" />
     <Compile Include="Library\BaseViewModel.cs" />
     <Compile Include="Library\CustomAttribute.cs" />

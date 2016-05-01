@@ -1,4 +1,5 @@
 ﻿using Module.Shared;
+using Framework.WPF.Extensions;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,11 +7,16 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
+using Module.HeroVirtualTabletop.Models;
+using System.Windows.Media;
 
 namespace Module.HeroVirtualTabletop.Utility
 {
     public class Helper
     {
+        #region Resource Dictionary and Style related
         public static System.Windows.Style GetCustomStyle(string styleName)
         {
             System.Windows.ResourceDictionary resource = new System.Windows.ResourceDictionary
@@ -25,6 +31,9 @@ namespace Module.HeroVirtualTabletop.Utility
             return GetCustomStyle(Constants.CUSTOM_MODELESS_TRANSPARENT_WINDOW_STYLENAME);
         }
 
+        #endregion
+
+        #region JSON Serialize/Deserialize
         public static T GetDeserializedJSONFromFile<T>(string fileName)
         {
             T obj = default(T);
@@ -70,10 +79,47 @@ namespace Module.HeroVirtualTabletop.Utility
             }
         }
 
+        #endregion
+
+        #region File I/O
         public static void CreateFile(string fileName)
         {
             FileStream fs = File.Create(fileName);
             fs.Dispose();
         }
+
+        #endregion
+
+        #region TreeView
+
+        public static object GetCurrentSelectedCrowdInCrowdCollection(Object tv)
+        {
+            CrowdModel crowdModel = null;
+            TreeView treeView = tv as TreeView;
+
+            if (treeView != null && treeView.SelectedItem != null)
+            {
+                if (treeView.SelectedItem is CrowdModel)
+                    crowdModel = treeView.SelectedItem as CrowdModel;
+                else
+                {
+                    DependencyObject dObject = treeView.GetItemFromSelectedObject(treeView.SelectedItem);
+                    TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+
+                    dObject = VisualTreeHelper.GetParent(tvi); // got the immediate parent
+                    tvi = dObject as TreeViewItem; // now get first treeview item parent
+                    while (tvi == null)
+                    {
+                        dObject = VisualTreeHelper.GetParent(dObject);
+                        tvi = dObject as TreeViewItem;
+                    }
+                    crowdModel = tvi.DataContext as CrowdModel; 
+                }
+            }
+
+            return crowdModel;
+        }
+
+        #endregion
     }
 }

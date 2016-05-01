@@ -129,7 +129,7 @@ namespace Module.UnitTest.Crowd
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             crowdMemberExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            crowdMemberExplorerViewModel.SelectedCrowdMember = null;
+            crowdMemberExplorerViewModel.SelectedCrowdModel = null;
             crowdMemberExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = crowdMemberExplorerViewModel.CrowdCollection.ToList();
             IEnumerable<ICrowdMember> baseCrowdList = crowdList;
@@ -144,7 +144,7 @@ namespace Module.UnitTest.Crowd
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             crowdMemberExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            crowdMemberExplorerViewModel.SelectedCrowdMember = crowdMemberExplorerViewModel.CrowdCollection[1]; // Assuming "Crowd 1" is selected
+            crowdMemberExplorerViewModel.SelectedCrowdModel = crowdMemberExplorerViewModel.CrowdCollection[1]; // Assuming "Crowd 1" is selected
             crowdMemberExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = crowdMemberExplorerViewModel.CrowdCollection.ToList();
             IEnumerable<ICrowdMember> baseCrowdList = crowdList;
@@ -165,7 +165,7 @@ namespace Module.UnitTest.Crowd
             InitializeDefaultList(true);
             InitializeCrowdRepositoryMockWithDefaultList();
             crowdMemberExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            crowdMemberExplorerViewModel.SelectedCrowdMember = crowdMemberExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1]; // Assuming "Child Crowd 1.1" is selected
+            crowdMemberExplorerViewModel.SelectedCrowdModel = crowdMemberExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Assuming "Child Crowd 1.1" is selected
             crowdMemberExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = crowdMemberExplorerViewModel.CrowdCollection.ToList();
             IEnumerable<ICrowdMember> baseCrowdList = crowdList;
@@ -185,36 +185,14 @@ namespace Module.UnitTest.Crowd
             Assert.IsNotNull(crowdAdded);
         }
         /// <summary>
-        /// If the current selected member is a CrowdMember and not from All CrowdMembers, the new crowd should be added as its sibling
-        /// </summary>
-        [TestMethod]
-        public void AddCrowd_CurrentSelectionIsCrowdMemberUnderCrowdTest()
-        {
-            InitializeCrowdRepositoryMockWithDefaultList();
-            crowdMemberExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            crowdMemberExplorerViewModel.SelectedCrowdMember = (crowdMemberExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection[0]; // Assuming "CrowdMember 1.1.1 Under Child Crowd 1.1" is selected
-            crowdMemberExplorerViewModel.AddCrowdCommand.Execute(null);
-            IEnumerable<CrowdModel> crowdList = crowdMemberExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
-            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Crowd");
-            Assert.IsTrue(this.numberOfItemsFound == 2); // The added crowd should be in a total of two places - one stand alone and one nested position under Child Crowd 1.1
-            CrowdModel crowdAdded = crowdMemberExplorerViewModel.CrowdCollection.Where(cm => cm.Name == "Crowd").FirstOrDefault();
-            Assert.IsNotNull(crowdAdded);
-            CrowdModel crowd1 = crowdMemberExplorerViewModel.CrowdCollection.Where(cm => cm.Name == "Crowd 1").FirstOrDefault();
-            crowdAdded = crowd1.CrowdMemberCollection.Where(cm => cm.Name == "Crowd").FirstOrDefault() as CrowdModel;
-            Assert.IsNull(crowdAdded);
-            crowdAdded = (crowd1.CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection.Where(cm => cm.Name == "Crowd").FirstOrDefault() as CrowdModel;
-            Assert.IsNotNull(crowdAdded);
-        }
-        /// <summary>
-        /// If the current selected member is a CrowdMember under All CrowdMembers, the new crowd should be added as just another crowd
+        /// If the current selected member is a CrowdMember under All Characters, the new crowd should be added as just another crowd
         /// </summary>
         [TestMethod]
         public void AddCrowd_CurrentSelectionIsCrowdMemberUnderAllCrowdMembersTest()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             crowdMemberExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            crowdMemberExplorerViewModel.SelectedCrowdMember = crowdMemberExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0]; // Assuming "CrowdMember 1" is selected under All CrowdMembers
+            crowdMemberExplorerViewModel.SelectedCrowdModel = crowdMemberExplorerViewModel.CrowdCollection[0]; // Assuming "All Characters" is the selected crowd
             crowdMemberExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = crowdMemberExplorerViewModel.CrowdCollection.ToList();
             IEnumerable<ICrowdMember> baseCrowdList = crowdList;

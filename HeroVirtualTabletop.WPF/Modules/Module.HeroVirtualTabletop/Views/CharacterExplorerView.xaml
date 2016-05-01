@@ -25,7 +25,7 @@
                   Margin="0" MinHeight="400"  HorizontalAlignment="Stretch"
                   behaviors:CommandBehavior.Event="SelectedItemChanged"
                   behaviors:CommandBehavior.Command="{Binding UpdateSelectedCrowdMemberCommand}"
-                    behaviors:CommandBehavior.CommandParameter="{Binding ElementName=treeViewCrowd, Path=SelectedItem}"
+                  behaviors:CommandBehavior.CommandParameter="{Binding ElementName=treeViewCrowd}"
                   >
             <TreeView.Resources>
                 

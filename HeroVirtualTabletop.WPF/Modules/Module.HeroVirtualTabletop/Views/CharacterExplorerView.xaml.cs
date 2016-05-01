@@ -29,5 +29,10 @@ namespace Module.HeroVirtualTabletop.Views
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
         }
+
+        private void treeViewCrowd_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            
+        }
     }
 }
