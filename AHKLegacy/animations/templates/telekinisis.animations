@@ -1,0 +1,51 @@
+TELEKINECYCL: 
+	movs: 
+		- TELEKINECYCLE
+	NumKey: 0
+	Sequence: 
+TELEKINETIC_BLO: 
+	movs: 
+		- TELEKINETIC_BLOW
+	NumKey: 0
+	Sequence: 
+templates\telekinisi: 
+	movs: 
+		- templates\telekinisis
+	NumKey: 0
+	Sequence: 
+TKHoldTarget: 
+	movs: 
+		- WIDOWS_ATTACK
+	NumKey: 0
+	Sequence: 
+TKHoldTargetRelease: 
+	movs: 
+		- WIDOWSSNARESTUN_FALL
+	NumKey: 0
+	Sequence: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

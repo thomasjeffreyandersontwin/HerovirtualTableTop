@@ -1,0 +1,40 @@
+ABOMINATION_FIST_GROUND_POUND_LOC: 
+	movs: 
+		- ABOMINATION_FIST_GROUND_POUND_LOCK
+	NumKey: 0
+	Sequence: 
+ABOMINATION_LEG_STOMP_LOC: 
+	movs: 
+		- ABOMINATION_LEG_STOMP_LOCK
+	NumKey: 0
+	Sequence: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

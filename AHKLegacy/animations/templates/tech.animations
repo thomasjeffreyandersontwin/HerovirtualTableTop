@@ -1,0 +1,35 @@
+TBlast: 
+	movs: 
+		- 2HANDCAST
+		- TELEQUICK
+		- AQUA_BOLT_B
+		- BS_ARMBLAST
+		- MA_BLAZINGBOLT 
+		- MA_ENERGYBLAST 
+	NumKey: 0
+	Sequence: OR
+MegaBlast: MEGA
+LOA BlastHit:
+	NumKey: 3
+	sequence:AND
+	movs:
+		- EMOTE_FEM_HIT_TO_FLOAT
+		- PLAYERKNOCKBACK_IMPACT
+FF1: EMOTE_COSTUMECHANGE_INNERWILL
+TDrainHit: 
+	movs: 
+		- CAPTURED_PENELOPE_CYCLE
+		- 
+			pause: 5000
+		- CAPTURED_PENELOPE_FALL
+	NumKey: 0
+	Sequence: AND
+LHoldHit: CAPTURED_RIKTIENERGY_CYCLE	
+THoldHit: CAPTURED_PENELOPE_CYCLE
+TTIn:LTOut:CARNIVALOFLIGHT_TELEPORTOUT
+TTOUT:CarnivalOfLight_TeleportIn
+TFlash:Counter_Spell
+TechDrone1:Peacebringer_Drone 
+TechDrone2:Veteran_Pet_Drone_01
+TechDrone3:Veteran_Pet_Clockwork_02 
+TechDrone4::Veteran_Pet_Clockwork_01 
