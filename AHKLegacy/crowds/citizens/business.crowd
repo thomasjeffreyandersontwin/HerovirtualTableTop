@@ -1,0 +1,51 @@
+citizens\business0: 
+	model: Citizen_Biz_Fem_01
+	name: citizens\business0
+citizens\business1: 
+	model: Citizen_Biz_Fem_02
+	name: citizens\business1
+citizens\business10: 
+	model: Citizen_Biz_Fem_08
+	name: citizens\business10
+citizens\business11: 
+	model: Citizen_Biz_Male_03
+	name: citizens\business11
+citizens\business12: 
+	model: Citizen_Biz_Male_04
+	name: citizens\business12
+citizens\business13: 
+	model: Citizen_Biz_Male_05
+	name: citizens\business13
+citizens\business14: 
+	model: Citizen_Biz_Male_06
+	name: citizens\business14
+citizens\business15: 
+	model: Citizen_Biz_Male_07
+	name: citizens\business15
+citizens\business16: 
+	model: Citizen_Biz_Male_08
+	name: citizens\business16
+citizens\business2: 
+	model: Citizen_Biz_Male_01
+	name: citizens\business2
+citizens\business3: 
+	model: Citizen_Biz_Male_02
+	name: citizens\business3
+citizens\business4: 
+	model: Citizen_Biz_Male_03
+	name: citizens\business4
+citizens\business5: 
+	model: Citizen_Biz_Male_04
+	name: citizens\business5
+citizens\business6: 
+	model: Citizen_Biz_Fem_04
+	name: citizens\business6
+citizens\business7: 
+	model: Citizen_Biz_Fem_05
+	name: citizens\business7
+citizens\business8: 
+	model: Citizen_Biz_Fem_06
+	name: citizens\business8
+citizens\business9: 
+	model: Citizen_Biz_Fem_07
+	name: citizens\business9

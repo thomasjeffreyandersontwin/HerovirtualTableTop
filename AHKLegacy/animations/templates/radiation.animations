@@ -1,0 +1,8 @@
+RHoldHit:CAPTURED_AWAKENED_CYCLE
+RBlastHit1: 
+	movs: 
+		- EMOTE_FEM_HIT_TO_FLOAT
+		- 
+			pause: 1500
+		- STATES_LAND
+	sequence: AND

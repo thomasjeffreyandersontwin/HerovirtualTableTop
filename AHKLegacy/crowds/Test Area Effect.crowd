@@ -1,0 +1,104 @@
+﻿Aryan Foot Soldier: 
+	characterName: Aryan Foot Soldier
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 238.578277588
+	y: -0.500335455
+	z: -41.166507721
+Klan Fury Air: 
+	characterName: Klan Fury Air
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 235.219345093
+	y: -0.500335455
+	z: -46.402748108
+Klan Fury Ground: 
+	characterName: Klan Fury Ground
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -73.430000305
+Klan Grand Dragon: 
+	characterName: Klan Grand Dragon
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 233.145217896
+	y: -0.500335455
+	z: -53.131130219
+Kobold: 
+	characterName: Kobold
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -61.020000458
+Local Youth: 
+	characterName: Local Youth
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -67.379997253
+Mercenary: 
+	characterName: Mercenary
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -77.910003662
+Ogun: 
+	characterName: Ogun
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -71.620002747
+Panzer: 
+	characterName: Panzer
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -84.949996948
+Spyder: 
+	characterName: Spyder
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.500000000
+	z: -56.099998474
+Storm Trooper: 
+	characterName: Storm Trooper
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: -0.460000008
+	z: -91.010002136
+Treetop House: 
+	characterName: Treetop House
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: 0.250000000
+	z: -97.459999084
+Yansan: 
+	characterName: Yansan
+	crowd: Test Area Effect
+	Facing: 270
+	Pitch: 0
+	x: 234.470001221
+	y: 0.250000000
+	z: -103.910003662

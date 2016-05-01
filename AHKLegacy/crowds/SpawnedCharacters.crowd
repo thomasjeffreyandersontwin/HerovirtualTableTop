@@ -1,0 +1,206 @@
+﻿: 
+	name: 
+		name: 
+		Roster: 
+			Name: 
+Car 1: 
+	costume: none
+	crowd: 
+		Name: Car
+	model: V_Mayhem_Vehicle_Car03
+	name: Car 1
+	Relative: True
+car 10: 
+	costume: none
+	Crowd: 
+		Name: Car
+	DefaultMovement: 
+	model: V_Mayhem_Vehicle_Car02
+	name: car 10
+car 10 Truck: 
+	costume: none
+	Crowd: 
+		Name: Vehicles
+	model: P_ZoneEvent_Truck01
+	name: car 10 Truck
+car 11: 
+	costume: none
+	Crowd: 
+		Name: Car
+	DefaultMovement: 
+	model: V_Mayhem_Vehicle_Car03
+	name: car 11
+car 12: 
+	costume: none
+	Crowd: 
+		Name: Car
+	DefaultMovement: 
+	model: V_Mayhem_Vehicle_Car03b
+	name: car 12
+car 13: 
+	costume: none
+	Crowd: 
+		Name: Car
+	DefaultMovement: 
+	model: V_Mayhem_Vehicle_Car04
+	name: car 13
+car 15: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: P_ZoneEvent_Truck02
+	name: car 15
+car 16: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: V_Mayhem_Vehicle_Truck03
+	name: car 16
+car 17: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Vehicles
+	model: V_Mayhem_Vehicle_Truck04
+	name: car 17
+car 18: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: P_PPD_STDVan
+	name: car 18
+car 19: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: V_Mayhem_Vehicle_Car01b
+	name: car 19
+car 2: 
+	costume: 
+	crowd: 
+		Name: Car
+	model: 
+	name: car 2
+	Relative: True
+car 20: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: V_Mayhem_Vehicle_Car01
+	name: car 20
+car 3: 
+	costume: none
+	crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car01b
+	name: car 3
+	Relative: True
+car 4: 
+	costume: none
+	crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car02
+	name: car 4
+	Relative: True
+car 5: 
+	costume: none
+	crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car02b
+	name: car 5
+	Relative: True
+car 6: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car03
+	name: car 6
+Car 7: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car03b
+	name: Car 7
+car 8: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car04
+	name: car 8
+car 9: 
+	Ability: 
+	costume: none
+	Crowd: 
+		Name: Car
+	model: P_ZoneEvent_Car04b
+	name: car 9
+Klan Grand Dragon: 
+	costume: 
+	Crowd: 
+		Name: Aryan League
+	DefaultMovement: Fly
+	model: 
+	name: Klan Grand Dragon
+Ogun: 
+	costume: Ogun
+	Crowd: 
+		Name: Heroes
+	DefaultMovement: SteamJumpJetpack
+	model: none
+	name: Ogun
+Spyder: 
+	costume: Spyder
+	Crowd: 
+		Name: Heroes
+	CurrEndurance: 60
+	CurrStun: 48
+	DefaultMovement: Jump
+	MaxEndurance: 60
+	MaxStun: 48
+	model: none
+	name: Spyder
+Storm Trooper: 
+	costume: 
+	Crowd: 
+		Name: Aryan League
+	DefaultMovement: SteamJumpJetpack
+	model: 
+	name: Storm Trooper
+Targeter: 
+	costume: none
+	Crowd: 
+		Name: Heroes
+	DefaultMovement: 
+	model: Pet_Turret
+	name: Targeter
+TargetIcon: 
+	costume: none
+	Crowd: 
+		Name: 
+	DefaultMovement: 
+	model: Pet_Turret
+	name: TargetIcon
+TargetIcon1: 
+	costume: none
+	Crowd: 
+		Name: Heroes
+	DefaultMovement: 
+	model: Pet_Turret_Anchored
+	name: TargetIcon1
+The GM: 
+	name: The GM
+	oldName: UNNAMED
+UNNAMED: 
+	name: UNNAMED
+	oldName: UNNAMED
+Wooden crate (ï¿½ square): 
+	name: Wooden crate (ï¿½ square)
+	oldName: UNNAMED

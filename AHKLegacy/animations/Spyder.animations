@@ -1,0 +1,317 @@
+Become the Spyder!:
+	Sequence:AND
+	NumKey:
+	movs:
+		- G_SONICSUMMON
+		- powers\arachnoidcocoonspit.wav
+		- 
+			FX:/powers/Gadgets/webCage.fx
+			color1:
+				red:144
+				green:131
+				blue:135
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:1000
+Block:
+	Sequence:OR
+	NumKey:4
+	movs:
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- powers\Arachnos_soldier_pummel_swing_weapon.wav
+				- CRABPACK_MELEE_RIGHT
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- powers\Arachnos_soldier_pummel_swing_weapon.wav
+				- CRABPACK_MELEE_LEFT
+Block Left:
+	Sequence:AND
+	NumKey:
+	movs:
+		- powers\Arachnos_soldier_pummel_swing_weapon.wav
+		- CRABPACK_MELEE_LEFT
+Block Right:
+	Sequence:AND
+	NumKey:
+	movs:
+		- powers\Arachnos_soldier_pummel_swing_weapon.wav
+		- CRABPACK_MELEE_RIGHT
+Burst:
+	Sequence:AND
+	NumKey:
+	movs:
+Spider Away:
+	Sequence:AND
+	NumKey:5
+	movs:
+		- STEAM_DUALPISTOLS_JUMPJETPACK_APEX
+		- 
+			pause:500
+		- feet\Jump2.wav
+		- JUMP_UP_ESCAPE_POST
+		- powers\NinjaRun_WhooshFlip.wav
+		- 
+			pause:1000
+		- BEAST_CLAWS_JUMP_POST
+		- 
+			pause:200
+		- feet\Land3.wav
+Spider Sense:
+	Sequence:AND
+	NumKey:7
+	movs:
+		- 
+			FX:/CustomizeablePowers/Ninjitsu/DangerSenses2.fx
+			color1:
+				red:255
+				green:4
+				blue:11
+			color2:
+				red:255
+				green:255
+				blue:255
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- 
+			pause:1500
+		- DANGER_SENSE_CYCLE
+		- 
+			pause:500
+		- powers\AcuteSenses_Hit_01.wav
+Spider Strike:
+	Sequence:OR
+	NumKey:1
+	movs:
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- CRABPACK_MELEEBURST
+				- powers\Arachnos_soldier_pummel_swing_weapon.wav
+				- 
+					pause:2000
+				- powers\ToV_LightningStorm_Pet_02.wav
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- powers\Arachnos_soldier_pummel_swing_weapon.wav
+				- CRABPACK_MELEE_LEFT
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- powers\Arachnos_soldier_pummel_swing_weapon.wav
+				- CRABPACK_MELEE_RIGHT
+Spider Strike Burst:
+	Sequence:AND
+	NumKey:
+	movs:
+		- CRABPACK_MELEEBURST
+		- powers\Arachnos_soldier_pummel_swing_weapon.wav
+		- 
+			pause:2000
+		- powers\ToV_LightningStorm_Pet_02.wav
+Spider Taunt:
+	Sequence:AND
+	NumKey:
+	movs:
+Spider Web:
+	Sequence:AND
+	NumKey:2
+	movs:
+		- 
+			FX:/powers/Gadgets/WebBall.fx
+			color1:
+				red:148
+				green:152
+				blue:156
+			color2:
+				red:3
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- CRABPACK_SPRAYRIGHT
+		- 
+			pause:700
+		- powers\arachnoidwebspit.wav
+Spider WebBreak:
+	Sequence:AND
+	NumKey:
+	movs:
+		- WATER_BURST
+		- 
+			FX:/Explosions/Cocoon/CocoonBurst.fx
+			color1:
+				red:133
+				green:126
+				blue:131
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:100
+		- powers\cocoonexplo2.wav
+Spider WebHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/Gadgets/webCage.fx
+			color1:
+				red:121
+				green:128
+				blue:129
+			color2:
+				red:0
+				green:2
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- LASSOSTUN_CYCLE
+		- powers\arachnoidhit2.wav
+Spidey Fun:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MACE_SUMMON
+		- 
+			FX:/CustomizeablePowers/FireBlast/Inferno_Attack.fx
+			color1:
+				red:255
+				green:121
+				blue:0
+			color2:
+				red:227
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:100
+		- powers\Angelfireexplo.wav
+Spidey Stance:
+	Sequence:AND
+	NumKey:6
+	movs:
+		- VAMPIRECROUCH
+Spyder Dodge:
+	Sequence:OR
+	NumKey:3
+	movs:
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- EMOTE_COSTUMECHANGE_NINJA_JUMP
+				- powers\NinjaRun_WhooshJump.wav
+				- 
+					pause:1500
+				- feet\Land3.wav
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- LEAPKICK
+				- powers\NinjaRun_WhooshJump.wav
+				- 
+					pause:800
+				- powers\NinjaRun_WhooshJump.wav
+				- 
+					pause:800
+				- powers\NinjaRun_WhooshJump.wav
+				- 
+					pause:500
+Spyder Jump 1:
+	Sequence:AND
+	NumKey:
+	movs:
+		- LEAPKICK
+		- powers\NinjaRun_WhooshJump.wav
+		- 
+			pause:800
+		- powers\NinjaRun_WhooshJump.wav
+		- 
+			pause:800
+		- powers\NinjaRun_WhooshJump.wav
+		- 
+			pause:500
+Spyder Jump 2:
+	Sequence:AND
+	NumKey:
+	movs:
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- powers\NinjaRun_WhooshJump.wav
+		- 
+			pause:1500
+		- feet\Land3.wav
+Travels Like A Spider:
+	Sequence:AND
+	NumKey:8
+	movs:
+		- STEAM_DUALPISTOLS_JUMPJETPACK_APEX
+		- 
+			pause:200
+		- feet\Jump3.wav
+		- JUMP_UP_ESCAPE_POST
+		- powers\NinjaRun_WhooshFlip.wav
+		- 
+			pause:1000
+		- BEAST_CLAWS_JUMP_POST
+		- 
+			pause:200
+		- feet\Land3.wav
+

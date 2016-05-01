@@ -1,0 +1,95 @@
+Sacrifice Strike: 
+	NumKey:1
+	sequence:OR
+	movs:
+		- CRUSHING_UPPERCUT
+		- SPINNING_STRIKE
+		- ALTREADY_XARMS_LOOK
+		- RECLUSE_KNOCKUP
+		- SPINNING_STRIKE
+Counter Strike:
+	NumKey:2
+	sequence:OR
+	movs:
+		- 1H_POUND
+		- 1H_SWIPE
+		- GUTPUNCH
+		- 2H_SWIPE
+		- HEAVYBLOW
+		- INITIAL_STRIKE
+		- ONEHANDSMASH_LEFT
+		- SAVAGE_STRIKE
+		- SUPERPUNCH_R
+		- SUPERPUNCH_L
+Martial Strike:
+	NumKey:3
+	sequence:OR
+	movs:
+		- 1H_POUND
+		- 1H_SWIPE
+		- GUTPUNCH
+		- 2H_SWIPE
+		- HEAVYBLOW
+		- INITIAL_STRIKE
+		- ONEHANDSMASH_LEFT
+		- SAVAGE_STRIKE
+		- SUPERPUNCH_R
+		- SUPERPUNCH_L
+Martial Disarm:
+	NumKey:4
+	Sequence: AND
+	movs:
+		-  AXE_CHOP
+Martial Dodge:
+	NumKey:5
+	sequence:OR
+	movs:
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_BACKFLIP
+		- NINJA_CLAWS_FALL2
+Martial Throw: 
+	NumKey:6
+	sequence:OR
+	movs:
+		- DEFENSIVE_SWEEP_FAST_DRAW
+Spatial Awareness:
+	NumKey:7
+	Sequence:OR
+	movs:
+		- SURROUNDED_A
+		- SURROUNDED_A2
+		- SURROUNDED_A3
+		- SURROUNDED_A4
+Swinging: 
+	NumKey:8
+	sequence:OR
+	movs:
+		- STEAM_DUALPISTOLS_JUMPJETPACK_APEX
+Acrobatics:  
+	NumKey:9
+	sequence:OR
+	movs:
+		- EMOTE_BACKFLIP
+BreakFall:
+	NumKey:0
+	sequence:OR
+	movs:
+		- CLAWS_SPIN_LAND
+		
+Activate: 2HLARGE_THROWBRAWL
+Recovery: HIT_BOOST_D
+Stun Recovery:
+Pass Turn:EMOTE_GOAWAY
+Half Phase Action:
+Hold Action: BEAST_CLAWS_READY_FAST_ONE
+Martial Block:COMBATBLOCK_L
+Brawling:
+	- 
+		sequence:OR
+		movs:
+			- MELEE_FISTS_B
+			- MELEE_FISTS_B2
+			- MELEE_FISTS_A
+			- MELEE_FISTS_C
+			- MELEE_FISTS_C2
+			- MELEE_FISTS_D

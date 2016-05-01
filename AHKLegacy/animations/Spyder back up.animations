@@ -1,0 +1,68 @@
+Spider Strike:
+	NumKey: 1
+	sequence:OR
+	movs:
+		- CRABPACK_MELEEBURST
+		- CRABPACK_MELEE_RIGHT
+		- CRABPACK_MELEE_LEFT
+Spider Web:
+	NumKey: 2
+	sequence:AND
+	movs:
+		- CRABPACK_RANGEBURST
+Spider WebHit:
+	sequence:AND
+	movs:
+		- /CustomizeablePowers/Traps/webCage.fx
+		- 
+			pause 500
+		- LASSOSTUN_CYCLE
+Spyder Dodge:
+	NumKey: 3 
+	sequence: OR
+	movs:
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_BACKFLIP
+		- LEAPKICK
+		- LEAPKICKMID
+Travels Like A Spider:
+	NumKey: 4
+	sequence: AND
+	movs:
+		- STEAM_DUALPISTOLS_JUMPJETPACK_APEX
+		- BEAST_CLAWS_JUMP_POST
+Spider Away:
+	NumKey: 5
+	sequence: AND
+	movs:
+		- STEAM_DUALPISTOLS_JUMPJETPACK_APEX
+		- JUMP_UP_ESCAPE_POST
+		- BEAST_CLAWS_JUMP_POST
+Parry:
+	NumKey: 6
+	sequence:AND
+	movs:
+		- CRABPACK_MELEE_LEFT
+Spider Sense:
+	NumKey: 7
+	sequence:AND
+	movs:
+		-  DANGER_SENSE_CYCLE
+
+Spidey Stance:
+	NumKey: 8
+	sequence:AND
+	movs:
+		-  VAMPIRECROUCH
+Spidey Taunt:
+	NumKey: 9
+	sequence:AND
+	movs:
+		- MA_TAUNT
+Block:
+	sequence:AND
+	movs:
+		- CRABPACK_MELEE_LEFT_POST

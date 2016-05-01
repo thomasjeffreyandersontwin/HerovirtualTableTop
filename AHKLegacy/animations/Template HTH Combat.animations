@@ -1,0 +1,142 @@
+BoxHit:
+	Sequence:OR
+	NumKey:
+	movs:
+		- A_EMOTE_SHIELD_COSTUMECHANGE_DRINKFORMULA_POSTCYCLE
+		-  C_SPINNING_STRIKE_HIT
+Boxing:
+	Sequence:OR
+	NumKey:
+	movs:
+		- INITIAL_STRIKE_C
+		- INITIAL_STRIKE_B
+		- INITIAL_STRIKE
+Haymaker:
+	Sequence:OR
+	NumKey:
+	movs:
+		- CRUSHING_BLOW_FAST
+		- SS_TIER6_ALT1
+		- MA_TIER9_ALT1
+		- WINDUPCUT
+		- ASSASSINS_STRIKE
+		- CRUSHING_UPPERCUT
+		- PRECISE_STRIKE
+Slam Ground:
+	Sequence:AND
+	NumKey:
+	movs:
+		- A_EMOTE_SHIELD_COSTUMECHANGE_DRINKFORMULA_POSTCYCLE
+strike:
+	Sequence:OR
+	NumKey:
+	movs:
+		- 
+			FX:/powers/ItemsAndTempPowers/CorrosiveAcid/CorrosiveAcid_Attack.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- SS_TIER2_ALT1_LEFT
+		- SS_TIER2_ALT1_RIGHT
+		- 2H_SWIPE
+		- 
+			pause:1000
+		- MA_TIER2_ALT1
+		- 
+			pause:1000
+		- 1H_SWIPE
+		- 
+			pause:1000
+		- SUPERPUNCH_R
+		- 
+			pause:1000
+		- BODYBLOW
+		- S_PUNCHPOST_R
+StrikeHit:
+	Sequence:OR
+	NumKey:
+	movs:
+		- 2HLARGE_HITQUICK
+		- SHIELD_HITQUICK
+		- KUNGFUSPEED_REACT3
+		- KUNGFUSPEED_REACT2
+		- KUNGFUSPEED_REACT
+		- MELEE_FISTS_REACT_HIT_MID
+		- HITQUICK
+		- 
+			pause:1000
+		- MELEE_FISTS_REACT_HIT
+ThrowHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- AIR_DEATH
+GroundKick:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GROUND_KICK_CYCLE_STOMP_TWO
+		- GROUND_KICK_CYCLE_STOMP_ONE
+		- GROUND_KICK_CYCLE_STAND_TWO
+		- GROUND_KICK_CYCLE_STAND_THREE
+		- GROUND_KICK_CYCLE_PRE
+		- GROUND_KICK_CYCLE_PRE
+		- GROUND_KICK_CYCLE_KICK_TWO
+		- GROUND_KICK_CYCLE_KICK_THREE
+		- GROUND_KICK_CYCLE_KICK_ONE
+		- GROUND_KICK_CYCLE_KICK_FOUR
+GroundKickHit:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GROUND_KICK_RECEIVE_CYCLE_STOMP_TWO
+		- GROUND_KICK_RECEIVE_CYCLE_STOMP_ONE
+		- GROUND_KICK_RECEIVE_CYCLE_STAND_TWO
+		- GROUND_KICK_RECEIVE_CYCLE_STAND_THREE
+		- GROUND_KICK_RECEIVE_CYCLE_STAND_ONE
+		- GROUND_KICK_RECEIVE_CYCLE_PRE
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_TWO
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_THREE
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_ONE
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_FOUR
+GroundPunch:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GROUND_PUNCH
+Block:
+	Sequence:OR
+	NumKey:
+	movs:
+		-  SHIELD_BLOCK_R
+		-  SHIELD_BLOCK_L
+Brawling:
+	Sequence:AND
+	NumKey:
+	movs:
+		- Brawl
+		- BRAWLCYCLE
+		- MELEE_FISTS_D
+		- MELEE_FISTS_C2
+		- MELEE_FISTS_C
+		- MELEE_FISTS_B2
+		- MELEE_FISTS_B
+Dodge:
+	Sequence:AND
+	NumKey:
+	movs:
+		- c_dodge_l
+

@@ -1,0 +1,66 @@
+Dead:
+	Sequence:AND
+	NumKey:
+	movs:
+		- combat_effects.Dying
+Dead on the floor:
+	Sequence:OR
+	NumKey:
+	movs:
+		- Slab
+		- DEAD_GUARD_5
+		- DEAD_GUARD_4
+		- DEAD_GUARD_3
+		- DEAD_GUARD_2
+		- DEAD_GUARD_1
+Dump:
+	Sequence:AND
+	NumKey:
+	movs:
+		- RAGDOLL_BELLY
+Dying:
+	Sequence:OR
+	NumKey:
+	movs:
+		- DEFAULT_DEATH
+		- IMPACT_DEATH
+hit:
+	Sequence:OR
+	NumKey:
+	movs:
+		- JUMPJETPACK_DAMAGE
+		- HITQUICK
+		- HITQUICK
+Move throughHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- BF_P_GETPUSHED
+stunned:
+	Sequence:OR
+	NumKey:
+	movs:
+		- BROKEN
+		- BARF
+		- BODY_COLLAPSE_IN
+		- stun
+		- stun
+		- STUN
+		- STUN
+		- STUN
+		- STUN
+		- STUN
+		- STUN
+		- STUN
+ThrowHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- AIR_DEATH
+Unconsious:
+	Sequence:OR
+	NumKey:
+	movs:
+		- EMOTE_SWOON_PRE
+		- EMOTE_COLLAPSE_PRE
+

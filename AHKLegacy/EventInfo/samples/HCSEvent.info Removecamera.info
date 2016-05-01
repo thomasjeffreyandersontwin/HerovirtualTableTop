@@ -1,0 +1,17 @@
+Event: 
+	Name:RosterRemove
+character:
+	name:Spyder
+	costume:
+	model:
+	MaxStun:48
+	MaxEndurance:60
+	CurrStun:48
+	CurrEndurance:59
+	Crowd: 
+		Name:Test
+		Characters:
+			New Character:
+				name:New Character
+				costume:
+				model:

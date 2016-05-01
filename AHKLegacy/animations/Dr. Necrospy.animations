@@ -1,0 +1,42 @@
+Ionic Strike:
+	NumKey: 1
+	sequence: AND
+	movs:
+		- A_CLAWL
+Ionic Burst:
+	NumKey: 2
+	sequence:AND
+	movs:
+		- A_CLAWS_RAPIDBLAST
+
+Ionic BurstHit:
+	NumKey: 3
+	sequence:AND
+	movs:
+		- EMOTE_FEM_HIT_TO_FLOAT
+		- PLAYERKNOCKBACK_IMPACT
+Ionic ExplosionHit:
+	NumKey: 4
+	sequence:AND
+	movs:
+		- EMOTE_COSTUMECHANGE_NUKE
+
+Ionic ScramblerHit:	
+	NumKey: 5
+	sequence:AND
+	movs:
+		- EMOTE_FEM_STAND_TO_REACT
+Force Field:
+	NumKey: 6
+	Sequence: AND
+	movs:
+		- EMOTE_COSTUMECHANGE_INNERWILL
+
+Necro Slime:
+	sequence: AND
+	movs:
+		- A_CLAWL
+Necro SlimeHit:
+	sequence:AND
+	movs:
+		- ENC_PLANTTRAP_C

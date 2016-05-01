@@ -1,0 +1,34 @@
+DAreaBolt:
+	sequence: AND
+	movs:
+		-
+			sequence: OR
+			movs:
+				- SPELLCAST_CYCLE
+				- SPELLCAST_BLINDING
+		-
+			pause: 5000
+		- COMBAT2FLYREADY
+DNuclear:
+	sequence: AND
+	movs:	
+		- SPELLCAST_CYCLE2
+		-
+			pause: 5000
+		- COMBAT2FLYREADY
+DPowerBolt:
+	sequence: AND
+	movs:
+		- SPELLCAST_LEVITATE
+		-
+			pause: 10000
+		- COMBAT2FLYREADY
+DHold:HERO_SPELLCASTFEAR
+Descape:HERO_SCABSTFALL
+DHit: MALAISE_COLLAPSE 
+DFF: EMOTE_COSTUMECHANGE_VANGUARDSIGIL 
+DDisinigrate:DEMUTATE_POSTCYCLE
+DSpell1:GHOSTESCAPE
+Dspell2:EMOTE_COSTUMECHANGE_MURDEROFCROWS
+DSpell3:Forbidden_Knowledge
+DSPell4:Warshade_Extraction

@@ -1,0 +1,89 @@
+Smite The Wicked:
+	NumKey: 1
+	sequence: AND
+	movs:
+		-
+			sequence: OR
+			movs:
+				- BLUE_SPELLCAST_CYCLE
+				- BLUE_SPELLCAST_BLINDING
+		-
+			pause: 2500
+		- COMBAT2FLYREADY
+Fire Of the Holy:
+	NumKey: 2
+	sequence:AND
+	movs:
+		- A_EMOTE_COSTUMECHANGE_CAST_ONE
+Fire Of the HolyHit:
+	NumKey: 3
+	Sequence: AND
+	movs:
+		- Fireball
+		- 
+			delete: Fireball
+
+Fist of God:
+Hands Of Allah - Grab:
+	sequence:AND
+	movs:
+		- STOP
+Hands Of Allah - GrabHit:
+	Sequence: AND
+	movs: 
+		- SPECTRUMCOLLAPSE_CYCLE
+		- 
+			pause: 6000
+	NumKey: 4
+Force of Conviction:A_EMOTE_COSTUMECHANGE_CAST_ONE
+Force Of ConvictionHit:
+	Sequence: AND
+	movs:
+		- Model_Ward
+		- 
+			delete:Model_Ward
+	NumKey: 5
+Looking Upon God:
+	movs:
+		- 2HANDCAST
+		- 
+			pause: 1000
+		- Light_of_the_Well
+	sequence: AND
+Look:
+	NumKey: 6
+	movs:
+		- Light_of_the_Well
+	sequence: AND
+Holy Protection:
+	NumKey: 7
+	sequence: AND
+	movs:
+		- A_EMOTE_COSTUMECHANGE_VANGUARDSIGIL
+Travel Through The Land Unseen:
+	NumKey: 8
+	sequence: AND
+	movs:
+		- FAERIEWARP_RUNIN
+
+Providence Of Allah:
+	NumKey: 9
+	sequence:AND
+	movs:
+		- PRAETORIAN_TELEPORTOUT
+Providence Of AllahHit:
+	sequence:AND
+	movs:
+		- PRAETORIAN_TELEPORTOUT
+POHReturn:
+	sequence:AND
+	movs:
+		- PRAETORIAN_TELEPORTIN
+	ProvBack:FAERIEWARP_RUNIN
+Healing Through Enlightment:ENCOUNTER_CASTING_HEAL_KNEEL_CYCLE
+Gaze Of Allah: EMOTE_COSTUMECHANGE_CAST_ONE
+Wings Of Allah:
+	sequence:AND
+	movs:
+		-  COMBAT2FLYREADY
+	NumKey: 0

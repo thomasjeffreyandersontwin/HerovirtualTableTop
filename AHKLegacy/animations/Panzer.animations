@@ -1,0 +1,330 @@
+Haymaker:
+	Sequence:OR
+	NumKey:
+	movs:
+		- powers\TW_SweepingStrike_AttackSlow_01.wav
+		- 
+			Sequence:OR
+			NumKey:
+			movs:
+				- ARC_OF_DESTRUCTION_SLOW
+				- ARC_OF_DESTRUCTION_FAST
+				- A_SHATTER_ARMOR_SLOW
+				- A_SHATTER_ARMOR_FAST
+				- A_GUARD_SPIN
+		- PRECISE_STRIKE
+		- CRUSHING_UPPERCUT
+		- ASSASSINS_STRIKE
+		- WINDUPCUT
+		- MA_TIER9_ALT1
+		- SS_TIER6_ALT1
+Howitzer:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/EnergyBlast/Mega.fx
+			color1:
+				red:255
+				green:94
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- powers\Rocketlaunch5.wav
+		- CLOCKWORK_CHESTSPRAY
+		- 
+			pause:2500
+		- BEAST_GUN_READY_SLOW
+howitzerHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/V_COV/powers/ItemsAndTempPowers/Warburg/NuclearWeapon/NukeStrike_TEST.fx
+			color1:
+				red:0
+				green:0
+				blue:255
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:900
+		- W_C_SPINNING_STRIKE_HIT
+		- weapons\BigExtBlast2.wav
+LAW:
+	Sequence:AND
+	NumKey:1
+	movs:
+		- 
+			FX:/CustomizeablePowers/Pets/TurretGun/AutoTurret_Gunfire.fx
+			color1:
+				red:255
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- CLOCKWORK_CHESTSPRAY
+		- weapons\machgunBurst.wav
+LAWHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/CustomizeablePowers/Pets/TurretGun/TurrentHitLong.fx
+			color1:
+				red:243
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- SPEED_REACT
+		- 
+			FX:/CustomizeablePowers/Pets/TurretGun/TurrentHitLong.fx
+			color1:
+				red:243
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+SAM:
+	Sequence:AND
+	NumKey:2
+	movs:
+		- 
+			FX:/powers/Trial_Room_Powers/Sewer_Trial_Room/Particle_Accelerator/Sewer_Particle_Accelerator.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			FX:/powers/EnergyBlast/Mega.fx
+			color1:
+				red:0
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- CLOCKWORK_SHOULDERSPRAY
+		- powers\Rocketlaunch7.wav
+		- BEAST_GUN_READY_SLOW
+SAMHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- weapons\Bigboomexplo.wav
+		- 
+			FX:/Explosions/Large/Expolsion_large2.fx
+			color1:
+				red:226
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- KUNGFUSPEED_REACT2
+strike:
+	Sequence:AND
+	NumKey:3
+	movs:
+		- 
+			Sequence:OR
+			NumKey:
+			movs:
+				- 1H_SWIPE
+				- 
+					pause:1000
+				- MA_TIER2_ALT1
+				- 
+					pause:1000
+				- 2H_SWIPE
+				- 
+					pause:1000
+				- SS_TIER2_ALT1_RIGHT
+				- SS_TIER2_ALT1_LEFT
+				- GUTPUNCH
+		- powers\treetoss3.wav
+strike options:
+	Sequence:OR
+	NumKey:
+	movs:
+		- 1H_SWIPE
+		- 
+			pause:1000
+		- MA_TIER2_ALT1
+		- 
+			pause:1000
+		- 2H_SWIPE
+		- 
+			pause:1000
+		- SS_TIER2_ALT1_RIGHT
+		- SS_TIER2_ALT1_LEFT
+		- GUTPUNCH
+StrikeHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/SuperStrength/SuperStrength_KOBlow_Hit.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- C_VICIOUS_SLASH_HIT
+ThrowHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- AIR_DEATH
+		- AIR_DEATH
+Tow:
+	Sequence:AND
+	NumKey:4
+	movs:
+		- 
+			FX:/CustomizeablePowers/EnergyBlast/Mega.fx
+			color1:
+				red:255
+				green:120
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- weapons\rocketlaunch.wav
+		- CLOCKWORK_CHESTCANNON
+		- 
+			pause:3000
+		- BEAST_GUN_READY_SLOW
+TowHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/EnergyBlast/Faathim_Free.fx
+			color1:
+				red:255
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- C_VICIOUS_SLASH_HIT
+

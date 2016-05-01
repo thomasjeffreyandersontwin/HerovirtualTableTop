@@ -1,0 +1,470 @@
+Burst:
+	Sequence:AND
+	NumKey:
+	movs:
+		- C_FLYCYCLE
+		- powers\taunt4.wav
+		- feet\Land3.wav
+		- CRABPACK_MELEEBURST
+		- 
+			FX:/V_COV/powers/ArachnosSoldier/Child_MuzzleFlash_RapidFire.fx
+			color1:
+				red:255
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- powers\Arachnos_soldier_pummel_swing_weapon.wav
+		- A_CONSTANTBEAM
+		- 
+			pause:2800
+BurstHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/CustomizeablePowers/Pets/TurretGun/TurrentHitLong.fx
+			color1:
+				red:255
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- SPEED_REACT
+		- 
+			FX:/CustomizeablePowers/Pets/TurretGun/TurrentHitLong.fx
+			color1:
+				red:255
+				green:255
+				blue:6
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+cables:
+	Sequence:AND
+	NumKey:3
+	movs:
+		- 
+			FX:/V_COV/powers/ArachnosSoldier/Child_MuzzleFlash_Single.fx
+			color1:
+				red:255
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- A_BEAMRIFLE_SINGLESHOT
+cablesHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- LASSOSTUN_HIT
+Darkness:
+	Sequence:AND
+	NumKey:4
+	movs:
+		- 
+			FX:/powers/DarknessControl/DarknessBlast2.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- A_BEAMRIFLE_SINGLESHOT
+DarknessHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/V_COV/powers/Ninjitsu/Behemoth_Lord_Summon.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:700
+		- 
+			FX:/powers/StormSummoning/SSFog.fx
+			color1:
+				red:13
+				green:0
+				blue:12
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+Energy Blast:
+	Sequence:AND
+	NumKey:5
+	movs:
+		- 
+			FX:/CustomizeablePowers/KineticMelee/RepulsingTorrent_Attack.fx
+			color1:
+				red:255
+				green:0
+				blue:26
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- A_BEAMRIFLE_CHARGEDSHOT
+Energy BlastHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/Explosions/Large/Expolsion_large2.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- HITQUICK
+Hobble Kick:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/CustomizeablePowers/MartialAssault/StormKick.fx
+			color1:
+				red:0
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- MA_HOBBLEKICK
+Kick:
+	Sequence:AND
+	NumKey:6
+	movs:
+		- 
+			FX:/powers/MartialArts/HookKick.fx
+			color1:
+				red:0
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- MA_IRONKICK
+Martial Block:
+	Sequence:AND
+	NumKey:7
+	movs:
+		- PARRY
+Martial Dodge:
+	Sequence:AND
+	NumKey:8
+	movs:
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- 
+			pause:500
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP_POSTCYCLE
+		- 
+			pause:200
+		- EMOTE_BACKFLIP
+Martial Strike:
+	Sequence:AND
+	NumKey:9
+	movs:
+		- HEAVYBLOW
+		- SAVAGE_STRIKE
+		- ASSASSINS_STRIKE_B
+		- MA_TIER5_ALT1
+		- MA_IRONKICK
+		- MA_TIER3_ALT1
+Martial Throw:
+	Sequence:OR
+	NumKey:
+	movs:
+		- MA_TIER9_ALT1_2
+		- MA_TIER7_ALT1_RIGHT
+		- MA_TIER8_ALT1
+mini rocket bullets:
+	Sequence:AND
+	NumKey:1
+	movs:
+		- 
+			FX:/V_COV/powers/Thugs/F_ChildGunfire_ThugUzi_cone.fx
+			color1:
+				red:255
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- A_CONSTANTBEAM
+		- 
+			pause:1200
+		- weapons\machgun_short.wav
+		- 
+			pause:1200
+		- C_FLYCYCLE
+mini rocket bulletsHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/Explosions/Large/Expolsion_large2.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- HITQUICK
+Nerve Strike:
+	Sequence:AND
+	NumKey:
+	movs:
+		- A_MA_PALMSTUN
+Offensive Strike:
+	Sequence:AND
+	NumKey:
+	movs:
+		- KINETIC_ASSASSINS_WINDUP
+		- 
+			pause:2000
+		- KINETIC_ASSASSINS_STRIKE
+Offensive Strike 2:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MA_ASSASSINS_BLOW_ALT1_WINDUP
+		- 
+			pause:2000
+		- MA_ASSASSINS_BLOW_ALT1
+Offensive Strike Finish:
+	Sequence:OR
+	NumKey:
+	movs:
+		- MA_HOBBLEKICK
+		- MA_ROUNDHOUSE
+		- VORPAL_JUDGEMENT
+		- MA_TIER2_ALT1
+		- MA_TIER7_ALT1_RIGHT
+		- ASSASSINS_PSI_BLADE
+		- PSI_BLADE_GREAT
+Offensive Strike Prep:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MA_ASSASSINS_BLOW_ALT1_WINDUP
+Penetrating Rounds:
+	Sequence:AND
+	NumKey:2
+	movs:
+		- 
+			FX:/V_COV/EnemyPowers/PPD/Chaingun_Burst.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			PlayWithNext:True
+		- A_BEAMRIFLE_DISINTEGRATE
+Penetrating RoundsHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/CustomizeablePowers/SuperStrength/Alternate1/StrengthFootStomp.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- HITQUICK
+Rifle Draw:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/V_COV/Weapons/Robotics_Rifle.fx
+			color1:
+				red:0
+				green:0
+				blue:14
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			Persistent:True
+			PlayWithNext:True
+		- A_DRAW_BEAMRIFLE
+Sacrifice Strike:
+	Sequence:OR
+	NumKey:
+	movs:
+		- SPINNING_STRIKE
+		- SPINNING_STRIKE
+		- MA_STUNKICK
+		- MA_TIER9_ALT1
+		- MARTIALASSUALT_SPINNINGKICK
+

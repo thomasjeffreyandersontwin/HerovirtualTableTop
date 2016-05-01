@@ -1,0 +1,66 @@
+﻿A_SPEED_REAC: 
+	movs: 
+		- A_SPEED_REACT
+	NumKey: 0
+	Sequence: 
+data\\running.animation: data\\running.animations
+Off-Roa: 
+	movs: 
+		- Off-Road
+	NumKey: 0
+	Sequence: 
+SNAP_: 
+	movs: 
+		- SNAP_R
+	NumKey: 0
+	Sequence: 
+SPEAR_THROW_L_POS: 
+	movs: 
+		- SPEAR_THROW_L_POST
+	NumKey: 0
+	Sequence: 
+SPECTRUM_COVE: 
+	movs: 
+		- SPECTRUM_COVER
+	NumKey: 0
+	Sequence: 
+SPECTRUM_COVER_LOOK_LEF: 
+	movs: 
+		- SPECTRUM_COVER_LOOK_LEFT
+	NumKey: 0
+	Sequence: 
+SPECTRUM_COVER_LOOK_RIGH: 
+	movs: 
+		- SPECTRUM_COVER_LOOK_RIGHT
+	NumKey: 0
+	Sequence: 
+SPECTRUMCOLLAPSE_CYCL: 
+	movs: 
+		- SPECTRUMCOLLAPSE_CYCLE
+	NumKey: 0
+	Sequence: 
+SPECTRUMCOLLAPSE_I: 
+	movs: 
+		- SPECTRUMCOLLAPSE_IN
+	NumKey: 0
+	Sequence: 
+SPEEC: 
+	movs: 
+		- SPEECH
+	NumKey: 0
+	Sequence: 
+SPEED_REAC: 
+	movs: 
+		- SPEED_REACT
+	NumKey: 0
+	Sequence: 
+SPEEDDEAT: 
+	movs: 
+		- SPEEDDEATH
+	NumKey: 0
+	Sequence: 
+SPEEDDEATH: 
+	movs: 
+		- SPEEDDEATH2
+	NumKey: 0
+	Sequence: 
