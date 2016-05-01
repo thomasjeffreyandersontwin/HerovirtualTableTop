@@ -1,0 +1,1 @@
+#Include HeroVirtualTabletopEventLoader.ahk

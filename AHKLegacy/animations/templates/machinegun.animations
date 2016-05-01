@@ -1,0 +1,21 @@
+﻿data\\templates\machinegun.animation: data\\templates\machinegun.animations
+Machine Gun: 
+	movs: 
+		- SG_GROUND_T_AIR
+		- SG_GROUND_T_AIR_12
+		- SG_GROUND_T_AIR_2
+		- SG_GROUND_T_AIR_3
+		- SG_GROUND_T_AIR_4
+		- SG_GROUND_T_AIR_5
+		- SG_GROUND_T_AIR_6
+		- SG_GROUND_T_AIR_7
+		- SG_GROUND_T_AIR_8
+		- SG_GROUND_T_AIR_9
+		- SG_GROUND_T_AIR_10
+		- SG_GROUND_T_AIR_11
+	sequence: OR
+SNEAKTUR: 
+	movs: 
+		- SNEAKTURN
+	NumKey: 0
+	Sequence: 

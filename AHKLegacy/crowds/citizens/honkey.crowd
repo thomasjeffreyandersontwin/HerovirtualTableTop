@@ -1,0 +1,137 @@
+data\\test.crow: data\\test.crowd
+test10: 
+	model: MaleNPC_94
+	name: test10
+test11: 
+	model: MaleNPC_95
+	name: test11
+test12: 
+	model: MaleNPC_96
+	name: test12
+test13: 
+	model: MaleNPC_97
+	name: test13
+test17: 
+	model: MaleNPC_60
+	name: test17
+test18: 
+	model: MaleNPC_61
+	name: test18
+test58: 
+	model: FemaleNPC_64
+	name: test58
+test2: 
+	model: 
+	name: test2
+test60: 
+	model: FemaleNPC_65
+	name: test60
+test23: 
+	model: MaleNPC_65
+	name: test23
+test24: 
+	model: MaleNPC_66
+	name: test24
+test25: 
+	model: MaleNPC_67
+	name: test25
+test26: 
+	model: MaleNPC_67_Store
+	name: test26
+test27: 
+	model: MaleNPC_68
+	name: test27
+test32: 
+	model: MaleNPC_73
+	name: test32
+test33: 
+	model: MaleNPC_74
+	name: test33
+
+test39: 
+	model: MaleNPC_80
+	name: test39
+
+test41: 
+	model: MaleNPC_81
+	name: test41
+test42: 
+	model: MaleNPC_82
+	name: test42
+test43: 
+	model: MaleNPC_83
+	name: test43
+test76: 
+	model: FemaleNPC_77
+	name: test76
+test45: 
+	model: MaleNPC_85
+	name: test45
+test46: 
+	model: MaleNPC_86
+	name: test46
+test47: 
+	model: MaleNPC_87
+	name: test47
+test73: 
+	model: FemaleNPC_75
+	name: test73
+test75: 
+	model: FemaleNPC_76
+	name: test75
+Test48:
+	name: test48
+test49: 
+	model: MaleNPC_89
+	name: test49
+
+test50: 
+	model: MaleNPC_90
+	name: test50
+test51: 
+	model: MaleNPC_91
+	name: test51
+test52: 
+	model: MaleNPC_92
+	name: test52
+test53: 
+	model: MaleNPC_93
+	name: test53
+test54: 
+	model: MaleNPC_94
+	name: test54
+test55: 
+	model: MaleNPC_95
+	name: test55
+
+test8: 
+	model: MaleNPC_92 
+	name: test8
+test49: 
+	model: FemaleNPC_58
+	name: test49
+test5: 
+	model: FemaleNPC_05
+	name: test5f
+test50f: 
+	model: FemaleNPC_59
+	name: test50f
+test51f: 
+	model: FemaleNPC_59
+	name: test51f
+test52f: 
+	model: FemaleNPC_60
+	name: test52f
+test53f: 
+	model: FemaleNPC_61
+	name: test53f
+test66: 
+	model: FemaleNPC_71
+	name: test66
+test63: 
+	model: FemaleNPCtest68: 
+	model: FemaleNPC_73
+	name: test68
+test69: 
+	model: FemaleNPC_72
+	name: test69

@@ -1,0 +1,116 @@
+Activate:COMBAT2FLYREADY
+Sacrifice Strike: 
+	NumKey:1
+	sequence:OR
+	movs:
+		- A_CRUSHING_BLOW_FAST
+		- A_CRUSHING_BLOW_SLOW
+		- A_CRUSHING_UPPERCUT
+		- ALTREADY_XARMS_LOOK
+		- A_RECLUSE_KNOCKUP
+		- A_SPINNING_STRIKE
+Martial Strike:
+	NumKey:2
+	sequence:OR
+	movs:
+		- A_1_2PUNCH
+		- A_1HSLAM
+		- A_HEAVYBLOW
+		- A_INITIAL_STRIKE
+		- A_INITIAL_STRIKE_B
+		- A_ASSASSINS_STRIKE
+		- A_ASSASSINS_STRIKE_B
+		- SUPERPUNCH_R
+		- SUPERPUNCH_L
+Martial Dodge:
+	NumKey:3
+	sequence:OR
+	movs:
+		- a_EMOTE_COSTUMECHANGE_NINJA_JUMP
+
+FlyForward:  
+	NumKey:4
+	sequence:OR
+	movs:
+		- C_FLYINGCYCLE
+BackFly: 
+	NumKey:5
+	sequence:OR
+	movs:
+		- BACKFLYCYCLE
+
+FLyUp
+	NumKey:6
+	sequence:OR
+	movs:
+		- C_FLYUPCYCLE
+Land:
+	NumKey:7
+	sequence:OR
+	movs:
+		- BFLY_PREFALL
+Air - Strike:
+	NumKey:8
+	sequence:AND
+	movs:
+		- a_EMOTE_COSTUMECHANGE_PEACEBRINGER
+		-
+			pause:4000
+		- a_EMOTE_COSTUMECHANGE_PRESSURE_RELEASE_PRE
+		-
+			pause:2000
+		- a_EMOTE_COSTUMECHANGE_NUKE
+		-
+			pause:1500
+		- stun
+		- 
+			pause:2000
+		- DUALWIELD_KNEEL
+Air - StrikeHit:
+	NumKey: 8
+	sequence:AND
+	movs:
+		- EMOTE_COSTUMECHANGE_NUKE
+Stop:
+	NumKey: 9
+	sequence:AND
+	movs:		
+		- EMOTE_COSTUMECHANGE_INNERWILL
+Disperse:
+	NumKey: 0
+	sequence:AND
+	movs:
+		- 5THCOLUMNPORTAL_WARPIN
+Disperse and Stop:5THCOLUMNPORTAL_WARPIN
+
+
+Force and Stop:EMOTE_COSTUMECHANGE_INNERWILL
+
+Force, Disperse, Stop:
+	sequence:AND
+	movs:
+		- 5THCOLUMNPORTAL_WARPIN
+		-
+			pause: 1000
+		- EMOTE_COSTUMECHANGE_INNERWILL
+Force, and Disperse:5THCOLUMNPORTAL_WARPIN
+Protect_others
+	sequence:AND
+		movs:
+		- a_EMOTE_COSTUMECHANGE_POD_PERSON_PRE
+Recovery: HIT_BOOST_D
+Stun Recovery:
+Pass Turn:EMOTE_GOAWAY
+Half Phase Action:
+Hold Action: BEAST_CLAWS_READY_FAST_ONE
+Martial Block:COMBATBLOCK_L
+Brawling:
+	- 
+		sequence:OR
+		movs:
+			- MELEE_FISTS_B
+			- MELEE_FISTS_B2
+			- MELEE_FISTS_A
+			- MELEE_FISTS_C
+			- MELEE_FISTS_C2
+			- MELEE_FISTS_D

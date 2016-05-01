@@ -1,0 +1,32 @@
+﻿Klan Grand Dragon: 
+	characterName: Klan Grand Dragon
+	crowd: Aryan League
+	Facing: 45
+	Pitch: 0
+	x: 152.568481445
+	y: 0.251066208
+	z: -101.551109314
+Local Youth: 
+	characterName: Local Youth
+	crowd: Aryan League
+	Facing: 135
+	Pitch: 0
+	x: 182.778945923
+	y: -0.500335455
+	z: -64.577560425
+Panzer: 
+	characterName: Panzer
+	crowd: Aryan League
+	Facing: 292
+	Pitch: 0
+	x: 181.245330811
+	y: -0.500335455
+	z: -87.266830444
+Storm Trooper: 
+	characterName: Storm Trooper
+	crowd: Aryan League
+	Facing: 135
+	Pitch: 0
+	x: 157.807449341
+	y: -0.500335455
+	z: -65.593261719

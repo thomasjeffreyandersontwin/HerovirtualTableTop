@@ -1,0 +1,6 @@
+﻿data\\templates\power ranger.animation: data\\templates\power ranger.animations
+EMOTE_SHIELD_COSTUMECHANGE_BACKFLI: 
+	movs: 
+		- EMOTE_SHIELD_COSTUMECHANGE_BACKFLIP
+	NumKey: 0
+	Sequence: 

@@ -1,0 +1,93 @@
+Defensive Strike:
+	Sequence:OR
+	NumKey:
+	movs:
+		- MA_TIER1_ALT1
+		- MA_ASSASSINS_BLOW_ALT1
+		- QUICK_STRIKE_B
+		- MA_KICK
+		- KINETIC_ASSASSINS_STRIKE
+Martial Block:
+	Sequence:AND
+	NumKey:
+	movs:
+Martial Dodge:
+	Sequence:AND
+	NumKey:
+	movs:
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- 
+			pause:500
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP_POSTCYCLE
+		- 
+			pause:200
+		- EMOTE_BACKFLIP
+Martial Escape:
+	Sequence:AND
+	NumKey:
+	movs:
+		- WATER_BURST
+Martial Strike:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MA_TIER3_ALT1
+		- MA_IRONKICK
+		- MA_TIER5_ALT1
+		- ASSASSINS_STRIKE_B
+		- SAVAGE_STRIKE
+		- HEAVYBLOW
+Martial Throw:
+	Sequence:OR
+	NumKey:
+	movs:
+		- MA_TIER8_ALT1
+		- MA_TIER7_ALT1_RIGHT
+		- MA_TIER9_ALT1_2
+Nerve Strike:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MA_PALMSTUN
+Offensive Strike 2:
+	Sequence:AND
+	NumKey:
+	movs:
+		- KINETIC_ASSASSINS_WINDUP
+		- 
+			pause:2000
+		- KINETIC_ASSASSINS_STRIKE
+Offensive Strike 3:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MA_ASSASSINS_BLOW_ALT1_WINDUP
+		- 
+			pause:2000
+		- MA_ASSASSINS_BLOW_ALT1
+Offensive Strike Finish:
+	Sequence:OR
+	NumKey:
+	movs:
+		- PSI_BLADE_GREAT
+		- ASSASSINS_PSI_BLADE
+		- MA_TIER7_ALT1_RIGHT
+		- MA_TIER2_ALT1
+		- VORPAL_JUDGEMENT
+		- MA_ROUNDHOUSE
+		- MA_HOBBLEKICK
+Offensive Strike Prep:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MA_ASSASSINS_BLOW_ALT1_WINDUP
+Sacrifice:
+	Sequence:OR
+	NumKey:
+	movs:
+		- MARTIALASSUALT_SPINNINGKICK
+		- MA_TIER9_ALT1
+		- MA_STUNKICK
+		- SPINNING_STRIKE
+		- SPINNING_STRIKE
+

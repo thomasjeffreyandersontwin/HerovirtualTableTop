@@ -1,0 +1,30 @@
+Gangsta Tech:
+
+	NumKey: 1
+	sequence: AND
+	movs:
+		- DUALMGUNS_BURST
+Stim Boost:
+	NumKey: 2
+	sequence: AND
+	movs:
+		- EMOTE_COSTUMECHANGE_INJECTSERUM_PRE
+Full Mob:
+
+	NumKey: 1
+	sequence: AND
+	movs:
+		- DUALMGUNS_BURST
+Strong Mob:
+
+	NumKey: 1
+	sequence: AND
+	movs:
+		- DUALMGUNS_BURST
+Weak Mob:
+
+	NumKey: 1
+	sequence: AND
+	movs:
+		- DUALMGUNS_BURST
+

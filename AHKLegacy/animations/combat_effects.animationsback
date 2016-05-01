@@ -1,0 +1,103 @@
+
+
+knockback: 
+	Sequence: AND
+	movs:
+		-
+			Sequence: OR
+			movs: 
+				- PLAYERKNOCKBACK_APEX
+				- PLAYERKNOCKBACK
+		NumKey: 0
+KStraight: 
+	movs: 
+		- PLAYERKNOCKBACK
+	NumKey: 0
+	Sequence:
+KCurled: 
+	movs: 
+		- PLAYERKNOCKBACK_APEX
+	NumKey: 0
+	Sequence:
+KnockedDown: 
+	movs: 
+		- AIR_DEATH_IMPACT
+		- IMPACT_DEATH
+		- BUM_SLEEP1
+	NumKey: 0
+	Sequence: 
+dead: 
+	Sequence: AND
+	movs: 
+		-
+			sequence: OR
+			movs:
+				- IMPACT_DEATH
+				- DEFAULT_DEATH
+				- 
+		- 
+			pause:100
+		-
+			sequence: OR
+			movs:
+				- DEAD_GUARD_1
+				- DEAD_GUARD_2
+				- DEAD_GUARD_3
+				- DEAD_GUARD_4
+				- DEAD_GUARD_5
+				- SLAB
+				
+Move throughHit:BF_P_GETPUSHED	
+ThrowHit:P_PUSHDOWN
+dump:RAGDOLL_BELLY
+hit: 
+	Sequence: AND
+	movs:
+		- 
+			pause:100
+		-	
+			Sequence: OR
+			movs:
+				- C_SPINNING_STRIKE_HIT	
+				- C_SPINNING_STRIKE_HIT
+				- JUMPJETPACK_DAMAGE
+				- 
+					Sequence: AND
+					movs:
+						- HITQUICK
+						- HITQUICK
+				- 
+					Sequence: AND
+					movs:
+						- EMOTE_BAT_SMASH_REACT
+						- 
+							pause:500
+				- ENCOUNTER_KNEEL
+		- 
+			pause:100		
+	
+stunned: 
+	Sequence: AND
+	movs:
+		- 
+			Sequence: OR
+			movs:
+				- stun
+				- BODY_COLLAPSE_IN
+				- BARF
+				- BROKEN
+		-
+			pause:100
+ThrowHit: 
+	movs: 
+		- AIR_DEATH
+	NumKey: 0
+	Sequence: 
+Unconsious: 
+	movs: 
+		- EMOTE_COLLAPSE_PRE
+		- EMOTE_SWOON_PRE
+		- BODY_COLLAPSE_IN
+		- BODY_COLLAPSE_SHOR
+	NumKey: 0
+	Sequence: OR

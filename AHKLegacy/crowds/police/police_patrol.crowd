@@ -1,0 +1,57 @@
+﻿police1: 
+	model: PPD_Cop_01
+	name: police1
+police2: 
+	model: PPD_Cop_02
+	name: police2
+police3: 
+	model: PPD_Cop_03
+	name: police3
+police4: 
+	model: PPD_Cop_04
+	name: police4
+police5: 
+	model: PPD_Cop_05
+	name: police5
+police\police_patrol10: 
+	model: PPD_Cop_02
+	name: police\police_patrol10
+police\police_patrol11: 
+	model: PPD_Cop_03
+	name: police\police_patrol11
+police\police_patrol12: 
+	model: PPD_Cop_04
+	name: police\police_patrol12
+police\police_patrol13: 
+	model: PPD_Cop_05
+	name: police\police_patrol13
+police\police_patrol14: 
+	model: PPD_Cop_01
+	name: police\police_patrol14
+police\police_patrol15: 
+	model: PPD_Cop_02
+	name: police\police_patrol15
+police\police_patrol16: 
+	model: PPD_Cop_03
+	name: police\police_patrol16
+police\police_patrol17: 
+	model: PPD_Cop_02
+	name: police\police_patrol17
+police\police_patrol18: 
+	model: PPD_Cop_02
+	name: police\police_patrol18
+police\police_patrol19: 
+	model: PPD_Cop_02
+	name: police\police_patrol19
+police\police_patrol6: 
+	model: PPD_Cop_04
+	name: police\police_patrol6
+police\police_patrol7: 
+	model: PPD_Cop_05
+	name: police\police_patrol7
+police\police_patrol8: 
+	model: PPD_Cop_01
+	name: police\police_patrol8
+police\police_patrol9: 
+	model: PPD_Cop_02
+	name: police\police_patrol9

@@ -1,0 +1,26 @@
+﻿da372: 
+	movs: 
+		- 
+	NumKey: 0
+	Sequence: 
+data\\templates\ice.animation: data\\templates\ice.animations
+EMOTE_COSTUMECHANGE_ICEBLOC: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_ICEBLOCK
+	NumKey: 0
+	Sequence: 
+HIBERNAT: 
+	movs: 
+		- HIBERNATE
+	NumKey: 0
+	Sequence: 
+W_ICESLIDECYCL: 
+	movs: 
+		- W_ICESLIDECYCLE
+	NumKey: 0
+	Sequence: 
+W_ICESLIDECYCLE_: 
+	movs: 
+		- W_ICESLIDECYCLE_R
+	NumKey: 0
+	Sequence: 

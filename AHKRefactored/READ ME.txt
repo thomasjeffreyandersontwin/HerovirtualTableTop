@@ -1,0 +1,16 @@
+Quick Instructions:
+
+- Install the Titan Icon version of City Of Heroes @ http://paragonwiki.com/wiki/Titan_Icon
+- Place contents of this ZIP file into you City of Heroes folder you selected when installing Icon eg: c:\cityofheroes\HeroVirtualTableTop
+- Go to CItyOfHeores Folder folder and move contents up to your City of Heroes Folder
+- Start Titan Icon, pass the costume creator and go into the desktop
+- load the following keybind from the command prompt "/bind_load data\required_keybinds.txt"
+- launch HeroVirtualTableTop.exe in administration mode
+
+Keyboard Shortcuts
+C - Toggle Camera / Character
+P - Spawn Character
+H - Home in 
+M - Move Character to Camera
+Del - Clear Character
+T - Toggle Target Character

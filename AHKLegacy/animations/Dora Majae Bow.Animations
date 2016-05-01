@@ -1,0 +1,91 @@
+Protective Sphere:
+	NumKey:1
+	Sequence: AND
+	movs:
+		- EMOTE_COSTUMECHANGE_INNERWILL
+Draw A Weapon:
+	NumKey:2
+	Sequence: AND	
+	movs:
+		- BOW_SNIPERWINDUP_DRAW
+Atom Splitter:
+	NumKey:3
+	Sequence: AND
+	movs:
+		- M_TRAINBOW_MID
+		- ENC_CUSTOM_BOW_SHOOT1
+Defensive Block:
+	NumKey:4
+	Sequence: OR
+	movs:
+		- APPARITION_POSSESSOR
+		- APPARITION_POSSESSOR
+		- KATANA_PARRY
+		- KNIFE_PARRY
+Evade:
+	NumKey:5
+	Sequence: AND	
+	movs:
+		- SHIELD_CLAWS_SPIN_LAND
+Grapple Gun It Like MIcheal Keaton:
+	NumKey:6
+	Sequence: AND
+	movs:
+		- DUALWIELD_JUMPAPEX
+Breakfall: 
+	NumKey:7
+	Sequence: AND
+	movs:
+		- SHIELD_CLAWS_SPIN_LAND
+
+Martial Disarm:
+	NumKey:8
+	Sequence: AND
+	movs:
+		-  AXE_CHOP
+Patriotic Cheer:
+	NumKey:9
+	Sequence: AND
+	movs:
+		- ALIGNMENTPOWER_JUSTICE
+Readying Stance:
+	NumKey:0
+	Sequence: AND
+	movs:
+		-  ALT_PSIONICS_SLOWCAST
+Searing Energy Arrow:
+	Sequence: AND
+	movs:
+		- M_TRAINBOW_MID
+		- ENC_CUSTOM_BOW_SHOOT1
+Blinding Flare Arrow:BOW_ARC_DRAW
+Grapple Arrow: 	
+	Sequence: AND
+	movs:
+		- M_TRAINBOW_MID
+		- ENC_CUSTOM_BOW_SHOOT1
+Grapple ArrowHit:ENC_PLANTTRAP_C
+Concussion Arrow: 
+	Sequence: AND
+	movs:
+		- M_TRAINBOW_MID
+		- ENC_CUSTOM_BOW_SHOOT1
+PsionicScrambler:
+	Sequence: AND
+	movs:
+		- M_TRAINBOW_MID
+		- ENC_CUSTOM_BOW_SHOOT1
+Force Field: EMOTE_COSTUMECHANGE_INNERWILL
+PsionicScramblerHit:EMOTE_FEM_STAND_TO_REACT
+Activate:BOW_LOOKOUT_C
+Acrobatics: 
+	-
+		Sequence:OR
+		Movs:
+			- EMOTE_BACKFLIP
+			- NINJA_CLAWS_FALL2
+Set: BOWSNIPERWINDUP_CYCLE
+Dodge:
+	Sequence: AND	
+	movs:
+		- SHIELD_CLAWS_SPIN_LAND

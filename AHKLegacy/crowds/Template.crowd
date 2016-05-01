@@ -1,0 +1,33 @@
+﻿Kobold: 
+	characterName: Kobold
+	crowd: Template
+	Facing: 67
+	Pitch: 0
+	x: -14.640637398
+	y: 0.000000000
+	z: -94.657684326
+Mercenary: 
+	characterName: Mercenary
+	crowd: Template
+	Facing: 135
+	Pitch: 0
+	x: -21.623981476
+	y: -0.500335455
+	z: -71.731735229
+Ogun: 
+	characterName: Ogun
+	crowd: Template
+Spyder: 
+	characterName: Spyder
+	crowd: Template
+	Facing: 90
+	Pitch: 0
+	x: 3.902701616
+	y: -0.500335455
+	z: -79.007507324
+Storm trooper: 
+	characterName: Storm trooper
+	crowd: Template
+WORKINGHEX: 
+	characterName: WORKINGHEX
+	crowd: Template

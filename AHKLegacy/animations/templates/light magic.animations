@@ -1,0 +1,83 @@
+LHeal:ENCOUNTER_CASTING_HEAL_KNEEL_CYCLE
+LAreaBolt:
+	sequence: AND
+	movs:
+		-
+			sequence: OR
+			movs:
+				- BLUE_SPELLCAST_CYCLE
+				- BLUE_SPELLCAST_BLINDING
+		-
+			pause: 5000
+		- COMBAT2FLYREADY
+LDeflect:
+	sequence: AND
+	movs:	
+		- BLUE_SPELLCAST_CYCLE2
+		-
+			pause: 5000
+		- COMBAT2FLYREADY
+LPowerPolt:
+	sequence: AND
+	movs:
+		- BLUE_SPELLCAST_LEVITATE
+		-
+			pause: 10000
+		- COMBAT2FLYREADY
+LLight:
+	movs:
+		- 2HANDCAST
+		- 
+			pause: 1000
+		- Light_of_the_Well
+	sequence: AND
+LCast: 
+	movs: 
+		- 2HANDCAST
+		- MEGABLAST_2HANDCAST
+		- LIGHT_MAGICSTAFF_CAST
+		- ENFLAME
+	NumKey: 0
+	Sequence: OR
+LHold:EMOTE_COSTUMECHANGE_CAST_ONE
+LHoldHit: CAPTURED_CARNIVALOFLIGHT_CYCLE
+LHoldEscape: CAPTURED_NPC_FALL
+LBolt:EMOTE_COSTUMECHANGE_CAST_ONE
+LBoltHit: 
+	movs: 
+		- CAPTURED_RIKTIENERGY_CYCLE
+		- 
+			pause: 2000
+		- JUMPJETPACK_DAMAGE
+	sequence: AND
+LFF: EMOTE_COSTUMECHANGE_LIGHTMAGIC  
+
+lin2: CarnivalOfLight_TeleportIn
+lout2: CARNIVALOFLIGHT_TELEPORTOUT
+ltOut:
+	sequence: AND
+	movs:
+		- FAERIEWARP_RUNIN 
+		- 
+			pause: 1000
+		- TELEPORT_HIDE
+LTIn:FAERIEWARP_RUNOUT
+Lwall:Dispel_Magic
+LPower:
+	movs:
+		- ORACLEFLOAT_IN
+		- 
+			pause: 3000
+		ORACLEFLOAT_OUT
+	sequence: AND
+LDisinigrate:PRESTIGE_SELFDESTRUCT_WINDUP 	
+LSpell:Model_Trilogy
+LSPell2:Model_Ward
+LSword:Vorpal_Sword
+lspell3:MIRRORSPIRIT_TELEPORT 
+lspell4: SPAWN_GHOST
+LseeingGuide:   MAGICWALK_A
+
+lspell5:NINJAUPGRADE_HIT
+lspell6:ORACLEFLOAT_IN 
+lspell7:ORACLEFLOAT_OUT 

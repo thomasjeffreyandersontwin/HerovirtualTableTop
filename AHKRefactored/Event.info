@@ -1,0 +1,7 @@
+﻿Name: TestEvent
+parameters: 
+	counter: 5
+	string: FileBasedInfoString
+Subject: 
+	StateCounter: 5
+	StateString: FileBasedInfoString

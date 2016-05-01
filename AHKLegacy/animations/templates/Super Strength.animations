@@ -1,0 +1,41 @@
+SPunch: 
+	movs: 
+		- 1H_POUND
+		- ONEHANDSMASH_LEFT
+	NumKey: 0
+	Sequence: OR
+Throw Object: 
+	movs: 
+		- THROW_JUNK_A1
+		_- THROW_JUNK_A2
+	NumKey: 0
+	Sequence: OR
+GroundSmash: 
+	movs: 
+		- ABOMINATION_FIST_GROUND_POUND_LOCK
+	NumKey: 0
+	Sequence: 
+SBreath: BLOW
+Stomp:
+	sequence:or
+	movs:
+		- STOMP
+		- ABOMINATION_LEG_STOMP_ATTACK
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
