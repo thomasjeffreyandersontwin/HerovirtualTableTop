@@ -1,0 +1,15 @@
+Quick Instructions:
+
+- Install the Titan Icon varsion of City Of Heroes @ http://paragonwiki.com/wiki/Titan_Icon
+- Place contents of ZIP file into you City of Heroes folder you selected when installing Icon eg: c:\cityofheroes\HeroVirtualTableTop
+- Go to PlaceInCItyOfHeoresFolder folder and move contents up to your City of Heroes Folder
+- Go to PreRequesits folder and install Java (required for Hero Combat Simulator) and Access Runtime (required for HeroVirtualTableTopConfigFrontEnd) if you do not have Java or Access installed
+- Start Titan Icon, pass the costume creator and go into the desktop
+- load the following keybind from the command prompt "/bind_load data\custom_keybinds.txt"
+- launch HeroVirtualTableTopOrchestrator.exe in administration mode
+- start the HeroVirtualTableTopConfig.accdb to create characters, associate with animations, and build crowds
+- start the HeroCombatSimulator.jar to create champions characters, start a battle, etc
+
+Note: These instructions are really brief and definetly require work, if you are stuck ping me @ thomasjeffreyandersontwin@gmail.com I want to see others use this so will be happy to help eager adopters!
+
+I will also be uploading videos on how to install and use this utility, enjoy!
