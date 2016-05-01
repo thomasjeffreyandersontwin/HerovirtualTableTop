@@ -1,0 +1,14 @@
+#Include Yunit\Yunit.ahk
+#Include Yunit\Window.ahK
+#Include Yunit\StdOut.ahk
+
+#Include UIControlsTest.ahk
+#Include CityOfHeroesKeybindGeneratorTest.ahk
+#Include ManagedCharacterTest.ahk
+#Include CrowdTest.ahk
+#Include CrowdRepositoryTest.ahk
+#Include CharacterRepositoryTest.ahk
+
+
+
+
