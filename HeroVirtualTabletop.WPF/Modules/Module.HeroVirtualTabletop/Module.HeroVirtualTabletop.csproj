@@ -112,6 +112,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Identities\IdentitiesCollection.cs" />
     <Compile Include="Library\GameCommunicator\KeyBindsGenerator.cs" />
     <Compile Include="Identities\Identity.cs" />
     <Compile Include="Crowds\CrowdMember.cs" />

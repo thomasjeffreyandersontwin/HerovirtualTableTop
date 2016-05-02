@@ -8,12 +8,13 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly:InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 {
     public class KeyBindsGenerator
     {
         #region KeyBinds Strings
-        private Dictionary<GameEvent, string> _keyBindsStrings = new Dictionary<GameEvent, string>()
+        internal Dictionary<GameEvent, string> keyBindsStrings = new Dictionary<GameEvent, string>()
         {
             { GameEvent.TargetName , "target_name"},
             { GameEvent.PrevSpawn , "prev_spawn"},
@@ -46,7 +47,6 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
         #endregion
 
         private string directory;
-        private string bindFile;
 
         public KeyBindsGenerator()
         {
@@ -59,46 +59,92 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
                 directory = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
             }
 
-            bindFile = directory + LoaderKey + ".txt";
+            if (!Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            bindFile = Path.Combine(directory, loaderKey + ".txt");
         }
 
-        private GameEvent LastEvent;
-        private string GeneratedKeybindText;
-        private string TriggerKey = "Y";
-        private string LoaderKey = "B";
-        private string LastKeyBindGenerated;
+        private string bindFile;
+
+        public string BindFile
+        {
+            get
+            {
+                return bindFile;
+            }
+        }
+
+        private string triggerKey = "Y";
+
+        public string TriggerKey
+        {
+            get
+            {
+                return triggerKey;
+            }
+        }
+
+        private string loaderKey = "B";
+
+
+        private GameEvent lastEvent;
+        private string generatedKeybindText;
+        private string lastKeyBindGenerated;
 
         public string GenerateKeyBindsForEvent(GameEvent gameEvent, params string[] parameters)
         {
-            string generatedKeybindText = "";
-            string command = _keyBindsStrings[gameEvent];
+            lastEvent = gameEvent;
+
+            string GeneratedKeybindText = string.Empty;
+            string command = keyBindsStrings[gameEvent];
 
             foreach (string p in parameters)
             {
-                if (!string.IsNullOrEmpty(p))
+                if (!string.IsNullOrWhiteSpace(p))
                 {
-                    generatedKeybindText += " " + p.Trim();
-                    generatedKeybindText = generatedKeybindText.Trim();
+                    GeneratedKeybindText = string.Format("{0} {1}", GeneratedKeybindText, p.Trim());
+                    GeneratedKeybindText = GeneratedKeybindText.Trim();
                 }
             }
 
-            if (!string.IsNullOrEmpty(GeneratedKeybindText))
+            if (!string.IsNullOrWhiteSpace(GeneratedKeybindText))
             {
-                GeneratedKeybindText += "$$" + command + " " + generatedKeybindText;
+                if (!string.IsNullOrEmpty(this.generatedKeybindText))
+                {
+                    this.generatedKeybindText += string.Format("$${0} {1}", command, GeneratedKeybindText);
+                }
+                else
+                {
+                    this.generatedKeybindText = string.Format("{0} {1}", command, GeneratedKeybindText);
+                }
+
+                return string.Format("{0} {1}", command, GeneratedKeybindText);
             }
             else
             {
-                GeneratedKeybindText = command + " " + generatedKeybindText;
+                if (!string.IsNullOrEmpty(this.generatedKeybindText))
+                {
+                    this.generatedKeybindText += string.Format("$${0}", command);
+                }
+                else
+                {
+                    this.generatedKeybindText = command;
+                }
+
+                return command;
             }
-            LastEvent = gameEvent;
-            return command + " " + generatedKeybindText;
+
         }
 
         private string PopEvents()
         {
-            string generatedKeybindText = GeneratedKeybindText;
-            GeneratedKeybindText = "";
-            return "\"" + generatedKeybindText + "\"";
+            lastKeyBindGenerated = this.generatedKeybindText;
+            string GeneratedKeybindText = this.generatedKeybindText;
+            this.generatedKeybindText = "";
+            return string.Format("\"{0}\"", GeneratedKeybindText);
         }
 
         public string CompleteEvent()
@@ -114,9 +160,8 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             try
             {
-                LastKeyBindGenerated = GeneratedKeybindText;
                 command = PopEvents();
-                generatedKeyBindText = TriggerKey + " " + command;
+                generatedKeyBindText = triggerKey + " " + command;
                 StreamWriter SW = File.AppendText(bindFile);
                 SW.WriteLine(generatedKeyBindText);
                 SW.Close();
@@ -124,9 +169,15 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             catch
             {
                 System.Windows.MessageBox.Show("Invalid Filename: " + bindFile, "Error");
+                return null;
             }
 
             IntPtr hWnd = Utility.WindowsUtilities.FindWindow("CrypticWindow", null);
+
+            if (IntPtr.Zero == hWnd) //Game is not running
+            {
+                return command;
+            }
 
             Utility.WindowsUtilities.SetForegroundWindow(hWnd);
             Utility.WindowsUtilities.SetActiveWindow(hWnd);
@@ -136,11 +187,11 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             AutoItX3Lib.AutoItX3 input = new AutoItX3Lib.AutoItX3();
 
-            input.Send(LoaderKey.ToLower());
+            input.Send(loaderKey.ToLower());
 
             System.Threading.Thread.Sleep(250);
 
-            input.Send(TriggerKey.ToLower());
+            input.Send(triggerKey.ToLower());
 
             System.Threading.Thread.Sleep(250);
 

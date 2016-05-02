@@ -41,6 +41,8 @@ namespace Module.Shared
         public const string GAME_ICON_EXE_FILENAME = "icon.exe";
         public const string GAME_PROCESSNAME = "cityofheroes";
         public const string GAME_DATA_FOLDERNAME = "data";
+        public const string GAME_COSTUMES_FOLDERNAME = "costumes";
+        public const string GAME_COSTUMES_EXT = ".costume";
         public const string GAME_CROWD_REPOSITORY_FILENAME = "CrowdRepoTest.data";
         #endregion
 

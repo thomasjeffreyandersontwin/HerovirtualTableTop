@@ -16,6 +16,40 @@ namespace Module.HeroVirtualTabletop.Identities
     /// </summary>
     public class Identity : NotifyPropertyChanged, ICharacterOption
     {
+        #region ComparisonOverrides
+
+        public static bool operator ==(Identity a, Identity b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+            if ((object)a == null || (object)b == null)
+            {
+                return false;
+            }
+            return a.Name == b.Name && a.Surface == b.Surface && a.Type == b.Type;
+        }
+
+        public static bool operator !=(Identity a, Identity b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Identity)
+                return this == (Identity)obj;
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        #endregion
+
         private KeyBindsGenerator keyBindsGenerator;
 
         private string name;
@@ -89,8 +123,8 @@ namespace Module.HeroVirtualTabletop.Identities
                 isActive = value;
                 OnPropertyChanged("IsActive");
             }
-        } 
-        
+        }
+
         /// <param name="surface">Represents the name of the model or the costume to load</param>
         /// <param name="type">The type of the identity, it can be either a Model or a Costume</param>
         /// <param name="name">The name to be displayed for this identity</param>
@@ -99,6 +133,8 @@ namespace Module.HeroVirtualTabletop.Identities
             Type = type;
             Surface = surface;
             this.Name = name;
+            isDefault = false;
+            isActive = false;
             this.keyBindsGenerator = new KeyBindsGenerator();
         }   
 

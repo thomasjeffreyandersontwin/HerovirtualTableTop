@@ -54,9 +54,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         { 
             
         }
-        public CrowdMember(string name)
+        public CrowdMember(string name): base(name)
         {
-            this.Name = name;
+            //this.Name = name; //ALREADY HANDLED BY BASE CLASS
         }
     }
 }
