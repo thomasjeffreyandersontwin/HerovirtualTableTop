@@ -21,7 +21,7 @@
         </Grid.RowDefinitions>
         <crowd:CharacterMenuControl Grid.Row="0"/>
         <TreeView x:Name="treeViewCrowd" Grid.Row="1" ItemsSource="{Binding CrowdCollection}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
-                  Margin="0" MinHeight="250" MaxHeight="400"  HorizontalAlignment="Stretch"
+                  Margin="0" MinHeight="250" MaxHeight="400"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown"
                   behaviors:CommandBehavior.Event="SelectedItemChanged"
                   behaviors:CommandBehavior.Command="{Binding UpdateSelectedCrowdMemberCommand}"
                   behaviors:CommandBehavior.CommandParameter="{Binding ElementName=treeViewCrowd}"

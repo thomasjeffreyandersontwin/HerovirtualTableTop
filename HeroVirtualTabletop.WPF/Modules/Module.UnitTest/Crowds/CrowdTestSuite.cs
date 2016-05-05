@@ -4,6 +4,7 @@ using Microsoft.Practices.Unity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.Shared;
+using Module.Shared.Messages;
 using Moq;
 using Prism.Events;
 using System;
@@ -13,6 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Module.UnitTest.Crowd
 {
@@ -208,7 +210,7 @@ namespace Module.UnitTest.Crowd
         public void AddCrowd_CreatesNewCrowdInRepository() 
         {
             InitializeCrowdRepositoryMockWithList(new List<CrowdModel>());// Starting with an empty repository
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             crowdRepositoryMock.Verify(
                 a => a.SaveCrowdCollection(It.IsAny<Action>(),
@@ -225,7 +227,7 @@ namespace Module.UnitTest.Crowd
         public void AddCrowd_CreatesOnlyOneNewCrowdWithDefaultNameIfRepositoryIsEmpty()
         {
             InitializeCrowdRepositoryMockWithList(new List<CrowdModel>());
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
             var cmodel1 = crowdList.Where(cr => cr.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
@@ -241,7 +243,7 @@ namespace Module.UnitTest.Crowd
         public void AddCrowd_CreatesCrowdsWithUniqueNames()
         {
             InitializeCrowdRepositoryMockWithList(new List<CrowdModel>());
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -257,7 +259,7 @@ namespace Module.UnitTest.Crowd
         public void AddCrowd_CreatesStandAloneCrowdIfNoCrowdOrCharactersSelected()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = null;
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -272,7 +274,7 @@ namespace Module.UnitTest.Crowd
         public void AddCrowd_CreatesNewCrowdUnderSelectedCrowd()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming "Gotham City" is selected
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -293,13 +295,13 @@ namespace Module.UnitTest.Crowd
         {
             InitializeDefaultList(true);
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Assuming "Child Gotham City.1" is selected
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Assuming "The Narrows" is selected
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
             IEnumerable<ICrowdMember> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Crowd");
-            Assert.IsTrue(this.numberOfItemsFound == 3); // The added crowd should be in a total of 3 places - one stand alone and two nested positions
+            Assert.IsTrue(this.numberOfItemsFound == 4); // The added crowd should be in a total of 4 places - one stand alone and three nested positions under The Narrows
             CrowdModel crowdAdded = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == "Crowd").FirstOrDefault();
             Assert.IsNotNull(crowdAdded);
             CrowdModel crowd1 = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == "Gotham City").FirstOrDefault();
@@ -320,7 +322,7 @@ namespace Module.UnitTest.Crowd
         public void AddCrowd_CreatesNewCrowdAsStandAloneIfSelectedCrowdIsAllCharacters()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             // "All Characters" is the selected crowd as selecting a character under All Characters would also result in the containing crowd being selected in view model
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; 
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
@@ -373,7 +375,7 @@ namespace Module.UnitTest.Crowd
         public void AddCharacter_CreatesNewCharacterInRepository()
         {
             InitializeCrowdRepositoryMockWithList(new List<CrowdModel>());// Starting with an empty repository
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             crowdRepositoryMock.Verify(
                 a => a.SaveCrowdCollection(It.IsAny<Action>(),
@@ -389,7 +391,7 @@ namespace Module.UnitTest.Crowd
         public void AddCharacter_CreatesAllCharactersCrowdAndAddsNewCharacterUnderAllCharactersIfRepositoryIsEmpty()
         {
             InitializeCrowdRepositoryMockWithList(new List<CrowdModel>());
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
             var cmodel1 = crowdList.Where(cr => cr.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
@@ -404,7 +406,7 @@ namespace Module.UnitTest.Crowd
         public void AddCharacter_CreatesCharactersWithUniqueNames()
         {
             InitializeCrowdRepositoryMockWithList(new List<CrowdModel>());
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -421,7 +423,7 @@ namespace Module.UnitTest.Crowd
         public void AddCharacter_CreatesNewCharacterUnderAllCharactersIfNoCrowdOrCharacterIsSelected()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = null;
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -438,7 +440,7 @@ namespace Module.UnitTest.Crowd
         public void AddCharacter_CreatesNewCharacterUnderSelectedCrowd()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming "Gotham City" is selected
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -460,14 +462,14 @@ namespace Module.UnitTest.Crowd
         {
             InitializeDefaultList(true);
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Assuming "The Narrows" is selected
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
             IEnumerable<ICrowdMember> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Character");
-            // The added character should be in a total of 3 places - one under All Characters and twice under The Narrows as it appears in two places in the Crowd list
-            Assert.IsTrue(this.numberOfItemsFound == 3);
+            // The added character should be in a total of 4 places - one under All Characters and thrice under The Narrows as it appears in three places in the Crowd list
+            Assert.IsTrue(this.numberOfItemsFound == 4);
             CrowdModel crowdAllCharacters = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
             var cm1 = crowdAllCharacters.CrowdMemberCollection.Where(c => c.Name == "Character");
             Assert.IsNotNull(cm1);
@@ -489,7 +491,7 @@ namespace Module.UnitTest.Crowd
         public void AddCharacter_CreatesNewCharacterAsSiblingOfSelectedCharacter()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             // Assuming a character is selected under All Characters. Then All Characters is the selected crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0];
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
@@ -512,21 +514,192 @@ namespace Module.UnitTest.Crowd
         public void DeleteCrowd_RemovesCrowdFromRepository() 
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            InitializeMessageBoxService(MessageBoxResult.No); // Just Delete the crowd
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Selecting Gotham City to delete it
-            //characterExplorerViewModel.DeleteCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdParent = null; // The selected crowd is in main tree, not nested in another crowd
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             crowdRepositoryMock.Verify(
-                a => a.SaveCrowdCollection(It.IsAny<Action>(),
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
                     It.IsAny<List<CrowdModel>>()), Times.Once());
             crowdRepositoryMock.Verify(
-                a => a.SaveCrowdCollection(It.IsAny<Action>(),
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
                     It.Is<List<CrowdModel>>(cmList => cmList.Where(cm=>cm.Name == "Gotham City").FirstOrDefault() == null)));
+        }
+        /// <summary>
+        /// User should not be allowed to delete the All Characters crowd
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_PreventsUserFromDeletingAllCharactersCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; // Selecting All Characters to delete it
+            bool b = characterExplorerViewModel.DeleteCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(b); // The delete command will not be available to the user
+        }
+        /// <summary>
+        /// If the crowd is not in another crowd, rather in the main crowd collection, it will be removed from the main collection and repository
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_RemovesCrowdFromCrowdCollectionIfNotNestedWithinAnotherCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            InitializeMessageBoxService(MessageBoxResult.No); // Just Delete the crowd
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Selecting Gotham City to delete it
+            characterExplorerViewModel.SelectedCrowdParent = null; // Since the crowd is in main collection, there is no parent for this crowd
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            var crowd = crowdList.Where(cr => cr.Name == "Gotham City").FirstOrDefault();
+            Assert.IsNull(crowd);
+        }       
+        /// <summary>
+        /// If the crowd is in another crowd, it will be removed only from all instances of the containing crowd, but not from main collection or repository or any other crowd
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_RemovesCrowdOnlyFromContainingCrowdIfNestedWithinAnotherCrowd()
+        {
+            InitializeDefaultList(true);
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Selecting The Narrows for deletion
+            characterExplorerViewModel.SelectedCrowdParent = characterExplorerViewModel.CrowdCollection[1] as CrowdModel;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            var crowd = crowdList[1].CrowdMemberCollection.Where(c => c.Name == "The Narrows").FirstOrDefault();
+            Assert.IsNull(crowd);
+            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "The Narrows");
+            Assert.IsTrue(this.numberOfItemsFound > 0);
+            crowd = crowdList.Where(cr => cr.Name == "The Narrows").FirstOrDefault();
+            Assert.IsNotNull(crowd);
+        }
+        /// <summary>
+        /// A deletion attempt for a crowd in main collection should prompt the user about deleting contained characters
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_PromptsUserWithMessageBeforeDeletion()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Selecting Gotham City to delete it
+            characterExplorerViewModel.SelectedCrowdParent = null;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            messageBoxServiceMock.Verify(
+                msgservice => msgservice.ShowDialog(It.Is<string>(s => s == Messages.DELETE_CONTAINING_CHARACTERS_FROM_CROWD_PROMPT_MESSAGE),
+                    It.Is<string>(s => s == Messages.DELETE_CROWD_CAPTION), It.IsAny<MessageBoxButton>(), It.IsAny<MessageBoxImage>()), Times.Once);
+        }
+        /// <summary>
+        /// If user chooses to remove characters contained in a crowd as well as deleting the crowd, the crowd and only the crowd specific characters (not member of any other crowd)
+        /// should get removed
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_RemovesCrowdAndCrowdSpecificCharactersIfUserChoosesToRemoveContainedCharacters()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            InitializeMessageBoxService(MessageBoxResult.Yes); // Pre-configuring message box to decide to delete characters
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Selecting Gotham City to delete it
+            characterExplorerViewModel.SelectedCrowdParent = null;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Gotham City");
+            Assert.IsTrue(this.numberOfItemsFound == 0); // Gotham City Destroyed...
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Batman"); 
+            Assert.IsTrue(this.numberOfItemsFound == 0); // And no sign of Batman :(
+        }
+        /// <summary>
+        /// If user chooses to keep characters contained in a crowd, the characters remain under All Characters while the crowd gets deleted
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_RemovesCrowdButKeepsCharactersIfUserChoosesToKeepCharacters()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            InitializeMessageBoxService(MessageBoxResult.No); // Pre-configuring message box to decide not to delete characters
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Selecting Gotham City to delete it
+            characterExplorerViewModel.SelectedCrowdParent = null;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Gotham City");
+            Assert.IsTrue(this.numberOfItemsFound == 0); // Gotham City Destroyed...
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Batman");
+            Assert.IsTrue(this.numberOfItemsFound > 0); // But Batman still lives
+        }
+        /// <summary>
+        /// No removal of character or crowd happens if user cancels the request after being prompted
+        /// </summary>
+        [TestMethod]
+        public void DeleteCrowd_DoesNothingIfUserCancelsDeleteRequest()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            InitializeMessageBoxService(MessageBoxResult.Cancel); // Pre-configuring message box to cancel delete request
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Selecting Gotham City to delete it
+            characterExplorerViewModel.SelectedCrowdParent = null;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            var crowd = crowdList.Where(cr => cr.Name == "Gotham City").FirstOrDefault();
+            Assert.IsNotNull(crowd); // Crowd has not been deleted
         }
 
         #endregion
 
         #region Delete Character Tests
-        public void DeleteCrowdmemberFromCrowd_RemovesCrowdMemberFromCrowd() { }
+        /// <summary>
+        /// Character should be deleted from all instances of the containing crowd
+        /// </summary>
+        [TestMethod]
+        public void DeleteCharacter_RemovesCharacterFromCrowd() 
+        {
+            InitializeDefaultList(true);
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdMember = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection[0] as CrowdMember; // Selecting Scarecrow to delete
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // The Narrows is the selected crowd
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Scarecrow");
+            Assert.IsTrue(this.numberOfItemsFound == 1); // There is one occurrance of Scarecrow
+            var existingChar = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection.Where(cm => cm.Name == "Scarecrow").FirstOrDefault();
+            Assert.IsNotNull(existingChar); // The only one occurrance is in All Characters crowd
+        }
+        /// <summary>
+        /// User should be prompted before deleting a character from All Characters
+        /// </summary>
+        [TestMethod]
+        public void DeleteCharacter_PromptsUserBeforeRemovingFromAllCharacters()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0] as CrowdModel;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            messageBoxServiceMock.Verify(
+                msgservice => msgservice.ShowDialog(It.Is<string>(s => s == Messages.DELETE_CHARACTER_FROM_ALL_CHARACTERS_CONFIRMATION_MESSAGE),
+                    It.Is<string>(s => s == Messages.DELETE_CHARACTER_CAPTION), It.IsAny<MessageBoxButton>(), It.IsAny<MessageBoxImage>()), Times.Once);
+        }
+        /// <summary>
+        /// If deleting from All Characters, the character should be removed from repository
+        /// </summary>
+        [TestMethod]
+        public void DeleteCharacter_RemovesCharacterFromRepositoryIfDeletingFromAllCharacters()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            InitializeMessageBoxService(MessageBoxResult.Yes); // Pre-configuring message box to confirm delete request
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]as CrowdModel;
+            characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
+            crowdRepositoryMock.Verify(
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                    It.Is<List<CrowdModel>>(cmList => 
+                        cmList.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).First().CrowdMemberCollection.Where(c=>c.Name == "Batman").FirstOrDefault() == null)));
+        }
 
         #endregion
 

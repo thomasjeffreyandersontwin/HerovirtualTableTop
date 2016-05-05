@@ -23,6 +23,7 @@ using ApplicationShell.Models.Navigation;
 using Module.Shared;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Module.Shared.Messages;
 
 namespace ApplicationShell
 {
@@ -89,6 +90,7 @@ namespace ApplicationShell
         {
             System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
             dialog.ShowNewFolderButton = false;
+            dialog.Description = Messages.SELECT_GAME_DIRECTORY_MESSAGE;
             while(true)
             {
                 System.Windows.Forms.DialogResult dr = dialog.ShowDialog();
