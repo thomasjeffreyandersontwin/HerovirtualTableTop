@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Module.UnitTest
 {
@@ -29,10 +30,17 @@ namespace Module.UnitTest
                .Callback((Action action, List<CrowdModel> cm) => action());
         }
 
+        protected void InitializeMessageBoxService(MessageBoxResult messageBoxResult)
+        {
+            this.messageBoxServiceMock
+                .Setup(messageboxService => messageboxService.ShowDialog(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<MessageBoxButton>(), It.IsAny<MessageBoxImage>()))
+                .Returns(messageBoxResult);
+        }
+
         protected void InitializeDefaultList(bool nestCrowd = false)
         {
-            CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters"};
-            CrowdModel crowd1 = new CrowdModel { Name = "Gotham City"};
+            CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters" };
+            CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
             CrowdMember crowdMember1 = new CrowdMember { Name = "Batman" };
             CrowdModel childCrowd = new CrowdModel { Name = "The Narrows"};
             CrowdMember crowdMember2 = new CrowdMember { Name = "Scarecrow"};
@@ -45,7 +53,7 @@ namespace Module.UnitTest
             if (nestCrowd)
                 crowd2.CrowdMemberCollection.Add(childCrowd);
             crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, crowdMember2, crowdMember3};
-            this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2 };
+            this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2, childCrowd };
         }
 
         protected void DeleteTempRepositoryFile(string path = "test.data")

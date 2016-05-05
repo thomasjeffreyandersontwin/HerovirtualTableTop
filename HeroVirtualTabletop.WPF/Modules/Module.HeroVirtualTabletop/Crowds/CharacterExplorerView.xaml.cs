@@ -29,9 +29,39 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.DataContext = this.viewModel;
         }
 
-        private void treeViewCrowd_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            
+            TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
+
+            if (treeViewItem != null)
+            {
+                //treeViewItem.Focus();
+                if (treeViewItem.DataContext is CrowdModel)
+                {
+                    DependencyObject dObject = VisualTreeHelper.GetParent(treeViewItem); // got the immediate parent
+                    treeViewItem = dObject as TreeViewItem; // now get first treeview item parent
+                    while (treeViewItem == null)
+                    {
+                        dObject = VisualTreeHelper.GetParent(dObject);
+                        treeViewItem = dObject as TreeViewItem;
+                        if (dObject is TreeView)
+                            break;
+                    }
+                    if(treeViewItem != null)
+                        this.viewModel.SelectedCrowdParent = treeViewItem.DataContext as CrowdModel;
+                    else
+                        this.viewModel.SelectedCrowdParent = null;
+                }
+                else
+                    this.viewModel.SelectedCrowdParent = null;
+            }
+        }
+        private TreeViewItem VisualUpwardSearch(DependencyObject source)
+        {
+            while (source != null && !(source is TreeViewItem))
+                source = VisualTreeHelper.GetParent(source);
+
+            return source as TreeViewItem;
         }
     }
 }
