@@ -104,6 +104,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityInvertConverter.cs" />
+    <Compile Include="Converters\CharacterOptionComparerConverter.cs" />
     <Compile Include="Converters\InvertBooleanConverter.cs" />
     <Compile Include="Enumerations\Enums.cs" />
     <Compile Include="Error\ErrorItem.cs" />

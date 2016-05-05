@@ -48,6 +48,7 @@ namespace Module.HeroVirtualTabletop.Library
             
             // Just testing how things look at the moment...will change soon.
             LoadCharacterExplorer();
+            LoadCharacterEditor();
         }
 
         #endregion
@@ -63,6 +64,14 @@ namespace Module.HeroVirtualTabletop.Library
             System.Windows.Style style = Helper.GetCustomWindowStyle();
             CharacterExplorerViewModel characterExplorerViewModel = this.Container.Resolve<CharacterExplorerViewModel>();
             PopupService.ShowDialog("CharacterExplorerView", characterExplorerViewModel, "Character Explorer", false, null, new SolidColorBrush(Colors.Transparent), style);
+        }
+
+        private void LoadCharacterEditor()
+        {
+            System.Windows.Style style = Helper.GetCustomWindowStyle();
+            Characters.CharacterEditorViewModel characterEditorViewModel = this.Container.Resolve<Characters.CharacterEditorViewModel>();
+            characterEditorViewModel.EditedCharacter = new Characters.Character("Test Character");
+            PopupService.ShowDialog("CharacterEditorView", characterEditorViewModel, "Character Editor", false, null, new SolidColorBrush(Colors.Transparent), style);
         }
 
         #endregion

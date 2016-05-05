@@ -150,7 +150,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         private CrowdModel GetNewCrowdModel()
         {
-            
             string name = "Crowd";
             string suffix = string.Empty;
             int i = 0;

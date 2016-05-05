@@ -10,7 +10,7 @@ using System.ComponentModel;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
-    public class IdentitiesCollection : ObservableCollection<Identity>
+    public class IdentitiesCollection : OptionGroups.OptionGroup<Identity>
     {
         protected override void InsertItem(int index, Identity item)
         {
@@ -102,15 +102,8 @@ namespace Module.HeroVirtualTabletop.Identities
         public Identity NewIdentity
         {
             get
-            {
-                int i = 1;
-                string newIdName = "New Identity " + i.ToString();
-                while (this.Any((Identity id) => { return id.Name == newIdName; }))
-                {
-                    i++;
-                    newIdName = "New Identity " + i.ToString();
-                }
-                Identity tmp = new Identity("model_Statesman", IdentityType.Model, newIdName);
+            { 
+                Identity tmp = new Identity("model_Statesman", IdentityType.Model, NewValidOptionName("Identity"));
                 this.Add(tmp);
                 return tmp;
             }

@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.OptionGroups;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -118,6 +119,26 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             }
 
             return crowdModel;
+        }
+
+        #endregion
+
+        #region ListBox
+
+        public static object GetCurrentSelectedOptionInOptionGroup(Object lb)
+        {
+            ICharacterOption option = null;
+            ListBox listBox = lb as ListBox;
+
+            if (listBox != null && listBox.SelectedItem != null)
+            {
+                if (listBox.SelectedItem is ICharacterOption)
+                {
+                    option = listBox.SelectedItem as ICharacterOption;
+                }
+            }
+
+            return option;
         }
 
         #endregion

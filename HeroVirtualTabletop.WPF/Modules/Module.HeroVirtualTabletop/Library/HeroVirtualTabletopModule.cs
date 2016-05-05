@@ -1,6 +1,7 @@
 ﻿using Framework.WPF.Library;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library;
 using Module.HeroVirtualTabletop.Roster;
@@ -60,6 +61,7 @@ namespace Module.HeroVirtualTabletop
             IPopupService popupService = this.container.Resolve<IPopupService>();
             popupService.Register("CharacterExplorerView", typeof(CharacterExplorerView));
             popupService.Register("RosterExplorerView", typeof(RosterExplorerView));
+            popupService.Register("CharacterEditorView", typeof(CharacterEditorView));
 
             this.regionManager.RegisterViewWithRegion(RegionNames.Instance.HeroVirtualTabletopRegion, typeof(HeroVirtualTabletopMainView));
         }
@@ -76,6 +78,9 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<RosterExplorerView, RosterExplorerView>();
             this.container.RegisterType<RosterExplorerViewModel, RosterExplorerViewModel>();
+
+            this.container.RegisterType<CharacterEditorView, CharacterEditorView>();
+            this.container.RegisterType<CharacterEditorViewModel, CharacterEditorViewModel>();
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
         }

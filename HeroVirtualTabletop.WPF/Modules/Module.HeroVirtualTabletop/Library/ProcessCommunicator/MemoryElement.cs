@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 {
-    public class MemeoryElement : MemoryInstance, IMemoryElement
+    public class MemoryElement : MemoryInstance, IMemoryElement
     {
-        public MemeoryElement(bool initFromCurrentTarget = true) : base(initFromCurrentTarget) { }
+        public MemoryElement(bool initFromCurrentTarget = true) : base(initFromCurrentTarget) { }
 
         public string Label
         {

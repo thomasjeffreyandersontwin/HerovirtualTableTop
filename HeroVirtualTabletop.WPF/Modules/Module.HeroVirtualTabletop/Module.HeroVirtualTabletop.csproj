@@ -96,6 +96,8 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -112,7 +114,18 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Identities\IdentitiesCollection.cs" />
+    <Compile Include="Characters\CharacterEditorView.xaml.cs">
+      <DependentUpon>CharacterEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Characters\CharacterEditorViewModel.cs" />
+    <Compile Include="Characters\CharacterManagementMenuControl.xaml.cs">
+      <DependentUpon>CharacterManagementMenuControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Library\Utility\HashedBindableCollection.cs" />
+    <Compile Include="OptionGroups\OptionGroupView.xaml.cs">
+      <DependentUpon>OptionGroupView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OptionGroups\OptionGroupViewModel.cs" />
     <Compile Include="Library\GameCommunicator\KeyBindsGenerator.cs" />
     <Compile Include="Identities\Identity.cs" />
     <Compile Include="Crowds\CrowdMember.cs" />
@@ -129,6 +142,7 @@
     <Compile Include="Library\ProcessCommunicator\MemoryElementPosition.cs" />
     <Compile Include="Library\ProcessCommunicator\MemoryInstance.cs" />
     <Compile Include="OptionGroups\CharacterOption.cs" />
+    <Compile Include="OptionGroups\OptionGroup.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Crowds\CrowdRepository.cs" />
     <Compile Include="Library\Utility\Helper.cs" />
@@ -176,11 +190,23 @@
     <Folder Include="Movements\" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Characters\CharacterEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Characters\CharacterManagementMenuControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Crowds\CharacterExplorerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Crowds\CharacterMenuControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OptionGroups\OptionGroupView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -1,6 +1,7 @@
 ﻿using Framework.WPF.Library;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using System;
 using System.Collections.Generic;
@@ -8,11 +9,19 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Module.HeroVirtualTabletop.Library.GameCommunicator;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Module.Shared.Enumerations;
 
 namespace Module.HeroVirtualTabletop.Characters
 {
     public class Character : NotifyPropertyChanged
     {
+        //private KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+        //private bool hasBeenSpawned = false;
+        //private MemoryElement cohPlayer;
+
+
         public Character()
         {
             InitializeCharacter();
@@ -20,7 +29,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private void InitializeCharacter()
         {
-            availableIdentities = new IdentitiesCollection();
+            availableIdentities = new OptionGroup<Identity>();
         }
 
         public Character(string name): this()
@@ -77,26 +86,66 @@ namespace Module.HeroVirtualTabletop.Characters
             set
             {
                 name = value;
+                SetActiveIdentity();
                 OnPropertyChanged("Name");
             }
         }
-        
+
+        private Identity activeIdentity;
         public Identity ActiveIdentity
         {
             get
             {
-                return AvailableIdentities.Active;
+                if (activeIdentity == null || !availableIdentities.Contains(activeIdentity))
+                {
+                    ActiveIdentity = DefaultIdentity;
+                }
+                
+                return activeIdentity;
             }
 
             set
             {
-                AvailableIdentities.Active = value;
+                if (!availableIdentities.Contains(value))
+                {
+                    availableIdentities.Add(value);
+                }
+                activeIdentity = value;
                 OnPropertyChanged("ActiveIdentity");
             }
         }
 
-        private IdentitiesCollection availableIdentities;
-        public IdentitiesCollection AvailableIdentities
+        private Identity defaultIdentity;
+        public Identity DefaultIdentity
+        {
+            get
+            {
+                if (defaultIdentity == null || !availableIdentities.Contains(defaultIdentity))
+                {
+                    if (availableIdentities.Count > 0)
+                    {
+                        DefaultIdentity = availableIdentities[0];
+                    }
+                    else
+                    {
+                        DefaultIdentity = new Identity("model_Statesman", IdentityType.Model, "Base");
+                    }                    
+                }
+                return defaultIdentity;
+            }
+            set
+            {
+                if (!availableIdentities.Contains(value))
+                {
+                    availableIdentities.Add(value);
+                }
+                defaultIdentity = value;
+                OnPropertyChanged("DefaultIdentity");
+            }
+        }
+
+        private OptionGroup<Identity> availableIdentities;
+        public OptionGroup<Identity> AvailableIdentities
         {
             get
             {
@@ -108,5 +157,6 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("AvailableIdentities");
             }
         }
+
     }
 }
