@@ -121,7 +121,7 @@
     <Compile Include="Characters\CharacterManagementMenuControl.xaml.cs">
       <DependentUpon>CharacterManagementMenuControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Library\Utility\HashedBindableCollection.cs" />
+    <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="OptionGroups\OptionGroupView.xaml.cs">
       <DependentUpon>OptionGroupView.xaml</DependentUpon>
     </Compile>

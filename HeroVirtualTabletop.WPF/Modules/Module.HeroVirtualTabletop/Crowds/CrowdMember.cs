@@ -1,9 +1,11 @@
 ﻿using Module.HeroVirtualTabletop.Characters;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Crowds
@@ -20,6 +22,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         //string Save(string filename = null);
         //ICrowdMember Clone();
     }
+
+    public interface ICrowdMemberModel : ICrowdMember
+    {
+        bool IsExpanded { get; set; }
+        bool IsMatch { get; set; }
+        void ApplyFilter(string filter);
+    }
+
     public class CrowdMember : Character, ICrowdMember
     {
         private Crowd parent;
@@ -58,5 +68,54 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             //this.Name = name; //ALREADY HANDLED BY BASE CLASS
         }
+    }
+    public class CrowdMemberModel : CrowdMember, ICrowdMemberModel
+    {
+        private bool isExpanded;
+        [JsonIgnore]
+        public bool IsExpanded
+        {
+            get
+            {
+                return isExpanded;
+            }
+            set
+            {
+                isExpanded = value;
+                OnPropertyChanged("IsExpanded");
+            }
+        }
+
+        private bool isMatch = true;
+        [JsonIgnore]
+        public bool IsMatch
+        {
+            get
+            {
+                return isMatch;
+            }
+            set
+            {
+                isMatch = value;
+                OnPropertyChanged("IsMatch");
+            }
+        }
+
+        public void ApplyFilter(string filter)
+        {
+            if (string.IsNullOrEmpty(filter))
+            {
+                IsMatch = true;
+            }
+            else
+            {
+                Regex re = new Regex(filter, RegexOptions.IgnoreCase);
+                IsMatch = re.IsMatch(Name);
+            }
+            IsExpanded = IsMatch;
+        }
+
+        public CrowdMemberModel() : base() { }
+        public CrowdMemberModel(string name): base(name) { }
     }
 }

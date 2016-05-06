@@ -5,6 +5,7 @@
              xmlns:crowd="clr-namespace:Module.HeroVirtualTabletop.Crowds"
              xmlns:managedcharacter="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
+             xmlns:convertes="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d">
     <UserControl.Resources>
@@ -42,7 +43,8 @@
                 </ContextMenu>-->
                 <!--Will need to bind the source to a collection in viewmodel-->
                 <HierarchicalDataTemplate DataType="{x:Type crowd:CrowdModel}"
-                                    ItemsSource="{Binding CrowdMemberCollection}">
+                                    ItemsSource="{Binding CrowdMemberCollection}"
+                                    >
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
@@ -75,6 +77,15 @@
                     </Grid>
                 </DataTemplate>
             </TreeView.Resources>
+            <TreeView.ItemContainerStyle>
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource searchableTreeViewItem}">
+                    <Style.Resources>
+                        <convertes:BooleanToVisibilityConverter x:Key="boolToVisibility"></convertes:BooleanToVisibilityConverter>
+                    </Style.Resources>
+                    <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="Visibility" Value="{Binding Path=IsMatch, Mode=OneWay, Converter={StaticResource ResourceKey=boolToVisibility}}"/>
+                </Style>
+            </TreeView.ItemContainerStyle>
         </TreeView>
         <Border Grid.Row="1"  Style="{StaticResource SearchBox}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4 4 20 4">
             <Grid>
@@ -85,7 +96,7 @@
                 <Image Grid.Column="0" Source="pack://application:,,,/Module.Shared;Component/Resources/Images/Search.png"/>
                 <!--The following text binding won't work, will need to modify it later-->
                 <TextBox Grid.Column="1"                           
-                         Text="" />
+                         Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
             </Grid>
         </Border>
     </Grid>
