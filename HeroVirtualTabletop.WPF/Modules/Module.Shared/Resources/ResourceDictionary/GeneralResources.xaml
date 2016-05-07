@@ -363,7 +363,7 @@
                              FontFamily="{TemplateBinding FontFamily}"
                              FontWeight="{TemplateBinding FontWeight}"
                              TextWrapping="{TemplateBinding TextWrapping}"
-                             Foreground="White"
+                             
                              Padding="0,0,0,0"
                                        />
                         </ControlTemplate>
