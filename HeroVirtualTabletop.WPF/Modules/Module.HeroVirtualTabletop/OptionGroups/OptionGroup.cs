@@ -8,11 +8,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Framework.WPF.Library;
 
 namespace Module.HeroVirtualTabletop.OptionGroups
 {
 
-    public class OptionGroup<T> : HashedBindableCollection<T, string> where T : ICharacterOption
+    public class OptionGroup<T> : HashedObservableCollection<T, string> where T : ICharacterOption
     {
         public OptionGroup(): base(opt => { return opt.Name; })
         {

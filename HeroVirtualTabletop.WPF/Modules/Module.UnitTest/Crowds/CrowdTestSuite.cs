@@ -3,6 +3,7 @@ using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared;
 using Module.Shared.Messages;
 using Moq;
@@ -16,7 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Module.UnitTest.Crowd
+namespace Module.UnitTest.Crowds
 {
     #region Crowd Repository Test
     [TestClass]
@@ -91,10 +92,10 @@ namespace Module.UnitTest.Crowd
         {
             CrowdModel crowd = new CrowdModel { Name = "Test Crowd 1" };
             CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1" };
-            CrowdMember crowdMember1 = new CrowdMember { Name = "Test CrowdMember 1" };
-            CrowdMember crowdMember2 = new CrowdMember { Name = "Test CrowdMember 1.1" };
-            crowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd };
-            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember2 };
+            CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Test CrowdMember 1" };
+            CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Test CrowdMember 1.1" };
+            crowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember1, childCrowd };
+            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember2 };
             string testRepoFileName = "test.data";
             CrowdRepository crowdRepository = new CrowdRepository();
             crowdRepository.CrowdRepositoryPath = testRepoFileName;
@@ -108,7 +109,7 @@ namespace Module.UnitTest.Crowd
                 {
                     // More crowd members being added, repository shouldn't know
                     crowdCollection.Add(new CrowdModel() { Name = "New Crowd 1" });
-                    crowd.CrowdMemberCollection.Add(new CrowdMember() { Name = "New CrowdMember 1" });
+                    crowd.CrowdMemberCollection.Add(new CrowdMemberModel() { Name = "New CrowdMember 1" });
 
                     List<CrowdModel> retrievedCrowdList = null;
                     crowdRepository.GetCrowdCollection((List<CrowdModel> crowdList) =>
@@ -263,7 +264,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = null;
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Crowd");
             Assert.IsTrue(this.numberOfItemsFound == 1);
         }
@@ -278,7 +279,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming "Gotham City" is selected
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Crowd");
             Assert.IsTrue(this.numberOfItemsFound == 2);// The added crowd should be in a total of two places - one stand alone and one nested position
             CrowdModel crowdAdded = characterExplorerViewModel.CrowdCollection.Where(cm=>cm.Name == "Crowd").FirstOrDefault();
@@ -299,7 +300,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Assuming "The Narrows" is selected
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Crowd");
             Assert.IsTrue(this.numberOfItemsFound == 4); // The added crowd should be in a total of 4 places - one stand alone and three nested positions under The Narrows
             CrowdModel crowdAdded = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == "Crowd").FirstOrDefault();
@@ -327,7 +328,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; 
             characterExplorerViewModel.AddCrowdCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Crowd");
             Assert.IsTrue(this.numberOfItemsFound == 1); // The added crowd should be added only as a stand alone crowd
             CrowdModel crowdAdded = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == "Crowd").FirstOrDefault();
@@ -427,7 +428,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = null;
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Character");
             Assert.IsTrue(this.numberOfItemsFound == 1);
             var cm1 = crowdList.ToList()[0].CrowdMemberCollection.Where(c => c.Name == "Character").FirstOrDefault();
@@ -444,7 +445,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming "Gotham City" is selected
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Character");
             Assert.IsTrue(this.numberOfItemsFound == 2);// The added character should be in a total of two places - one under All Characters and one under Gotham City
             CrowdModel crowdAllCharacters = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
@@ -466,7 +467,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // Assuming "The Narrows" is selected
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Character");
             // The added character should be in a total of 4 places - one under All Characters and thrice under The Narrows as it appears in three places in the Crowd list
             Assert.IsTrue(this.numberOfItemsFound == 4);
@@ -496,7 +497,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0];
             characterExplorerViewModel.AddCharacterCommand.Execute(null);
             IEnumerable<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Character");
             Assert.IsTrue(this.numberOfItemsFound == 1); // The added character should be added under All Characters
             CrowdModel crowdAllCharacters = characterExplorerViewModel.CrowdCollection.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
@@ -569,7 +570,7 @@ namespace Module.UnitTest.Crowd
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
             var crowd = crowdList[1].CrowdMemberCollection.Where(c => c.Name == "The Narrows").FirstOrDefault();
             Assert.IsNull(crowd);
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "The Narrows");
             Assert.IsTrue(this.numberOfItemsFound > 0);
             crowd = crowdList.Where(cr => cr.Name == "The Narrows").FirstOrDefault();
@@ -604,7 +605,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdParent = null;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Gotham City");
             Assert.IsTrue(this.numberOfItemsFound == 0); // Gotham City Destroyed...
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Batman"); 
@@ -623,7 +624,7 @@ namespace Module.UnitTest.Crowd
             characterExplorerViewModel.SelectedCrowdParent = null;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Gotham City");
             Assert.IsTrue(this.numberOfItemsFound == 0); // Gotham City Destroyed...
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Batman");
@@ -658,11 +659,11 @@ namespace Module.UnitTest.Crowd
             InitializeDefaultList(true);
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection[0] as CrowdMember; // Selecting Scarecrow to delete
+            characterExplorerViewModel.SelectedCrowdMember = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Scarecrow to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // The Narrows is the selected crowd
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
-            IEnumerable<ICrowdMember> baseCrowdList = crowdList;
+            IEnumerable<ICrowdMemberModel> baseCrowdList = crowdList;
             CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Scarecrow");
             Assert.IsTrue(this.numberOfItemsFound == 1); // There is one occurrance of Scarecrow
             var existingChar = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection.Where(cm => cm.Name == "Scarecrow").FirstOrDefault();
@@ -676,7 +677,7 @@ namespace Module.UnitTest.Crowd
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0] as CrowdModel;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             messageBoxServiceMock.Verify(
@@ -692,7 +693,7 @@ namespace Module.UnitTest.Crowd
             InitializeCrowdRepositoryMockWithDefaultList();
             InitializeMessageBoxService(MessageBoxResult.Yes); // Pre-configuring message box to confirm delete request
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]as CrowdModel;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             crowdRepositoryMock.Verify(
@@ -704,7 +705,96 @@ namespace Module.UnitTest.Crowd
         #endregion
 
         #region Filter Character Tests
-        public void FilterCharacter_ReturnsFilteredListOfCrowdMemberAndCrowds() { }
+        [TestMethod]
+        public void FilterCrowdMembers_ReturnsFilteredListOfCrowdMembers()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = "Batman";
+
+            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatch; }).ToList();
+
+            Assert.AreEqual(matches.Count, 4); //Matches should be: All Character and Batman inside plus Gotham City and Batman inside
+        }
+        [TestMethod]
+        public void FilterCrowdMembers_EmptyFilterReturnsAll()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = string.Empty;
+
+            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatch; }).ToList();
+
+            Assert.AreEqual(matches.Count, GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Count);
+
+        }
+        [TestMethod]
+        public void FilterCrowdMembers_FilterIsNotCaseSensitive()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = "BaTmAn";
+
+            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatch; }).ToList();
+
+            Assert.AreEqual(matches.Count, 4); //Matches should be: All Character and Batman inside plus Gotham City and Batman inside
+        }
+        [TestMethod]
+        public void FilterCrowdMembers_IfCrowdIsMatchItsExpanded()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = "Gotham City";
+
+            CrowdModel gotham = characterExplorerViewModel.CrowdCollection.First(cr => { return cr.Name == "Gotham City"; });
+
+            Assert.IsTrue(gotham.IsMatch);
+            Assert.IsTrue(gotham.IsExpanded);
+
+        }
+        [TestMethod]
+        public void FilterCrowdMembers_IfCrowdIsMatchEveryCharacterInItIsMatch()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = "Gotham City";
+
+            CrowdModel gotham = characterExplorerViewModel.CrowdCollection.First(cr => { return cr.Name == "Gotham City"; });
+
+            foreach (ICrowdMemberModel cm in gotham.CrowdMemberCollection)
+            {
+                Assert.IsTrue(cm.IsMatch);
+            }
+        }
+        [TestMethod]
+        public void FilterCrowdMembers_IfCharacterIsMatchContainingCrowdIsMatch()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = "Batman";
+
+            CrowdModel gotham = characterExplorerViewModel.CrowdCollection.First(cr => { return cr.Name == "Gotham City"; });
+
+            Assert.IsTrue(gotham.IsMatch);
+        }
+        [TestMethod]
+        public void FilterCrowdMembers_IfCharacterIsMatchContainingCrowdIsExpanded()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+
+            characterExplorerViewModel.Filter = "Batman";
+
+            CrowdModel gotham = characterExplorerViewModel.CrowdCollection.First(cr => { return cr.Name == "Gotham City"; });
+            
+            Assert.IsTrue(gotham.IsExpanded);
+        }
 
         #endregion
 

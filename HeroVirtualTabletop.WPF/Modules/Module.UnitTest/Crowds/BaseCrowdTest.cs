@@ -41,7 +41,7 @@ namespace Module.UnitTest
         {
             CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters" };
             CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
-            CrowdMember crowdMember1 = new CrowdMember { Name = "Batman" };
+            CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Batman" };
             CrowdModel childCrowd = new CrowdModel { Name = "The Narrows"};
             CrowdMember crowdMember2 = new CrowdMember { Name = "Scarecrow"};
             crowd1.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd };
@@ -49,8 +49,8 @@ namespace Module.UnitTest
             CrowdMember crowdMember4 = new CrowdMember() { Name = "Robin" };
             crowd1.CrowdMemberCollection.Add(crowdMember4);
             CrowdModel crowd2 = new CrowdModel { Name = "League of Shadows" };
-            CrowdMember crowdMember3 = new CrowdMember { Name = "Ra'as Al Ghul"};
-            crowd2.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember3 };
+            CrowdMemberModel crowdMember3 = new CrowdMemberModel { Name = "Ra'as Al Ghul"};
+            crowd2.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember3 };
             if (nestCrowd)
                 crowd2.CrowdMemberCollection.Add(childCrowd);
             crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, crowdMember2, crowdMember3, crowdMember4};
@@ -63,7 +63,7 @@ namespace Module.UnitTest
         }
 
         protected int numberOfItemsFound = 0;
-        protected void CountNumberOfCrowdMembersByName(List<ICrowdMember> collection, string name)
+        protected void CountNumberOfCrowdMembersByName(List<ICrowdMemberModel> collection, string name)
         {
             foreach (ICrowdMember bcm in collection)
             {
@@ -79,5 +79,22 @@ namespace Module.UnitTest
                 }
             }
         }
+
+        protected List<ICrowdMemberModel> GetFlattenedMemberList(List<ICrowdMemberModel> list)
+        {
+            List<ICrowdMemberModel> _list = new List<ICrowdMemberModel>();
+            foreach (ICrowdMemberModel cm in list)
+            {
+                if (cm is CrowdModel)
+                {
+                    CrowdModel crm = (cm as CrowdModel);
+                    if (crm.CrowdMemberCollection != null && crm.CrowdMemberCollection.Count > 0)
+                        _list.AddRange(GetFlattenedMemberList(crm.CrowdMemberCollection.ToList()));
+                }
+                _list.Add(cm);
+            }
+            return _list;
+        }
+
     }
 }

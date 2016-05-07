@@ -27,6 +27,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
         private HashedObservableCollection<ICrowdMember, string> characterCollection;
+        private string filter;
 
         #endregion
 
@@ -76,8 +77,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private CrowdMember selectedCrowdMember;
-        public CrowdMember SelectedCrowdMember
+        private CrowdMemberModel selectedCrowdMember;
+        public CrowdMemberModel SelectedCrowdMember
         {
             get
             {
@@ -100,6 +101,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 selectedCrowdParent = value;
+            }
+        }
+
+        public string Filter
+        {
+            get
+            {
+                return filter;
+            }
+            set
+            {
+                filter = value;
+                OnPropertyChanged("Filter");
+                ApplyFilter();
             }
         }
 
@@ -274,7 +289,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
             CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
             this.SelectedCrowdModel = crowdModel;
-            this.SelectedCrowdMember = selectedCrowdMember as CrowdMember;
+            this.SelectedCrowdMember = selectedCrowdMember as CrowdMemberModel;
         }
         #endregion
 
@@ -289,7 +304,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             if(this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>();
+                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
             }
             // Update Repository asynchronously
@@ -321,19 +336,19 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
                 this.CrowdCollection.Add(crowdModelAllCharacters);
-                crowdModelAllCharacters.CrowdMemberCollection = new ObservableCollection<ICrowdMember>();
+                crowdModelAllCharacters.CrowdMemberCollection = new ObservableCollection<ICrowdMemberModel>();
                 this.characterCollection = new HashedObservableCollection<ICrowdMember, string>(crowdModelAllCharacters.CrowdMemberCollection,
                     (ICrowdMember c) => { return c.Name; });
             }
             // Add the Character under All Characters List
-            crowdModelAllCharacters.CrowdMemberCollection.Add(character as CrowdMember);
-            this.characterCollection.Add(character as CrowdMember);
+            crowdModelAllCharacters.CrowdMemberCollection.Add(character as CrowdMemberModel);
+            this.characterCollection.Add(character as CrowdMemberModel);
             // Also add the character under any currently selected crowd
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>();
-                this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMember);
+                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
+                this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMemberModel);
             }
             // Update Repository asynchronously
             this.SaveCrowdCollection();
@@ -348,7 +363,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 suffix = string.Format(" ({0})", ++i);
             }
-            return new CrowdMember(name + suffix);
+            return new CrowdMemberModel(name + suffix);
         }
 
         #endregion
@@ -544,6 +559,18 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void SaveCrowdCollectionCallback()
         {
             //this.BusyService.HideBusy();
+        }
+
+        #endregion
+
+        #region Filter CrowdMembers
+
+        private void ApplyFilter()
+        {
+            foreach (CrowdModel cr in CrowdCollection)
+            {
+                cr.ApplyFilter(filter);
+            }
         }
 
         #endregion

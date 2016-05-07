@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.Shared.Enumerations;
+using Newtonsoft.Json;
 
 namespace Module.HeroVirtualTabletop.Characters
 {
@@ -91,7 +92,53 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        private OptionGroup<Identity> availableIdentities;
+        [JsonProperty(Order = 0)]
+        public OptionGroup<Identity> AvailableIdentities
+        {
+            get
+            {
+                return availableIdentities;
+            }
+            set
+            {
+                availableIdentities = value;
+                OnPropertyChanged("AvailableIdentities");
+            }
+        }
+
+        private Identity defaultIdentity;
+        [JsonProperty(Order = 1)]
+        public Identity DefaultIdentity
+        {
+            get
+            {
+                if (defaultIdentity == null || !availableIdentities.Contains(defaultIdentity))
+                {
+                    if (availableIdentities.Count > 0)
+                    {
+                        DefaultIdentity = availableIdentities[0];
+                    }
+                    else
+                    {
+                        DefaultIdentity = new Identity("model_Statesman", IdentityType.Model, "Base");
+                    }
+                }
+                return defaultIdentity;
+            }
+            set
+            {
+                if (!availableIdentities.Contains(value))
+                {
+                    availableIdentities.Add(value);
+                }
+                defaultIdentity = value;
+                OnPropertyChanged("DefaultIdentity");
+            }
+        }
+
         private Identity activeIdentity;
+        [JsonProperty(Order = 2)]
         public Identity ActiveIdentity
         {
             get
@@ -115,48 +162,6 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private Identity defaultIdentity;
-        public Identity DefaultIdentity
-        {
-            get
-            {
-                if (defaultIdentity == null || !availableIdentities.Contains(defaultIdentity))
-                {
-                    if (availableIdentities.Count > 0)
-                    {
-                        DefaultIdentity = availableIdentities[0];
-                    }
-                    else
-                    {
-                        DefaultIdentity = new Identity("model_Statesman", IdentityType.Model, "Base");
-                    }                    
-                }
-                return defaultIdentity;
-            }
-            set
-            {
-                if (!availableIdentities.Contains(value))
-                {
-                    availableIdentities.Add(value);
-                }
-                defaultIdentity = value;
-                OnPropertyChanged("DefaultIdentity");
-            }
-        }
-
-        private OptionGroup<Identity> availableIdentities;
-        public OptionGroup<Identity> AvailableIdentities
-        {
-            get
-            {
-                return availableIdentities;
-            }
-            set
-            {
-                availableIdentities = value;
-                OnPropertyChanged("AvailableIdentities");
-            }
-        }
 
     }
 }
