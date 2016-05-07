@@ -18,6 +18,8 @@ namespace Module.Shared.Messages
         public const string DELETE_CROWD_CAPTION = "Delete Crowd";
         public const string DELETE_CHARACTER_FROM_ALL_CHARACTERS_CONFIRMATION_MESSAGE = "This will remove this character from the system. Are you sure?";
         public const string DELETE_CHARACTER_CAPTION = "Delete Character";
+        public const string DUPLICATE_NAME_MESSAGE = "Unable to rename as the provided name already exists.";
+        public const string DUPLICATE_NAME_CAPTION = "Rename Crowd/Character";
         #endregion
 
     }

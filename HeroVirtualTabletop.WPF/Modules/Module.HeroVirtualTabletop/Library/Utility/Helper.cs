@@ -12,6 +12,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.OptionGroups;
+using System.Reflection;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -122,6 +123,17 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             }
 
             return containingCrowdModel;
+        }
+
+        public static string GetTextFromControlObject(object control)
+        {
+            string text = null;
+            PropertyInfo propertyInfo = control.GetType().GetProperty("Text");
+            if (propertyInfo != null)
+            {
+                text = propertyInfo.GetValue(control).ToString();
+            }
+            return text;
         }
 
         #endregion

@@ -31,7 +31,19 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
 
         #region Events
+        public event EventHandler EditModeEnter;
+        public void OnEditModeEnter(object sender, EventArgs e)
+        {
+            if (EditModeEnter != null)
+                EditModeEnter(sender, e);
+        }
 
+        public event EventHandler EditModeLeave;
+        public void OnEditModeLeave(object sender, EventArgs e)
+        {
+            if (EditModeLeave != null)
+                EditModeLeave(sender, e);
+        }
         #endregion
 
         #region Public Properties
@@ -91,16 +103,18 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
+        public string OriginalName { get; set; }
+        public bool IsUpdatingCharacter { get; set; }
         #endregion
 
         #region Commands
 
         public DelegateCommand<object> AddCrowdCommand { get; private set; }
-
         public DelegateCommand<object> AddCharacterCommand { get; private set; }
-
         public DelegateCommand<object> DeleteCharacterCrowdCommand { get; private set; }
-
+        public DelegateCommand<object> EnterEditModeCommand { get; private set; }
+        public DelegateCommand<object> SubmitCharacterCrowdRenameCommand { get; private set; }
+        public DelegateCommand<object> CancelEditModeCommand { get; private set; }
         public ICommand UpdateSelectedCrowdMemberCommand { get; private set; }
 
         #endregion
@@ -126,19 +140,109 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.AddCrowdCommand = new DelegateCommand<object>(this.AddCrowd);
             this.AddCharacterCommand = new DelegateCommand<object>(this.AddCharacter);
             this.DeleteCharacterCrowdCommand = new DelegateCommand<object>(this.DeleteCharacterCrowd, this.CanDeleteCharacterCrowd);
-
+            this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode, this.CanEnterEditMode);
+            this.SubmitCharacterCrowdRenameCommand = new DelegateCommand<object>(this.SubmitCharacterCrowdRename);
+            this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
-
                 ExecuteDelegate = x =>
                     UpdateSelectedCrowdMember(x)
-
             };
         }
 
         #endregion
 
         #region Methods
+
+        #region Rename Character or Crowd
+
+        private bool CanEnterEditMode(object state)
+        { 
+            return !(this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMember == null);
+        }
+        private void EnterEditMode(object state)
+        {
+            if (this.SelectedCrowdMember != null)
+            {
+                this.OriginalName = SelectedCrowdMember.Name;
+                this.IsUpdatingCharacter = true;
+            }
+            else
+            {
+                this.OriginalName = SelectedCrowdModel.Name;
+                this.IsUpdatingCharacter = false;
+            }
+            OnEditModeEnter(state, null);
+        }
+
+        private void SubmitCharacterCrowdRename(object state)
+        {
+            if (this.OriginalName != null)
+            {
+                string updatedName = Helper.GetTextFromControlObject(state);
+                bool duplicateName = CheckDuplicateName(updatedName);
+                if (!duplicateName)
+                {
+                    RenameCharacterCrowd(updatedName);
+                    this.SaveCrowdCollection();
+                    OnEditModeLeave(state, null);
+                }
+                else
+                {
+                    messageBoxService.ShowDialog(Messages.DUPLICATE_NAME_MESSAGE, Messages.DUPLICATE_NAME_CAPTION, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    this.CancelEditMode(state);
+                }  
+            }
+            
+        }
+
+        private void CancelEditMode(object state)
+        {
+            if (this.IsUpdatingCharacter)
+                SelectedCrowdMember.Name = this.OriginalName;
+            else
+                SelectedCrowdModel.Name = this.OriginalName;
+            OnEditModeLeave(state, null);
+        }
+
+        private void RenameCharacterCrowd(string updatedName)
+        {
+            if (this.IsUpdatingCharacter)
+            {
+                SelectedCrowdMember.Name = updatedName;
+                this.characterCollection.UpdateKey(this.OriginalName, updatedName);
+                this.OriginalName = null;
+            }
+            else
+            {
+                SelectedCrowdModel.Name = updatedName;
+                this.CrowdCollection.UpdateKey(this.OriginalName, updatedName);
+                this.OriginalName = null;
+            }
+        }
+        private bool CheckDuplicateName(string updatedName)
+        {
+            bool isDuplicate = false;
+            if (updatedName != this.OriginalName)
+            {
+                if (this.IsUpdatingCharacter)
+                {
+                    if (this.characterCollection.ContainsKey(updatedName))
+                    {
+                        isDuplicate = true;
+                    }
+                }
+                else
+                {
+                    if (this.CrowdCollection.ContainsKey(updatedName))
+                    {
+                        isDuplicate = true;
+                    }
+                }
+            }
+            return isDuplicate;
+        }
+        #endregion
 
         #region Load Crowd Collection
         private void LoadCrowdCollection()

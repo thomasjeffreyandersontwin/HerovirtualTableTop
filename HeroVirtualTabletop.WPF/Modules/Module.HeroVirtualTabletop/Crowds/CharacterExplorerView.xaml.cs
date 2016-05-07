@@ -27,6 +27,26 @@ namespace Module.HeroVirtualTabletop.Crowds
 
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
+            this.viewModel.EditModeEnter+=viewModel_EditModeEnter;
+            this.viewModel.EditModeLeave += viewModel_EditModeLeave;
+        }
+
+        private void viewModel_EditModeEnter(object sender, EventArgs e)
+        {
+            TextBox txtBox = sender as TextBox;
+            Grid grid = txtBox.Parent as Grid;
+            TextBox textBox = grid.Children[1] as TextBox;
+            textBox.Visibility = Visibility.Visible;
+            textBox.Focus();
+            textBox.SelectAll();
+        }
+
+        private void viewModel_EditModeLeave(object sender, EventArgs e)
+        {
+            TextBox txtBox = sender as TextBox;
+            txtBox.Visibility = Visibility.Hidden;
+            BindingExpression expression = txtBox.GetBindingExpression(TextBox.TextProperty);
+            expression.UpdateSource(); 
         }
 
         private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -35,7 +55,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
             if (treeViewItem != null)
             {
-                //treeViewItem.Focus();
+                treeViewItem.Focus();
                 if (treeViewItem.DataContext is CrowdModel)
                 {
                     DependencyObject dObject = VisualTreeHelper.GetParent(treeViewItem); // got the immediate parent

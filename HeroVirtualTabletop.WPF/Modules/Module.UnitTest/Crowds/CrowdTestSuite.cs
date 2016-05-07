@@ -708,12 +708,67 @@ namespace Module.UnitTest.Crowd
 
         #endregion
 
-        #region Rename Character Tests
-        public void RenameCharacter_UpdatesRepoCorrectly() { }
-
+        #region Rename Character/Crowd Tests
+        /// <summary>
+        /// Repository should be updated properly after each rename
+        /// </summary>
+        [TestMethod]
+        public void RenameCharacterCrowd_UpdatesRepoCorrectly() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to Rename
+            characterExplorerViewModel.EnterEditModeCommand.Execute(null);
+            System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
+            txtBox.Text = "Bat";
+            characterExplorerViewModel.SubmitCharacterCrowdRenameCommand.Execute(txtBox);
+            crowdRepositoryMock.Verify(
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                    It.Is<List<CrowdModel>>(cmList =>
+                        cmList.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).First().CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault() == null)));
+            crowdRepositoryMock.Verify(
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                    It.Is<List<CrowdModel>>(cmList =>
+                        cmList.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).First().CrowdMemberCollection.Where(c => c.Name == "Bat").FirstOrDefault() != null)));
+        }
+        /// <summary>
+        /// Crowd or character should not be renamed to another crowd or character that already exists
+        /// </summary>
+        [TestMethod]
+        public void RenameCharacterCrowd_PreventsDuplication()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to Rename
+            characterExplorerViewModel.EnterEditModeCommand.Execute(null);
+            System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
+            txtBox.Text = "Robin"; // Trying to set a name that already exists
+            characterExplorerViewModel.SubmitCharacterCrowdRenameCommand.Execute(txtBox);
+            messageBoxServiceMock.Verify(
+                msgservice => msgservice.ShowDialog(It.Is<string>(s => s == Messages.DUPLICATE_NAME_MESSAGE),
+                    It.Is<string>(s => s == Messages.DUPLICATE_NAME_CAPTION), It.IsAny<MessageBoxButton>(), It.IsAny<MessageBoxImage>()), Times.Once); // Check if user was prompted
+            var characters = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection.Where(c => c.Name == "Robin");
+            Assert.IsTrue(characters.Count() == 1); // There should be only one character with name Robin
+            crowdRepositoryMock.Verify(
+               repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                   It.IsAny<List<CrowdModel>>()), Times.Never); // Repository should not be called as the rename is cancelled
+        }
+        /// <summary>
+        /// All Characters crowd cannot be renamed
+        /// </summary>
+        [TestMethod]
+        public void RenameCharacterCrowd_PreventsAllCharactersRename()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; // Selecting All Characters to rename
+            characterExplorerViewModel.SelectedCrowdMember = null;
+            bool canRename = characterExplorerViewModel.EnterEditModeCommand.CanExecute(null);
+            Assert.IsFalse(canRename);
+        }
         #endregion
 
-        #region Rename Crowd Tests
+        #region Spawn Character In Crowd Tests
         public void SpawnCharacterInCrowd_AssignsLabelWithBothCharacterAndCrowdName() { }
 
         #endregion

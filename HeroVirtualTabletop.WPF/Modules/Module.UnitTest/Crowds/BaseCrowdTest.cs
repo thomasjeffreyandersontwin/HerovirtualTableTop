@@ -46,13 +46,14 @@ namespace Module.UnitTest
             CrowdMember crowdMember2 = new CrowdMember { Name = "Scarecrow"};
             crowd1.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd };
             childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember2 };
-            crowd1.CrowdMemberCollection.Add(new CrowdMember() { Name = "Robin" });
+            CrowdMember crowdMember4 = new CrowdMember() { Name = "Robin" };
+            crowd1.CrowdMemberCollection.Add(crowdMember4);
             CrowdModel crowd2 = new CrowdModel { Name = "League of Shadows" };
             CrowdMember crowdMember3 = new CrowdMember { Name = "Ra'as Al Ghul"};
             crowd2.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember3 };
             if (nestCrowd)
                 crowd2.CrowdMemberCollection.Add(childCrowd);
-            crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, crowdMember2, crowdMember3};
+            crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, crowdMember2, crowdMember3, crowdMember4};
             this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2, childCrowd };
         }
 

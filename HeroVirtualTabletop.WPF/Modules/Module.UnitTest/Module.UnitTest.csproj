@@ -98,6 +98,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
@@ -126,12 +127,12 @@
     <Compile Include="Crowds\BaseCrowdTest.cs" />
     <Compile Include="Crowds\CrowdTestSuite.cs" />
     <Compile Include="GameCommunicator\KeyBindsGeneratorTest.cs" />
-    <Compile Include="Identities\IdentitiesTestSuite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Library\BaseTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Characters\" />
+    <Folder Include="Identities\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Frameworks\Framework.WPF\Framework.WPF.csproj">

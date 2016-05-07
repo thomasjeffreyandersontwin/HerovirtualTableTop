@@ -22,9 +22,6 @@
         <crowd:CharacterMenuControl Grid.Row="0"/>
         <TreeView x:Name="treeViewCrowd" Grid.Row="1" ItemsSource="{Binding CrowdCollection}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
                   Margin="0" MinHeight="250" MaxHeight="400"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown"
-                  behaviors:CommandBehavior.Event="SelectedItemChanged"
-                  behaviors:CommandBehavior.Command="{Binding UpdateSelectedCrowdMemberCommand}"
-                  behaviors:CommandBehavior.CommandParameter="{Binding ElementName=treeViewCrowd}"
                   >
             <TreeView.Resources>
                 
@@ -50,10 +47,24 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf0c0;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBlock x:Name="TextBlockHeader" Text="{Binding Path=Name}" Foreground="White"
-                                    />
-                            <TextBox x:Name="editableTextBoxHeader" Visibility="Hidden" MinWidth="100" Foreground="White"
-                                         Text="{Binding Name, UpdateSourceTrigger=LostFocus}"/>
+                            <TextBox x:Name="textBlockCrowd" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
+                                    >
+                                <TextBox.InputBindings>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
+                                    <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <TextBox x:Name="textBoxCrowd" Visibility="Hidden" MinWidth="100"
+                                         Text="{Binding Name, UpdateSourceTrigger=Explicit}">
+
+                                <behaviors:CommandBehaviorCollection.Behaviors>
+                                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.SubmitCharacterCrowdRenameCommand}" CommandParameter="{Binding ElementName=textBoxCrowd}"/>
+                                </behaviors:CommandBehaviorCollection.Behaviors>
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.SubmitCharacterCrowdRenameCommand}" CommandParameter="{Binding ElementName=textBoxCrowd}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxCrowd}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
                         </Grid>
                     </Grid>
                 </HierarchicalDataTemplate>
@@ -66,15 +77,30 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf234;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBlock x:Name="textBlockCharacter" Text="{Binding Path=Name}" 
-                                              />
-                            <TextBox x:Name="editableTextBoxCharacter" Visibility="Hidden" MinWidth="100"
-                                             Text="{Binding Path=Name, UpdateSourceTrigger=LostFocus}">                                
+                            <TextBox x:Name="textBlockCharacter" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
+                                              >
+                                <TextBox.InputBindings>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCharacter}"/>
+                                    <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockCharacter}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <TextBox x:Name="textBoxCharacter" Visibility="Hidden" MinWidth="100"
+                                             Text="{Binding Path=Name, UpdateSourceTrigger=Explicit}">
+                                <behaviors:CommandBehaviorCollection.Behaviors>
+                                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.SubmitCharacterCrowdRenameCommand}" CommandParameter="{Binding ElementName=textBoxCharacter}"/>
+                                </behaviors:CommandBehaviorCollection.Behaviors>
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.SubmitCharacterCrowdRenameCommand}" CommandParameter="{Binding ElementName=textBoxCharacter}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxCharacter}"/>
+                                </TextBox.InputBindings>
                             </TextBox>
                         </Grid>
                     </Grid>
                 </DataTemplate>
             </TreeView.Resources>
+            <behaviors:CommandBehaviorCollection.Behaviors>
+                <behaviors:BehaviorBinding Event="SelectedItemChanged" Command="{Binding UpdateSelectedCrowdMemberCommand}" CommandParameter="{Binding ElementName=treeViewCrowd}"/>
+            </behaviors:CommandBehaviorCollection.Behaviors>
         </TreeView>
         <Border Grid.Row="1"  Style="{StaticResource SearchBox}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4 4 20 4">
             <Grid>

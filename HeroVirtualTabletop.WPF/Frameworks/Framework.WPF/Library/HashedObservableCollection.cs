@@ -166,5 +166,17 @@ namespace Framework.WPF.Library
 
         }
 
+        public virtual bool UpdateKey(TKey oldKey, TKey newKey)
+        {
+            if (!indices.ContainsKey(oldKey)) 
+                return false;
+            
+            int x = indices[oldKey];
+            indices.Remove(oldKey);
+            TValue item = this[x];
+            indices.Add(newKey, x);
+            return true;
+        }
+
     }
 }
