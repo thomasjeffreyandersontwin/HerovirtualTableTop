@@ -60,12 +60,10 @@
         <Setter Property="TextElement.Foreground" Value="White"/>
         <Setter Property="TextElement.FontSize" Value="15"></Setter>
         <Setter Property="BorderThickness" Value="1.5"/>
-        <!--Need to bind the following in design, not resource file-->
-        <!--<Setter Property="IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}" />
-                    <Setter Property="Visibility" Value="{Binding Path=IsMatch, Mode=OneWay, Converter={StaticResource ResourceKey=boolToVisibility}}"/>-->
         <Style.Triggers>
             <Trigger Property="IsSelected" Value="True">
                 <Setter Property="BorderBrush" Value="#FFABC0F0"/>
+                <Setter Property="TextElement.Foreground" Value="Black"/>
             </Trigger>
             <MultiTrigger>
                 <MultiTrigger.Conditions>

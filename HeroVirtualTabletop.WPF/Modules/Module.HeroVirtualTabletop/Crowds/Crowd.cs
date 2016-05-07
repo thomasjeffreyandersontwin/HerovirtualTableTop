@@ -113,6 +113,10 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public void ApplyFilter(string filter)
         {
+            if (alreadyFiltered == true && isMatch == true)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(filter))
             {
                 IsMatch = true;
@@ -142,6 +146,17 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             
             IsExpanded = IsMatch;
+            alreadyFiltered = true;
+        }
+
+        private bool alreadyFiltered = false;
+        public void ResetFilter()
+        {
+            alreadyFiltered = false;
+            foreach (ICrowdMemberModel cm in CrowdMemberCollection)
+            {
+                cm.ResetFilter();
+            }
         }
 
         public CrowdModel() : base()

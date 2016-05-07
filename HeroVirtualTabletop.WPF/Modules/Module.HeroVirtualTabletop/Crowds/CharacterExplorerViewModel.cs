@@ -569,7 +569,12 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             foreach (CrowdModel cr in CrowdCollection)
             {
-                cr.ApplyFilter(filter);
+                cr.ResetFilter();
+            }
+
+            foreach (CrowdModel cr in CrowdCollection)
+            {
+                cr.ApplyFilter(filter); //Filter already check
             }
         }
 
