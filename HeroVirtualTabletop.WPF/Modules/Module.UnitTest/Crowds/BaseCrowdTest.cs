@@ -43,17 +43,17 @@ namespace Module.UnitTest
             CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Batman" };
             CrowdModel childCrowd = new CrowdModel { Name = "The Narrows"};
-            CrowdMember crowdMember2 = new CrowdMember { Name = "Scarecrow"};
-            crowd1.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, childCrowd };
-            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember2 };
-            CrowdMember crowdMember4 = new CrowdMember() { Name = "Robin" };
+            CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Scarecrow"};
+            crowd1.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember1, childCrowd };
+            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember2 };
+            CrowdMemberModel crowdMember4 = new CrowdMemberModel() { Name = "Robin" };
             crowd1.CrowdMemberCollection.Add(crowdMember4);
             CrowdModel crowd2 = new CrowdModel { Name = "League of Shadows" };
             CrowdMemberModel crowdMember3 = new CrowdMemberModel { Name = "Ra'as Al Ghul"};
             crowd2.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember3 };
             if (nestCrowd)
                 crowd2.CrowdMemberCollection.Add(childCrowd);
-            crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMember>() { crowdMember1, crowdMember2, crowdMember3, crowdMember4};
+            crowdAllChars.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember1, crowdMember2, crowdMember3, crowdMember4};
             this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2, childCrowd };
         }
 

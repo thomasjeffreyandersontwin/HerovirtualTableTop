@@ -146,7 +146,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public CrowdModel() : base()
         {
-            //this.CrowdMemberCollection = new ObservableCollection<ICrowdMember>(); Handled by base class
+            this.CrowdMemberCollection = new ObservableCollection<ICrowdMemberModel>();
         }
         public CrowdModel(string name) : base(name)
         {

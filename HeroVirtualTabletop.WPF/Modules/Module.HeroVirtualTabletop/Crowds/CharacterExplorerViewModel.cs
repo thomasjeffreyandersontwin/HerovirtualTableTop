@@ -26,7 +26,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private IMessageBoxService messageBoxService;
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
-        private HashedObservableCollection<ICrowdMember, string> characterCollection;
+        private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
         private string filter;
 
         #endregion
@@ -274,8 +274,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             CrowdModel allCharactersModel = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
             if (allCharactersModel == null)
                 allCharactersModel = new CrowdModel();
-            this.characterCollection = new HashedObservableCollection<ICrowdMember, string>(allCharactersModel.CrowdMemberCollection,
-                (ICrowdMember c) => { return c.Name; }
+            this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(allCharactersModel.CrowdMemberCollection,
+                (ICrowdMemberModel c) => { return c.Name; }
                 );
             //this.BusyService.HideBusy();
         }
@@ -285,7 +285,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Update Selected Crowd
         private void UpdateSelectedCrowdMember(object state)
         {
-            ICrowdMember selectedCrowdMember;
+            ICrowdMemberModel selectedCrowdMember;
             Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
             CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
             this.SelectedCrowdModel = crowdModel;
@@ -337,8 +337,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
                 this.CrowdCollection.Add(crowdModelAllCharacters);
                 crowdModelAllCharacters.CrowdMemberCollection = new ObservableCollection<ICrowdMemberModel>();
-                this.characterCollection = new HashedObservableCollection<ICrowdMember, string>(crowdModelAllCharacters.CrowdMemberCollection,
-                    (ICrowdMember c) => { return c.Name; });
+                this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
+                    (ICrowdMemberModel c) => { return c.Name; });
             }
             // Add the Character under All Characters List
             crowdModelAllCharacters.CrowdMemberCollection.Add(character as CrowdMemberModel);
@@ -428,7 +428,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     {
                         case System.Windows.MessageBoxResult.Yes:
                             // Delete crowd specific characters from All Characters and this crowd
-                            List<ICrowdMember> crowdSpecificCharacters = FindCrowdSpecificCrowdMembers(this.selectedCrowdModel);
+                            List<ICrowdMemberModel> crowdSpecificCharacters = FindCrowdSpecificCrowdMembers(this.selectedCrowdModel);
                             string nameOfDeletingCrowdModel = SelectedCrowdModel.Name;
                             DeleteCrowdMembersFromAllCrowdsByList(crowdSpecificCharacters);
                             DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowdModel);
@@ -455,17 +455,17 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.SaveCrowdCollection();
         }
 
-        private List<ICrowdMember> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
+        private List<ICrowdMemberModel> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
         {
-            List<ICrowdMember> crowdSpecificCharacters = new List<ICrowdMember>();
-            foreach (ICrowdMember cMember in crowdModel.CrowdMemberCollection)
+            List<ICrowdMemberModel> crowdSpecificCharacters = new List<ICrowdMemberModel>();
+            foreach (ICrowdMemberModel cMember in crowdModel.CrowdMemberCollection)
             {
-                if (cMember is CrowdMember)
+                if (cMember is CrowdMemberModel)
                 {
-                    CrowdMember currentCrowdMember = cMember as CrowdMember;
+                    CrowdMemberModel currentCrowdMember = cMember as CrowdMemberModel;
                     foreach (CrowdModel cModel in this.CrowdCollection.Where(cm => cm.Name != SelectedCrowdModel.Name))
                     {
-                        var crm = cModel.CrowdMemberCollection.Where(cm => cm is CrowdMember && cm.Name == currentCrowdMember.Name).FirstOrDefault();
+                        var crm = cModel.CrowdMemberCollection.Where(cm => cm is CrowdMemberModel && cm.Name == currentCrowdMember.Name).FirstOrDefault();
                         if (crm == null)
                         {
                             if (crowdSpecificCharacters.Where(csc => csc.Name == currentCrowdMember.Name).FirstOrDefault() == null)
@@ -498,7 +498,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             var charFromAllCrowd = characterCollection.Where(c => c.Name == nameOfDeletingCrowdMember).FirstOrDefault();
             this.characterCollection.Remove(charFromAllCrowd);
         }
-        private void DeleteCrowdMemberFromCharacterCollectionByList(List<ICrowdMember> crowdMembersToDelete)
+        private void DeleteCrowdMemberFromCharacterCollectionByList(List<ICrowdMemberModel> crowdMembersToDelete)
         {
             foreach(var crowdMemberToDelete in crowdMembersToDelete)
             {
@@ -507,14 +507,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private void DeleteCrowdMembersFromAllCrowdsByList(List<ICrowdMember> crowdMembersToDelete)
+        private void DeleteCrowdMembersFromAllCrowdsByList(List<ICrowdMemberModel> crowdMembersToDelete)
         {
             foreach (CrowdModel cModel in this.CrowdCollection)
             {
                 DeleteCrowdMembersFromCrowdModelByList(cModel, crowdMembersToDelete);
             }
         }
-        private void DeleteCrowdMembersFromCrowdModelByList(CrowdModel crowdModel, List<ICrowdMember> crowdMembersToDelete)
+        private void DeleteCrowdMembersFromCrowdModelByList(CrowdModel crowdModel, List<ICrowdMemberModel> crowdMembersToDelete)
         {
             if (crowdModel.CrowdMemberCollection != null)
             {
