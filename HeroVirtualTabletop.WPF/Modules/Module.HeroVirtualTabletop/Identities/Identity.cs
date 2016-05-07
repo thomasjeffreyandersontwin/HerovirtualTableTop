@@ -132,7 +132,7 @@ namespace Module.HeroVirtualTabletop.Identities
         {
             Type = type;
             Surface = surface;
-            this.Name = name;
+            this.Name = name == null ? surface : name;
             isDefault = false;
             isActive = false;
             this.keyBindsGenerator = new KeyBindsGenerator();

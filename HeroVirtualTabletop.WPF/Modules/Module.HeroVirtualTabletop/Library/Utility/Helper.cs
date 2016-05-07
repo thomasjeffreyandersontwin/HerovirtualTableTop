@@ -94,7 +94,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         #region TreeView
 
-        public static object GetCurrentSelectedCrowdInCrowdCollection(Object tv, out ICrowdMember crowdMember)
+        public static object GetCurrentSelectedCrowdInCrowdCollection(Object tv, out ICrowdMemberModel crowdMember)
         {
             CrowdModel containingCrowdModel = null;
             crowdMember = null;
@@ -110,7 +110,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     DependencyObject dObject = treeView.GetItemFromSelectedObject(treeView.SelectedItem);
                     TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
-                    crowdMember = tvi.DataContext as ICrowdMember;
+                    crowdMember = tvi.DataContext as ICrowdMemberModel;
                     dObject = VisualTreeHelper.GetParent(tvi); // got the immediate parent
                     tvi = dObject as TreeViewItem; // now get first treeview item parent
                     while (tvi == null)
