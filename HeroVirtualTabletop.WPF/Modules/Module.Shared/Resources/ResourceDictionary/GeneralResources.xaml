@@ -57,6 +57,11 @@
     </Style>
 
     <Style TargetType="{x:Type TreeViewItem}" x:Key="searchableTreeViewItem">
+        <Style.Resources>
+            <Style TargetType="Border">
+                <Setter Property="CornerRadius" Value="3"/>
+            </Style>
+        </Style.Resources>
         <Setter Property="TextElement.Foreground" Value="White"/>
         <Setter Property="TextElement.FontSize" Value="15"></Setter>
         <Setter Property="BorderThickness" Value="1.5"/>
@@ -73,11 +78,6 @@
                 <Setter Property="BorderBrush" Value="LightGray"/>
             </MultiTrigger>
         </Style.Triggers>
-        <Style.Resources>
-            <Style TargetType="Border">
-                <Setter Property="CornerRadius" Value="3"/>
-            </Style>
-        </Style.Resources>
     </Style>
 
     <Style x:Key="SearchableTreeView" TargetType="{x:Type TreeView}">
@@ -370,6 +370,9 @@
                     </Setter.Value>
                 </Setter>
             </MultiTrigger>
+            <DataTrigger Binding="{Binding Path=IsSelected, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeViewItem}}" Value="True">
+                <Setter Property="TextElement.Foreground" Value="Black"></Setter>
+            </DataTrigger>
         </Style.Triggers>
     </Style>
 
