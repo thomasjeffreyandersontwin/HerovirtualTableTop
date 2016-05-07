@@ -128,7 +128,7 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
-                if (!availableIdentities.Contains(value))
+                if (value != null && !availableIdentities.Contains(value))
                 {
                     availableIdentities.Add(value);
                 }
@@ -153,7 +153,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
             set
             {
-                if (!availableIdentities.Contains(value))
+                if (value != null && !availableIdentities.Contains(value))
                 {
                     availableIdentities.Add(value);
                 }
