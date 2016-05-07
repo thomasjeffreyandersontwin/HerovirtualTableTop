@@ -807,7 +807,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to Rename
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
             characterExplorerViewModel.EnterEditModeCommand.Execute(null);
             System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
             txtBox.Text = "Bat";
@@ -829,7 +829,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMember; // Selecting Batman to Rename
+            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
             characterExplorerViewModel.EnterEditModeCommand.Execute(null);
             System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
             txtBox.Text = "Robin"; // Trying to set a name that already exists
