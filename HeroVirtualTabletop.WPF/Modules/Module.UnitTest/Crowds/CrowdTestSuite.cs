@@ -1,4 +1,5 @@
-﻿using Framework.WPF.Services.MessageBoxService;
+﻿using Framework.WPF.Library;
+using Framework.WPF.Services.MessageBoxService;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -94,8 +95,8 @@ namespace Module.UnitTest.Crowds
             CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Test CrowdMember 1" };
             CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Test CrowdMember 1.1" };
-            crowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember1, childCrowd };
-            childCrowd.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>() { crowdMember2 };
+            crowd.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, childCrowd };
+            childCrowd.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember2 };
             string testRepoFileName = "test.data";
             CrowdRepository crowdRepository = new CrowdRepository();
             crowdRepository.CrowdRepositoryPath = testRepoFileName;

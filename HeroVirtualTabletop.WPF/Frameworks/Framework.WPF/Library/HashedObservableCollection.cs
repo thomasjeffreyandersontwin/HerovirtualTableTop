@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,29 +17,29 @@ namespace Framework.WPF.Library
     /// </remarks>
     /// <typeparam name="TValue">The type of elements contained in the BindableCollection</typeparam>
     /// <typeparam name="TKey">The type of the indexing key</typeparam>
-    public class HashedObservableCollection<TValue, TKey> : ObservableCollection<TValue>
+    public class HashedObservableCollection<TValue, TKey> : SortableObservableCollection<TValue, TKey>
     {
         public static bool IgnoreDuplicatesException = false;
 
         protected internal Dictionary<TKey, int> indices = new Dictionary<TKey, int>();
-        protected internal Func<TValue, TKey> _keySelector;
+        protected internal Func<TValue, TKey> keySelector;
 
         /// <summary>
         /// Create new HashedBindableCollection
         /// </summary>
         /// <param name="keySelector">Selector function to create key from value</param>
-        public HashedObservableCollection(Func<TValue, TKey> keySelector)
-            : base()
+        public HashedObservableCollection(Func<TValue, TKey> keySelector, bool keepSorted = true)
+            : base(keySelector, keepSorted)
         {
             if (keySelector == null) throw new ArgumentException("keySelector");
-            _keySelector = keySelector;
+            this.keySelector = keySelector;
         }
 
-        public HashedObservableCollection(IEnumerable<TValue> collection, Func<TValue, TKey> keySelector)
-            : base(collection)
+        public HashedObservableCollection(IEnumerable<TValue> collection, Func<TValue, TKey> keySelector, bool keepSorted = true)
+            : base(collection, keySelector, keepSorted)
         {
             if (keySelector == null) throw new ArgumentException("keySelector");
-            _keySelector = keySelector;
+            this.keySelector = keySelector;
             InitializeWithCollection(collection);
         }
 
@@ -56,7 +57,7 @@ namespace Framework.WPF.Library
         {
             if (item == null)
                 return;
-            var key = _keySelector(item);
+            var key = keySelector(item);
             if (indices.ContainsKey(key))
             {
                 if (IgnoreDuplicatesException)
@@ -87,7 +88,7 @@ namespace Framework.WPF.Library
         protected override void RemoveItem(int index)
         {
             var item = this[index];
-            var key = _keySelector(item);
+            var key = keySelector(item);
 
             base.RemoveItem(index);
 
@@ -123,7 +124,7 @@ namespace Framework.WPF.Library
             set
             {
                 //confirm key matches
-                if (!_keySelector(value).Equals(key))
+                if (!keySelector(value).Equals(key))
                     throw new InvalidOperationException("Key of new value does not match");
 
                 if (!indices.ContainsKey(key))
@@ -149,7 +150,7 @@ namespace Framework.WPF.Library
         {
             if (!indices.ContainsKey(key)) return false;
             //confirm key matches
-            if (!_keySelector(value).Equals(key))
+            if (!keySelector(value).Equals(key))
                 throw new InvalidOperationException("Key of new value does not match");
 
             this[indices[key]] = value;

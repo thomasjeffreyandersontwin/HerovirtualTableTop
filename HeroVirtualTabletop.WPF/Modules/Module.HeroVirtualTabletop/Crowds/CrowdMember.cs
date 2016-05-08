@@ -48,6 +48,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         private ObservableCollection<ICrowdMember> crowdMemberCollection;
+        [JsonIgnore]
         public ObservableCollection<ICrowdMember> CrowdMemberCollection
         {
             get

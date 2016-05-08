@@ -304,7 +304,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             if(this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
+                    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
             }
             // Update Repository asynchronously
@@ -336,7 +336,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
                 this.CrowdCollection.Add(crowdModelAllCharacters);
-                crowdModelAllCharacters.CrowdMemberCollection = new ObservableCollection<ICrowdMemberModel>();
+                crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
                 this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
                     (ICrowdMemberModel c) => { return c.Name; });
             }
@@ -347,7 +347,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
+                    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMemberModel);
             }
             // Update Repository asynchronously
