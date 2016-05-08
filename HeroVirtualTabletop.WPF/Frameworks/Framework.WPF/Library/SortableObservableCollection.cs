@@ -87,8 +87,9 @@ namespace Framework.WPF.Library
 
         private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (sender.GetType().GetProperty(e.PropertyName).GetValue(sender) == (object)keySelector((T)sender))
-                Sort();
+            if (e.PropertyName == "Name") //Absolutely not the right way but works for now
+                if (sender.GetType().GetProperty(e.PropertyName).GetValue(sender) == (object)keySelector((T)sender))
+                    Sort();
         }
     }
 }
