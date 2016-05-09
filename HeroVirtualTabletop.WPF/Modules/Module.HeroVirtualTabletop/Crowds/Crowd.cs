@@ -74,8 +74,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public class CrowdModel : Crowd, ICrowdMemberModel
     {
-        private ObservableCollection<ICrowdMemberModel> crowdMemberCollection;
-        public new ObservableCollection<ICrowdMemberModel> CrowdMemberCollection
+        private SortableObservableCollection<ICrowdMemberModel, string> crowdMemberCollection;
+        public new SortableObservableCollection<ICrowdMemberModel, string> CrowdMemberCollection
         {
             get
             {
@@ -120,6 +120,10 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public void ApplyFilter(string filter)
         {
+            if (alreadyFiltered == true && isMatch == true)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(filter))
             {
                 IsMatch = true;
@@ -149,6 +153,17 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             
             IsExpanded = IsMatch;
+            alreadyFiltered = true;
+        }
+
+        private bool alreadyFiltered = false;
+        public void ResetFilter()
+        {
+            alreadyFiltered = false;
+            foreach (ICrowdMemberModel cm in CrowdMemberCollection)
+            {
+                cm.ResetFilter();
+            }
         }
 
         public override ICrowdMember Clone()
@@ -161,10 +176,11 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public CrowdModel() : base()
         {
-            this.CrowdMemberCollection = new ObservableCollection<ICrowdMemberModel>();
+            this.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
         }
         public CrowdModel(string name) : base(name)
         {
+            this.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
             //this.Name = name; Handled by base class
         }
     }

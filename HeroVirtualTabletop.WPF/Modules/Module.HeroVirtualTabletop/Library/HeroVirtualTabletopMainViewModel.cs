@@ -70,8 +70,8 @@ namespace Module.HeroVirtualTabletop.Library
         {
             System.Windows.Style style = Helper.GetCustomWindowStyle();
             Characters.CharacterEditorViewModel characterEditorViewModel = this.Container.Resolve<Characters.CharacterEditorViewModel>();
-            //characterEditorViewModel.EditedCharacter = new Characters.Character("Test Character");
-            //PopupService.ShowDialog("CharacterEditorView", characterEditorViewModel, "Character Editor", false, null, new SolidColorBrush(Colors.Transparent), style);
+            characterEditorViewModel.EditedCharacter = new Characters.Character("Test Character");
+            PopupService.ShowDialog("CharacterEditorView", characterEditorViewModel, "Character Editor", false, null, new SolidColorBrush(Colors.Transparent), style);
         }
 
         #endregion

@@ -29,6 +29,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         bool IsExpanded { get; set; }
         bool IsMatch { get; set; }
         void ApplyFilter(string filter);
+        void ResetFilter();
     }
 
     public class CrowdMember : Character, ICrowdMember
@@ -48,6 +49,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         private ObservableCollection<ICrowdMember> crowdMemberCollection;
+        [JsonIgnore]
         public ObservableCollection<ICrowdMember> CrowdMemberCollection
         {
             get
@@ -110,6 +112,10 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public void ApplyFilter(string filter)
         {
+            if (alreadyFiltered == true && isMatch == true)
+            {
+                return;
+            }
             if (string.IsNullOrEmpty(filter))
             {
                 IsMatch = true;
@@ -120,6 +126,13 @@ namespace Module.HeroVirtualTabletop.Crowds
                 IsMatch = re.IsMatch(Name);
             }
             IsExpanded = IsMatch;
+            alreadyFiltered = true;
+        }
+
+        private bool alreadyFiltered = false;
+        public void ResetFilter()
+        {
+            alreadyFiltered = false;
         }
 
         public override ICrowdMember Clone()

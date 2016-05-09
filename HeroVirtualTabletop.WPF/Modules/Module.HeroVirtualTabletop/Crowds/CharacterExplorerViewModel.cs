@@ -198,7 +198,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Rename Character or Crowd
 
         private bool CanEnterEditMode(object state)
-        {
+        { 
             return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null));
         }
         private void EnterEditMode(object state)
@@ -367,7 +367,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
                     this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
-            }
+        }
         }
 
         #endregion
@@ -414,10 +414,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             // Create All Characters List if not already there
             CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
-            this.CrowdCollection.Add(crowdModelAllCharacters);
-            crowdModelAllCharacters.CrowdMemberCollection = new ObservableCollection<ICrowdMemberModel>();
-            this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
-                (ICrowdMemberModel c) => { return c.Name; });
+                this.CrowdCollection.Add(crowdModelAllCharacters);
+                crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+                this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
+                    (ICrowdMemberModel c) => { return c.Name; });
             return crowdModelAllCharacters;
         }
 
@@ -437,7 +437,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
+                    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMemberModel);
             }
         }
@@ -790,7 +790,12 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             foreach (CrowdModel cr in CrowdCollection)
             {
-                cr.ApplyFilter(filter);
+                cr.ResetFilter();
+            }
+
+            foreach (CrowdModel cr in CrowdCollection)
+            {
+                cr.ApplyFilter(filter); //Filter already check
             }
         }
 

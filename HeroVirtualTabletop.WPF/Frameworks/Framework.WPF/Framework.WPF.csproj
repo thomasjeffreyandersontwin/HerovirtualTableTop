@@ -95,6 +95,7 @@
     <Compile Include="Library\CustomExceptions.cs" />
     <Compile Include="Library\HashedObservableCollection.cs" />
     <Compile Include="Library\NotifyPropertyChanged.cs" />
+    <Compile Include="Library\SortableObservableCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\BusyService\BusyControl.xaml.cs">
       <DependentUpon>BusyControl.xaml</DependentUpon>

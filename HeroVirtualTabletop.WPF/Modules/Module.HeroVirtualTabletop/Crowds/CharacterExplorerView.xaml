@@ -77,7 +77,7 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf234;" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf007;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
                             <TextBox x:Name="textBlockCharacter" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
                                               >
