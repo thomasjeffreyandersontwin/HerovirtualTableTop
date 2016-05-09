@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Framework.WPF.Extensions;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -20,7 +21,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         //void Place(Position position);
         //void SavePosition();
         //string Save(string filename = null);
-        //ICrowdMember Clone();
+        ICrowdMember Clone();
     }
 
     public interface ICrowdMemberModel : ICrowdMember
@@ -66,7 +67,13 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         public CrowdMember(string name): base(name)
         {
-            //this.Name = name; //ALREADY HANDLED BY BASE CLASS
+            
+        }
+
+        public virtual ICrowdMember Clone()
+        {
+            CrowdMember crowdMember = this.DeepClone() as CrowdMember;
+            return crowdMember;
         }
     }
     public class CrowdMemberModel : CrowdMember, ICrowdMemberModel
@@ -113,6 +120,14 @@ namespace Module.HeroVirtualTabletop.Crowds
                 IsMatch = re.IsMatch(Name);
             }
             IsExpanded = IsMatch;
+        }
+
+        public override ICrowdMember Clone()
+        {
+            CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
+            crowdMemberModel.IsExpanded = true;
+            crowdMemberModel.IsMatch = true;
+            return crowdMemberModel;
         }
 
         public CrowdMemberModel() : base() { }

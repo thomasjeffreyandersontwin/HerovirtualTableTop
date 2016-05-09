@@ -11,4 +11,10 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Model,
         Costume
     }
+    public enum ClipboardAction
+    {
+        Clone, 
+        Cut, 
+        Link
+    }
 }

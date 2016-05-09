@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Framework.WPF.Extensions;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -62,6 +63,12 @@ namespace Module.HeroVirtualTabletop.Crowds
         public Crowd(string name) : this()
         {
             this.Name = name;
+        }
+
+        public virtual ICrowdMember Clone()
+        {
+            Crowd crowd = this.DeepClone() as Crowd;
+            return crowd;
         }
     }
 
@@ -142,6 +149,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             
             IsExpanded = IsMatch;
+        }
+
+        public override ICrowdMember Clone()
+        {
+            CrowdModel crowdModel = this.DeepClone() as CrowdModel;
+            crowdModel.IsExpanded = false;
+            crowdModel.IsMatch = true;
+            return crowdModel;
         }
 
         public CrowdModel() : base()

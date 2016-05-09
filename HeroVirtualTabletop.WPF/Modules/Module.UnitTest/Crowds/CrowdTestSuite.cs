@@ -659,7 +659,7 @@ namespace Module.UnitTest.Crowds
             InitializeDefaultList(true);
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Scarecrow to delete
+            characterExplorerViewModel.SelectedCrowdMemberModel = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel).CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Scarecrow to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel; // The Narrows is the selected crowd
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -677,7 +677,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0] as CrowdModel;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             messageBoxServiceMock.Verify(
@@ -693,7 +693,7 @@ namespace Module.UnitTest.Crowds
             InitializeCrowdRepositoryMockWithDefaultList();
             InitializeMessageBoxService(MessageBoxResult.Yes); // Pre-configuring message box to confirm delete request
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]as CrowdModel;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             crowdRepositoryMock.Verify(
@@ -807,7 +807,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
             characterExplorerViewModel.EnterEditModeCommand.Execute(null);
             System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
             txtBox.Text = "Bat";
@@ -829,7 +829,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
             characterExplorerViewModel.EnterEditModeCommand.Execute(null);
             System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
             txtBox.Text = "Robin"; // Trying to set a name that already exists
@@ -852,10 +852,32 @@ namespace Module.UnitTest.Crowds
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; // Selecting All Characters to rename
-            characterExplorerViewModel.SelectedCrowdMember = null;
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
             bool canRename = characterExplorerViewModel.EnterEditModeCommand.CanExecute(null);
             Assert.IsFalse(canRename);
         }
+        #endregion
+
+        #region Clone and Paste Character/Crowd Tests
+        public void CloneAndPasteCharacter_AddsNewCrowdMemberWithClonedCharacterToPastedCrowd() { }
+        public void CloneAndPasteCharacter_CreatesAnotherCharacterWithSameProperties() { }
+        public void CloneAndPasteCharacter_PreventsDuplicateName() { }
+
+        public void CloneAndPasteCrowd_AddsNewCrowdWithClonedCrowdToPastedCrowd() { }
+
+        public void CloneAndPasteCrowdWithNestedCrowd_CreatesUniqueNamesForNestedCrowdsAndMembers() { }
+
+        public void CloneAndPasteCharacterOrCrowd_UpdatesRepository() { }
+        #endregion
+
+        #region Cut and Paste Character Tests
+        public void CutAndPasteCharacter_MovesCharacterToPastedCrowd() { }
+
+        #endregion
+
+        #region Link and Paste Character Tests
+        public void LinkAndPasteCharacterAcrossCharacters_AddsNewCrowdMemberWithCopiedCharacterToPastedCrowd() { }
+
         #endregion
 
         #region Spawn Character In Crowd Tests
@@ -870,11 +892,6 @@ namespace Module.UnitTest.Crowds
 
         #region Place Character Tests
         public void PlaceCharacter_MovesCharacterToPositionBasedOnSavedLocation() { }
-
-        #endregion
-
-        #region Link and Paste Character Tests
-        public void LinkAndPasteCharacterAcrossCharacters_AddsNewCrowdMemberWithCopiedCharacterToPastedCrowd() { }
 
         #endregion
 
