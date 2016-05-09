@@ -169,8 +169,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         public override ICrowdMember Clone()
         {
             CrowdModel crowdModel = this.DeepClone() as CrowdModel;
-            crowdModel.IsExpanded = false;
-            crowdModel.IsMatch = true;
             return crowdModel;
         }
 

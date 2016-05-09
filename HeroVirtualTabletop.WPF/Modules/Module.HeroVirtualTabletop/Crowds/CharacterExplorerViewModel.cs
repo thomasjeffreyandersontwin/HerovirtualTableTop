@@ -31,6 +31,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         private string filter;
         private CrowdModel clipboardObjectOriginalCrowd = null;
         private ClipboardAction clipboardAction;
+        private bool isUpdatingCollection = false;
+        private object lastCharacterCrowdStateToUpdate = null;
 
         #endregion
 
@@ -311,11 +313,21 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Update Selected Crowd
         private void UpdateSelectedCrowdMember(object state)
         {
-            ICrowdMemberModel selectedCrowdMember;
-            Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
-            CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
-            this.SelectedCrowdModel = crowdModel;
-            this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
+            if (!isUpdatingCollection)
+            {
+                ICrowdMemberModel selectedCrowdMember;
+                Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
+                CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
+                this.SelectedCrowdModel = crowdModel;
+                this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
+            }
+            else
+                this.lastCharacterCrowdStateToUpdate = state;
+        }
+
+        private void LockModelAndMemberUpdate(bool isLocked)
+        {
+            this.isUpdatingCollection = isLocked;
         }
         #endregion
 
@@ -324,10 +336,20 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             // Create a new Crowd
             CrowdModel crowdModel = this.GetNewCrowdModel();
+            // Lock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(true);
             // Add the new Model
             this.AddNewCrowdModel(crowdModel);
             // Update Repository asynchronously
             this.SaveCrowdCollection();
+            // UnLock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(false);
+            // Update character crowd if necessary
+            if (this.lastCharacterCrowdStateToUpdate != null)
+            {
+                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+                this.lastCharacterCrowdStateToUpdate = null;
+            }
         }
         private CrowdModel GetNewCrowdModel()
         {
@@ -365,9 +387,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new System.Collections.ObjectModel.ObservableCollection<ICrowdMemberModel>();
+                    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
-        }
+            }
         }
 
         #endregion
@@ -414,10 +436,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             // Create All Characters List if not already there
             CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
-                this.CrowdCollection.Add(crowdModelAllCharacters);
-                crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-                this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
-                    (ICrowdMemberModel c) => { return c.Name; });
+            this.CrowdCollection.Add(crowdModelAllCharacters);
+            crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+            this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
+                (ICrowdMemberModel c) => { return c.Name; });
             return crowdModelAllCharacters;
         }
 
@@ -463,7 +485,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         public void DeleteCharacterCrowd(object state)
-        { 
+        {
+            // Lock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(true);
             // Determine if Character or Crowd is to be deleted
             if (SelectedCrowdMemberModel != null) // Delete Character
             {
@@ -529,6 +553,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             // Finally save repository
             this.SaveCrowdCollection();
+            // UnLock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(false);
+            // Update character crowd if necessary
+            if (this.lastCharacterCrowdStateToUpdate != null)
+            {
+                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+                this.lastCharacterCrowdStateToUpdate = null;
+            }
         }
 
         private List<ICrowdMemberModel> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
@@ -664,22 +696,20 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         public void PasteCharacterCrowd(object state)
         {
+            // Lock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(true);
             switch (clipboardAction)
             {
                 case ClipboardAction.Clone:
                     {
                         if (this.ClipboardObject is CrowdMemberModel)
                         {
-                            //Character c = (clipboardObject as Character).Clone() as Character;
-                            //crowdDest.Add(c);
                             CrowdMemberModel clonedModel = (clipboardObject as CrowdMemberModel).Clone() as CrowdMemberModel;
                             EliminateDuplicateName(clonedModel);
                             this.AddNewCharacter(clonedModel);
                         }
                         else
                         {
-                            //Crowd c = (clipboardObject as Crowd).Clone() as Crowd;
-                            //crowdDest.Add(c);
                             CrowdModel clonedModel = (clipboardObject as CrowdModel).Clone() as CrowdModel;
                             EliminateDuplicateName(clonedModel);
                             List<ICrowdMemberModel> models = GetFlattenedMemberList(clonedModel.CrowdMemberCollection.ToList());
@@ -695,7 +725,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                                 }
                             }
                             this.AddNewCrowdModel(clonedModel);
-                            this.SaveCrowdCollection();
                         }
                         clipboardObject = null;
                         break;
@@ -738,7 +767,17 @@ namespace Module.HeroVirtualTabletop.Crowds
                         break;
                     }
             }
-            SelectedCrowdModel.IsExpanded = true;
+            this.SaveCrowdCollection();
+            if(SelectedCrowdModel != null)
+                SelectedCrowdModel.IsExpanded = true;
+            // UnLock character crowd Tree from updating
+            this.LockModelAndMemberUpdate(false);
+            // Update character crowd if necessary
+            if (this.lastCharacterCrowdStateToUpdate != null)
+            {
+                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+                this.lastCharacterCrowdStateToUpdate = null;
+            }
         }
 
         private void EliminateDuplicateName(ICrowdMemberModel model)

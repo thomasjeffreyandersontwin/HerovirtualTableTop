@@ -117,11 +117,11 @@ namespace Module.HeroVirtualTabletop.Characters
                 {
                     if (availableIdentities.Count > 0)
                     {
-                        DefaultIdentity = availableIdentities[0];
+                        defaultIdentity = availableIdentities[0];
                     }
                     else
                     {
-                        DefaultIdentity = new Identity("model_Statesman", IdentityType.Model, "Base");
+                        defaultIdentity = new Identity("model_Statesman", IdentityType.Model, "Base");
                     }
                 }
                 return defaultIdentity;
@@ -145,7 +145,7 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 if (activeIdentity == null || !availableIdentities.Contains(activeIdentity))
                 {
-                    ActiveIdentity = DefaultIdentity;
+                    activeIdentity = DefaultIdentity;
                 }
                 
                 return activeIdentity;
