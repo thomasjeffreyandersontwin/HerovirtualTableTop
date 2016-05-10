@@ -4,6 +4,7 @@ using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.Shared;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private EventAggregator eventAggregator;
         private HashedObservableCollection<ICrowdMemberModel, string> partecipants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
         private List<ICrowdMemberModel> selectedPartecipants;
+        private CrowdModel noCrowdCrowd = new CrowdModel(Constants.NO_CROWD_CROWD_NAME);
 
         #endregion
 
@@ -91,26 +93,43 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void AddPartecipant(Tuple<ICrowdMemberModel, CrowdModel> crowdMembership)
         {
-            if (crowdMembership.Item1 is CrowdModel)
+            ICrowdMemberModel crowdMember = crowdMembership.Item1;
+            CrowdModel crowd = crowdMembership.Item2;
+
+            if (crowd == null || crowd.Name == Constants.ALL_CHARACTER_CROWD_NAME)
             {
-                CrowdModel crowd = crowdMembership.Item1 as CrowdModel;
-                foreach (ICrowdMemberModel x in (crowd.CrowdMemberCollection))
+                crowd = noCrowdCrowd;
+            }
+
+            if (crowdMember is CrowdModel)
+            {
+                CrowdModel crowdMemberAsCrowd = crowdMember as CrowdModel;
+                foreach (ICrowdMemberModel x in (crowdMemberAsCrowd.CrowdMemberCollection))
                 {
-                    AddPartecipant(new Tuple<ICrowdMemberModel, CrowdModel>(x, crowd));
+                    AddPartecipant(new Tuple<ICrowdMemberModel, CrowdModel>(x, crowdMemberAsCrowd));
                 }
             }
             else
             {
-                if (Partecipants.Contains(crowdMembership.Item1))
+                if (Partecipants.Contains(crowdMember))
                 {
-                    //CrowdMemberModel clone = crowdMembership.Item1.Clone();
-                    //crowdMembership.Item2.CrowdMemberCollection.Add(clone);
-                    //AddPartecipant(new Tuple<ICrowdMemberModel, CrowdModel>(clone, crowdMembership.Item2));
+                    CrowdMemberModel clone = crowdMember.Clone() as CrowdMemberModel;
+                    string suffix = string.Empty;
+                    int i = 0;
+                    while (crowdMembership.Item2.CrowdMemberCollection.Any(x => x.Name == clone.Name + suffix) 
+                        || Partecipants.Any(x => x.Name == clone.Name + suffix))
+                    {
+                        i++;
+                        suffix = string.Format(" ({0})", i);
+                    }
+                    clone.Name += suffix;
+                    crowdMembership.Item2.CrowdMemberCollection.Add(clone);
+                    AddPartecipant(new Tuple<ICrowdMemberModel, CrowdModel>(clone, crowd));
                 }
                 else
                 {
-                    crowdMembership.Item1.RosterCrowd = crowdMembership.Item2;
-                    Partecipants.Add(crowdMembership.Item1);
+                    crowdMember.RosterCrowd = crowd;
+                    Partecipants.Add(crowdMember);
                 }
             }
         }

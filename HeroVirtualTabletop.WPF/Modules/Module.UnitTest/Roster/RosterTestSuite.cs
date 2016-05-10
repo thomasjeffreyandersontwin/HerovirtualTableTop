@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Roster;
+using Module.Shared;
 
 namespace Module.UnitTest.Roster
 {
@@ -15,31 +16,31 @@ namespace Module.UnitTest.Roster
         public void TestInitialize()
         {
             InitializeDefaultList();
+            InitializeCrowdRepositoryMockWithDefaultList();
             this.numberOfItemsFound = 0;
 
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
         }
 
         [TestMethod]
         public void AddCharacterToRoster_AddCharacterInPartecipants()
         {
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
-
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0];
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMember));
+            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMemberModel));
         }
 
         [TestMethod]
         public void AddCharacterToRoster_AddCharacterWithProperParentCrowd()
         {
-            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0];
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; //Can't use "All Characters" crowd
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMember));
+            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMemberModel));
 
             Assert.AreEqual(rosterExplorerViewModel.Partecipants[0].RosterCrowd, characterExplorerViewModel.SelectedCrowdModel);
         }
@@ -47,17 +48,24 @@ namespace Module.UnitTest.Roster
         [TestMethod]
         public void AddCharacterToRoster_AddCharacterFromAllCharactersAddsWithoutCrowd()
         {
-            Assert.Fail(); //Need to ask for correct behaviour
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; //Use "All Characters" crowd
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMemberModel));
+
+            Assert.AreNotEqual(rosterExplorerViewModel.Partecipants[0].RosterCrowd, characterExplorerViewModel.SelectedCrowdModel);
+            Assert.AreEqual(rosterExplorerViewModel.Partecipants[0].RosterCrowd.Name, Constants.NO_CROWD_CROWD_NAME);
         }
 
         [TestMethod]
         public void AddCharacterToRoster_AddCharacterUseFirstParentCrowdFromNestedCrowds()
         {
-            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1] as CrowdModel;
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[2] as CrowdModel;
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMember));
+            Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(characterExplorerViewModel.SelectedCrowdMemberModel));
 
             Assert.AreEqual(rosterExplorerViewModel.Partecipants[0].RosterCrowd, characterExplorerViewModel.SelectedCrowdModel);
         }
@@ -65,11 +73,28 @@ namespace Module.UnitTest.Roster
         [TestMethod]
         public void AddCrowdToRoster_AddAllCharactersInPartecipants()
         {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0];
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            foreach (ICrowdMemberModel x in characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection)
+            {
+                Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(x));
+            }
         }
 
         [TestMethod]
         public void AddCrowdToRoster_AddAllCharactersWithProperParentCrowd()
         {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[2];
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            foreach (ICrowdMemberModel x in characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection)
+            {
+                Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(x));
+                Assert.AreEqual(x.RosterCrowd, characterExplorerViewModel.SelectedCrowdModel);
+            }
         }
     }
 }

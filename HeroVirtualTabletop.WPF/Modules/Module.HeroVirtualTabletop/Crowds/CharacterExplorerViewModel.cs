@@ -465,22 +465,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                     this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMemberModel);
             }
-            // Update Repository asynchronously
-            this.SaveCrowdCollection();
         }
-
-        private Character GetNewCharacter()
-        {
-            string name = "Character";
-            string suffix = string.Empty;
-            int i = 0;
-            while (this.characterCollection.ContainsKey(name + suffix))
-            {
-                suffix = string.Format(" ({0})", ++i);
-            }
-            return new CrowdMemberModel(name + suffix);
-        }
-
+        
         #endregion
 
         #region Delete Character or Crowd
@@ -862,7 +848,10 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddToRoster(object state)
         {
-            eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdMember, SelectedCrowdModel));
+            if (SelectedCrowdMemberModel != null)
+                eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdMemberModel, SelectedCrowdModel));
+            else if (SelectedCrowdModel != null)
+                eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdModel, null));
         }
 
         #endregion
