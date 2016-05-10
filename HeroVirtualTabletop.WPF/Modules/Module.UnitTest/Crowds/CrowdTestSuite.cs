@@ -1070,12 +1070,204 @@ namespace Module.UnitTest.Crowds
         #endregion
 
         #region Cut and Paste Character Tests
-        public void CutAndPasteCharacter_MovesCharacterToPastedCrowd() { }
-
+        /// <summary>
+        /// Cut-Paste results in moving the character from source crowd to destination crowd
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCharacter_MovesCharacterFromSourceCrowdToPastedCrowd() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Will paste to League of Shadows
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var character = characterExplorerViewModel.CrowdCollection["League of Shadows"].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault(); // Should not be created
+            Assert.IsNull(character);
+            character = characterExplorerViewModel.CrowdCollection["League of Shadows"].CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault();
+            Assert.IsNotNull(character);
+            character = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault();
+            Assert.IsNull(character);// Batman should not be in Gotham anymore
+        }
+        /// <summary>
+        /// If character is in All Characters crowd, cut-paste will actually result in linking the character to the destination crowd instead of it cutting it from All Characters
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCharacter_LinksCharacterFromAllCharactersToPastedCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // All Characters is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Will paste to League of Shadows
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var character = characterExplorerViewModel.CrowdCollection["League of Shadows"].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault(); // Should not be created
+            Assert.IsNull(character);
+            character = characterExplorerViewModel.CrowdCollection["League of Shadows"].CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault(); // Should be there
+            Assert.IsNotNull(character);
+            character = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault(); // Batman should still be in Gotham
+            Assert.IsNotNull(character);
+            character = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME].CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault(); // Should also be in All Characters
+            Assert.IsNotNull(character);
+        }
+        /// <summary>
+        /// If a character or crowd is already within a crowd, the cut-paste will not do anything
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCharacterCrowd_DoesNotPasteCharacterOrCrowdIfAlreadyExistingInPastingCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // All Characters is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Assuming Gotham City is selected
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var linkedChar = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(c => c.Name == "Batman");
+            Assert.IsTrue(linkedChar.Count() == 1); // There should still be only one Batman in Gotham
+            var clonedChar = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault();
+            Assert.IsNull(clonedChar); // And no cloning should be done either
+            // Now try the same with a crowd
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection[1] as CrowdModel; // The Narrows is selected
+            characterExplorerViewModel.SelectedCrowdParent = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;// Will cut the crowd
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Gotham City is selected
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var linkedCrowd = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(cr => cr.Name == "The Narrows");
+            Assert.IsTrue(linkedCrowd.Count() == 1); // Still should be only one Narrows
+            var clonedCrowd = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(cr => cr.Name == "The Narrows (1)").FirstOrDefault();
+            Assert.IsNull(clonedCrowd); // And no cloning should be done either
+        }
+        /// <summary>
+        /// The All Characters crowd cannot be pasted to from cut
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCharacterCrowd_PreventsPastingToAllCharacterCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // All Characters is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            bool canPaste = characterExplorerViewModel.PasteCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(canPaste);
+            // Now try the same with a crowd
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection[1] as CrowdModel; // The Narrows is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // All Characters is selected
+            canPaste = characterExplorerViewModel.PasteCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(canPaste);
+        }
+        /// <summary>
+        /// The All Characters crowd cannot be cut
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCharacterCrowd_PreventsCuttingAllCharacterCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // All Characters is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            bool canCut = characterExplorerViewModel.CutCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(canCut);
+        }
+        /// <summary>
+        /// Successful cut-paste results in repository update
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCharacterCrowd_UpdatesRepository()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Will paste to League of Shadows
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            crowdRepositoryMock.Verify(
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                    It.Is<List<CrowdModel>>(cmList =>
+                        cmList.Where(cm => cm.Name == "League of Shadows").First().CrowdMemberCollection.Where(c => c.Name == "Batman").FirstOrDefault() != null)));
+        }
+        /// <summary>
+        /// Cut-paste moves the crowd from source crowd to destination crowd
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCrowd_MovesCrowdFromSourceCrowdToPastedCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection[2] as CrowdModel; // The Narrows is selected
+            characterExplorerViewModel.SelectedCrowdParent = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;// Will cut the crowd
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // League of Shadows is selected
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var linkedCrowd = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(cr => cr.Name == "The Narrows").FirstOrDefault();
+            Assert.IsNotNull(linkedCrowd); // The Narrows has been linked with League of Shadows
+            var cutCrowd = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection.Where(cr => cr.Name == "The Narrows").FirstOrDefault();
+            Assert.IsNull(cutCrowd);
+        
+        }
+        /// <summary>
+        /// Crowd in the main collection, if cut, should not be moved, rather linked, to destination crowd
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCrowd_LinksCrowdFromMainCollectionToPastedCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["The Narrows"]; // The Narrows is selected
+            characterExplorerViewModel.SelectedCrowdParent = null;
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;// Will cut the crowd
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // League of Shadows is selected
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var linkedCrowd = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(cr => cr.Name == "The Narrows").FirstOrDefault();
+            Assert.IsNotNull(linkedCrowd); // The Narrows has been linked with League of Shadows
+            var cutCrowd = characterExplorerViewModel.CrowdCollection.Where(cr => cr.Name == "The Narrows").FirstOrDefault();
+            Assert.IsNotNull(cutCrowd); // The Narrows is still on Main Collection
+        }
+        /// <summary>
+        /// Crowd cannot be cut and pasted to itself
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCrowd_PreventsPastingWithinSameCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection[1] as CrowdModel; // The Narrows is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            bool canPaste = characterExplorerViewModel.PasteCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(canPaste);
+        }
+        /// <summary>
+        /// Cannot cut and paste crowd to any of its nested crowds
+        /// </summary>
+        [TestMethod]
+        public void CutAndPasteCrowd_PreventsPastingToAnyNestedCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            characterExplorerViewModel.CutCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["The Narrows"]; // Will try to paste to child crowd
+            bool canPaste = characterExplorerViewModel.PasteCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(canPaste);
+        }
         #endregion
 
-        #region Link and Paste Character Tests
-        public void LinkAndPasteCharacterAcrossCharacters_AddsNewCrowdMemberWithCopiedCharacterToPastedCrowd() { }
+        #region Link and Paste Character/Crowd Tests
+        public void LinkAndPasteCharacterAcrossCharacters_AddsNewCrowdMemberWithCopiedCharacterToPastedCrowd() 
+        {
+            
+        }
 
         #endregion
 
