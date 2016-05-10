@@ -69,8 +69,8 @@ namespace ApplicationShell
                 string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_ICON_EXE_FILENAME);
                 if (File.Exists(filePath))
                 {
-                    //Process.Start(filePath, "-r");
-                    //var x = MessageBox.Show("Plese wait for COH to initialize, then load the required keybind and close this message");
+                    Process.Start(filePath, "-r");
+                    var x = MessageBox.Show("Plese wait for COH to initialize, then load the required keybind and close this message");
                 }
             }
         }

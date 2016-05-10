@@ -1,16 +1,22 @@
-﻿using Framework.WPF.Library;
+﻿using Framework.WPF.Behaviors;
+using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
+using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.Shared;
 using Prism.Events;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -21,7 +27,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private IMessageBoxService messageBoxService;
         private EventAggregator eventAggregator;
         private HashedObservableCollection<ICrowdMemberModel, string> partecipants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-        private List<ICrowdMemberModel> selectedPartecipants;
+        private IList selectedPartecipants;
         private CrowdModel noCrowdCrowd = new CrowdModel(Constants.NO_CROWD_CROWD_NAME);
 
         #endregion
@@ -45,7 +51,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public List<ICrowdMemberModel> SelectedPartecipants
+        public IList SelectedPartecipants
         {
             get
             {
@@ -61,6 +67,8 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region Commands
+
+        public DelegateCommand<object> SpawnCommand { get; private set; }
 
         #endregion
 
@@ -84,7 +92,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void InitializeCommands()
         {
-
+            this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
         }
 
         #endregion
@@ -113,6 +121,8 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 if (Partecipants.Contains(crowdMember))
                 {
+                    if (crowdMember.RosterCrowd == crowd)
+                        return;
                     CrowdMemberModel clone = crowdMember.Clone() as CrowdMemberModel;
                     string suffix = string.Empty;
                     int i = 0;
@@ -131,6 +141,14 @@ namespace Module.HeroVirtualTabletop.Roster
                     crowdMember.RosterCrowd = crowd;
                     Partecipants.Add(crowdMember);
                 }
+            }
+        }
+
+        private void Spawn(object state)
+        {
+            foreach (CrowdMemberModel member in SelectedPartecipants)
+            {
+                member.Spawn();
             }
         }
 

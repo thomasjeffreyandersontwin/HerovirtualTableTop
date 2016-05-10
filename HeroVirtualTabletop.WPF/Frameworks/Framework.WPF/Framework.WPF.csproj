@@ -86,6 +86,9 @@
     <Compile Include="Behaviors\AttachedCommandBehavior\EventHandlerGenerator.cs" />
     <Compile Include="Behaviors\AttachedCommandBehavior\ExecutionStrategy.cs" />
     <Compile Include="Behaviors\AttachedCommandBehavior\SimpleCommand.cs" />
+    <Compile Include="Behaviors\MultiSelectionBinding\IListItemConverter.cs" />
+    <Compile Include="Behaviors\MultiSelectionBinding\MultiSelectorBehaviours.cs" />
+    <Compile Include="Behaviors\MultiSelectionBinding\TwoListSynchronizer.cs" />
     <Compile Include="Events\Events.cs" />
     <Compile Include="Extensions\ObjectExtensions.cs" />
     <Compile Include="Extensions\TreeViewExtensions.cs" />
@@ -94,6 +97,7 @@
     <Compile Include="Library\CustomAttribute.cs" />
     <Compile Include="Library\CustomExceptions.cs" />
     <Compile Include="Library\HashedObservableCollection.cs" />
+    <Compile Include="Library\MultiSelectListBox.cs" />
     <Compile Include="Library\NotifyPropertyChanged.cs" />
     <Compile Include="Library\SortableObservableCollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
