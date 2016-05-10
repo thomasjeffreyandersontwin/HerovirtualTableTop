@@ -17,8 +17,8 @@
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
             </StackPanel.Resources>
             <Button x:Name="btClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCharacterCrowdCommand}"/>
-            <Button x:Name="btCut" Content="&#xf0c4;" ToolTip="Cut" Command="Cut" />
-            <Button x:Name="btLink" Content="&#xf0c1;" ToolTip="Link"/>
+            <Button x:Name="btCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCharacterCrowdCommand}"/>
+            <Button x:Name="btLink" Content="&#xf0c1;" ToolTip="Link" Command="{Binding LinkCharacterCrowdCommand}"/>
             <Button x:Name="btPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteCharacterCrowdCommand}"/>
             <Button x:Name="btAddCharacter" Content="&#xf234;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
             <Button x:Name="btAddCrowd" Content="&#xf0c0;" ToolTip="Add Crowd" Command="{Binding AddCrowdCommand}"/>
