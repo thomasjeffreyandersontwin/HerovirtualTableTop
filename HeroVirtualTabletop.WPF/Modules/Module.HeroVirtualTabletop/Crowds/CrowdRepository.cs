@@ -78,20 +78,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             crowdRepositoryPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_CROWD_REPOSITORY_FILENAME);
         }
-
-        //public void SaveCrowdCollection(List<CrowdModel> crowdCollection)
-        //{
-        //    Helper.SerializeObjectAsJSONToFile(crowdRepoFileName, crowdCollection);
-        //}
-
-        //public List<CrowdModel> GetCrowdCollection()
-        //{
-        //    List<CrowdModel> crowdCollection = Helper.GetDeserializedJSONFromFile<List<CrowdModel>>(crowdRepoFileName);
-        //    if (crowdCollection == null)
-        //        crowdCollection = new List<CrowdModel>();
-
-        //    return crowdCollection;
-        //}
     }
 }
 

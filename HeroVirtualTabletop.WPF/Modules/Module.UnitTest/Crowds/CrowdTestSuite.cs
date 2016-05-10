@@ -660,7 +660,7 @@ namespace Module.UnitTest.Crowds
             InitializeDefaultList(true);
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[2] as CrowdModel).CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Scarecrow to delete
+            characterExplorerViewModel.SelectedCrowdMemberModel = (characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[2] as CrowdModel).CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Scarecrow to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[2] as CrowdModel; // The Narrows is the selected crowd
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
@@ -678,7 +678,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0] as CrowdModel;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             messageBoxServiceMock.Verify(
@@ -694,7 +694,7 @@ namespace Module.UnitTest.Crowds
             InitializeCrowdRepositoryMockWithDefaultList();
             InitializeMessageBoxService(MessageBoxResult.Yes); // Pre-configuring message box to confirm delete request
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to delete
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]as CrowdModel;
             characterExplorerViewModel.DeleteCharacterCrowdCommand.Execute(null);
             crowdRepositoryMock.Verify(
@@ -808,7 +808,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
             characterExplorerViewModel.EnterEditModeCommand.Execute(null);
             System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
             txtBox.Text = "Bat";
@@ -830,7 +830,7 @@ namespace Module.UnitTest.Crowds
         {
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdMember = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman to Rename
             characterExplorerViewModel.EnterEditModeCommand.Execute(null);
             System.Windows.Controls.TextBox txtBox = new System.Windows.Controls.TextBox();
             txtBox.Text = "Robin"; // Trying to set a name that already exists
@@ -853,10 +853,230 @@ namespace Module.UnitTest.Crowds
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; // Selecting All Characters to rename
-            characterExplorerViewModel.SelectedCrowdMember = null;
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
             bool canRename = characterExplorerViewModel.EnterEditModeCommand.CanExecute(null);
             Assert.IsFalse(canRename);
         }
+        #endregion
+
+        #region Clone and Paste Character/Crowd Tests
+        /// <summary>
+        /// Cloning should create a new character using the copied character in target crowd
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCharacter_AddsNewCrowdMemberFromClonedCharacterToPastedCrowd() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[2]; // Will paste to League of Shadows
+            var charBeforeClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault();
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var charAfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault();
+            Assert.IsTrue(charBeforeClone == null && charAfterClone != null);
+            
+        }
+        /// <summary>
+        /// Properties should be same for original copied character and cloned character except for their name
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCharacter_CreatesAnotherCharacterWithSameProperties() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[2]; // Will paste to League of Shadows
+            var originalCharacter = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var clonedCharacter = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault() as CrowdMemberModel;
+            if(originalCharacter.ActiveIdentity != null)
+            {
+                Assert.AreEqual(originalCharacter.ActiveIdentity.IsActive, clonedCharacter.ActiveIdentity.IsActive);
+                Assert.AreEqual(originalCharacter.ActiveIdentity.IsDefault, clonedCharacter.ActiveIdentity.IsDefault);
+                Assert.AreEqual(originalCharacter.ActiveIdentity.Name, clonedCharacter.ActiveIdentity.Name);
+                Assert.AreEqual(originalCharacter.ActiveIdentity.Surface, clonedCharacter.ActiveIdentity.Surface);
+                Assert.AreEqual(originalCharacter.ActiveIdentity.Type, clonedCharacter.ActiveIdentity.Type);
+            }
+            if (originalCharacter.DefaultIdentity != null)
+            {
+                Assert.AreEqual(originalCharacter.DefaultIdentity.IsActive, clonedCharacter.DefaultIdentity.IsActive);
+                Assert.AreEqual(originalCharacter.DefaultIdentity.IsDefault, clonedCharacter.DefaultIdentity.IsDefault);
+                Assert.AreEqual(originalCharacter.DefaultIdentity.Name, clonedCharacter.DefaultIdentity.Name);
+                Assert.AreEqual(originalCharacter.DefaultIdentity.Surface, clonedCharacter.DefaultIdentity.Surface);
+                Assert.AreEqual(originalCharacter.DefaultIdentity.Type, clonedCharacter.DefaultIdentity.Type);
+            }
+            if (originalCharacter.AvailableIdentities != null)
+            {
+                Assert.AreEqual(originalCharacter.AvailableIdentities.Count, clonedCharacter.AvailableIdentities.Count);
+                foreach (var identity in originalCharacter.AvailableIdentities)
+                {
+                    var clonedIdentity = clonedCharacter.AvailableIdentities.Where(i => i.IsActive == identity.IsActive && i.IsDefault == identity.IsDefault
+                        && i.Name == identity.Name && i.Surface == identity.Surface && i.Type == identity.Type).FirstOrDefault();
+                    Assert.IsNotNull(clonedIdentity);
+                }
+            }
+            Assert.AreEqual(originalCharacter.IsExpanded, clonedCharacter.IsExpanded);
+            Assert.AreEqual(originalCharacter.IsMatch, clonedCharacter.IsMatch);
+        }
+        /// <summary>
+        /// Cloned character should not have same name as original character
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCharacter_PreventsDuplicateName() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            IEnumerable<ICrowdMemberModel> baseCrowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Batman");
+            int countBeforeClone = numberOfItemsFound;
+            numberOfItemsFound = 0;
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[2]; // Will paste to League of Shadows
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            List<CrowdModel> crowdList = characterExplorerViewModel.CrowdCollection.ToList();
+            baseCrowdList = crowdList;
+            CountNumberOfCrowdMembersByName(baseCrowdList.ToList(), "Batman");
+            Assert.AreEqual(numberOfItemsFound, countBeforeClone);
+        }
+        /// <summary>
+        /// Cloning should create a new character using the copied character in target crowd
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCrowd_AddsNewCrowdFromClonedCrowdToPastedCrowd() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null; // Will copy crowd, not character
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Will paste to League of Shadows
+            var crowdBeforeClone = characterExplorerViewModel.CrowdCollection["League of Shadows"].CrowdMemberCollection.Where(c => c.Name == "Gotham City (1)").FirstOrDefault();
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var crowdAfterClone = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(c => c.Name == "Gotham City (1)").FirstOrDefault();
+            Assert.IsTrue(crowdBeforeClone == null && crowdAfterClone != null);
+        }
+        /// <summary>
+        /// Cloning a crowd that has nested crowds should clone the crowd itself, the nested crowd(s) and all the characters inside crowd and nested crowd(s) with unique names
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCrowdWithNestedCrowd_ClonesNestedCrowdsAndMembersWithUniqueNames() 
+        {
+            InitializeDefaultList(true);
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Assuming League of Shadows is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null; // Will copy crowd, not character
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Will paste to Gotham City
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var crowdAfterClone = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(c => c.Name == "League of Shadows (1)").FirstOrDefault();
+            Assert.IsNotNull(crowdAfterClone); // Crowd added under Gotham City
+            var nestedCrowdAfterClone = (crowdAfterClone as CrowdModel).CrowdMemberCollection.Where(c => c.Name == "The Narrows (1)").FirstOrDefault();
+            Assert.IsNotNull(nestedCrowdAfterClone); // Nested crowd also cloned and added under League of shadows (1) under Gotham City
+            crowdAfterClone = characterExplorerViewModel.CrowdCollection.Where(c => c.Name == "League of Shadows (1)").FirstOrDefault();
+            Assert.IsNotNull(crowdAfterClone); // Crowd added to main collection
+            crowdAfterClone = characterExplorerViewModel.CrowdCollection.Where(c => c.Name == "The Narrows (1)").FirstOrDefault();
+            Assert.IsNotNull(crowdAfterClone); // Copied nested crowd as well to main collection
+            var allCharactersCrowd = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+            var charAfterClone = allCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == "Scarecrow (1)").FirstOrDefault();
+            Assert.IsNotNull(charAfterClone); // Character in the cloned crowd has been cloned
+            charAfterClone = allCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == "Ra'as Al Ghul (1)").FirstOrDefault();
+            Assert.IsNotNull(charAfterClone); // Character in the nested cloned crowd has also been cloned
+        }
+        /// <summary>
+        /// Cloning should also update the repository with cloned characters and crowds
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCharacterOrCrowd_UpdatesRepository() 
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[2]; // Will paste to League of Shadows
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            crowdRepositoryMock.Verify(
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                    It.Is<List<CrowdModel>>(cmList =>
+                        cmList.Where(cm => cm.Name == Constants.ALL_CHARACTER_CROWD_NAME).First().CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault() != null)));
+
+        }
+        /// <summary>
+        /// Cloning should not allow pasting a copied crowd to the All Characters crowd
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCrowd_PreventsPastingCrowdToAllCharacters()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = null;
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0]; // Will paste to All Characters
+            bool canPaste = characterExplorerViewModel.CloneCharacterCrowdCommand.CanExecute(null);
+            Assert.IsFalse(canPaste);
+        }
+
+        /// <summary>
+        /// Cloning should always add to number
+        /// </summary>
+        [TestMethod]
+        public void CloneAndPasteCharacterCrowd_AddsToNumberAlways()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            InitializeMessageBoxService(MessageBoxResult.Yes); // Pre-configuring message box to confirm delete request
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Assuming Gotham City is selected
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection[0] as CrowdMemberModel;// Selecting Batman to copy
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Will paste to League of Shadows
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            var char1AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault();
+            var char2AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (2)").FirstOrDefault();
+            var char3AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (3)").FirstOrDefault();
+            Assert.IsTrue(char1AfterClone != null && char2AfterClone != null && char3AfterClone != null);
+            // Now delete some characters from All Characters
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; 
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault() as CrowdMemberModel;
+            characterExplorerViewModel.DeleteCharacterCrowd(null);
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection.Where(c => c.Name == "Batman (3)").FirstOrDefault() as CrowdMemberModel;
+            characterExplorerViewModel.DeleteCharacterCrowd(null);
+            // Now clone and paste Batman two more times to see if Batman (1) and Batman (3) are recreated
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection["Gotham City"].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["League of Shadows"]; // Will paste to League of Shadows
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null); 
+            characterExplorerViewModel.CloneCharacterCrowdCommand.Execute(null);
+            characterExplorerViewModel.PasteCharacterCrowdCommand.Execute(null);
+            char1AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault();
+            char2AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (2)").FirstOrDefault();
+            char3AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (3)").FirstOrDefault();
+            Assert.IsTrue(char1AfterClone != null && char2AfterClone != null && char3AfterClone != null); // The available numbers 1 and 3 should be used
+            char2AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (4)").FirstOrDefault();
+            char3AfterClone = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (5)").FirstOrDefault();
+            Assert.IsTrue(char2AfterClone == null && char3AfterClone == null); // Batman (4) or (5) should not be created
+        }
+        #endregion
+
+        #region Cut and Paste Character Tests
+        public void CutAndPasteCharacter_MovesCharacterToPastedCrowd() { }
+
+        #endregion
+
+        #region Link and Paste Character Tests
+        public void LinkAndPasteCharacterAcrossCharacters_AddsNewCrowdMemberWithCopiedCharacterToPastedCrowd() { }
+
         #endregion
 
         #region Spawn Character In Crowd Tests
@@ -871,11 +1091,6 @@ namespace Module.UnitTest.Crowds
 
         #region Place Character Tests
         public void PlaceCharacter_MovesCharacterToPositionBasedOnSavedLocation() { }
-
-        #endregion
-
-        #region Link and Paste Character Tests
-        public void LinkAndPasteCharacterAcrossCharacters_AddsNewCrowdMemberWithCopiedCharacterToPastedCrowd() { }
 
         #endregion
 
