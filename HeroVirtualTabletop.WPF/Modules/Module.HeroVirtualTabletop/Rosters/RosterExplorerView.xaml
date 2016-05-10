@@ -3,9 +3,52 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             xmlns:roster="clr-namespace:Module.HeroVirtualTabletop.Roster"
+             xmlns:characters="clr-namespace:Module.HeroVirtualTabletop.Characters"
+             mc:Ignorable="d" >
+    <UserControl.Resources>
+        <CollectionViewSource 
+        x:Key="PartecipantsView" 
+        Source="{Binding DataContext.Partecipants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
+
+            <!-- Grouping -->
+            <CollectionViewSource.GroupDescriptions>
+                <PropertyGroupDescription PropertyName="RosterCrowd.Name" />
+            </CollectionViewSource.GroupDescriptions>
+
+        </CollectionViewSource>
+    </UserControl.Resources>
     <Grid>
-        <TextBlock Foreground="Blue" FontSize="20">Content View Roster</TextBlock>
+        <StackPanel>
+            <characters:CharacterManagementMenuControl></characters:CharacterManagementMenuControl>
+            <ListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=PartecipantsView}}"
+                    AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White">
+                <ListBox.GroupStyle>
+                    <GroupStyle>
+                        <GroupStyle.ContainerStyle>
+                            <Style TargetType="{x:Type GroupItem}">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate>
+                                            <Expander IsExpanded="True" Background="Transparent" TextElement.Foreground="White">
+                                                <Expander.Header>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                </Expander.Header>
+                                                <ItemsPresenter></ItemsPresenter>
+                                            </Expander>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </GroupStyle.ContainerStyle>
+                    </GroupStyle>
+                </ListBox.GroupStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate >
+                        <TextBlock Text="{Binding Name}"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </StackPanel>
     </Grid>
 </UserControl>

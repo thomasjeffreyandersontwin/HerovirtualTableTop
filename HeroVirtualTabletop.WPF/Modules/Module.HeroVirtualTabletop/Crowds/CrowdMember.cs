@@ -14,6 +14,7 @@ namespace Module.HeroVirtualTabletop.Crowds
     {
         string Name { get; set; }
         Crowd Parent { get; set; }
+        Crowd RosterCrowd { get; set; }
         ObservableCollection<ICrowdMember> CrowdMemberCollection { get; set; }
 
         // Following methods would be added as necessary. These can be virtual or abstract. Will decide later.
@@ -44,6 +45,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 parent = value;
                 OnPropertyChanged("Parent");
+            }
+        }
+
+        private Crowd rosterCrowd;
+        public Crowd RosterCrowd
+        {
+            get
+            {
+                return rosterCrowd;
+            }
+
+            set
+            {
+                rosterCrowd = value;
+                OnPropertyChanged("RosterCrowd");
             }
         }
 

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Framework.WPF.Services.MessageBoxService;
 using Module.Shared.Messages;
+using Module.HeroVirtualTabletop.Library.Events;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -130,6 +131,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> EnterEditModeCommand { get; private set; }
         public DelegateCommand<object> SubmitCharacterCrowdRenameCommand { get; private set; }
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
+        public DelegateCommand<object> AddToRosterCommand { get; private set; }
         public ICommand UpdateSelectedCrowdMemberCommand { get; private set; }
 
         #endregion
@@ -158,6 +160,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode, this.CanEnterEditMode);
             this.SubmitCharacterCrowdRenameCommand = new DelegateCommand<object>(this.SubmitCharacterCrowdRename);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
+            this.AddToRosterCommand = new DelegateCommand<object>(this.AddToRoster);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -576,6 +579,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 cr.ApplyFilter(filter); //Filter already check
             }
+        }
+
+        #endregion
+
+        #region Add To Roster
+
+        private void AddToRoster(object state)
+        {
+            eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdMember, SelectedCrowdModel));
         }
 
         #endregion
