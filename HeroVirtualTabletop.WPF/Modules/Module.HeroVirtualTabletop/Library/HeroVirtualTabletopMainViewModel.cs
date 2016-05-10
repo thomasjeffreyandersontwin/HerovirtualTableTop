@@ -49,6 +49,7 @@ namespace Module.HeroVirtualTabletop.Library
             // Just testing how things look at the moment...will change soon.
             LoadCharacterExplorer();
             LoadCharacterEditor();
+            LoadRosterExplorer();
         }
 
         #endregion
@@ -72,6 +73,13 @@ namespace Module.HeroVirtualTabletop.Library
             Characters.CharacterEditorViewModel characterEditorViewModel = this.Container.Resolve<Characters.CharacterEditorViewModel>();
             characterEditorViewModel.EditedCharacter = new Characters.Character("Test Character");
             PopupService.ShowDialog("CharacterEditorView", characterEditorViewModel, "Character Editor", false, null, new SolidColorBrush(Colors.Transparent), style);
+        }
+
+        private void LoadRosterExplorer()
+        {
+            System.Windows.Style style = Helper.GetCustomWindowStyle();
+            Roster.RosterExplorerViewModel RosterExplorerViewModel = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+            PopupService.ShowDialog("RosterExplorerView", RosterExplorerViewModel, "Roster Explorer", false, null, new SolidColorBrush(Colors.Transparent), style);
         }
 
         #endregion

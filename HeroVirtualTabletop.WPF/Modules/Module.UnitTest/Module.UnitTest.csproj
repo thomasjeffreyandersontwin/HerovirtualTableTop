@@ -129,6 +129,7 @@
     <Compile Include="GameCommunicator\KeyBindsGeneratorTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Library\BaseTest.cs" />
+    <Compile Include="Roster\RosterTestSuite.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Characters\" />

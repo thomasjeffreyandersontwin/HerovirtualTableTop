@@ -41,6 +41,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
+        private Crowd rosterCrowd;
+        public Crowd RosterCrowd
+        {
+            get
+            {
+                return rosterCrowd;
+            }
+
+            set
+            {
+                rosterCrowd = value;
+                OnPropertyChanged("RosterCrowd");
+            }
+        }
+
         private ObservableCollection<ICrowdMember> crowdMemberCollection;
         public ObservableCollection<ICrowdMember> CrowdMemberCollection
         {

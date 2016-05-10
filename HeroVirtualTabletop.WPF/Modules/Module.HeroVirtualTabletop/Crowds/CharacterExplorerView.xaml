@@ -25,24 +25,26 @@
                   Margin="0" MinHeight="250" MaxHeight="400"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown"
                   >
             <TreeView.Resources>
-                
-                <!--<ContextMenu x:Key="CharExplorerMenu">
-                    --><!--Need to bind these with Viewmodel commands--><!--
-                    <MenuItem Command="{Binding}"></MenuItem>
-                    <MenuItem Command="Copy"></MenuItem>
+
+                <ContextMenu x:Key="CharExplorerMenu">
+                    <!--Need to bind these with Viewmodel commands-->
+                    <MenuItem Header="Add Character" Command="{Binding AddCharacterCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
+                    <MenuItem Header="Add Crowd" Command="{Binding AddCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Remove" Command="{Binding DeleteCharacterCrowdCommand}"></MenuItem>
+                    <!--<MenuItem Command="Copy"></MenuItem>
                     <MenuItem Command="Cut"></MenuItem>
                     <MenuItem Command="{Binding}"></MenuItem>
                     <MenuItem Command="Paste"></MenuItem>
                     <MenuItem Command="{Binding}"></MenuItem>
                     <MenuItem Command="{Binding}"></MenuItem>
                     <MenuItem Command="{Binding}"></MenuItem>
-                    <MenuItem Command="{Binding}"></MenuItem>
-                </ContextMenu>-->
+                    <MenuItem Command="{Binding}"></MenuItem>-->
+                </ContextMenu>
                 <!--Will need to bind the source to a collection in viewmodel-->
                 <HierarchicalDataTemplate DataType="{x:Type crowd:CrowdModel}"
                                     ItemsSource="{Binding CrowdMemberCollection}"
                                     >
-                    <Grid>
+                    <Grid ContextMenu="{StaticResource ResourceKey=CharExplorerMenu}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
@@ -72,7 +74,7 @@
                 </HierarchicalDataTemplate>
 
                 <DataTemplate DataType="{x:Type managedcharacter:Character}">
-                    <Grid>
+                    <Grid ContextMenu="{StaticResource ResourceKey=CharExplorerMenu}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>

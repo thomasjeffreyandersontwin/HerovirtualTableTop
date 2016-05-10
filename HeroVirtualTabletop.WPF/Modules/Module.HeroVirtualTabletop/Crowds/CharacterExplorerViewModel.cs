@@ -17,6 +17,7 @@ using System.Windows.Input;
 using Framework.WPF.Services.MessageBoxService;
 using Module.Shared.Messages;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Library.Events;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -157,6 +158,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> EnterEditModeCommand { get; private set; }
         public DelegateCommand<object> SubmitCharacterCrowdRenameCommand { get; private set; }
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
+        public DelegateCommand<object> AddToRosterCommand { get; private set; }
         public DelegateCommand<object> CloneCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> CutCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> PasteCharacterCrowdCommand { get; private set; }
@@ -191,6 +193,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CloneCharacterCrowdCommand = new DelegateCommand<object>(this.CloneCharacterCrowd, this.CanCloneCharacterCrowd);
             this.CutCharacterCrowdCommand = new DelegateCommand<object>(this.CutCharacterCrowd, this.CanCutCharacterCrowd);
             this.PasteCharacterCrowdCommand = new DelegateCommand<object>(this.PasteCharacterCrowd, this.CanPasteCharacterCrowd);
+            this.AddToRosterCommand = new DelegateCommand<object>(this.AddToRoster);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -320,10 +323,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             if (!isUpdatingCollection)
             {
-                ICrowdMemberModel selectedCrowdMember;
-                Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
-                CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
-                this.SelectedCrowdModel = crowdModel;
+            ICrowdMemberModel selectedCrowdMember;
+            Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
+            CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
+            this.SelectedCrowdModel = crowdModel;
                 this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
             }
             else
@@ -453,10 +456,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             // Create All Characters List if not already there
             CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
-            this.CrowdCollection.Add(crowdModelAllCharacters);
-            crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-            this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
-                (ICrowdMemberModel c) => { return c.Name; });
+                this.CrowdCollection.Add(crowdModelAllCharacters);
+                crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+                this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
+                    (ICrowdMemberModel c) => { return c.Name; });
             return crowdModelAllCharacters;
         }
 
@@ -480,6 +483,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.SelectedCrowdModel.CrowdMemberCollection.Add(character as CrowdMemberModel);
             }
         }
+        
         #endregion
 
         #region Delete Character or Crowd
@@ -502,7 +506,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         public void DeleteCharacterCrowd(object state)
-        {
+        { 
             // Lock character crowd Tree from updating;
             this.LockModelAndMemberUpdate(true);
             // Determine if Character or Crowd is to be deleted
@@ -577,7 +581,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
                 this.lastCharacterCrowdStateToUpdate = null;
-            }
+        }
         }
 
         private List<ICrowdMemberModel> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
@@ -925,6 +929,18 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 cr.ApplyFilter(filter); //Filter already check
             }
+        }
+
+        #endregion
+
+        #region Add To Roster
+
+        private void AddToRoster(object state)
+        {
+            if (SelectedCrowdMemberModel != null)
+                eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdMemberModel, SelectedCrowdModel));
+            else if (SelectedCrowdModel != null)
+                eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdModel, null));
         }
 
         #endregion

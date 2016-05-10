@@ -49,5 +49,9 @@ namespace Module.Shared
         #region Character Explorer
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
         #endregion
+
+        #region Roster Explorer
+        public const string NO_CROWD_CROWD_NAME = "No Crowd";
+        #endregion
     }
 }
