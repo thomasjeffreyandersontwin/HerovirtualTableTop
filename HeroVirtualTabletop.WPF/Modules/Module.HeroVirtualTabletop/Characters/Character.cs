@@ -13,16 +13,19 @@ using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.Shared.Enumerations;
 using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
 
+[assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
 {
     public class Character : NotifyPropertyChanged
     {
-        //private KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-        //private bool hasBeenSpawned = false;
-        //private MemoryElement cohPlayer;
+        protected KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+        protected string keybind;
+        protected bool hasBeenSpawned = false;
+        protected internal MemoryElement cohPlayer;
 
-
+        [JsonConstructor()]
         public Character()
         {
             InitializeCharacter();
@@ -56,8 +59,12 @@ namespace Module.HeroVirtualTabletop.Characters
                 //We look for a costume with the same name of the character
                 if (File.Exists(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME, name + Constants.GAME_COSTUMES_EXT)))
                 {
+                    if (!availableIdentities.ContainsKey(name))
+                    {
+                        availableIdentities.Add(new Identity(name, IdentityType.Costume, name));
+                    }
                     //Costume exists, use it
-                    this.ActiveIdentity = new Identity(name, IdentityType.Costume, name);
+                    this.ActiveIdentity = availableIdentities[name];
                 }
             }
             else if (identityType == IdentityType.Costume) //A surface has been passed and it should be a Costume
@@ -65,19 +72,30 @@ namespace Module.HeroVirtualTabletop.Characters
                 //Validate the surface by checking if the costume exists
                 if (File.Exists(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME, surface + Constants.GAME_COSTUMES_EXT)))
                 {
+                    if (!availableIdentities.ContainsKey(surface))
+                    {
+                        availableIdentities.Add(new Identity(surface, identityType, surface));
+                    }
                     //If valid, use it
-                    this.ActiveIdentity = new Identity(surface, identityType, surface);
+                    this.ActiveIdentity = availableIdentities[surface];
                 }
             }
             else //A surface has been passed and it should be a model
             {
                 //To do: Validate the model??
                 //Use the surface as model
-                this.ActiveIdentity = new Identity(surface, identityType, surface);
+                if (!availableIdentities.ContainsKey(surface))
+                {
+                    availableIdentities.Add(new Identity(surface, identityType, surface));
+                }
+                //If valid, use it
+                this.ActiveIdentity = availableIdentities[surface];
             }
         }
 
+        [JsonProperty(PropertyName = "Name")]
         private string name;
+        [JsonIgnore]
         public string Name
         {
             get
@@ -90,6 +108,35 @@ namespace Module.HeroVirtualTabletop.Characters
                 SetActiveIdentity();
                 OnPropertyChanged("Name");
             }
+        }
+
+        [JsonIgnore]
+        private Position position;
+        public Position Position
+        {
+            get
+            {
+                return position;
+            }
+
+            set
+            {
+                position = value;
+            }
+        }
+
+        [JsonIgnore]
+        public string Label
+        {
+            get
+            {
+                return GetLabel();
+            }
+        }
+
+        protected virtual string GetLabel()
+        {
+            return name;
         }
 
         private OptionGroup<Identity> availableIdentities;
@@ -128,11 +175,11 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
-                if (value != null && !availableIdentities.Contains(value))
+                if (value != null && !availableIdentities.ContainsKey(value.Name))
                 {
                     availableIdentities.Add(value);
                 }
-                defaultIdentity = value;
+                defaultIdentity = availableIdentities[value.Name];
                 OnPropertyChanged("DefaultIdentity");
             }
         }
@@ -143,7 +190,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             get
             {
-                if (activeIdentity == null || !availableIdentities.Contains(activeIdentity))
+                if (activeIdentity == null || !availableIdentities.ContainsKey(activeIdentity.Name))
                 {
                     activeIdentity = DefaultIdentity;
                 }
@@ -153,15 +200,91 @@ namespace Module.HeroVirtualTabletop.Characters
 
             set
             {
-                if (value != null && !availableIdentities.Contains(value))
+                if (value != null && !availableIdentities.ContainsKey(value.Name))
                 {
                     availableIdentities.Add(value);
                 }
-                activeIdentity = value;
+                activeIdentity = availableIdentities[value.Name];
                 OnPropertyChanged("ActiveIdentity");
             }
         }
 
+        public string Spawn(bool completeEvent = true)
+        {
+            if (hasBeenSpawned)
+            {
+                Target();
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
+                cohPlayer = null;
+            }
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
+            
+            hasBeenSpawned = true;
+            string model = "model_Statesman";
+            if (ActiveIdentity.Type == IdentityType.Model)
+            {
+                model = ActiveIdentity.Surface;
+            }
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.SpawnNpc, model, Label);
+            Target(false);
+            keybind = ActiveIdentity.Render();
+            cohPlayer = new MemoryElement();
+            Position = new Position();
+            Target();
+            return keybind;
+        }
 
+        public string Target(bool completeEvent = true)
+        {
+            if (hasBeenSpawned)
+            {
+                if (cohPlayer != null && cohPlayer.IsReal)
+                {
+                    cohPlayer.Target(); //This ensure targeting even if not in view
+                    WaitUntilTargetIsRegistered();
+                }
+                else
+                {
+                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
+                    if (completeEvent)
+                    {
+                        keybind = keyBindsGenerator.CompleteEvent();
+                        cohPlayer = WaitUntilTargetIsRegistered();
+                    }
+                }
+                return keybind;
+            }
+            return string.Empty;
+        }
+
+        public MemoryElement WaitUntilTargetIsRegistered()
+        {
+            int w = 0;
+            MemoryElement currentTarget = new MemoryElement();
+            while (Label != currentTarget.Label)
+            {
+                w++;
+                currentTarget = new MemoryElement();
+                if (w > 500)
+                {
+                    currentTarget = null;
+                    break;
+                }
+            }
+            return currentTarget;
+        }
+
+        public string ClearFromDesktop(bool completeEvent = true)
+        {
+            Target(false);
+            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
+            if (completeEvent)
+            {
+                keyBindsGenerator.CompleteEvent();
+            }
+            cohPlayer = null;
+            hasBeenSpawned = false;
+            return keybind;
+        }
     }
 }

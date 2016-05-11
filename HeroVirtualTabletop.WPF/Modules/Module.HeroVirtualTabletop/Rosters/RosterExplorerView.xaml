@@ -5,6 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:roster="clr-namespace:Module.HeroVirtualTabletop.Roster"
              xmlns:characters="clr-namespace:Module.HeroVirtualTabletop.Characters"
+             xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
+             xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
              mc:Ignorable="d" >
     <UserControl.Resources>
         <CollectionViewSource 
@@ -21,8 +23,9 @@
     <Grid>
         <StackPanel>
             <characters:CharacterManagementMenuControl></characters:CharacterManagementMenuControl>
-            <ListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=PartecipantsView}}"
-                    AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White">
+            <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=PartecipantsView}}"
+                    AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White"
+                     SelectedItemsList="{Binding SelectedPartecipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ListBox.GroupStyle>
                     <GroupStyle>
                         <GroupStyle.ContainerStyle>
@@ -48,7 +51,7 @@
                         <TextBlock Text="{Binding Name}"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-            </ListBox>
+            </library:MultiSelectListBox>
         </StackPanel>
     </Grid>
 </UserControl>

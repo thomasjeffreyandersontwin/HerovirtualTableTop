@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Framework.WPF.Extensions;
+using Module.Shared.Enumerations;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -78,8 +80,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 OnPropertyChanged("CrowdMemberCollection");
             }
         }
-
-        public CrowdMember():this("")
+        [JsonConstructor]
+        public CrowdMember(): base()
         { 
             
         }
@@ -92,6 +94,23 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             CrowdMember crowdMember = this.DeepClone() as CrowdMember;
             return crowdMember;
+        }
+
+        protected override string GetLabel()
+        {
+            if (cohPlayer != null && cohPlayer.IsReal)
+            {
+                return cohPlayer.Label;
+            }
+            else
+            {
+                string crowdLabel = string.Empty;
+                if (RosterCrowd != null && RosterCrowd.Name != Constants.ALL_CHARACTER_CROWD_NAME && RosterCrowd.Name != Constants.NO_CROWD_CROWD_NAME)
+                {
+                    crowdLabel = " [" + RosterCrowd.Name + "]";
+                }
+                return Name + crowdLabel;
+            }
         }
     }
     public class CrowdMemberModel : CrowdMember, ICrowdMemberModel
@@ -156,7 +175,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
             return crowdMemberModel;
         }
-
+        [JsonConstructor]
         public CrowdMemberModel() : base() { }
         public CrowdMemberModel(string name): base(name) { }
     }

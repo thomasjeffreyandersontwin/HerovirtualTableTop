@@ -124,6 +124,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Characters\CharacterTestSuite.cs" />
     <Compile Include="Crowds\BaseCrowdTest.cs" />
     <Compile Include="Crowds\CrowdTestSuite.cs" />
     <Compile Include="GameCommunicator\KeyBindsGeneratorTest.cs" />
@@ -132,7 +133,6 @@
     <Compile Include="Roster\RosterTestSuite.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Characters\" />
     <Folder Include="Identities\" />
   </ItemGroup>
   <ItemGroup>

@@ -90,9 +90,9 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
         private string loaderKey = "B";
 
 
-        private GameEvent lastEvent;
-        private string generatedKeybindText;
-        private string lastKeyBindGenerated;
+        private static GameEvent lastEvent;
+        private static string generatedKeybindText;
+        private static string lastKeyBindGenerated;
 
         public string GenerateKeyBindsForEvent(GameEvent gameEvent, params string[] parameters)
         {
@@ -112,26 +112,26 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             if (!string.IsNullOrWhiteSpace(GeneratedKeybindText))
             {
-                if (!string.IsNullOrEmpty(this.generatedKeybindText))
+                if (!string.IsNullOrEmpty(KeyBindsGenerator.generatedKeybindText))
                 {
-                    this.generatedKeybindText += string.Format("$${0} {1}", command, GeneratedKeybindText);
+                    KeyBindsGenerator.generatedKeybindText += string.Format("$${0} {1}", command, GeneratedKeybindText);
                 }
                 else
                 {
-                    this.generatedKeybindText = string.Format("{0} {1}", command, GeneratedKeybindText);
+                    KeyBindsGenerator.generatedKeybindText = string.Format("{0} {1}", command, GeneratedKeybindText);
                 }
 
                 return string.Format("{0} {1}", command, GeneratedKeybindText);
             }
             else
             {
-                if (!string.IsNullOrEmpty(this.generatedKeybindText))
+                if (!string.IsNullOrEmpty(KeyBindsGenerator.generatedKeybindText))
                 {
-                    this.generatedKeybindText += string.Format("$${0}", command);
+                    KeyBindsGenerator.generatedKeybindText += string.Format("$${0}", command);
                 }
                 else
                 {
-                    this.generatedKeybindText = command;
+                    KeyBindsGenerator.generatedKeybindText = command;
                 }
 
                 return command;
@@ -141,9 +141,9 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
         private string PopEvents()
         {
-            lastKeyBindGenerated = this.generatedKeybindText;
-            string GeneratedKeybindText = this.generatedKeybindText;
-            this.generatedKeybindText = "";
+            lastKeyBindGenerated = KeyBindsGenerator.generatedKeybindText;
+            string GeneratedKeybindText = KeyBindsGenerator.generatedKeybindText;
+            KeyBindsGenerator.generatedKeybindText = "";
             return string.Format("\"{0}\"", GeneratedKeybindText);
         }
 
