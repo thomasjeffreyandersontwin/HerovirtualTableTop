@@ -24,7 +24,7 @@
             <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target" />
             <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera" />
             <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera"  />
-            <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Remove From COH" />
+            <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop" Command="{Binding ClearFromDesktopCommand}" />
         </WrapPanel>
     </Grid>
 </UserControl>

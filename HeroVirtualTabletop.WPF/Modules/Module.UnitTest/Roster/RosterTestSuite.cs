@@ -3,6 +3,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Roster;
 using Module.Shared;
+using System.Collections;
+using Module.HeroVirtualTabletop.Library.GameCommunicator;
+using System.IO;
 
 namespace Module.UnitTest.Roster
 {
@@ -95,6 +98,30 @@ namespace Module.UnitTest.Roster
                 Assert.IsTrue(rosterExplorerViewModel.Partecipants.Contains(x));
                 Assert.AreEqual(x.RosterCrowd, characterExplorerViewModel.SelectedCrowdModel);
             }
+        }
+
+        [TestMethod]
+        public void RemoveCharacterFromDesktop_GeneratesTargetAndDeleteKeybindAndRemovesFromRoster()
+        {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[0];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+
+            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SpawnCommand.Execute(null);
+
+            rosterExplorerViewModel.ClearFromDesktopCommand.Execute(null);
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains("target_name Batman$$delete_npc"));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
+
+            Assert.IsFalse(rosterExplorerViewModel.Partecipants.Contains(character));
         }
     }
 }

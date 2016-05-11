@@ -69,6 +69,7 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Commands
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
+        public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
 
         #endregion
 
@@ -93,6 +94,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void InitializeCommands()
         {
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
         }
 
         #endregion
@@ -149,6 +151,19 @@ namespace Module.HeroVirtualTabletop.Roster
             foreach (CrowdMemberModel member in SelectedPartecipants)
             {
                 member.Spawn();
+            }
+        }
+
+        private void ClearFromDesktop(object state)
+        {
+            foreach (CrowdMemberModel member in SelectedPartecipants)
+            {
+                member.ClearFromDesktop();
+                member.RosterCrowd = null;
+            }
+            foreach (CrowdMemberModel member in SelectedPartecipants)
+            {
+                Partecipants.Remove(member);
             }
         }
 

@@ -273,5 +273,18 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             return currentTarget;
         }
+
+        public string ClearFromDesktop(bool completeEvent = true)
+        {
+            Target(false);
+            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
+            if (completeEvent)
+            {
+                keyBindsGenerator.CompleteEvent();
+            }
+            cohPlayer = null;
+            hasBeenSpawned = false;
+            return keybind;
+        }
     }
 }
