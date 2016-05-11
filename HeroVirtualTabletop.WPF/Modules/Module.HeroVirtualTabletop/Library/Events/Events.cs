@@ -4,7 +4,6 @@ using System;
 
 namespace Module.HeroVirtualTabletop.Library.Events
 {
-    public class AddToRosterEvent : PubSubEvent<Tuple<ICrowdMemberModel, CrowdModel>>
-    {
-    }
+    public class AddToRosterEvent : PubSubEvent<Tuple<ICrowdMemberModel, CrowdModel>> { }
+    public class EditCharacterEvent : PubSubEvent<Object[]> { }
 }

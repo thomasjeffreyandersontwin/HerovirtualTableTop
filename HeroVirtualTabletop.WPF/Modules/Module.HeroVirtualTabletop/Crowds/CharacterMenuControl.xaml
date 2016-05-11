@@ -23,7 +23,7 @@
             <Button x:Name="btAddCharacter" Content="&#xf234;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
             <Button x:Name="btAddCrowd" Content="&#xf0c0;" ToolTip="Add Crowd" Command="{Binding AddCrowdCommand}"/>
             <Button x:Name="btRemove" Content="&#xf235;" ToolTip="Remove" Command="{Binding DeleteCharacterCrowdCommand}" />
-            <Button x:Name="btEdit" Content="&#xf044;" ToolTip="Edit" />
+            <Button x:Name="btEdit" Content="&#xf044;" ToolTip="Edit" Command="{Binding EditCharacterCommand}"/>
             <Button x:Name="btAddToRoster" Content="&#xf090;" ToolTip="Add to Roster" Command="{Binding AddToRosterCommand}" />
         </StackPanel>
     </Grid>

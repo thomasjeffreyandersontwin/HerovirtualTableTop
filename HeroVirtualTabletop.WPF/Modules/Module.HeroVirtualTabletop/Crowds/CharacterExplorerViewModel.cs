@@ -85,6 +85,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.CutCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.LinkCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.PasteCharacterCrowdCommand.RaiseCanExecuteChanged();
+                this.AddToRosterCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -104,6 +105,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.CutCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.LinkCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.PasteCharacterCrowdCommand.RaiseCanExecuteChanged();
+                this.AddToRosterCommand.RaiseCanExecuteChanged();
+                this.EditCharacterCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -165,6 +168,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> CutCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> LinkCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> PasteCharacterCrowdCommand { get; private set; }
+        public DelegateCommand<object> EditCharacterCommand { get; private set; }
         public ICommand UpdateSelectedCrowdMemberCommand { get; private set; }
 
         #endregion
@@ -197,7 +201,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CutCharacterCrowdCommand = new DelegateCommand<object>(this.CutCharacterCrowd, this.CanCutCharacterCrowd);
             this.LinkCharacterCrowdCommand = new DelegateCommand<object>(this.LinkCharacterCrowd, this.CanLinkCharacterCrowd);
             this.PasteCharacterCrowdCommand = new DelegateCommand<object>(this.PasteCharacterCrowd, this.CanPasteCharacterCrowd);
-            this.AddToRosterCommand = new DelegateCommand<object>(this.AddToRoster);
+            this.AddToRosterCommand = new DelegateCommand<object>(this.AddToRoster, this.CanAddToRoster);
+            this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -938,12 +943,30 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #region Add To Roster
 
+        private bool CanAddToRoster(object state)
+        {
+            return !(this.SelectedCrowdMemberModel == null && this.SelectedCrowdModel == null); ;
+        }
         private void AddToRoster(object state)
         {
             if (SelectedCrowdMemberModel != null)
                 eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdMemberModel, SelectedCrowdModel));
             else if (SelectedCrowdModel != null)
                 eventAggregator.GetEvent<AddToRosterEvent>().Publish(new Tuple<ICrowdMemberModel, CrowdModel>(SelectedCrowdModel, null));
+        }
+
+        #endregion
+
+        #region Edit Character
+
+        private bool CanEditCharacter(object state)
+        {
+            return this.SelectedCrowdMemberModel != null;
+        }
+
+        private void EditCharacter(object state)
+        {
+            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new object[] { this.SelectedCrowdMemberModel, this.characterCollection });
         }
 
         #endregion

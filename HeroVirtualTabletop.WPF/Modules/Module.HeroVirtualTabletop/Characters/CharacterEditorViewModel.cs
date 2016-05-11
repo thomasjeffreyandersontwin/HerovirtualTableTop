@@ -2,8 +2,10 @@
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Prism.Events;
 using Prism.Regions;
@@ -22,6 +24,7 @@ namespace Module.HeroVirtualTabletop.Characters
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private OptionGroupViewModel<Identity> identitiesViewModel;
+        private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
 
         #endregion
 
@@ -40,12 +43,11 @@ namespace Module.HeroVirtualTabletop.Characters
             set
             {
                 editedCharacter = value;
-                this.identitiesViewModel = new OptionGroupViewModel<Identity>(BusyService, Container, eventAggregator, editedCharacter.AvailableIdentities, editedCharacter);
                 OnPropertyChanged("EditedCharacter");
             }
         }
 
-        public OptionGroupViewModel<Identity> IdentitiesViewModel
+        public OptionGroupViewModel<Identity> IdentityViewModel
         {
             get
             {
@@ -72,7 +74,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             this.eventAggregator = eventAggregator;
             InitializeCommands();
-
+            this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe(this.LoadCharacter);
         }
 
         #endregion
@@ -81,6 +83,24 @@ namespace Module.HeroVirtualTabletop.Characters
         private void InitializeCommands()
         {
             
+        }
+
+        private void LoadCharacter(object state)
+        {
+            object[] objArray = state as object[];
+            if(objArray != null && objArray.Count() == 2)
+            {
+                Character character = objArray[0] as Character;
+                HashedObservableCollection<ICrowdMemberModel, string> collection = objArray[1] as HashedObservableCollection<ICrowdMemberModel, string>;
+                if(character != null && collection != null)
+                {
+                    this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>();
+                    this.IdentityViewModel.OptionGroup = character.AvailableIdentities;
+                    this.IdentityViewModel.Owner = character;
+                    this.EditedCharacter = character;
+                    this.characterCollection = collection;
+                }
+            }
         }
 
         #endregion
