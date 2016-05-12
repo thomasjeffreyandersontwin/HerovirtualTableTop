@@ -23,7 +23,7 @@ namespace Module.HeroVirtualTabletop.Characters
         protected KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
         protected string keybind;
         protected bool hasBeenSpawned = false;
-        protected internal MemoryElement cohPlayer;
+        protected internal MemoryElement gamePlayer;
 
         [JsonConstructor()]
         public Character()
@@ -215,7 +215,7 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 Target();
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
-                cohPlayer = null;
+                gamePlayer = null;
             }
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
             
@@ -228,7 +228,7 @@ namespace Module.HeroVirtualTabletop.Characters
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.SpawnNpc, model, Label);
             Target(false);
             keybind = ActiveIdentity.Render();
-            cohPlayer = new MemoryElement();
+            gamePlayer = new MemoryElement();
             Position = new Position();
             Target();
             return keybind;
@@ -238,9 +238,9 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             if (hasBeenSpawned)
             {
-                if (cohPlayer != null && cohPlayer.IsReal)
+                if (gamePlayer != null && gamePlayer.IsReal)
                 {
-                    cohPlayer.Target(); //This ensure targeting even if not in view
+                    gamePlayer.Target(); //This ensure targeting even if not in view
                     WaitUntilTargetIsRegistered();
                 }
                 else
@@ -249,7 +249,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     if (completeEvent)
                     {
                         keybind = keyBindsGenerator.CompleteEvent();
-                        cohPlayer = WaitUntilTargetIsRegistered();
+                        gamePlayer = WaitUntilTargetIsRegistered();
                     }
                 }
                 return keybind;
@@ -282,7 +282,7 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 keyBindsGenerator.CompleteEvent();
             }
-            cohPlayer = null;
+            gamePlayer = null;
             hasBeenSpawned = false;
             return keybind;
         }

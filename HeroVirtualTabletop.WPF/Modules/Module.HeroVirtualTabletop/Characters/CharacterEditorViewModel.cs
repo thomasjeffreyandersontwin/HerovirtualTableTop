@@ -11,6 +11,7 @@ using Prism.Events;
 using Prism.Regions;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,11 +88,11 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private void LoadCharacter(object state)
         {
-            object[] objArray = state as object[];
-            if(objArray != null && objArray.Count() == 2)
+            Tuple<ICrowdMemberModel, Collection<ICrowdMemberModel>> tuple = state as Tuple<ICrowdMemberModel, Collection<ICrowdMemberModel>>;
+            if (tuple != null)
             {
-                Character character = objArray[0] as Character;
-                HashedObservableCollection<ICrowdMemberModel, string> collection = objArray[1] as HashedObservableCollection<ICrowdMemberModel, string>;
+                Character character = tuple.Item1 as Character;
+                HashedObservableCollection<ICrowdMemberModel, string> collection = tuple.Item2 as HashedObservableCollection<ICrowdMemberModel, string>;
                 if(character != null && collection != null)
                 {
                     this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>();

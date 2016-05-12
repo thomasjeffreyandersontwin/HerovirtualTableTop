@@ -27,21 +27,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private Crowd parent;
-        public Crowd Parent
-        {
-            get
-            {
-                return parent;
-            }
-            set
-            {
-                parent = value;
-                OnPropertyChanged("Parent");
-            }
-        }
-
         private Crowd rosterCrowd;
+        [JsonIgnore]
         public Crowd RosterCrowd
         {
             get
@@ -84,6 +71,11 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             Crowd crowd = this.DeepClone() as Crowd;
             return crowd;
+        }
+
+        public virtual void SavePosition()
+        { 
+            
         }
     }
 

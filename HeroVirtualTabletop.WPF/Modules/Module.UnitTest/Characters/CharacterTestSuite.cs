@@ -36,9 +36,9 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
@@ -55,9 +55,9 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
@@ -79,12 +79,12 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
             character.ActiveIdentity = new HeroVirtualTabletop.Identities.Identity("Panzer", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
             character.ActiveIdentity = new HeroVirtualTabletop.Identities.Identity("Spyder", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
@@ -102,11 +102,11 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
             character.ActiveIdentity = new HeroVirtualTabletop.Identities.Identity("1stSigArcIssue4_Doctor_Female", HeroVirtualTabletop.Library.Enumerations.IdentityType.Model);
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
@@ -123,11 +123,11 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
             character.ActiveIdentity = new HeroVirtualTabletop.Identities.Identity("Spyder", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
@@ -145,9 +145,9 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
@@ -168,9 +168,9 @@ namespace Module.UnitTest.Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[0].CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
-            CrowdMemberModel character = rosterExplorerViewModel.Partecipants[0] as CrowdMemberModel;
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
-            rosterExplorerViewModel.SelectedPartecipants = new ArrayList { character };
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             rosterExplorerViewModel.ClearFromDesktopCommand.Execute(null);

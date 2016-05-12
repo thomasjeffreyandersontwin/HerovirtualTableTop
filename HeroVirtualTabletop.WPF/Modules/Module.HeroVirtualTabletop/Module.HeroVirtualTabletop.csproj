@@ -121,6 +121,7 @@
     <Compile Include="Characters\CharacterManagementMenuControl.xaml.cs">
       <DependentUpon>CharacterManagementMenuControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="OptionGroups\OptionGroupView.xaml.cs">
@@ -187,7 +188,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="AnimatedAbilities\" />
-    <Folder Include="Library\Converters\" />
     <Folder Include="Movements\" />
   </ItemGroup>
   <ItemGroup>
