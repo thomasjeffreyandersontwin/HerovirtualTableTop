@@ -29,5 +29,19 @@ namespace Module.HeroVirtualTabletop.Roster
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
         }
+
+        private void TextBlock_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                var ItemsPres = ((sender as TextBlock).Parent as Expander).Content as ItemsPresenter;
+                var VStackPanel = VisualTreeHelper.GetChild(ItemsPres as DependencyObject, 0) as VirtualizingStackPanel;
+                foreach (ListBoxItem item in VStackPanel.Children)
+                {
+                    item.IsSelected = true;
+                }
+                e.Handled = true;
+            }
+        }
     }
 }

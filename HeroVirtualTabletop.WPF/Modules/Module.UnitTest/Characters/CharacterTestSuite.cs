@@ -230,5 +230,24 @@ namespace Module.UnitTest.Characters
         }
 
         #endregion
+
+        #region Un Target Tests
+
+        [TestMethod]
+        public void UnTargetCharacter_GeneratesCorrectKeybinds()
+        {
+            CrowdMemberModel character = new CrowdMemberModel();
+
+            character.UnTarget();
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains("target_enemy_near"));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
+        }
+
+        #endregion
     }
 }

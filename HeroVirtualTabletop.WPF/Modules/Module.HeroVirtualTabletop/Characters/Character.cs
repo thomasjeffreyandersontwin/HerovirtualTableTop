@@ -310,10 +310,17 @@ namespace Module.HeroVirtualTabletop.Characters
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
-                MemoryElement currentTarget = new MemoryElement();
-                while (currentTarget.Label != string.Empty)
+                try
                 {
-                    currentTarget = new MemoryElement();
+                    MemoryElement currentTarget = new MemoryElement();
+                    while (currentTarget.Label != string.Empty)
+                    {
+                        currentTarget = new MemoryElement();
+                    }
+                }
+                catch
+                {
+
                 }
             }
             return keybind;
