@@ -184,7 +184,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.messageBoxService = messageBoxService;
             InitializeCommands();
             LoadCrowdCollection();
-
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
         }
 
         #endregion
@@ -476,7 +476,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void AddCharacterToAllCharactersCrowd(Character character)
         {
             CrowdModel crowdModelAllCharacters = this.CrowdCollection.Where(c => c.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
-            if (crowdModelAllCharacters == null || crowdModelAllCharacters.CrowdMemberCollection == null || crowdModelAllCharacters.CrowdMemberCollection.Count == 0)
+            if (crowdModelAllCharacters == null)
             {
                 crowdModelAllCharacters = CreateAllCharactersCrowd();
             }
@@ -690,7 +690,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #region Save Crowd Collection
 
-        private void SaveCrowdCollection()
+        private void SaveCrowdCollection(object o = null)
         {
             //this.BusyService.ShowBusy();
             this.crowdRepository.SaveCrowdCollection(this.SaveCrowdCollectionCallback, this.CrowdCollection.ToList());

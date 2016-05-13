@@ -5,11 +5,13 @@ using Microsoft.Practices.Unity;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Roster;
 using Module.Shared;
 using Module.Shared.Messages;
 using Moq;
 using Prism.Events;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -176,6 +178,7 @@ namespace Module.UnitTest.Crowds
     public class CrowdMemberTest : BaseCrowdTest
     {
         private CharacterExplorerViewModel characterExplorerViewModel;
+        private RosterExplorerViewModel rosterExplorerViewModel;
 
         [TestInitialize]
         public void TestInitialize()
@@ -714,7 +717,7 @@ namespace Module.UnitTest.Crowds
 
             characterExplorerViewModel.Filter = "Batman";
 
-            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatch; }).ToList();
+            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatched; }).ToList();
 
             Assert.AreEqual(matches.Count, 4); //Matches should be: All Character and Batman inside plus Gotham City and Batman inside
         }
@@ -726,7 +729,7 @@ namespace Module.UnitTest.Crowds
 
             characterExplorerViewModel.Filter = string.Empty;
 
-            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatch; }).ToList();
+            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatched; }).ToList();
 
             Assert.AreEqual(matches.Count, GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Count);
 
@@ -739,7 +742,7 @@ namespace Module.UnitTest.Crowds
 
             characterExplorerViewModel.Filter = "BaTmAn";
 
-            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatch; }).ToList();
+            List<ICrowdMemberModel> matches = GetFlattenedMemberList(characterExplorerViewModel.CrowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(cm => { return cm.IsMatched; }).ToList();
 
             Assert.AreEqual(matches.Count, 4); //Matches should be: All Character and Batman inside plus Gotham City and Batman inside
         }
@@ -753,7 +756,7 @@ namespace Module.UnitTest.Crowds
 
             CrowdModel gotham = characterExplorerViewModel.CrowdCollection.First(cr => { return cr.Name == "Gotham City"; });
 
-            Assert.IsTrue(gotham.IsMatch);
+            Assert.IsTrue(gotham.IsMatched);
             Assert.IsTrue(gotham.IsExpanded);
 
         }
@@ -769,7 +772,7 @@ namespace Module.UnitTest.Crowds
 
             foreach (ICrowdMemberModel cm in gotham.CrowdMemberCollection)
             {
-                Assert.IsTrue(cm.IsMatch);
+                Assert.IsTrue(cm.IsMatched);
             }
         }
         [TestMethod]
@@ -782,7 +785,7 @@ namespace Module.UnitTest.Crowds
 
             CrowdModel gotham = characterExplorerViewModel.CrowdCollection.First(cr => { return cr.Name == "Gotham City"; });
 
-            Assert.IsTrue(gotham.IsMatch);
+            Assert.IsTrue(gotham.IsMatched);
         }
         [TestMethod]
         public void FilterCrowdMembers_IfCharacterIsMatchContainingCrowdIsExpanded()
@@ -920,7 +923,7 @@ namespace Module.UnitTest.Crowds
                 }
             }
             Assert.AreEqual(originalCharacter.IsExpanded, clonedCharacter.IsExpanded);
-            Assert.AreEqual(originalCharacter.IsMatch, clonedCharacter.IsMatch);
+            Assert.AreEqual(originalCharacter.IsMatched, clonedCharacter.IsMatched);
         }
         /// <summary>
         /// Cloned character should not have same name as original character
@@ -1422,6 +1425,90 @@ namespace Module.UnitTest.Crowds
 
         #region Save Placement of Character Tests
         public void SavePlacementOfCharacter_AssignsLocationToCrowdmembershipBasedOnCurrentPositionAndSavesCrowdmembershipToCrowdRepo() { }
+        /// <summary>
+        /// Character's current position in the game should be saved
+        /// </summary>
+        [TestMethod]
+        public void SavePositionForCharacter_SavesPositionOfCharacterForCrowdMember()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            Assert.IsNull(character.SavedPosition);
+            rosterExplorerViewModel.SpawnCommand.Execute(null);
+            rosterExplorerViewModel.SavePositionCommand.Execute(null);
+            Assert.IsNotNull(character.SavedPosition);
+        }
+        /// <summary>
+        /// The containing Roster crowd should also have the character's saved position within the crowd for future use
+        /// </summary>
+        [TestMethod]
+        public void SavePositionForCharacter_SavesPositionOfCharacterInCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            CrowdModel crModel = character.RosterCrowd as CrowdModel;
+            bool keyExists = crModel.SavedPositions.ContainsKey(character.Name);
+            Assert.IsFalse(keyExists);
+            rosterExplorerViewModel.SpawnCommand.Execute(null);
+            rosterExplorerViewModel.SavePositionCommand.Execute(null);
+            var position = crModel.SavedPositions[character.Name];
+            Assert.IsNotNull(position);
+        }
+        /// <summary>
+        /// Repository should be updated after save position
+        /// </summary>
+        [TestMethod]
+        public void SavePositionForCharacter_UpdatesRepository()
+        { 
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            rosterExplorerViewModel.SpawnCommand.Execute(null);
+            rosterExplorerViewModel.SavePositionCommand.Execute(null);
+
+            crowdRepositoryMock.Verify(
+                repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
+                    It.Is<List<CrowdModel>>(cmList =>
+                        cmList.Where(cm => cm.Name == "Gotham City").First().SavedPositions.ContainsKey("Batman"))));
+        }
+        /// <summary>
+        /// User should not be able to save position of a character without having it spawned in the game
+        /// </summary>
+        [TestMethod]
+        public void SavePositionForCharacter_PreventsSavingWithoutSpawning()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            bool canSavePosition = rosterExplorerViewModel.SavePositionCommand.CanExecute(null);
+            Assert.IsFalse(canSavePosition);
+        }
 
         #endregion
 

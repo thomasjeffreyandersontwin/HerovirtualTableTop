@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Framework.WPF.Extensions;
 using Module.Shared.Enumerations;
 using Module.Shared;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -28,7 +29,7 @@ namespace Module.HeroVirtualTabletop.Crowds
     public interface ICrowdMemberModel : ICrowdMember
     {
         bool IsExpanded { get; set; }
-        bool IsMatch { get; set; }
+        bool IsMatched { get; set; }
         void ApplyFilter(string filter);
         void ResetFilter();
     }
@@ -65,6 +66,20 @@ namespace Module.HeroVirtualTabletop.Crowds
                 OnPropertyChanged("CrowdMemberCollection");
             }
         }
+
+        private Position savedPosition;
+        public Position SavedPosition
+        {
+            get
+            {
+                return savedPosition;
+            }
+            set
+            {
+                savedPosition = value;
+                OnPropertyChanged("SavedPosition");
+            }
+        }
         [JsonConstructor]
         public CrowdMember(): base()
         { 
@@ -82,8 +97,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         public virtual void SavePosition()
-        { 
-            
+        {
+            if (this.Position != null)
+                this.SavedPosition = this.Position.Clone(false);
         }
 
         protected override string GetLabel()
@@ -120,37 +136,37 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private bool isMatch = true;
+        private bool isMatched = true;
         [JsonIgnore]
-        public bool IsMatch
+        public bool IsMatched
         {
             get
             {
-                return isMatch;
+                return isMatched;
             }
             set
             {
-                isMatch = value;
+                isMatched = value;
                 OnPropertyChanged("IsMatch");
             }
         }
 
         public void ApplyFilter(string filter)
         {
-            if (alreadyFiltered == true && isMatch == true)
+            if (alreadyFiltered == true && IsMatched == true)
             {
                 return;
             }
             if (string.IsNullOrEmpty(filter))
             {
-                IsMatch = true;
+                IsMatched = true;
             }
             else
             {
                 Regex re = new Regex(filter, RegexOptions.IgnoreCase);
-                IsMatch = re.IsMatch(Name);
+                IsMatched = re.IsMatch(Name);
             }
-            IsExpanded = IsMatch;
+            IsExpanded = IsMatched;
             alreadyFiltered = true;
         }
 
@@ -165,6 +181,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
             return crowdMemberModel;
         }
+        public override void SavePosition()
+        {
+            base.SavePosition();
+            if (this.RosterCrowd != null)
+            {
+                this.RosterCrowd.SavePosition(this);
+            }
+        }
+
         [JsonConstructor]
         public CrowdMemberModel() : base() { }
         public CrowdMemberModel(string name): base(name) { }
