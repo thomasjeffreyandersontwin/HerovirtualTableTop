@@ -198,14 +198,11 @@ namespace Module.UnitTest.Characters
 
             rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
+            Mock<IMemoryElement> memoryElementMock = new Mock<IMemoryElement>();
+            memoryElementMock.Setup(x => x.IsReal).Returns(true);
+            character.gamePlayer = memoryElementMock.Object;
             rosterExplorerViewModel.ToggleTargetedCommand.Execute(null);
-
-            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
-
-            Assert.IsFalse(sr.ReadLine().Contains(string.Format("target_name {0}", character.Label)));
-
-            sr.Close();
-            File.Delete(new KeyBindsGenerator().BindFile);
+            memoryElementMock.Verify(x => x.Target(), Times.Once());
         }
         [TestMethod]
         public void TargetCharacter_GeneratesTargetKeybindIfNoMemoryInstance()

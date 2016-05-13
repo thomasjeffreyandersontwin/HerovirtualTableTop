@@ -22,7 +22,7 @@ namespace Module.HeroVirtualTabletop.Characters
     {
         private KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
         private string keybind;
-        protected MemoryElement gamePlayer;
+        protected internal IMemoryElement gamePlayer;
 
         [JsonConstructor()]
         public Character()

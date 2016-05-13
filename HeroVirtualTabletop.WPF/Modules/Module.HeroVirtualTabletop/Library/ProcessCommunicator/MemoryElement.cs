@@ -33,7 +33,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             }
         }
 
-        public Position Position
+        public IMemoryElementPosition Position
         {
             get;
             set;
