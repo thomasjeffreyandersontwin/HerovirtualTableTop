@@ -136,24 +136,29 @@ namespace Module.HeroVirtualTabletop.Identities
             isDefault = false;
             isActive = false;
             this.keyBindsGenerator = new KeyBindsGenerator();
-        }   
+        }
 
-        public string Render()
+        public string Render(bool completeEvent = true)
         {
+            string keybind = string.Empty;
             switch (Type)
             {
                 case IdentityType.Model:
                     {
-                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BeNPC, Surface);
+                        keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BeNPC, Surface);
                         break;
                     }
                 case IdentityType.Costume:
                     {
-                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Surface);
+                        keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Surface);
                         break;
                     }
             }
-            return keyBindsGenerator.CompleteEvent();
+            if (completeEvent)
+            {
+                keybind = keyBindsGenerator.CompleteEvent();
+            }
+            return keybind;
         }
 
         //TODO AnimationOnLoad

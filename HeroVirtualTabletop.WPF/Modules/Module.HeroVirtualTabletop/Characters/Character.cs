@@ -123,6 +123,7 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        private bool hasBeenSpawned;
         [JsonIgnore]
         public bool HasBeenSpawned
         {
@@ -145,19 +146,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             return name;
         }
-        private bool hasBeenSpawned;
-        [JsonIgnore]
-        public bool HasBeenSpawned
-        {
-            get
-            {
-                return hasBeenSpawned;
-            }
-            set
-            {
-                hasBeenSpawned = value;
-            }
-        }
+
         private OptionGroup<Identity> availableIdentities;
         [JsonProperty(Order = 0)]
         public OptionGroup<Identity> AvailableIdentities
@@ -246,10 +235,13 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.SpawnNpc, model, Label);
             Target(false);
-            keybind = ActiveIdentity.Render();
-            Target();
-            gamePlayer = new MemoryElement();
-            Position = new Position();
+            keybind = ActiveIdentity.Render(completeEvent);
+            if (completeEvent)
+            {
+                WaitUntilTargetIsRegistered();
+                gamePlayer = new MemoryElement();
+                Position = new Position();
+            }
             return keybind;
         }
 
