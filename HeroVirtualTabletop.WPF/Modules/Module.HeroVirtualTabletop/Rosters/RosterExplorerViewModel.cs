@@ -4,6 +4,7 @@ using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.Shared;
@@ -26,9 +27,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private IMessageBoxService messageBoxService;
         private EventAggregator eventAggregator;
-        private HashedObservableCollection<ICrowdMemberModel, string> partecipants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-        private IList selectedPartecipants;
-
         #endregion
 
         #region Events
@@ -36,30 +34,33 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region Public Properties
-
+        private HashedObservableCollection<ICrowdMemberModel, string> participants;
         public HashedObservableCollection<ICrowdMemberModel, string> Participants
         {
             get
             {
-                return partecipants;
+                if(participants == null)
+                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+                return participants;
             }
             set
             {
-                partecipants = value;
+                participants = value;
                 OnPropertyChanged("Participants");
             }
         }
-
+        private IList selectedParticipants;
         public IList SelectedParticipants
         {
             get
             {
-                return selectedPartecipants;
+                return selectedParticipants;
             }
             set
             {
-                selectedPartecipants = value;
+                selectedParticipants = value;
                 OnPropertyChanged("SelectedParticipants");
+                this.SavePositionCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -68,6 +69,7 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Commands
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
+        public DelegateCommand<object> SavePositionCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
 
         #endregion
@@ -94,12 +96,14 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
             this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
+            this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
         }
 
         #endregion
 
         #region Methods
 
+        #region Add Participant
         private void AddParticipant(IEnumerable<CrowdMemberModel> crowdMembers)
         {
             foreach (var crowdMember in crowdMembers)
@@ -107,15 +111,20 @@ namespace Module.HeroVirtualTabletop.Roster
                 Participants.Add(crowdMember);
             }
         }
+#endregion
 
+        #region Spawn
         private void Spawn(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
                 member.Spawn();
             }
+            this.SavePositionCommand.RaiseCanExecuteChanged();
         }
+        #endregion
 
+        #region Clear from Desktop
         private void ClearFromDesktop(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
@@ -128,6 +137,40 @@ namespace Module.HeroVirtualTabletop.Roster
                 Participants.Remove(member);
             }
         }
+        #endregion
+
+        #region Save Positon
+
+        private bool CanSavePostion(object state)
+        {
+            bool canSavePosition = false;
+            if (this.SelectedParticipants != null)
+            {
+                foreach (var c in this.SelectedParticipants)
+                {
+                    var character = c as Character;
+                    if (character != null && character.HasBeenSpawned)
+                    {
+                        canSavePosition = true;
+                        break;
+                    }
+                } 
+            }
+            return canSavePosition;
+        }
+        private void SavePostion(object state)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                member.SavePosition();
+            }
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+        }
+        #endregion
+
+        #region Place
+
+        #endregion
 
         #endregion
     }

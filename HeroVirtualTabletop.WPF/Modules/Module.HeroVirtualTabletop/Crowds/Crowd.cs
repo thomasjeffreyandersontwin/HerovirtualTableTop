@@ -8,6 +8,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Framework.WPF.Extensions;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Module.HeroVirtualTabletop.Characters;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -74,8 +76,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         public virtual void SavePosition()
+        {
+            foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
+                crowdMember.SavePosition();
+        }
+
+        public virtual void SavePosition(ICrowdMember c)
         { 
-            
+        
         }
     }
 
@@ -95,6 +103,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
+        private Dictionary<string, Position> savedPositions;
+        public Dictionary<string, Position> SavedPositions
+        {
+            get
+            {
+                if (savedPositions == null)
+                    savedPositions = new Dictionary<string, Position>();
+                return savedPositions;
+            }
+            set
+            {
+                savedPositions = value;
+            }
+        }
+
         private bool isExpanded;
         [JsonIgnore]
         public bool IsExpanded
@@ -110,37 +133,37 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private bool isMatch = true;
+        private bool isMatched = true;
         [JsonIgnore]
-        public bool IsMatch
+        public bool IsMatched
         {
             get
             {
-                return isMatch;
+                return isMatched;
             }
             set
             {
-                isMatch = value;
-                OnPropertyChanged("IsMatch");
+                isMatched = value;
+                OnPropertyChanged("IsMatched");
             }
         }
 
         public void ApplyFilter(string filter)
         {
-            if (alreadyFiltered == true && isMatch == true)
+            if (alreadyFiltered == true && isMatched == true)
             {
                 return;
             }
             if (string.IsNullOrEmpty(filter))
             {
-                IsMatch = true;
+                IsMatched = true;
             }
             else
             {
                 Regex re = new Regex(filter, RegexOptions.IgnoreCase);
-                IsMatch = re.IsMatch(Name);
+                IsMatched = re.IsMatch(Name);
             }
-            if (IsMatch)
+            if (IsMatched)
             {
                 foreach (ICrowdMemberModel cm in CrowdMemberCollection)
                 {
@@ -153,13 +176,13 @@ namespace Module.HeroVirtualTabletop.Crowds
                 {
                     cm.ApplyFilter(filter);
                 }
-                if (CrowdMemberCollection.Any(cm => { return (cm as ICrowdMemberModel).IsMatch; }))
+                if (CrowdMemberCollection.Any(cm => { return (cm as ICrowdMemberModel).IsMatched; }))
                 {
-                    IsMatch = true;
+                    IsMatched = true;
                 }
             }
             
-            IsExpanded = IsMatch;
+            IsExpanded = IsMatched;
             alreadyFiltered = true;
         }
 
@@ -178,7 +201,22 @@ namespace Module.HeroVirtualTabletop.Crowds
             CrowdModel crowdModel = this.DeepClone() as CrowdModel;
             return crowdModel;
         }
-
+        public override void SavePosition()
+        {
+            foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
+            {
+                if (crowdMember is CrowdModel)
+                    crowdMember.SavePosition();
+                else
+                {
+                    this.SavePosition(crowdMember);
+                }
+            }
+        }
+        public override void SavePosition(ICrowdMember c)
+        {
+            this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
+        }
         public CrowdModel() : base()
         {
             this.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);

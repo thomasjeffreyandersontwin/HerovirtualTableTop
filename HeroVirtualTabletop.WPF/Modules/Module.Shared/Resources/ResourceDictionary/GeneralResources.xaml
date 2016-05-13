@@ -288,6 +288,7 @@
     <Style x:Key="IconButton" TargetType="{x:Type Button}" BasedOn="{StaticResource HeroVirtualTabletopButton}">
         <Setter Property="FontFamily" Value="{StaticResource FontFamily_FontAwesome}"/>
         <Setter Property="FontSize" Value="{StaticResource FontSize_Big}"/>
+        <Setter Property="Width" Value="35"/>
     </Style>
 
     <Style x:Key="SearchBox" TargetType="{x:Type Border}">

@@ -20,10 +20,9 @@ namespace Module.HeroVirtualTabletop.Characters
 {
     public class Character : NotifyPropertyChanged
     {
-        protected KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-        protected string keybind;
-        protected bool hasBeenSpawned = false;
-        protected internal MemoryElement gamePlayer;
+        private KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+        private string keybind;
+        protected MemoryElement gamePlayer;
 
         [JsonConstructor()]
         public Character()
@@ -138,7 +137,19 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             return name;
         }
-
+        private bool hasBeenSpawned;
+        [JsonIgnore]
+        public bool HasBeenSpawned
+        {
+            get
+            {
+                return hasBeenSpawned;
+            }
+            set
+            {
+                hasBeenSpawned = value;
+            }
+        }
         private OptionGroup<Identity> availableIdentities;
         [JsonProperty(Order = 0)]
         public OptionGroup<Identity> AvailableIdentities
