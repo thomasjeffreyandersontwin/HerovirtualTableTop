@@ -190,10 +190,42 @@ namespace Module.UnitTest.Characters
         [TestMethod]
         public void TargetCharacter_TargetsCharacterUsingMemoryInstancesIfItExists()
         {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            rosterExplorerViewModel.SpawnCommand.Execute(null);
+            rosterExplorerViewModel.ToggleTargetedCommand.Execute(null);
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsFalse(sr.ReadLine().Contains(string.Format("target_name {0}", character.Label)));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
         }
         [TestMethod]
         public void TargetCharacter_GeneratesTargetKeybindIfNoMemoryInstance()
         {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            rosterExplorerViewModel.ToggleTargetedCommand.Execute(null);
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains(string.Format("target_name {0}", character.Label)));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
+
         }
         [TestMethod]
         public void TargetAndFollowCharacter_GeneratesTargetAndFollowKeybind()

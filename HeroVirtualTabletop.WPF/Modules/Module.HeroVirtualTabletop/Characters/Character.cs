@@ -250,12 +250,19 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             get
             {
-                MemoryElement currentTarget = new MemoryElement();
-                if (currentTarget.Label == this.Label)
+                try
                 {
-                    return true;
+                    MemoryElement currentTarget = new MemoryElement();
+                    if (currentTarget.Label == this.Label)
+                    {
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
+                catch
+                {
+                    return false;
+                }
             }
 
             set
@@ -276,8 +283,8 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public string Target(bool completeEvent = true)
         {
-            if (hasBeenSpawned)
-            {
+            //if (hasBeenSpawned)
+            //{
                 if (gamePlayer != null && gamePlayer.IsReal)
                 {
                     gamePlayer.Target(); //This ensure targeting even if not in view
@@ -293,8 +300,8 @@ namespace Module.HeroVirtualTabletop.Characters
                     }
                 }
                 return keybind;
-            }
-            return string.Empty;
+            //}
+            //return string.Empty;
         }
 
         public string UnTarget(bool completeEvent = true)

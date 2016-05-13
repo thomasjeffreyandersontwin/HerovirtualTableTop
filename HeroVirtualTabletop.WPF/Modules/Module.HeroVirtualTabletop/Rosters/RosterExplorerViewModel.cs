@@ -134,10 +134,9 @@ namespace Module.HeroVirtualTabletop.Roster
                 member.ClearFromDesktop();
                 member.RosterCrowd = null;
             }
-            var toBeRemoved = SelectedParticipants.Cast<ICrowdMemberModel>();
-            foreach (CrowdMemberModel member in toBeRemoved)
+            for ( int i = 0; i< SelectedParticipants.Count; i++)
             {
-                Participants.Remove(member);
+                Participants.Remove(SelectedParticipants[i] as CrowdMemberModel);
             }
         }
 
