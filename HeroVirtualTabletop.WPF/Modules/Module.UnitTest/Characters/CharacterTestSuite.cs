@@ -185,5 +185,21 @@ namespace Module.UnitTest.Characters
 
         #endregion
 
+        #region Target Tests
+
+        [TestMethod]
+        public void TargetCharacter_TargetsCharacterUsingMemoryInstancesIfItExists()
+        {
+        }
+        [TestMethod]
+        public void TargetCharacter_GeneratesTargetKeybindIfNoMemoryInstance()
+        {
+        }
+        [TestMethod]
+        public void TargetAndFollowCharacter_GeneratesTargetAndFollowKeybind()
+        {
+        }
+
+        #endregion
     }
 }

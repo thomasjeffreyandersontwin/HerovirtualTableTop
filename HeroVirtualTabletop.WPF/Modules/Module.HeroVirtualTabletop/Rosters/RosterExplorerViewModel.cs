@@ -61,6 +61,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 selectedPartecipants = value;
                 OnPropertyChanged("SelectedPartecipants");
+                Commands_RaiseCanExecuteChanged();
             }
         }
 
@@ -70,6 +71,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
+        public DelegateCommand<object> TargetCommand { get; private set; }
 
         #endregion
 
@@ -85,6 +87,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
             InitializeCommands();
 
+            this.SelectedPartecipants = new ObservableCollection<ICrowdMemberModel>();
+
         }
 
         #endregion
@@ -94,12 +98,19 @@ namespace Module.HeroVirtualTabletop.Roster
         private void InitializeCommands()
         {
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
-            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
+            this.TargetCommand = new DelegateCommand<object>(this.Target, this.CanTarget);
         }
-
+        
         #endregion
 
         #region Methods
+        
+        private void Commands_RaiseCanExecuteChanged()
+        {
+            ClearFromDesktopCommand.RaiseCanExecuteChanged();
+            TargetCommand.RaiseCanExecuteChanged();
+        }
 
         private void AddPartecipant(Tuple<ICrowdMemberModel, CrowdModel> crowdMembership)
         {
@@ -152,6 +163,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.Spawn();
             }
+            Commands_RaiseCanExecuteChanged();
         }
 
         private void ClearFromDesktop(object state)
@@ -165,6 +177,33 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 Partecipants.Remove(member);
             }
+        }
+
+        private bool CanClearFromDesktop(object arg)
+        {
+            bool can = false;
+            foreach (CrowdMemberModel member in SelectedPartecipants)
+            {
+                if (member.HasBeenSpawned)
+                {
+                    can = true;
+                    break;
+                }
+            }
+            return can;
+        }
+
+        private void Target(object state)
+        {
+            foreach (CrowdMemberModel member in SelectedPartecipants)
+            {
+                member.Target();
+            }
+        }
+
+        private bool CanTarget(object arg)
+        {
+            return SelectedPartecipants.Count == 1 && (SelectedPartecipants[0] as CrowdMemberModel).HasBeenSpawned;
         }
 
         #endregion

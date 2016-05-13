@@ -109,8 +109,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("Name");
             }
         }
-
-        [JsonIgnore]
+        
         private Position position;
         public Position Position
         {
@@ -122,6 +121,15 @@ namespace Module.HeroVirtualTabletop.Characters
             set
             {
                 position = value;
+            }
+        }
+
+        [JsonIgnore]
+        public bool HasBeenSpawned
+        {
+            get
+            {
+                return hasBeenSpawned;
             }
         }
 
