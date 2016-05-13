@@ -236,10 +236,39 @@ namespace Module.HeroVirtualTabletop.Characters
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.SpawnNpc, model, Label);
             Target(false);
             keybind = ActiveIdentity.Render();
+            Target();
             gamePlayer = new MemoryElement();
             Position = new Position();
-            Target();
             return keybind;
+        }
+
+        [JsonIgnore]
+        public bool IsTargeted
+        {
+            get
+            {
+                MemoryElement currentTarget = new MemoryElement();
+                if (currentTarget.Label == this.Label)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            set
+            {
+                if (value == true)
+                {
+                    Target();
+                }
+                else
+                {
+                    if (value == false)
+                    {
+                        UnTarget();
+                    }
+                }
+            }
         }
 
         public string Target(bool completeEvent = true)
@@ -263,6 +292,21 @@ namespace Module.HeroVirtualTabletop.Characters
                 return keybind;
             }
             return string.Empty;
+        }
+
+        public string UnTarget(bool completeEvent = true)
+        {
+            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
+            if (completeEvent)
+            {
+                keybind = keyBindsGenerator.CompleteEvent();
+                MemoryElement currentTarget = new MemoryElement();
+                while (currentTarget.Label != string.Empty)
+                {
+                    currentTarget = new MemoryElement();
+                }
+            }
+            return keybind;
         }
 
         public MemoryElement WaitUntilTargetIsRegistered()
@@ -293,6 +337,11 @@ namespace Module.HeroVirtualTabletop.Characters
             gamePlayer = null;
             hasBeenSpawned = false;
             return keybind;
+        }
+
+        public void ToggleTargeted()
+        {
+            IsTargeted = !IsTargeted;
         }
     }
 }
