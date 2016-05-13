@@ -16,13 +16,11 @@ namespace Module.HeroVirtualTabletop.Crowds
     public interface ICrowdMember
     {
         string Name { get; set; }
-        Crowd Parent { get; set; }
         Crowd RosterCrowd { get; set; }
         ObservableCollection<ICrowdMember> CrowdMemberCollection { get; set; }
 
-        // Following methods would be added as necessary. These can be virtual or abstract. Will decide later.
         //void Place(Position position);
-        //void SavePosition();
+        void SavePosition();
         //string Save(string filename = null);
         ICrowdMember Clone();
     }
@@ -37,21 +35,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public class CrowdMember : Character, ICrowdMember
     {
-        private Crowd parent;
-        public Crowd Parent
-        {
-            get
-            {
-                return parent;
-            }
-            set
-            {
-                parent = value;
-                OnPropertyChanged("Parent");
-            }
-        }
-
         private Crowd rosterCrowd;
+        [JsonIgnore]
         public Crowd RosterCrowd
         {
             get
@@ -96,11 +81,16 @@ namespace Module.HeroVirtualTabletop.Crowds
             return crowdMember;
         }
 
+        public virtual void SavePosition()
+        { 
+            
+        }
+
         protected override string GetLabel()
         {
-            if (cohPlayer != null && cohPlayer.IsReal)
+            if (gamePlayer != null && gamePlayer.IsReal)
             {
-                return cohPlayer.Label;
+                return gamePlayer.Label;
             }
             else
             {

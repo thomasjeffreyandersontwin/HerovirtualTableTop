@@ -50,14 +50,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
         public KeyBindsGenerator()
         {
-            if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.FullName.ToLowerInvariant().Contains("unittesting")))
-            {
-                directory = string.Empty;
-            }
-            else
-            {
-                directory = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
-            }
+            directory = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
 
             if (!Directory.Exists(directory))
             {

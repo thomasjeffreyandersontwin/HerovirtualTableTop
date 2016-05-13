@@ -70,6 +70,7 @@ namespace ApplicationShell
                 if (File.Exists(filePath))
                 {
                     Process.Start(filePath, "-r");
+                    // Need to automate the following process
                     var x = MessageBox.Show("Plese wait for COH to initialize, then load the required keybind and close this message");
                 }
             }

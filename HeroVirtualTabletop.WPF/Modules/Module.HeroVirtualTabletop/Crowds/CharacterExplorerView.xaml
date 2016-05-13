@@ -5,6 +5,7 @@
              xmlns:crowd="clr-namespace:Module.HeroVirtualTabletop.Crowds"
              xmlns:managedcharacter="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
+             xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              xmlns:convertes="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d">
@@ -25,22 +26,18 @@
                   Margin="0" MinHeight="250" MaxHeight="400"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown"
                   >
             <TreeView.Resources>
-
+                <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext}"/>
                 <ContextMenu x:Key="CharExplorerMenu">
-                    <!--Need to bind these with Viewmodel commands-->
-                    <MenuItem Header="Add Character" Command="{Binding AddCharacterCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=TreeView}}"></MenuItem>
-                    <MenuItem Header="Add Crowd" Command="{Binding AddCrowdCommand}"></MenuItem>
-                    <MenuItem Header="Remove" Command="{Binding DeleteCharacterCrowdCommand}"></MenuItem>
-                    <!--<MenuItem Command="Copy"></MenuItem>
-                    <MenuItem Command="Cut"></MenuItem>
-                    <MenuItem Command="{Binding}"></MenuItem>
-                    <MenuItem Command="Paste"></MenuItem>
-                    <MenuItem Command="{Binding}"></MenuItem>
-                    <MenuItem Command="{Binding}"></MenuItem>
-                    <MenuItem Command="{Binding}"></MenuItem>
-                    <MenuItem Command="{Binding}"></MenuItem>-->
+                    <MenuItem Header="Add to Roster" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddToRosterCommand}"></MenuItem>
+                    <MenuItem Header="Clone" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.CloneCharacterCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Cut" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.CutCharacterCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Link" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.LinkCharacterCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Paste" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PasteCharacterCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Add Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCharacterCommand}"></MenuItem>
+                    <MenuItem Header="Add Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
+                    <MenuItem Header="Remove" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.DeleteCharacterCrowdCommand}"></MenuItem>
                 </ContextMenu>
-                <!--Will need to bind the source to a collection in viewmodel-->
                 <HierarchicalDataTemplate DataType="{x:Type crowd:CrowdModel}"
                                     ItemsSource="{Binding CrowdMemberCollection}"
                                     >

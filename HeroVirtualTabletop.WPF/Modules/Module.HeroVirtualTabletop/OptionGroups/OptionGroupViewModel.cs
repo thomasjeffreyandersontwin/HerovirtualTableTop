@@ -27,7 +27,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private T selectedOption;
         private T defaultOption;
         private T activeOption;
-        private Character owner;
         #endregion
 
         #region Events
@@ -88,6 +87,14 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
         }
 
+        private Character owner;
+        public Character Owner
+        {
+            get { return owner; }
+            set { owner = value; }
+        }
+
+
         #endregion
 
         #region Commands
@@ -102,18 +109,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         #region Constructor
 
-        private OptionGroupViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
+        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             InitializeCommands();
-        }
-
-        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator, OptionGroup<T> optionGroup, Character owner = null) 
-            : this(busyService, container, eventAggregator)
-        { 
-            this.OptionGroup = optionGroup;
-            this.owner = owner;
         }
         
         #endregion

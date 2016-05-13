@@ -28,7 +28,6 @@ namespace Module.HeroVirtualTabletop.Roster
         private EventAggregator eventAggregator;
         private HashedObservableCollection<ICrowdMemberModel, string> partecipants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
         private IList selectedPartecipants;
-        private CrowdModel noCrowdCrowd = new CrowdModel(Constants.NO_CROWD_CROWD_NAME);
 
         #endregion
 
@@ -38,7 +37,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Public Properties
 
-        public HashedObservableCollection<ICrowdMemberModel, string> Partecipants
+        public HashedObservableCollection<ICrowdMemberModel, string> Participants
         {
             get
             {
@@ -47,11 +46,11 @@ namespace Module.HeroVirtualTabletop.Roster
             set
             {
                 partecipants = value;
-                OnPropertyChanged("Partecipants");
+                OnPropertyChanged("Participants");
             }
         }
 
-        public IList SelectedPartecipants
+        public IList SelectedParticipants
         {
             get
             {
@@ -60,8 +59,7 @@ namespace Module.HeroVirtualTabletop.Roster
             set
             {
                 selectedPartecipants = value;
-                OnPropertyChanged("SelectedPartecipants");
-                Commands_RaiseCanExecuteChanged();
+                OnPropertyChanged("SelectedParticipants");
             }
         }
 
@@ -71,7 +69,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
-        public DelegateCommand<object> TargetCommand { get; private set; }
 
         #endregion
 
@@ -83,11 +80,9 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
 
-            this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddPartecipant);
+            this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipant);
 
             InitializeCommands();
-
-            this.SelectedPartecipants = new ObservableCollection<ICrowdMemberModel>();
 
         }
 
@@ -98,112 +93,40 @@ namespace Module.HeroVirtualTabletop.Roster
         private void InitializeCommands()
         {
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
-            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
-            this.TargetCommand = new DelegateCommand<object>(this.Target, this.CanTarget);
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
         }
-        
+
         #endregion
 
         #region Methods
-        
-        private void Commands_RaiseCanExecuteChanged()
+
+        private void AddParticipant(IEnumerable<CrowdMemberModel> crowdMembers)
         {
-            ClearFromDesktopCommand.RaiseCanExecuteChanged();
-            TargetCommand.RaiseCanExecuteChanged();
-        }
-
-        private void AddPartecipant(Tuple<ICrowdMemberModel, CrowdModel> crowdMembership)
-        {
-            ICrowdMemberModel crowdMember = crowdMembership.Item1;
-            CrowdModel crowd = crowdMembership.Item2;
-
-            if (crowd == null || crowd.Name == Constants.ALL_CHARACTER_CROWD_NAME)
+            foreach (var crowdMember in crowdMembers)
             {
-                crowd = noCrowdCrowd;
-            }
-
-            if (crowdMember is CrowdModel)
-            {
-                CrowdModel crowdMemberAsCrowd = crowdMember as CrowdModel;
-                foreach (ICrowdMemberModel x in (crowdMemberAsCrowd.CrowdMemberCollection))
-                {
-                    AddPartecipant(new Tuple<ICrowdMemberModel, CrowdModel>(x, crowdMemberAsCrowd));
-                }
-            }
-            else
-            {
-                if (Partecipants.Contains(crowdMember))
-                {
-                    if (crowdMember.RosterCrowd == crowd)
-                        return;
-                    CrowdMemberModel clone = crowdMember.Clone() as CrowdMemberModel;
-                    string suffix = string.Empty;
-                    int i = 0;
-                    while (crowdMembership.Item2.CrowdMemberCollection.Any(x => x.Name == clone.Name + suffix) 
-                        || Partecipants.Any(x => x.Name == clone.Name + suffix))
-                    {
-                        i++;
-                        suffix = string.Format(" ({0})", i);
-                    }
-                    clone.Name += suffix;
-                    crowdMembership.Item2.CrowdMemberCollection.Add(clone);
-                    AddPartecipant(new Tuple<ICrowdMemberModel, CrowdModel>(clone, crowd));
-                }
-                else
-                {
-                    crowdMember.RosterCrowd = crowd;
-                    Partecipants.Add(crowdMember);
-                }
+                Participants.Add(crowdMember);
             }
         }
 
         private void Spawn(object state)
         {
-            foreach (CrowdMemberModel member in SelectedPartecipants)
+            foreach (CrowdMemberModel member in SelectedParticipants)
             {
                 member.Spawn();
             }
-            Commands_RaiseCanExecuteChanged();
         }
 
         private void ClearFromDesktop(object state)
         {
-            foreach (CrowdMemberModel member in SelectedPartecipants)
+            foreach (CrowdMemberModel member in SelectedParticipants)
             {
                 member.ClearFromDesktop();
                 member.RosterCrowd = null;
             }
-            foreach (CrowdMemberModel member in SelectedPartecipants)
+            foreach (CrowdMemberModel member in SelectedParticipants)
             {
-                Partecipants.Remove(member);
+                Participants.Remove(member);
             }
-        }
-
-        private bool CanClearFromDesktop(object arg)
-        {
-            bool can = false;
-            foreach (CrowdMemberModel member in SelectedPartecipants)
-            {
-                if (member.HasBeenSpawned)
-                {
-                    can = true;
-                    break;
-                }
-            }
-            return can;
-        }
-
-        private void Target(object state)
-        {
-            foreach (CrowdMemberModel member in SelectedPartecipants)
-            {
-                member.Target();
-            }
-        }
-
-        private bool CanTarget(object arg)
-        {
-            return SelectedPartecipants.Count == 1 && (SelectedPartecipants[0] as CrowdMemberModel).HasBeenSpawned;
         }
 
         #endregion

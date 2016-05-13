@@ -7,25 +7,28 @@
              xmlns:characters="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
+             xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              mc:Ignorable="d" >
     <UserControl.Resources>
-        <CollectionViewSource 
-        x:Key="PartecipantsView" 
-        Source="{Binding DataContext.Partecipants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
+        <ResourceDictionary>
+            <localconverters:CrowdNameConverter x:Key="CrowdNameConverter"/>
+            <CollectionViewSource 
+                x:Key="ParticipantsView" 
+                Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
 
-            <!-- Grouping -->
-            <CollectionViewSource.GroupDescriptions>
-                <PropertyGroupDescription PropertyName="RosterCrowd.Name" />
-            </CollectionViewSource.GroupDescriptions>
-
-        </CollectionViewSource>
+                        <!-- Grouping -->
+                <CollectionViewSource.GroupDescriptions>
+                    <PropertyGroupDescription PropertyName="RosterCrowd.Name" />
+                </CollectionViewSource.GroupDescriptions>
+            </CollectionViewSource>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <StackPanel>
             <characters:CharacterManagementMenuControl></characters:CharacterManagementMenuControl>
-            <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=PartecipantsView}}"
+            <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White"
-                     SelectedItemsList="{Binding SelectedPartecipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ListBox.GroupStyle>
                     <GroupStyle>
                         <GroupStyle.ContainerStyle>
@@ -35,7 +38,7 @@
                                         <ControlTemplate>
                                             <Expander IsExpanded="True" Background="Transparent" TextElement.Foreground="White">
                                                 <Expander.Header>
-                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold"/>
                                                 </Expander.Header>
                                                 <ItemsPresenter></ItemsPresenter>
                                             </Expander>
