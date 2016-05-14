@@ -1424,7 +1424,6 @@ namespace Module.UnitTest.Crowds
         #endregion
 
         #region Save Placement of Character Tests
-        public void SavePlacementOfCharacter_AssignsLocationToCrowdmembershipBasedOnCurrentPositionAndSavesCrowdmembershipToCrowdRepo() { }
         /// <summary>
         /// Character's current position in the game should be saved
         /// </summary>
@@ -1522,8 +1521,9 @@ namespace Module.UnitTest.Crowds
             InitializeCrowdRepositoryMockWithDefaultList();
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
-            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
-            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // Selected crowd is All Characters
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Assigning a saved position for Batman
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
             CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
@@ -1544,7 +1544,9 @@ namespace Module.UnitTest.Crowds
             characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
-            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman from Gotham City
+            characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition());// Saving a position for Batman within Gotham
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Also assigning a saved position for Batman
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
             CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
@@ -1573,11 +1575,14 @@ namespace Module.UnitTest.Crowds
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[1] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Assigning a saved position for Robin
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition());// Saving a position for Batman within Gotham
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Also assigning a saved position for Batman
 
-            CrowdMemberModel character1 = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
-            CrowdMemberModel character2 = rosterExplorerViewModel.Participants[1] as CrowdMemberModel;
+            CrowdMemberModel character1 = rosterExplorerViewModel.Participants[1] as CrowdMemberModel;
+            CrowdMemberModel character2 = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
             rosterExplorerViewModel.SelectedParticipants = new ArrayList { character1, character2 };
             rosterExplorerViewModel.PlaceCommand.Execute(null);
             // Position of character 1 (Robin) should not be equal to saved position of the character

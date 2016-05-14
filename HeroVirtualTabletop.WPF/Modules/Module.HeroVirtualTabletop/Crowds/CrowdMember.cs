@@ -20,7 +20,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         Crowd RosterCrowd { get; set; }
         ObservableCollection<ICrowdMember> CrowdMemberCollection { get; set; }
 
-        void Place(Position position);
+        void Place(IMemoryElementPosition position);
         void SavePosition();
         //string Save(string filename = null);
         ICrowdMember Clone();
@@ -67,8 +67,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private Position savedPosition;
-        public Position SavedPosition
+        private IMemoryElementPosition savedPosition;
+        public IMemoryElementPosition SavedPosition
         {
             get
             {
@@ -102,7 +102,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.SavedPosition = this.Position.Clone(false);
         }
 
-        public virtual void Place(Position position = null)
+        public virtual void Place(IMemoryElementPosition position = null)
         {
             if (!this.HasBeenSpawned)
             {
@@ -114,7 +114,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             else if (position != null)
             {
-                Position = position.Clone(false, Position.GetTargetPointer());
+                Position = position.Clone(false, (Position as MemoryInstance).GetTargetPointer());
             }
         }
 

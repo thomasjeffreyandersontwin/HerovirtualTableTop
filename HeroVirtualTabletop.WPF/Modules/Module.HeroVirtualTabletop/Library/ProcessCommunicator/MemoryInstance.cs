@@ -41,7 +41,8 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 
         public void InitFromCurrentTarget()
         {
-            this.targetPointer = this.gameMemory[this.targetMemoryAddress, false].Read<uint>();
+            if(this.gameMemory != null)
+                this.targetPointer = this.gameMemory[this.targetMemoryAddress, false].Read<uint>();
         }
 
         public string GetAttributeAsString(int offset)

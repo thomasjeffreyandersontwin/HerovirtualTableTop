@@ -87,7 +87,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         
         }
 
-        public virtual void Place(Position position)
+        public virtual void Place(IMemoryElementPosition position)
         {
 
         }
@@ -114,13 +114,13 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private Dictionary<string, Position> savedPositions;
-        public Dictionary<string, Position> SavedPositions
+        private Dictionary<string, IMemoryElementPosition> savedPositions;
+        public Dictionary<string, IMemoryElementPosition> SavedPositions
         {
             get
             {
                 if (savedPositions == null)
-                    savedPositions = new Dictionary<string, Position>();
+                    savedPositions = new Dictionary<string, IMemoryElementPosition>();
                 return savedPositions;
             }
             set
@@ -232,7 +232,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             else
                 this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
         }
-        public override void Place(Position position)
+        public override void Place(IMemoryElementPosition position)
         {
             foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
             {
@@ -249,17 +249,22 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public override void Place(ICrowdMember crowdMember)
         {
-            Position pos;
+            IMemoryElementPosition pos;
             if (this.SavedPositions.TryGetValue(crowdMember.Name, out pos))
             {
                 CrowdMemberModel model = crowdMember as CrowdMemberModel;
-                model.Position = pos.Clone(false, model.Position.GetTargetPointer());
+                model.Position = pos.Clone(false, (model.Position as MemoryInstance).GetTargetPointer());
             }
             else if(this.Name == Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 CrowdMemberModel model = crowdMember as CrowdMemberModel;
                 if(model.SavedPosition != null)
-                    model.Position = model.SavedPosition.Clone(false, model.Position.GetTargetPointer());
+                {
+                    MemoryInstance memIns = (model.Position as MemoryInstance);
+                    uint x = memIns.GetTargetPointer();
+                    model.Position = model.SavedPosition.Clone(false, x);
+                }
+                    
             }
         }
         public CrowdModel() : base()

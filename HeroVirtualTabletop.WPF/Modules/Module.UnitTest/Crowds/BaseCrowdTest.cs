@@ -44,21 +44,12 @@ namespace Module.UnitTest
             CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters" };
             CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Batman" };
-            Mock<IMemoryElementPosition> position = new Mock<IMemoryElementPosition>();
-
-            position.Setup(p => p.X).Returns(10);
-            position.Setup(p => p.Y).Returns(10);
-            position.Setup(p => p.Z).Returns(10);
-
-            crowdMember1.SavedPosition = position.Object as Position;
-            crowd1.SavedPositions = new Dictionary<string, HeroVirtualTabletop.Library.ProcessCommunicator.Position>();
-            crowd1.SavedPositions.Add("Batman", new HeroVirtualTabletop.Library.ProcessCommunicator.Position { X = 100, Y = 50, Z = 200 });
+            crowd1.SavedPositions = new Dictionary<string, IMemoryElementPosition>();
             CrowdModel childCrowd = new CrowdModel { Name = "The Narrows"};
             CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Scarecrow"};
             crowd1.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, childCrowd };
             childCrowd.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember2 };
             CrowdMemberModel crowdMember4 = new CrowdMemberModel() { Name = "Robin" };
-            crowdMember4.SavedPosition = new HeroVirtualTabletop.Library.ProcessCommunicator.Position { X = 100, Y = 200, Z = 100 };
             crowd1.CrowdMemberCollection.Add(crowdMember4);
             CrowdModel crowd2 = new CrowdModel { Name = "League of Shadows" };
             CrowdMemberModel crowdMember3 = new CrowdMemberModel { Name = "Ra'as Al Ghul"};
@@ -67,6 +58,24 @@ namespace Module.UnitTest
                 crowd2.CrowdMemberCollection.Add(childCrowd);
             crowdAllChars.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, crowdMember2, crowdMember3, crowdMember4};
             this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2, childCrowd };
+        }
+
+        protected IMemoryElementPosition GetRandomPosition()
+        {
+            Random rand = new Random();
+            Mock<IMemoryElementPosition> position = new Mock<IMemoryElementPosition>();
+            Random random = new Random(rand.Next());
+            position.Setup(p => p.X).Returns(random.Next(-1000, 1000));
+            position.Setup(p => p.Y).Returns(random.Next(-1000, 1000));
+            position.Setup(p => p.Z).Returns(random.Next(-1000, 1000));
+
+            Mock<IMemoryElementPosition> clonedPosition = new Mock<IMemoryElementPosition>();
+            clonedPosition.Setup(cp => cp.X).Returns(position.Object.X);
+            clonedPosition.Setup(cp => cp.Y).Returns(position.Object.Y);
+            clonedPosition.Setup(cp => cp.Z).Returns(position.Object.Z);
+            position.Setup(p => p.Clone(It.IsAny<bool>(), It.IsAny<uint>())).Returns(clonedPosition.Object);
+
+            return position.Object;
         }
 
         protected void DeleteTempRepositoryFile(string path = "test.data")

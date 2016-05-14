@@ -109,8 +109,8 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
         
-        private Position position;
-        public Position Position
+        private IMemoryElementPosition position;
+        public IMemoryElementPosition Position
         {
             get
             {
@@ -124,6 +124,14 @@ namespace Module.HeroVirtualTabletop.Characters
         }
 
         private bool hasBeenSpawned;
+        [JsonIgnore]
+        public bool HasBeenSpawned
+        {
+            get
+            {
+                return hasBeenSpawned;
+            }
+        }
         [JsonIgnore]
         public string Label
         {
