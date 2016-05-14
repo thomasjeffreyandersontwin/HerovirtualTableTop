@@ -190,14 +190,62 @@ namespace Module.UnitTest.Characters
         [TestMethod]
         public void TargetCharacter_TargetsCharacterUsingMemoryInstancesIfItExists()
         {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            rosterExplorerViewModel.SpawnCommand.Execute(null);
+            Mock<IMemoryElement> memoryElementMock = new Mock<IMemoryElement>();
+            memoryElementMock.Setup(x => x.IsReal).Returns(true);
+            character.gamePlayer = memoryElementMock.Object;
+            rosterExplorerViewModel.ToggleTargetedCommand.Execute(null);
+            memoryElementMock.Verify(x => x.Target(), Times.Once());
         }
         [TestMethod]
         public void TargetCharacter_GeneratesTargetKeybindIfNoMemoryInstance()
         {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            rosterExplorerViewModel.ToggleTargetedCommand.Execute(null);
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains(string.Format("target_name {0}", character.Label)));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
+
         }
         [TestMethod]
         public void TargetAndFollowCharacter_GeneratesTargetAndFollowKeybind()
         {
+        }
+
+        #endregion
+
+        #region Un Target Tests
+
+        [TestMethod]
+        public void UnTargetCharacter_GeneratesCorrectKeybinds()
+        {
+            CrowdMemberModel character = new CrowdMemberModel();
+
+            character.UnTarget();
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains("target_enemy_near"));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
         }
 
         #endregion

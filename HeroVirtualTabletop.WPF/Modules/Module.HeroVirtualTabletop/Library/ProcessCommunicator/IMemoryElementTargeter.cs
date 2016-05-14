@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 {
-    public interface IMemoryElementTargeter
+    public interface IMemoryElementTargeter: IMemoryInstance
     {
         void Target();
         void Untarget();

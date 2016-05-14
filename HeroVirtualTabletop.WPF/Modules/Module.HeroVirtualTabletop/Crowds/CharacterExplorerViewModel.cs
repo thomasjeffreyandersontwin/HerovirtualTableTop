@@ -52,6 +52,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (EditModeLeave != null)
                 EditModeLeave(sender, e);
         }
+
+        public event EventHandler SelectionUpdated;
+        public void OnSelectionUpdated(object sender, EventArgs e)
+        {
+            if (SelectionUpdated != null)
+            {
+                SelectionUpdated(sender, e);
+            }
+        }
         #endregion
 
         #region Public Properties
@@ -380,6 +389,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
                 this.lastCharacterCrowdStateToUpdate = null;
             }
+
+            //Update selection in treeview 
+            OnSelectionUpdated(crowdModel, null);
         }
         private CrowdModel GetNewCrowdModel()
         {
@@ -434,6 +446,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.AddNewCharacter(character);
             // Update Repository asynchronously
             this.SaveCrowdCollection();
+
+            //Update selection in treeview 
+            OnSelectionUpdated(character, null);
         }
 
         private Character GetNewCharacter()
@@ -1111,6 +1126,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             return isNested;
         }
+
         #endregion
 
         #endregion

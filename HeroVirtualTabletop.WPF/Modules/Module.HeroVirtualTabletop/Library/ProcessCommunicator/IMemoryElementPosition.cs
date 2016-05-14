@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 {
-    public interface IMemoryElementPosition
+    public interface IMemoryElementPosition: IMemoryInstance
     {
         float X { get; set; }
         float Y { get; set; }

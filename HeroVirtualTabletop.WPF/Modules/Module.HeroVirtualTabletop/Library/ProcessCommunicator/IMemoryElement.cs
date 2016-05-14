@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 {
-    public interface IMemoryElement
+    public interface IMemoryElement : IMemoryElementTargeter
     {
         string Label { get; set; }
-        Position Position { get; set; }
+        IMemoryElementPosition Position { get; set; }
     }
 }

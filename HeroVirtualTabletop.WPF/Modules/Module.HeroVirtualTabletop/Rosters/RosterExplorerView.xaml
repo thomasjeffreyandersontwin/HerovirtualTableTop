@@ -38,7 +38,7 @@
                                         <ControlTemplate>
                                             <Expander IsExpanded="True" Background="Transparent" TextElement.Foreground="White">
                                                 <Expander.Header>
-                                                    <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold"/>
+                                                    <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
                                                 </Expander.Header>
                                                 <ItemsPresenter></ItemsPresenter>
                                             </Expander>

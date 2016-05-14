@@ -73,6 +73,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> SavePositionCommand { get; private set; }
         public DelegateCommand<object> PlaceCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
+        public DelegateCommand<object> ToggleTargetedCommand { get; private set; }
 
         #endregion
 
@@ -98,6 +99,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
             this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
+            this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted);
             this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
             this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
         }
@@ -135,9 +137,18 @@ namespace Module.HeroVirtualTabletop.Roster
                 member.ClearFromDesktop();
                 member.RosterCrowd = null;
             }
+            for ( int i = 0; i< SelectedParticipants.Count; i++)
+            {
+                Participants.Remove(SelectedParticipants[i] as CrowdMemberModel);
+            }
+        }
+
+
+        private void ToggleTargeted(object obj)
+        {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
-                Participants.Remove(member);
+                member.ToggleTargeted();
             }
         }
         #endregion

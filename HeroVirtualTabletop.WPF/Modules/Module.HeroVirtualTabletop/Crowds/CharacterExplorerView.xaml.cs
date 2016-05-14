@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -27,8 +29,15 @@ namespace Module.HeroVirtualTabletop.Crowds
 
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
-            this.viewModel.EditModeEnter+=viewModel_EditModeEnter;
+            this.viewModel.EditModeEnter += viewModel_EditModeEnter;
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
+            this.viewModel.SelectionUpdated += viewModel_SelectionUpdated;
+        }
+
+        private void viewModel_SelectionUpdated(object sender, EventArgs e)
+        {
+            ICrowdMemberModel toSelect = sender as ICrowdMemberModel;
+            SelectTreeViewItem(toSelect);
         }
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)
@@ -82,6 +91,51 @@ namespace Module.HeroVirtualTabletop.Crowds
                 source = VisualTreeHelper.GetParent(source);
 
             return source as TreeViewItem;
+        }
+
+        private void SelectTreeViewItem(object item)
+        {
+            try
+            {
+                var tvi = GetContainerFromItem(this.treeViewCrowd, item);
+
+                tvi.Focus();
+                tvi.IsSelected = true;
+
+                var selectMethod =
+                    typeof(TreeViewItem).GetMethod("Select",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+                selectMethod.Invoke(tvi, new object[] { true });
+            }
+            catch { }
+        }
+
+        private TreeViewItem GetContainerFromItem(ItemsControl parent, object item)
+        {
+            var found = parent.ItemContainerGenerator.ContainerFromItem(item);
+            if (found == null)
+            {
+                for (int i = 0; i < parent.Items.Count; i++)
+                {
+                    var childContainer = parent.ItemContainerGenerator.ContainerFromIndex(i) as ItemsControl;
+                    TreeViewItem childFound = null;
+                    if (childContainer != null)
+                    {
+                        bool expanded = (childContainer as TreeViewItem).IsExpanded;
+                        (childContainer as TreeViewItem).IsExpanded = true;
+                        childFound = GetContainerFromItem(childContainer, item);
+                        (childContainer as TreeViewItem).IsExpanded = childFound == null ? expanded : true;
+                    }
+                    if (childFound != null)
+                    {
+                        (childContainer as TreeViewItem).IsExpanded = true;
+                        return childFound;
+                    }
+                        
+                }
+            }
+            return found as TreeViewItem;
         }
     }
 }
