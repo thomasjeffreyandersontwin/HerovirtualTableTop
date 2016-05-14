@@ -93,5 +93,10 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
         {
             this.targetPointer = targetPointer;
         }
+
+        public uint GetTargetPointer()
+        {
+            return this.targetPointer;
+        }
     }
 }

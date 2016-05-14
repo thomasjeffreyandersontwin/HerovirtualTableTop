@@ -61,6 +61,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 selectedParticipants = value;
                 OnPropertyChanged("SelectedParticipants");
                 this.SavePositionCommand.RaiseCanExecuteChanged();
+                this.PlaceCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -70,6 +71,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
         public DelegateCommand<object> SavePositionCommand { get; private set; }
+        public DelegateCommand<object> PlaceCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
 
         #endregion
@@ -97,6 +99,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
             this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
             this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
+            this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
         }
 
         #endregion
@@ -165,11 +168,44 @@ namespace Module.HeroVirtualTabletop.Roster
                 member.SavePosition();
             }
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            this.PlaceCommand.RaiseCanExecuteChanged();
         }
         #endregion
 
         #region Place
-
+        private bool CanPlace(object state)
+        {
+            bool canPlace = false;
+            if (this.SelectedParticipants != null)
+            {
+                foreach (var c in this.SelectedParticipants)
+                {
+                    var crowdMemberModel = c as CrowdMemberModel;
+                    if (crowdMemberModel != null && crowdMemberModel.RosterCrowd.Name == Constants.ALL_CHARACTER_CROWD_NAME && crowdMemberModel.SavedPosition != null)
+                    {
+                        canPlace = true;
+                        break;
+                    }
+                    else if (crowdMemberModel != null && crowdMemberModel.RosterCrowd.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+                    {
+                        CrowdModel rosterCrowdModel = crowdMemberModel.RosterCrowd as CrowdModel;
+                        if (rosterCrowdModel.SavedPositions.ContainsKey(crowdMemberModel.Name))
+                        {
+                            canPlace = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            return canPlace;
+        }
+        private void Place(object state)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                member.Place();
+            }
+        }
         #endregion
 
         #endregion

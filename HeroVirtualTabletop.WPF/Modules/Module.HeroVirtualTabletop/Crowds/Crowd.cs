@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Characters;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -84,6 +85,16 @@ namespace Module.HeroVirtualTabletop.Crowds
         public virtual void SavePosition(ICrowdMember c)
         { 
         
+        }
+
+        public virtual void Place(Position position)
+        {
+
+        }
+
+        public virtual void Place(ICrowdMember crowdMember)
+        {
+
         }
     }
 
@@ -215,7 +226,41 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         public override void SavePosition(ICrowdMember c)
         {
-            this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
+            var position = (c as Character).Position.Clone(false);
+            if (this.SavedPositions.ContainsKey(c.Name))
+                this.SavedPositions[c.Name] = position;
+            else
+                this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
+        }
+        public override void Place(Position position)
+        {
+            foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
+            {
+                if (crowdMember is Crowd)
+                {
+                    crowdMember.Place(null);
+                }
+                else
+                {
+                    crowdMember.Place(this.SavedPositions[crowdMember.Name]);
+                }
+            }
+        }
+
+        public override void Place(ICrowdMember crowdMember)
+        {
+            Position pos;
+            if (this.SavedPositions.TryGetValue(crowdMember.Name, out pos))
+            {
+                CrowdMemberModel model = crowdMember as CrowdMemberModel;
+                model.Position = pos.Clone(false, model.Position.GetTargetPointer());
+            }
+            else if(this.Name == Constants.ALL_CHARACTER_CROWD_NAME)
+            {
+                CrowdMemberModel model = crowdMember as CrowdMemberModel;
+                if(model.SavedPosition != null)
+                    model.Position = model.SavedPosition.Clone(false, model.Position.GetTargetPointer());
+            }
         }
         public CrowdModel() : base()
         {

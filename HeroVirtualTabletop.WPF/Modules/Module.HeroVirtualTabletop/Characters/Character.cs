@@ -124,15 +124,6 @@ namespace Module.HeroVirtualTabletop.Characters
         }
 
         [JsonIgnore]
-        public bool HasBeenSpawned
-        {
-            get
-            {
-                return hasBeenSpawned;
-            }
-        }
-
-        [JsonIgnore]
         public string Label
         {
             get

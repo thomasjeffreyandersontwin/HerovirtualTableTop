@@ -1,5 +1,6 @@
 ﻿using Framework.WPF.Library;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -43,11 +44,21 @@ namespace Module.UnitTest
             CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters" };
             CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Batman" };
+            Mock<IMemoryElementPosition> position = new Mock<IMemoryElementPosition>();
+
+            position.Setup(p => p.X).Returns(10);
+            position.Setup(p => p.Y).Returns(10);
+            position.Setup(p => p.Z).Returns(10);
+
+            crowdMember1.SavedPosition = position.Object as Position;
+            crowd1.SavedPositions = new Dictionary<string, HeroVirtualTabletop.Library.ProcessCommunicator.Position>();
+            crowd1.SavedPositions.Add("Batman", new HeroVirtualTabletop.Library.ProcessCommunicator.Position { X = 100, Y = 50, Z = 200 });
             CrowdModel childCrowd = new CrowdModel { Name = "The Narrows"};
             CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Scarecrow"};
             crowd1.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, childCrowd };
             childCrowd.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember2 };
             CrowdMemberModel crowdMember4 = new CrowdMemberModel() { Name = "Robin" };
+            crowdMember4.SavedPosition = new HeroVirtualTabletop.Library.ProcessCommunicator.Position { X = 100, Y = 200, Z = 100 };
             crowd1.CrowdMemberCollection.Add(crowdMember4);
             CrowdModel crowd2 = new CrowdModel { Name = "League of Shadows" };
             CrowdMemberModel crowdMember3 = new CrowdMemberModel { Name = "Ra'as Al Ghul"};

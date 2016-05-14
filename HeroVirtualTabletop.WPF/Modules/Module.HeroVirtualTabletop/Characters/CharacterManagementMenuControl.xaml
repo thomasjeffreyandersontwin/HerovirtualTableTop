@@ -18,7 +18,7 @@
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
             </WrapPanel.Resources>
             <Button x:Name="btSave" Content="&#xF0C7;" ToolTip="Save Position" Command="{Binding SavePositionCommand}"/>
-            <Button x:Name="btPlace" Content="&#xf041;" ToolTip="Place" />
+            <Button x:Name="btPlace" Content="&#xf041;" ToolTip="Place" Command="{Binding PlaceCommand}"/>
             <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn" Command="{Binding SpawnCommand}"/>
             <Button x:Name="btTarget" Content="&#xf05b;" ToolTip="Toggle Target" Command="{Binding TargetCommand}"/>
             <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target" />
