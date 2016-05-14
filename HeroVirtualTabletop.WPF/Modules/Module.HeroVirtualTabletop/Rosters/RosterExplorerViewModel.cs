@@ -131,15 +131,16 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Clear from Desktop
         private void ClearFromDesktop(object state)
-        {
+        {           
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
                 member.ClearFromDesktop();
-                member.RosterCrowd = null;
             }
-            for ( int i = 0; i< SelectedParticipants.Count; i++)
+            for (int i = 0; i < SelectedParticipants.Count; i++)
             {
-                Participants.Remove(SelectedParticipants[i] as CrowdMemberModel);
+                var participant = SelectedParticipants[i] as CrowdMemberModel;
+                Participants.Remove(participant);
+                participant.RosterCrowd = null;
             }
         }
 

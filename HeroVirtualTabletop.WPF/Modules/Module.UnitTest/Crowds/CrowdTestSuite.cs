@@ -1545,8 +1545,8 @@ namespace Module.UnitTest.Crowds
             rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman from Gotham City
-            characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition());// Saving a position for Batman within Gotham
-            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Also assigning a saved position for Batman
+            characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition(-500));// Saving a position for Batman within Gotham
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(50000); // Also assigning a saved position for Batman
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
 
             CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
@@ -1576,14 +1576,9 @@ namespace Module.UnitTest.Crowds
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[1] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
             characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Assigning a saved position for Robin
-            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
-            characterExplorerViewModel.AddToRosterCommand.Execute(null);
-            characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition());// Saving a position for Batman within Gotham
-            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Also assigning a saved position for Batman
 
-            CrowdMemberModel character1 = rosterExplorerViewModel.Participants[1] as CrowdMemberModel;
-            CrowdMemberModel character2 = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
-            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character1, character2 };
+            CrowdMemberModel character1 = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character1};
             rosterExplorerViewModel.PlaceCommand.Execute(null);
             // Position of character 1 (Robin) should not be equal to saved position of the character
             Assert.AreNotEqual(character1.Position.X, character1.SavedPosition.X);
@@ -1611,6 +1606,46 @@ namespace Module.UnitTest.Crowds
             rosterExplorerViewModel.SelectedParticipants = new ArrayList { character1 };
             bool canPlace = rosterExplorerViewModel.PlaceCommand.CanExecute(null);
             Assert.IsFalse(canPlace);
+        }
+        /// <summary>
+        /// If multiple characters are placed together, the ones that have saved positions in the crowd will be placed, others will just be spawned
+        /// </summary>
+        [TestMethod]
+        public void PlaceCharacters_SpawnsOrPlacesMultipleCharactersInTheCrowdAccordingToTheirSavedPositionsInTheCrowd()
+        {
+            InitializeCrowdRepositoryMockWithDefaultList();
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[1] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Assigning a saved position for Robin
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+            characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition(-100));// Saving a position for Batman within Gotham
+            characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(10000); // Also assigning a different saved position for Batman
+
+            CrowdMemberModel character1 = rosterExplorerViewModel.Participants[1] as CrowdMemberModel;
+            CrowdMemberModel character2 = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character1, character2 };
+            rosterExplorerViewModel.PlaceCommand.Execute(null);
+            // Position of character 1 (Robin) should not be equal to saved position of the character
+            Assert.AreNotEqual(character1.Position.X, character1.SavedPosition.X);
+            Assert.AreNotEqual(character1.Position.Y, character1.SavedPosition.Y);
+            Assert.AreNotEqual(character1.Position.Z, character1.SavedPosition.Z);
+            // Position of character 1 (Robin) should be the default position as the character is just spawned
+            Assert.AreEqual(character1.Position.X, 0.0);
+            Assert.AreEqual(character1.Position.Y, 0.0);
+            Assert.AreEqual(character1.Position.Z, 0.0);
+            // Position of character 2 (Batman) should not be equal to saved position of the character
+            Assert.AreNotEqual(character2.Position.X, character2.SavedPosition.X);
+            Assert.AreNotEqual(character2.Position.Y, character2.SavedPosition.Y);
+            Assert.AreNotEqual(character2.Position.Z, character2.SavedPosition.Z);
+            // Position of character 2 (Batman) should be equal to saved position of the character inside the crowd
+            CrowdModel rosterCrowd = character2.RosterCrowd as CrowdModel;
+            Assert.AreEqual(character2.Position.X, rosterCrowd.SavedPositions[character2.Name].X);
+            Assert.AreEqual(character2.Position.Y, rosterCrowd.SavedPositions[character2.Name].Y);
+            Assert.AreEqual(character2.Position.Z, rosterCrowd.SavedPositions[character2.Name].Z);
         }
 
         #endregion

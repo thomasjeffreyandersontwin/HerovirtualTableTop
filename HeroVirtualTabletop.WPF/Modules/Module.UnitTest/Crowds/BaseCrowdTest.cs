@@ -60,9 +60,9 @@ namespace Module.UnitTest
             this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2, childCrowd };
         }
 
-        protected IMemoryElementPosition GetRandomPosition()
+        protected IMemoryElementPosition GetRandomPosition(int seed = 0)
         {
-            Random rand = new Random();
+            Random rand = seed == 0 ? new Random() : new Random(seed);
             Mock<IMemoryElementPosition> position = new Mock<IMemoryElementPosition>();
             Random random = new Random(rand.Next());
             position.Setup(p => p.X).Returns(random.Next(-1000, 1000));
