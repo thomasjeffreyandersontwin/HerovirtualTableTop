@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Framework.WPF.Extensions;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -36,8 +37,15 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void viewModel_SelectionUpdated(object sender, EventArgs e)
         {
-            ICrowdMemberModel toSelect = sender as ICrowdMemberModel;
-            SelectTreeViewItem(toSelect);
+            //ICrowdMemberModel toSelect = sender as ICrowdMemberModel;
+            //SelectTreeViewItem(toSelect);
+            if(sender == null) // need to unselect
+            {
+                DependencyObject dObject = treeViewCrowd.GetItemFromSelectedObject(treeViewCrowd.SelectedItem);
+                TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                if(tvi != null)
+                    tvi.IsSelected = false;
+            }
         }
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)

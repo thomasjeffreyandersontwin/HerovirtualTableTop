@@ -54,6 +54,7 @@
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
                                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
                                     <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.DeleteCharacterCrowdCommand}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.UpdateSelectedCrowdMemberCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
                             <TextBox x:Name="textBoxCrowd" Visibility="Hidden" MinWidth="100"
@@ -85,6 +86,7 @@
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCharacter}"/>
                                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockCharacter}"/>
                                     <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.DeleteCharacterCrowdCommand}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.UpdateSelectedCrowdMemberCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
                             <TextBox x:Name="textBoxCharacter" Visibility="Hidden" MinWidth="100"

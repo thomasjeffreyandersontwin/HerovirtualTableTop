@@ -53,7 +53,7 @@ namespace Framework.WPF.Extensions
                             if (dObject != null)
                             {
                                 TreeViewItem ti = dObject as TreeViewItem;
-                                if(ti!=null && ti.IsFocused)
+                                if(ti!=null && (ti.IsFocused || ti.IsSelected))
                                     break;
                             }
                         }
