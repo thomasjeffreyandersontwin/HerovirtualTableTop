@@ -1,5 +1,6 @@
 ﻿using Framework.WPF.Library;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -43,6 +44,7 @@ namespace Module.UnitTest
             CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters" };
             CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Batman" };
+            crowd1.SavedPositions = new Dictionary<string, IMemoryElementPosition>();
             CrowdModel childCrowd = new CrowdModel { Name = "The Narrows"};
             CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Scarecrow"};
             crowd1.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, childCrowd };
@@ -56,6 +58,24 @@ namespace Module.UnitTest
                 crowd2.CrowdMemberCollection.Add(childCrowd);
             crowdAllChars.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, crowdMember2, crowdMember3, crowdMember4};
             this.crowdModelList = new List<CrowdModel> { crowdAllChars, crowd1, crowd2, childCrowd };
+        }
+
+        protected IMemoryElementPosition GetRandomPosition(int seed = 0)
+        {
+            Random rand = seed == 0 ? new Random() : new Random(seed);
+            Mock<IMemoryElementPosition> position = new Mock<IMemoryElementPosition>();
+            Random random = new Random(rand.Next());
+            position.Setup(p => p.X).Returns(random.Next(-1000, 1000));
+            position.Setup(p => p.Y).Returns(random.Next(-1000, 1000));
+            position.Setup(p => p.Z).Returns(random.Next(-1000, 1000));
+
+            Mock<IMemoryElementPosition> clonedPosition = new Mock<IMemoryElementPosition>();
+            clonedPosition.Setup(cp => cp.X).Returns(position.Object.X);
+            clonedPosition.Setup(cp => cp.Y).Returns(position.Object.Y);
+            clonedPosition.Setup(cp => cp.Z).Returns(position.Object.Z);
+            position.Setup(p => p.Clone(It.IsAny<bool>(), It.IsAny<uint>())).Returns(clonedPosition.Object);
+
+            return position.Object;
         }
 
         protected void DeleteTempRepositoryFile(string path = "test.data")

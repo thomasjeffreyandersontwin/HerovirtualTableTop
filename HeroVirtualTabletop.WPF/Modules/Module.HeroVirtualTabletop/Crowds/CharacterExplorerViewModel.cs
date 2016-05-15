@@ -340,16 +340,26 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Update Selected Crowd
         private void UpdateSelectedCrowdMember(object state)
         {
-            if (!isUpdatingCollection)
+            if (state != null) // Update selection
             {
-            ICrowdMemberModel selectedCrowdMember;
-            Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
-            CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
-            this.SelectedCrowdModel = crowdModel;
-                this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
+                if (!isUpdatingCollection)
+                {
+                    ICrowdMemberModel selectedCrowdMember;
+                    Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
+                    CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
+                    this.SelectedCrowdModel = crowdModel;
+                    this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
+                }
+                else
+                    this.lastCharacterCrowdStateToUpdate = state; 
             }
-            else
-                this.lastCharacterCrowdStateToUpdate = state;
+            else // Unselect
+            {
+                this.SelectedCrowdModel = null;
+                this.SelectedCrowdMemberModel = null;
+                this.SelectedCrowdParent = null;
+                OnSelectionUpdated(null, null);
+            }
         }
 
         private void LockModelAndMemberUpdate(bool isLocked)

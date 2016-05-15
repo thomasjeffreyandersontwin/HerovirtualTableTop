@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Characters;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -85,6 +86,16 @@ namespace Module.HeroVirtualTabletop.Crowds
         { 
         
         }
+
+        public virtual void Place(IMemoryElementPosition position)
+        {
+
+        }
+
+        public virtual void Place(ICrowdMember crowdMember)
+        {
+
+        }
     }
 
     public class CrowdModel : Crowd, ICrowdMemberModel
@@ -103,13 +114,13 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private Dictionary<string, Position> savedPositions;
-        public Dictionary<string, Position> SavedPositions
+        private Dictionary<string, IMemoryElementPosition> savedPositions;
+        public Dictionary<string, IMemoryElementPosition> SavedPositions
         {
             get
             {
                 if (savedPositions == null)
-                    savedPositions = new Dictionary<string, Position>();
+                    savedPositions = new Dictionary<string, IMemoryElementPosition>();
                 return savedPositions;
             }
             set
@@ -215,7 +226,46 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         public override void SavePosition(ICrowdMember c)
         {
-            this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
+            var position = (c as Character).Position.Clone(false);
+            if (this.SavedPositions.ContainsKey(c.Name))
+                this.SavedPositions[c.Name] = position;
+            else
+                this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
+        }
+        public override void Place(IMemoryElementPosition position)
+        {
+            foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
+            {
+                if (crowdMember is Crowd)
+                {
+                    crowdMember.Place(null);
+                }
+                else
+                {
+                    crowdMember.Place(this.SavedPositions[crowdMember.Name]);
+                }
+            }
+        }
+
+        public override void Place(ICrowdMember crowdMember)
+        {
+            IMemoryElementPosition pos;
+            if (this.SavedPositions.TryGetValue(crowdMember.Name, out pos))
+            {
+                CrowdMemberModel model = crowdMember as CrowdMemberModel;
+                model.Position = pos.Clone(false, (model.Position as MemoryInstance).GetTargetPointer());
+            }
+            else if(this.Name == Constants.ALL_CHARACTER_CROWD_NAME)
+            {
+                CrowdMemberModel model = crowdMember as CrowdMemberModel;
+                if(model.SavedPosition != null)
+                {
+                    MemoryInstance memIns = (model.Position as MemoryInstance);
+                    uint x = memIns.GetTargetPointer();
+                    model.Position = model.SavedPosition.Clone(false, x);
+                }
+                    
+            }
         }
         public CrowdModel() : base()
         {

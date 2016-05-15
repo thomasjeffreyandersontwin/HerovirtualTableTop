@@ -73,7 +73,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             }
         }
 
-        public Position Clone(bool preserveTargetPointer = true, uint oldTargetPointer = 0)
+        public IMemoryElementPosition Clone(bool preserveTargetPointer = true, uint oldTargetPointer = 0)
         {
             Position clone = new Position(false);
             if (preserveTargetPointer)
