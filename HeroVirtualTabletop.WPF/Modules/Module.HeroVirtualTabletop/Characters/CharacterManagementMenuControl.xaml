@@ -21,7 +21,7 @@
             <Button x:Name="btPlace" Content="&#xf041;" ToolTip="Place" Command="{Binding PlaceCommand}"/>
             <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn" Command="{Binding SpawnCommand}"/>
             <Button x:Name="btTarget" Content="&#xf05b;" ToolTip="Toggle Target" Command="{Binding ToggleTargetedCommand}"/>
-            <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target" />
+            <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target" Command="{Binding TargetAndFollowCommand}"/>
             <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera" />
             <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera"  />
             <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop" Command="{Binding ClearFromDesktopCommand}" />
