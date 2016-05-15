@@ -224,9 +224,20 @@ namespace Module.UnitTest.Characters
             File.Delete(new KeyBindsGenerator().BindFile);
 
         }
+
         [TestMethod]
         public void TargetAndFollowCharacter_GeneratesTargetAndFollowKeybind()
         {
+            CrowdMemberModel character = new CrowdMemberModel("Spyder");
+
+            character.TargetAndFollow();
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains(string.Format("target_name {0}$$follow", character.Label)));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
         }
 
         #endregion

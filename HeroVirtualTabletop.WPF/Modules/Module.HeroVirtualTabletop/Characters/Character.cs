@@ -304,6 +304,14 @@ namespace Module.HeroVirtualTabletop.Characters
             //return string.Empty;
         }
 
+        public void TargetAndFollow(bool completeEvent = true)
+        {
+            Target(false);
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow);
+            if (completeEvent)
+                keyBindsGenerator.CompleteEvent();
+        }
+
         public string UnTarget(bool completeEvent = true)
         {
             keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
