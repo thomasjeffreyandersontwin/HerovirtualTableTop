@@ -40,7 +40,7 @@ namespace Module.HeroVirtualTabletop.Roster
             get
             {
                 if(participants == null)
-                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.Name);
                 return participants;
             }
             set
@@ -126,6 +126,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 Participants.Add(crowdMember);
             }
+            Participants.Sort();
         }
         #endregion
 
@@ -156,10 +157,11 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.ClearFromDesktop();
             }
-            for (int i = 0; i < SelectedParticipants.Count; i++)
+            while (SelectedParticipants.Count != 0)
             {
-                var participant = SelectedParticipants[i] as CrowdMemberModel;
+                var participant = SelectedParticipants[0] as CrowdMemberModel;
                 Participants.Remove(participant);
+                SelectedParticipants.Remove(participant);
                 participant.RosterCrowd = null;
             }
             Commands_RaiseCanExecuteChanged();

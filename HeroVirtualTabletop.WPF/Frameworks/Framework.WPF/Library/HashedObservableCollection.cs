@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,36 @@ using System.Threading.Tasks;
 
 namespace Framework.WPF.Library
 {
+    public class ReadOnlyHashedObservableCollection<TValue, TKey> : ReadOnlyObservableCollection<TValue>
+    {
+        private HashedObservableCollection<TValue, TKey> collection;
+
+        public ReadOnlyHashedObservableCollection(HashedObservableCollection<TValue, TKey> collection) : base(collection)
+        {
+            this.collection = collection;
+        }
+
+        //public void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, params Func<TValue, IComparable>[] keySelectors)
+        //{
+        //    collection.Sort(sortOrder, keySelectors);
+        //}
+
+        public virtual TValue this[TKey key]
+        {
+            get
+            {
+                return collection[key];
+            }
+        }
+
+        public virtual bool ContainsKey(TKey key)
+        {
+            return collection.ContainsKey(key);
+        }
+
+
+    }
+
     /// <summary>
     /// Represents BindableCollection indexed by a dictionary to improve lookup/replace performance.
     /// </summary>
@@ -19,8 +50,6 @@ namespace Framework.WPF.Library
     /// <typeparam name="TKey">The type of the indexing key</typeparam>
     public class HashedObservableCollection<TValue, TKey> : SortableObservableCollection<TValue, TKey>
     {
-        public static bool IgnoreDuplicatesException = false;
-
         protected internal Dictionary<TKey, int> indices = new Dictionary<TKey, int>();
         protected internal Func<TValue, TKey> keySelector;
 
@@ -28,18 +57,18 @@ namespace Framework.WPF.Library
         /// Create new HashedBindableCollection
         /// </summary>
         /// <param name="keySelector">Selector function to create key from value</param>
-        public HashedObservableCollection(Func<TValue, TKey> keySelector, bool keepSorted = true)
-            : base(keySelector, keepSorted)
+        public HashedObservableCollection(Func<TValue, TKey> keySelectorForIndexing, params Func<TValue, IComparable>[] keySelectorsForOrdering)
+            : base(keySelectorsForOrdering)
         {
-            if (keySelector == null) throw new ArgumentException("keySelector");
-            this.keySelector = keySelector;
+            if (keySelectorForIndexing == null) throw new ArgumentException("keySelector");
+            this.keySelector = keySelectorForIndexing;
         }
 
-        public HashedObservableCollection(IEnumerable<TValue> collection, Func<TValue, TKey> keySelector, bool keepSorted = true)
-            : base(collection, keySelector, keepSorted)
+        public HashedObservableCollection(IEnumerable<TValue> collection, Func<TValue, TKey> keySelectorForIndexing, params Func<TValue, IComparable>[] keySelectorsForOrdering)
+            : base(collection, keySelectorsForOrdering)
         {
-            if (keySelector == null) throw new ArgumentException("keySelector");
-            this.keySelector = keySelector;
+            if (keySelectorForIndexing == null) throw new ArgumentException("keySelectorForIndexing");
+            this.keySelector = keySelectorForIndexing;
             InitializeWithCollection(collection);
         }
 
@@ -60,8 +89,6 @@ namespace Framework.WPF.Library
             var key = keySelector(item);
             if (indices.ContainsKey(key))
             {
-                if (IgnoreDuplicatesException)
-                    return;
                 throw new DuplicateKeyException(key.ToString());
             }
 
@@ -177,6 +204,15 @@ namespace Framework.WPF.Library
             TValue item = this[x];
             indices.Add(newKey, x);
             return true;
+        }
+
+        public new void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, params Func<TValue, IComparable>[] keySelectors)
+        {
+            base.Sort(sortOrder, keySelectors);
+            foreach (TValue item in Items)
+            {
+                indices[keySelector(item)] = Items.IndexOf(item);
+            }
         }
 
     }

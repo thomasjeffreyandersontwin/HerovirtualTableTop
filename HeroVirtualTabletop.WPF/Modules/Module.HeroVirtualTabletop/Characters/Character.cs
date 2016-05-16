@@ -103,11 +103,15 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
+                OldName = name;
                 name = value;
                 SetActiveIdentity();
                 OnPropertyChanged("Name");
             }
         }
+
+        [JsonIgnore]
+        public string OldName { get; private set; }
         
         private IMemoryElementPosition position;
         public IMemoryElementPosition Position

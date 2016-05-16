@@ -11,14 +11,17 @@ using Framework.WPF.Extensions;
 using Module.Shared.Enumerations;
 using Module.Shared;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Framework.WPF.Library;
+using System.ComponentModel;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
-    public interface ICrowdMember
+    public interface ICrowdMember : INotifyPropertyChanged
     {
         string Name { get; set; }
+        string OldName { get; }
         Crowd RosterCrowd { get; set; }
-        ObservableCollection<ICrowdMember> CrowdMemberCollection { get; set; }
+        //HashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; set; }
 
         void Place(IMemoryElementPosition position);
         void SavePosition();
@@ -32,6 +35,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         bool IsMatched { get; set; }
         void ApplyFilter(string filter);
         void ResetFilter();
+        int Order { get; set; }
     }
 
     public class CrowdMember : Character, ICrowdMember
@@ -51,22 +55,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 OnPropertyChanged("RosterCrowd");
             }
         }
-
-        private ObservableCollection<ICrowdMember> crowdMemberCollection;
-        [JsonIgnore]
-        public ObservableCollection<ICrowdMember> CrowdMemberCollection
-        {
-            get
-            {
-                return crowdMemberCollection;
-            }
-            set
-            {
-                crowdMemberCollection = value;
-                OnPropertyChanged("CrowdMemberCollection");
-            }
-        }
-
+        
         private IMemoryElementPosition savedPosition;
         public IMemoryElementPosition SavedPosition
         {
@@ -163,7 +152,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isMatched = value;
-                OnPropertyChanged("IsMatch");
+                OnPropertyChanged("IsMatched");
+            }
+        }
+
+        private int order;
+        public int Order
+        {
+            get
+            {
+                return order;
+            }
+            set
+            {
+                order = value;
+                OnPropertyChanged("Order");
             }
         }
 
@@ -208,6 +211,9 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         [JsonConstructor]
         public CrowdMemberModel() : base() { }
-        public CrowdMemberModel(string name): base(name) { }
+        public CrowdMemberModel(string name, int order = 0): base(name)
+        {
+            this.order = order;
+        }
     }
 }

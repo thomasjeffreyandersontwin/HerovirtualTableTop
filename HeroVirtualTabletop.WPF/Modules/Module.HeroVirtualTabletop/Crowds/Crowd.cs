@@ -11,10 +11,17 @@ using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Characters;
 using Module.Shared;
+using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
-    public class Crowd : NotifyPropertyChanged, ICrowdMember
+    public interface ICrowd : ICrowdMember
+    {
+        ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; }
+    }
+
+    public class Crowd : NotifyPropertyChanged, ICrowd
     {
         private string name;
         public string Name
@@ -25,10 +32,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             set
             {
+                OldName = name;
                 name = value;
                 OnPropertyChanged("Name");
             }
         }
+
+        [JsonIgnore]
+        public string OldName { get; private set; }
 
         private Crowd rosterCrowd;
         [JsonIgnore]
@@ -46,30 +57,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private ObservableCollection<ICrowdMember> crowdMemberCollection;
-        public ObservableCollection<ICrowdMember> CrowdMemberCollection
-        {
-            get
-            {
-                return crowdMemberCollection;
-            }
-            set
-            {
-                crowdMemberCollection = value;
-                OnPropertyChanged("CrowdMemberCollection");
-            }
-        }
-
+        private HashedObservableCollection<ICrowdMember, string> crowdMemberCollection;
+        public ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; private set; }
+        
         public Crowd()
         {
-            this.CrowdMemberCollection = new ObservableCollection<ICrowdMember>();
+            this.crowdMemberCollection = new HashedObservableCollection<ICrowdMember, string>(x => x.Name);
+            this.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMember, string>(crowdMemberCollection);
         }
 
         public Crowd(string name) : this()
         {
             this.Name = name;
         }
-
+        
         public virtual ICrowdMember Clone()
         {
             Crowd crowd = this.DeepClone() as Crowd;
@@ -100,18 +101,52 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public class CrowdModel : Crowd, ICrowdMemberModel
     {
-        private SortableObservableCollection<ICrowdMemberModel, string> crowdMemberCollection;
-        public new SortableObservableCollection<ICrowdMemberModel, string> CrowdMemberCollection
+        [JsonProperty(PropertyName = "Members")]
+        private HashedObservableCollection<ICrowdMemberModel, string> crowdMemberCollection;
+        public new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string> CrowdMemberCollection { get; private set; }
+        
+        public void Add(ICrowdMemberModel member)
         {
-            get
+            this.crowdMemberCollection.Add(member);
+            this.crowdMemberCollection.Sort();
+            member.PropertyChanged += Member_PropertyChanged;
+        }
+
+        public void Add(IEnumerable<ICrowdMemberModel> members)
+        {
+            foreach (ICrowdMemberModel member in members)
             {
-                return crowdMemberCollection;
+                Add(member);
             }
-            set
+        }
+
+        private void Member_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Name")
             {
-                crowdMemberCollection = value;
-                OnPropertyChanged("CrowdMemberCollection");
+                crowdMemberCollection.UpdateKey((sender as ICrowdMember).OldName, (sender as ICrowdMember).Name);
             }
+            if (e.PropertyName == "Name" || e.PropertyName == "Order")
+            {
+                crowdMemberCollection.Sort();
+            }
+        }
+
+        [OnDeserialized]
+        private void AfterDeserializationCallback(StreamingContext context)
+        {
+            foreach (ICrowdMemberModel member in crowdMemberCollection)
+            {
+                member.PropertyChanged += Member_PropertyChanged;
+            }
+        }
+
+        public void Remove(ICrowdMemberModel member)
+        {
+            if (member == null)
+                return;
+            this.crowdMemberCollection.Remove(member);
+            member.PropertyChanged -= Member_PropertyChanged;
         }
 
         private Dictionary<string, IMemoryElementPosition> savedPositions;
@@ -156,6 +191,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 isMatched = value;
                 OnPropertyChanged("IsMatched");
+            }
+        }
+
+        private int order;
+        public int Order
+        {
+            get
+            {
+                return order;
+            }
+            set
+            {
+                order = value;
+                OnPropertyChanged("Order");
             }
         }
 
@@ -269,12 +318,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         public CrowdModel() : base()
         {
-            this.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+            this.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.Order, x => x.Name);
+            this.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(crowdMemberCollection);
         }
-        public CrowdModel(string name) : base(name)
+        public CrowdModel(string name, int order = 0) : base(name)
         {
-            this.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-            //this.Name = name; Handled by base class
+            this.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.Order, x => x.Name);
+            this.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(crowdMemberCollection);
+            this.order = order;
         }
     }
 }
