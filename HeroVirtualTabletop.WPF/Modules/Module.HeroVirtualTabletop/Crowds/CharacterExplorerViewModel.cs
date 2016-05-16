@@ -30,7 +30,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
         //private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
-        private CrowdModel AllCharactersCrowd;
+        
         private string filter;
         private CrowdModel clipboardObjectOriginalCrowd = null;
         private ClipboardAction clipboardAction;
@@ -132,6 +132,23 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 selectedCrowdParent = value;
+            }
+        }
+
+        private CrowdModel allCharactersCrowd;
+        public CrowdModel AllCharactersCrowd
+        {
+            get
+            {
+                if (allCharactersCrowd == null)
+                {
+                    allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+                }
+                if (allCharactersCrowd == null)
+                {
+                    CreateAllCharactersCrowd();
+                }
+                return allCharactersCrowd;
             }
         }
 
@@ -330,7 +347,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
-            AllCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
             
             //this.BusyService.HideBusy();
         }
@@ -423,10 +439,11 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddNewCrowdModel(CrowdModel crowdModel)
         {
-            // Add the crowd to List of Crowd Members as a new Crowd Member
-            this.AddCrowdToCrowdCollection(crowdModel);
+            //Methods Swapped by Chris
             // Also add the crowd under any currently selected crowd
             this.AddCrowdToSelectedCrowd(crowdModel);
+            // Add the crowd to List of Crowd Members as a new Crowd Member
+            this.AddCrowdToCrowdCollection(crowdModel);
         }
 
         private void AddCrowdToCrowdCollection(CrowdModel crowdModel)
@@ -442,6 +459,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 //if (this.SelectedCrowdModel.CrowdMemberCollection == null)
                 //    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(ListSortDirection.Ascending, x => x.Name);
                 this.SelectedCrowdModel.Add(crowdModel);
+                this.SelectedCrowdModel.IsExpanded = true;
                 //this.SelectedCrowdModel.CrowdMemberCollection.Sort();
             }
         }
@@ -460,7 +478,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.SaveCrowdCollection();
 
             //Update selection in treeview 
-            OnSelectionUpdated(character, null);
+            OnSelectionUpdated(character, null); //Not working
         }
 
         private Character GetNewCharacter()
@@ -493,7 +511,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME, -1);
             this.CrowdCollection.Add(crowdModelAllCharacters);
-            this.AllCharactersCrowd = crowdModelAllCharacters;
+            this.CrowdCollection.Sort();
+            this.allCharactersCrowd = crowdModelAllCharacters;
         }
 
         private void AddCharacterToAllCharactersCrowd(Character character)
@@ -508,6 +527,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (crowdModel != null && crowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 crowdModel.Add(character as CrowdMemberModel);
+                crowdModel.IsExpanded = true;
             }
         }
         

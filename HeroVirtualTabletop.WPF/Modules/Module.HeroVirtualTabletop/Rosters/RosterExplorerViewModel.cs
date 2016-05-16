@@ -40,7 +40,7 @@ namespace Module.HeroVirtualTabletop.Roster
             get
             {
                 if(participants == null)
-                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.Name);
+                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.RosterCrowd.Order, x => x.RosterCrowd.Name, x => x.Name );
                 return participants;
             }
             set

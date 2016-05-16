@@ -19,6 +19,13 @@ namespace Module.HeroVirtualTabletop.Crowds
     public interface ICrowd : ICrowdMember
     {
         ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; }
+        void SavePosition(ICrowdMember c);
+        void Place(ICrowdMember crowdMember);
+    }
+
+    public interface ICrowdModel : ICrowd, ICrowdMemberModel
+    {
+
     }
 
     public class Crowd : NotifyPropertyChanged, ICrowd
@@ -41,9 +48,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         [JsonIgnore]
         public string OldName { get; private set; }
 
-        private Crowd rosterCrowd;
+        private ICrowd rosterCrowd;
         [JsonIgnore]
-        public Crowd RosterCrowd
+        public ICrowd RosterCrowd
         {
             get
             {
@@ -99,11 +106,25 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
     }
 
-    public class CrowdModel : Crowd, ICrowdMemberModel
+    public class CrowdModel : Crowd, ICrowdModel
     {
         [JsonProperty(PropertyName = "Members")]
         private HashedObservableCollection<ICrowdMemberModel, string> crowdMemberCollection;
         public new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string> CrowdMemberCollection { get; private set; }
+
+        [JsonIgnore]
+        public new ICrowdModel RosterCrowd
+        {
+            get
+            {
+                return base.RosterCrowd as ICrowdModel;
+            }
+            set
+            {
+                base.RosterCrowd = value;
+                OnPropertyChanged("RosterCrowd");//To check if this line is actually needed
+            }
+        }
         
         public void Add(ICrowdMemberModel member)
         {

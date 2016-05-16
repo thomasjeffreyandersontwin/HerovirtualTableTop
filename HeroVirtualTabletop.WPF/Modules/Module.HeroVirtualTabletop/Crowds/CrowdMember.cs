@@ -20,7 +20,7 @@ namespace Module.HeroVirtualTabletop.Crowds
     {
         string Name { get; set; }
         string OldName { get; }
-        Crowd RosterCrowd { get; set; }
+        ICrowd RosterCrowd { get; set; }
         //HashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; set; }
 
         void Place(IMemoryElementPosition position);
@@ -31,6 +31,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public interface ICrowdMemberModel : ICrowdMember
     {
+        new ICrowdModel RosterCrowd { get; set; }
         bool IsExpanded { get; set; }
         bool IsMatched { get; set; }
         void ApplyFilter(string filter);
@@ -40,9 +41,9 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public class CrowdMember : Character, ICrowdMember
     {
-        private Crowd rosterCrowd;
+        private ICrowd rosterCrowd;
         [JsonIgnore]
-        public Crowd RosterCrowd
+        public ICrowd RosterCrowd
         {
             get
             {
@@ -193,6 +194,20 @@ namespace Module.HeroVirtualTabletop.Crowds
         public void ResetFilter()
         {
             alreadyFiltered = false;
+        }
+
+        [JsonIgnore]
+        public new ICrowdModel RosterCrowd
+        {
+            get
+            {
+                return base.RosterCrowd as ICrowdModel;
+            }
+            set
+            {
+                base.RosterCrowd = value;
+                OnPropertyChanged("RosterCrowd");//To check if this line is actually needed
+            }
         }
 
         public override ICrowdMember Clone()
