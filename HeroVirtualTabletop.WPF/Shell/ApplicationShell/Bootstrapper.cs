@@ -24,6 +24,10 @@ using Module.Shared;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Module.Shared.Messages;
+using System.Reflection;
+using System.Resources;
+using Module.HeroVirtualTabletop.Library.Utility;
+using AutoItX3Lib;
 
 namespace ApplicationShell
 {
@@ -71,9 +75,32 @@ namespace ApplicationShell
                 {
                     Process.Start(filePath, "-r");
                     // Need to automate the following process
-                    var x = MessageBox.Show("Plese wait for COH to initialize, then load the required keybind and close this message");
+                    var x = MessageBox.Show("Please wait for COH to initialize and close this message");
                 }
             }
+            LoadRequiredKeybinds();
+        }
+
+        private void LoadRequiredKeybinds()
+        {
+            CheckRequiredKeybindsFileExists();
+            IntPtr hWnd = WindowsUtilities.FindWindow("CrypticWindow", null);
+
+            if (IntPtr.Zero == hWnd) //Game is not running
+            {
+                return;
+            }
+            WindowsUtilities.SetForegroundWindow(hWnd);
+            WindowsUtilities.SetActiveWindow(hWnd);
+            WindowsUtilities.ShowWindow(hWnd, 3); // 3 = SW_SHOWMAXIMIZED
+
+            System.Threading.Thread.Sleep(250);
+
+            AutoItX3 input = new AutoItX3();
+
+            input.Send("{ENTER}");
+            input.Send("/bind_load_file required_keybinds.txt");
+            input.Send("{ENTER}");
         }
 
         private bool CheckGameDirectory()
@@ -110,6 +137,27 @@ namespace ApplicationShell
                 }
             }
             
+        }
+
+        private void CheckRequiredKeybindsFileExists()
+        {
+            bool directoryExists = CheckGameDirectory();
+            if (!directoryExists)
+                SetGameDirectory();
+
+            string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_FILENAME);
+            if (!File.Exists(filePath))
+            {
+                ExtractRequiredKeybindsFile();
+            }
+        }
+
+        private void ExtractRequiredKeybindsFile()
+        {
+            File.AppendAllText(
+                Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_FILENAME),
+                Resources.required_keybinds
+                );
         }
 
         void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)

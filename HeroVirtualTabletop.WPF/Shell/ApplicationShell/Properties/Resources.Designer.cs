@@ -8,10 +8,10 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ApplicationShell.Properties
-{
-
-
+namespace ApplicationShell.Properties {
+    using System;
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -22,49 +22,84 @@ namespace ApplicationShell.Properties
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Resources
-    {
-
+    internal class Resources {
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Resources()
-        {
+        internal Resources() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Resources.ResourceManager ResourceManager
-        {
-            get
-            {
-                if ((resourceMan == null))
-                {
+        internal static global::System.Resources.ResourceManager ResourceManager {
+            get {
+                if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("ApplicationShell.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        internal static global::System.Globalization.CultureInfo Culture
-        {
-            get
-            {
+        internal static global::System.Globalization.CultureInfo Culture {
+            get {
                 return resourceCulture;
             }
-            set
-            {
+            set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to W &quot;+forward&quot;
+        ///A &quot;+left&quot;
+        ///S &quot;+backward&quot;
+        ///D &quot;+right&quot;
+        ///Z &quot;+down&quot;
+        ///SPACE &quot;+up&quot;
+        ///
+        ///DOWN &quot;+lookup&quot;
+        ///DOWNARROW &quot;+lookup&quot;
+        ///LEFT &quot;+turnleft&quot;
+        ///LEFTARROW &quot;+turnleft&quot;
+        ///RIGHT &quot;+turnright&quot;
+        ///RIGHTARROW &quot;+turnright&quot;
+        ///UP &quot;+lookdown&quot;
+        ///UPARROW &quot;+lookdown&quot;
+        ///
+        ///; &quot;+zoomin&quot;
+        ///. &quot;+zoomout&quot;
+        ///
+        ///B &quot;bind_load_file b.txt&quot;
+        ///C /nop
+        ///H /nop
+        ///delete /nop
+        ///
+        ///M &quot;move_npc&quot;
+        ///
+        ///X /nop&quot;
+        ///
+        ///F &quot;fly&quot;
+        ///N &quot;noclip&quot;
+        ///SHIFT+M &quot;popmenu maps&quot;
+        ///SHIFT+N &quot;popmenu NPC&quot;
+        ///
+        ///
+        ///.
+        /// </summary>
+        internal static string required_keybinds {
+            get {
+                return ResourceManager.GetString("required_keybinds", resourceCulture);
             }
         }
     }

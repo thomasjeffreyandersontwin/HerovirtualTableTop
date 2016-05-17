@@ -44,6 +44,7 @@ namespace Module.Shared
         public const string GAME_COSTUMES_FOLDERNAME = "costumes";
         public const string GAME_COSTUMES_EXT = ".costume";
         public const string GAME_CROWD_REPOSITORY_FILENAME = "CrowdRepoTest.data";
+        public const string GAME_KEYBINDS_FILENAME = "required_keybinds.txt";
         #endregion
 
         #region Character Explorer

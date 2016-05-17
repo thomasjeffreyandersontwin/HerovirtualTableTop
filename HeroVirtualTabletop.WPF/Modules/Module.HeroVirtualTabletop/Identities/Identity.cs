@@ -50,7 +50,7 @@ namespace Module.HeroVirtualTabletop.Identities
 
         #endregion
 
-        private KeyBindsGenerator keyBindsGenerator;
+        protected KeyBindsGenerator keyBindsGenerator;
 
         private string name;
         public string Name

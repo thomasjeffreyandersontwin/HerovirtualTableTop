@@ -19,6 +19,7 @@ using Module.Shared.Messages;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -422,19 +423,35 @@ namespace Module.HeroVirtualTabletop.Crowds
         private CrowdModel GetNewCrowdModel()
         {
             string name = "Crowd";
-            string suffix = GetAppropriateCrowdNameSuffix(name);
-            return new CrowdModel(name + suffix);
+            string fullName = GetAppropriateCrowdName(name);
+            return new CrowdModel(fullName);
         }
 
-        private string GetAppropriateCrowdNameSuffix(string name)
+        private string GetAppropriateCrowdName(string name)
         {
             string suffix = string.Empty;
+            string rootName = name;
             int i = 0;
-            while (this.CrowdCollection.ContainsKey(name + suffix))
+            Regex reg = new Regex(@"\((\d+)\)");
+            MatchCollection matches = reg.Matches(name);
+            if (matches.Count > 0)
+            {
+                int k;
+                Match match = matches[matches.Count - 1];
+                if (int.TryParse(match.Value.Substring(1, match.Value.Length - 2), out k))
+                {
+                    i = k + 1;
+                    suffix = string.Format(" ({0})", i);
+                    rootName = name.Substring(0, match.Index).TrimEnd();
+                }
+            }
+            string newName = rootName + suffix;
+            while (this.CrowdCollection.ContainsKey(newName))
             {
                 suffix = string.Format(" ({0})", ++i);
+                newName = rootName + suffix;
             }
-            return suffix;
+            return newName;
         }
 
         private void AddNewCrowdModel(CrowdModel crowdModel)
@@ -484,19 +501,35 @@ namespace Module.HeroVirtualTabletop.Crowds
         private Character GetNewCharacter()
         {
             string name = "Character";
-            string suffix = GetAppropriateCharacterNameSuffix(name);
-            return new CrowdMemberModel(name + suffix);
+            string fullName = GetAppropriateCharacterName(name);
+            return new CrowdMemberModel(fullName);
         }
 
-        private string GetAppropriateCharacterNameSuffix(string name)
+        private string GetAppropriateCharacterName(string name)
         {
             string suffix = string.Empty;
+            string rootName = name;
             int i = 0;
-            while (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(name + suffix))
+            Regex reg = new Regex(@"\((\d+)\)");
+            MatchCollection matches = reg.Matches(name);
+            if (matches.Count > 0)
+            {
+                int k;
+                Match match = matches[matches.Count - 1];
+                if (int.TryParse(match.Value.Substring(1, match.Value.Length - 2), out k))
+                {
+                    i = k + 1;
+                    suffix = string.Format(" ({0})", i);
+                    rootName = name.Substring(0, match.Index).TrimEnd();
+                }
+            }
+            string newName = rootName + suffix;
+            while (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(newName))
             {
                 suffix = string.Format(" ({0})", ++i);
+                newName = rootName + suffix;
             }
-            return suffix;
+            return newName;
         }
 
         private void AddNewCharacter(Character character)
@@ -1088,23 +1121,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (model is CrowdModel)
             {
                 CrowdModel crowdModel = model as CrowdModel;
-                string suffix = GetAppropriateCrowdNameSuffix(crowdModel.Name);
-                crowdModel.Name += suffix;
+                crowdModel.Name = GetAppropriateCrowdName(crowdModel.Name);
                 if (crowdModel.CrowdMemberCollection != null)
                 {
                     List<ICrowdMemberModel> models = GetFlattenedMemberList(crowdModel.CrowdMemberCollection.ToList());
                     foreach (var member in models)
                     {
-                        suffix = (member is CrowdModel) ? GetAppropriateCrowdNameSuffix(member.Name) : GetAppropriateCharacterNameSuffix(member.Name);
-                        member.Name += suffix;
+                        member.Name = (member is CrowdModel) ? GetAppropriateCrowdName(member.Name) : GetAppropriateCharacterName(member.Name);
                     }
                 }
 
             }
             else if (model is CrowdMemberModel)
             {
-                string suffix = GetAppropriateCharacterNameSuffix(model.Name);
-                model.Name += suffix;
+                model.Name = GetAppropriateCharacterName(model.Name);
             }
         }
 
