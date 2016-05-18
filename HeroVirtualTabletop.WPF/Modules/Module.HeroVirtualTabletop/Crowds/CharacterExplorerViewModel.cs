@@ -394,12 +394,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             // UnLock character crowd Tree from updating;
             this.LockModelAndMemberUpdate(false);
             // Update character crowd if necessary
-            if (this.lastCharacterCrowdStateToUpdate != null)
-            {
-                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
-                this.lastCharacterCrowdStateToUpdate = null;
-            }
-
+            //if (this.lastCharacterCrowdStateToUpdate != null)
+            //{
+            //    this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+            //    this.lastCharacterCrowdStateToUpdate = null;
+            //}
             //Update selection in treeview 
             OnSelectionUpdated(crowdModel, null);
         }

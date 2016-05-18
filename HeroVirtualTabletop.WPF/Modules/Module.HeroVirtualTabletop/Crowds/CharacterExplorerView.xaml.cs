@@ -15,6 +15,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Framework.WPF.Extensions;
+using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -37,7 +39,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void viewModel_SelectionUpdated(object sender, EventArgs e)
         {
-            //ICrowdMemberModel toSelect = sender as ICrowdMemberModel;
+            ICrowdMemberModel modelToSelect = sender as ICrowdMemberModel;
             //SelectTreeViewItem(toSelect);
             if(sender == null) // need to unselect
             {
@@ -46,7 +48,80 @@ namespace Module.HeroVirtualTabletop.Crowds
                 if(tvi != null)
                     tvi.IsSelected = false;
             }
+            else
+            {
+                bool itemFound = false;
+                TextBox txtBox = null;
+                if (this.viewModel.SelectedCrowdModel == null || this.viewModel.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
+                {
+                    treeViewCrowd.UpdateLayout();
+                    //TreeViewItem firstItem = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(this.viewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]) as TreeViewItem;
+                    //if (firstItem != null)
+                    //    firstItem.IsSelected = true;
+                    for (int i = 1; i < treeViewCrowd.Items.Count; i++) // A new crowd has been added to the collection
+                    {
+                        TreeViewItem item = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(treeViewCrowd.Items[i]) as TreeViewItem;
+                        if (item != null)
+                        {
+                            var model = item.DataContext as ICrowdMemberModel;
+                            if (model.Name == modelToSelect.Name)
+                            {
+                                item.IsSelected = true;
+                                itemFound = true;
+                                txtBox = FindTextBoxInTemplate(item);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (!itemFound)
+                {
+                    DependencyObject dObject = treeViewCrowd.GetItemFromSelectedObject(this.viewModel.SelectedCrowdModel);
+                    TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                    if (tvi != null)
+                    {
+                        ICrowdMemberModel model = tvi.DataContext as ICrowdMemberModel;
+                        if (model.Name == modelToSelect.Name) // A crowd has been added
+                        {
+                            tvi.IsSelected = true;
+                            itemFound = true;
+                            txtBox = FindTextBoxInTemplate(tvi);
+                        }
+                        else if (tvi.Items != null)
+                        {
+                            tvi.IsExpanded = true;
+                            tvi.UpdateLayout();
+                            for (int i = 0; i < tvi.Items.Count; i++)
+                            {
+                                TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+                                if (item != null)
+                                {
+                                    model = item.DataContext as ICrowdMemberModel;
+                                    if (model.Name == modelToSelect.Name)
+                                    {
+                                        item.IsSelected = true;
+                                        itemFound = true;                                       
+                                        item.UpdateLayout();
+                                        txtBox = FindTextBoxInTemplate(item);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                }
+                if (txtBox != null)
+                    this.viewModel.EnterEditModeCommand.Execute(txtBox);
+            }
         }
+
+        private TextBox FindTextBoxInTemplate(TreeViewItem item)
+        {
+            TextBox textBox = Helper.GetDescendantByType(item, typeof(TextBox)) as TextBox;
+            return textBox;
+        }
+
+        
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)
         {
@@ -144,6 +219,11 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
             }
             return found as TreeViewItem;
+        }
+
+        private void textBlockCharacter_Loaded(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

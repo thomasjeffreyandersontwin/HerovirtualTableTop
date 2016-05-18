@@ -72,7 +72,7 @@
                     </Grid>
                 </HierarchicalDataTemplate>
 
-                <DataTemplate DataType="{x:Type managedcharacter:Character}">
+                <DataTemplate DataType="{x:Type managedcharacter:Character}" >
                     <Grid ContextMenu="{StaticResource ResourceKey=CharExplorerMenu}">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
