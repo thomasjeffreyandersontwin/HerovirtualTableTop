@@ -103,11 +103,15 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
+                OldName = name;
                 name = value;
                 SetActiveIdentity();
                 OnPropertyChanged("Name");
             }
         }
+
+        [JsonIgnore]
+        public string OldName { get; private set; }
         
         private IMemoryElementPosition position;
         public IMemoryElementPosition Position
@@ -301,6 +305,14 @@ namespace Module.HeroVirtualTabletop.Characters
                 return keybind;
             //}
             //return string.Empty;
+        }
+
+        public void TargetAndFollow(bool completeEvent = true)
+        {
+            Target(false);
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow);
+            if (completeEvent)
+                keyBindsGenerator.CompleteEvent();
         }
 
         public string UnTarget(bool completeEvent = true)

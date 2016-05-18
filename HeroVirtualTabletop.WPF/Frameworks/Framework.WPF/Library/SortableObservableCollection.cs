@@ -10,62 +10,49 @@ namespace Framework.WPF.Library
 {
     public class SortableObservableCollection<T, TKey> : ObservableCollection<T>
     {
-        private Func<T, TKey> keySelector;
-        private bool keepSorted;
-        private ListSortDirection sortOrder;
+        private Func<T, IComparable>[] keySelectors;
 
-        public SortableObservableCollection(Func<T, TKey> keySelector, bool keepSorted = true, ListSortDirection sortOrder = ListSortDirection.Ascending)
+        public SortableObservableCollection(params Func<T, IComparable>[] keySelectors )
            : base()
         {
-            this.keySelector = keySelector;
-            this.keepSorted = keepSorted;
-            this.sortOrder = sortOrder;
+            this.keySelectors = keySelectors;
         }
 
-        public SortableObservableCollection(List<T> list, Func<T, TKey> keySelector, bool keepSorted = true, ListSortDirection sortOrder = ListSortDirection.Ascending)
+        public SortableObservableCollection(List<T> list, params Func<T, IComparable>[] keySelectors)
            : base(list)
         {
-            this.keySelector = keySelector;
-            this.keepSorted = keepSorted;
-            this.sortOrder = sortOrder;
+            this.keySelectors = keySelectors;
         }
 
-        public SortableObservableCollection(IEnumerable<T> collection, Func<T, TKey> keySelector, bool keepSorted = true, ListSortDirection sortOrder = ListSortDirection.Ascending)
+        public SortableObservableCollection(IEnumerable<T> collection, params Func<T, IComparable>[] keySelectors)
            : base(collection)
         {
-            this.keySelector = keySelector;
-            this.keepSorted = keepSorted;
-            this.sortOrder = sortOrder;
+            this.keySelectors = keySelectors;
         }
 
-        public void Sort(Func<T, TKey> keySelector = null)
+        public void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, params Func<T, IComparable>[] keySelectors)
         {
-            if (keySelector == null)
+            if (keySelectors .Count() == 0)
             {
-                keySelector = this.keySelector;
+                keySelectors = this.keySelectors;
             }
             switch (sortOrder)
             {
                 case ListSortDirection.Ascending:
                     {
-                        ApplySort(Items.OrderBy(keySelector));
+                        for (int i = keySelectors.Count()-1; i >= 0; i--)
+                            ApplySort(Items.OrderBy(keySelectors[i]));
                         break;
                     }
                 case ListSortDirection.Descending:
                     {
-                        ApplySort(Items.OrderByDescending(keySelector));
+                        for (int i = keySelectors.Count() - 1; i >= 0; i--)
+                            ApplySort(Items.OrderByDescending(keySelectors[i]));
                         break;
                     }
             }
         }
-
-        public void Sort(IComparer<TKey> comparer, Func<T, TKey> keySelector = null)
-        {
-            if (keySelector == null)
-                keySelector = this.keySelector;
-            ApplySort(Items.OrderBy(keySelector, comparer));
-        }
-
+        
         private void ApplySort(IEnumerable<T> sortedItems)
         {
             var sortedItemsList = sortedItems.ToList();
@@ -76,20 +63,5 @@ namespace Framework.WPF.Library
             }
         }
 
-        protected override void InsertItem(int index, T item)
-        {
-            base.InsertItem(index, item);
-            if (keepSorted)
-                Sort();
-            if (item is INotifyPropertyChanged)
-                (item as INotifyPropertyChanged).PropertyChanged += Item_PropertyChanged;
-        }
-
-        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Name") //Absolutely not the right way but works for now
-                if (sender.GetType().GetProperty(e.PropertyName).GetValue(sender) == (object)keySelector((T)sender))
-                    Sort();
-        }
     }
 }

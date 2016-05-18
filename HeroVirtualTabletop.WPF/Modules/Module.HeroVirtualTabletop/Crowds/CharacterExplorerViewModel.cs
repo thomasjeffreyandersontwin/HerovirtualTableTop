@@ -18,6 +18,8 @@ using Framework.WPF.Services.MessageBoxService;
 using Module.Shared.Messages;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
+using System.ComponentModel;
+using System.Text.RegularExpressions;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -28,7 +30,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         private IMessageBoxService messageBoxService;
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
-        private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
+        //private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
+        
         private string filter;
         private CrowdModel clipboardObjectOriginalCrowd = null;
         private ClipboardAction clipboardAction;
@@ -130,6 +133,23 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 selectedCrowdParent = value;
+            }
+        }
+
+        private CrowdModel allCharactersCrowd;
+        public CrowdModel AllCharactersCrowd
+        {
+            get
+            {
+                if (allCharactersCrowd == null)
+                {
+                    allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+                }
+                if (allCharactersCrowd == null)
+                {
+                    CreateAllCharactersCrowd();
+                }
+                return allCharactersCrowd;
             }
         }
 
@@ -280,13 +300,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (this.IsUpdatingCharacter)
             {
                 SelectedCrowdMemberModel.Name = updatedName;
-                this.characterCollection.UpdateKey(this.OriginalName, updatedName);
+                //this.characterCollection.UpdateKey(this.OriginalName, updatedName);
+                //this.characterCollection.Sort();
                 this.OriginalName = null;
             }
             else
             {
                 SelectedCrowdModel.Name = updatedName;
                 this.CrowdCollection.UpdateKey(this.OriginalName, updatedName);
+                this.CrowdCollection.Sort();
                 this.OriginalName = null;
             }
         }
@@ -297,7 +319,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 if (this.IsUpdatingCharacter)
                 {
-                    if (this.characterCollection.ContainsKey(updatedName))
+                    if (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(updatedName))
                     {
                         isDuplicate = true;
                     }
@@ -324,14 +346,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void LoadCrowdCollectionCallback(List<CrowdModel> crowdList)
         {
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
-                (CrowdModel c) => { return c.Name; }
+                (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
-            CrowdModel allCharactersModel = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
-            if (allCharactersModel == null)
-                allCharactersModel = new CrowdModel();
-            this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(allCharactersModel.CrowdMemberCollection,
-                (ICrowdMemberModel c) => { return c.Name; }
-                );
+            
             //this.BusyService.HideBusy();
         }
 
@@ -386,60 +403,81 @@ namespace Module.HeroVirtualTabletop.Crowds
             // Create a new Crowd
             CrowdModel crowdModel = this.GetNewCrowdModel();
             // Lock character crowd Tree from updating;
-            this.LockModelAndMemberUpdate(true);
+            //this.LockModelAndMemberUpdate(true);
             // Add the new Model
             this.AddNewCrowdModel(crowdModel);
             // Update Repository asynchronously
             this.SaveCrowdCollection();
             // UnLock character crowd Tree from updating;
-            this.LockModelAndMemberUpdate(false);
+            //this.LockModelAndMemberUpdate(false);
             // Update character crowd if necessary
             //if (this.lastCharacterCrowdStateToUpdate != null)
             //{
             //    this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
             //    this.lastCharacterCrowdStateToUpdate = null;
             //}
+
             //Update selection in treeview 
             OnSelectionUpdated(crowdModel, null);
         }
         private CrowdModel GetNewCrowdModel()
         {
             string name = "Crowd";
-            string suffix = GetAppropriateCrowdNameSuffix(name);
-            return new CrowdModel(name + suffix);
+            string fullName = GetAppropriateCrowdName(name);
+            return new CrowdModel(fullName);
         }
 
-        private string GetAppropriateCrowdNameSuffix(string name)
+        private string GetAppropriateCrowdName(string name)
         {
             string suffix = string.Empty;
+            string rootName = name;
             int i = 0;
-            while (this.CrowdCollection.ContainsKey(name + suffix))
+            Regex reg = new Regex(@"\((\d+)\)");
+            MatchCollection matches = reg.Matches(name);
+            if (matches.Count > 0)
+            {
+                int k;
+                Match match = matches[matches.Count - 1];
+                if (int.TryParse(match.Value.Substring(1, match.Value.Length - 2), out k))
+                {
+                    i = k + 1;
+                    suffix = string.Format(" ({0})", i);
+                    rootName = name.Substring(0, match.Index).TrimEnd();
+                }
+            }
+            string newName = rootName + suffix;
+            while (this.CrowdCollection.ContainsKey(newName))
             {
                 suffix = string.Format(" ({0})", ++i);
+                newName = rootName + suffix;
             }
-            return suffix;
+            return newName;
         }
 
         private void AddNewCrowdModel(CrowdModel crowdModel)
         {
-            // Add the crowd to List of Crowd Members as a new Crowd Member
-            this.AddCrowdToCrowdCollection(crowdModel);
+            //Methods Swapped by Chris
             // Also add the crowd under any currently selected crowd
             this.AddCrowdToSelectedCrowd(crowdModel);
+            // Add the crowd to List of Crowd Members as a new Crowd Member
+            this.AddCrowdToCrowdCollection(crowdModel);
         }
 
         private void AddCrowdToCrowdCollection(CrowdModel crowdModel)
         {
             this.CrowdCollection.Add(crowdModel);
+            this.CrowdCollection.Sort();
         }
 
         private void AddCrowdToSelectedCrowd(CrowdModel crowdModel)
         {
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
-                if (this.SelectedCrowdModel.CrowdMemberCollection == null)
-                    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-                this.SelectedCrowdModel.CrowdMemberCollection.Add(crowdModel);
+                //if (this.SelectedCrowdModel.CrowdMemberCollection == null)
+                //    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(ListSortDirection.Ascending, x => x.Name);
+                this.SelectedCrowdModel.Add(crowdModel);
+                this.SelectedCrowdModel.IsExpanded = true;
+                //this.SelectedCrowdModel.CrowdMemberCollection.Sort();
             }
         }
 
@@ -457,25 +495,41 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.SaveCrowdCollection();
 
             //Update selection in treeview 
-            OnSelectionUpdated(character, null);
+            OnSelectionUpdated(character, null); //Not working
         }
 
         private Character GetNewCharacter()
         {
             string name = "Character";
-            string suffix = GetAppropriateCharacterNameSuffix(name);
-            return new CrowdMemberModel(name + suffix);
+            string fullName = GetAppropriateCharacterName(name);
+            return new CrowdMemberModel(fullName);
         }
 
-        private string GetAppropriateCharacterNameSuffix(string name)
+        private string GetAppropriateCharacterName(string name)
         {
             string suffix = string.Empty;
+            string rootName = name;
             int i = 0;
-            while (this.characterCollection.ContainsKey(name + suffix))
+            Regex reg = new Regex(@"\((\d+)\)");
+            MatchCollection matches = reg.Matches(name);
+            if (matches.Count > 0)
+            {
+                int k;
+                Match match = matches[matches.Count - 1];
+                if (int.TryParse(match.Value.Substring(1, match.Value.Length - 2), out k))
+                {
+                    i = k + 1;
+                    suffix = string.Format(" ({0})", i);
+                    rootName = name.Substring(0, match.Index).TrimEnd();
+                }
+            }
+            string newName = rootName + suffix;
+            while (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(newName))
             {
                 suffix = string.Format(" ({0})", ++i);
+                newName = rootName + suffix;
             }
-            return suffix;
+            return newName;
         }
 
         private void AddNewCharacter(Character character)
@@ -486,35 +540,27 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.AddCharacterToCrowd(character, this.SelectedCrowdModel);
         }
 
-        private CrowdModel CreateAllCharactersCrowd()
+        private void CreateAllCharactersCrowd()
         {
-            // Create All Characters List if not already there
-            CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME);
+            CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME, -1);
                 this.CrowdCollection.Add(crowdModelAllCharacters);
-                crowdModelAllCharacters.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-                this.characterCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModelAllCharacters.CrowdMemberCollection,
-                    (ICrowdMemberModel c) => { return c.Name; });
-            return crowdModelAllCharacters;
+            this.CrowdCollection.Sort();
+            this.allCharactersCrowd = crowdModelAllCharacters;
         }
 
         private void AddCharacterToAllCharactersCrowd(Character character)
         {
-            CrowdModel crowdModelAllCharacters = this.CrowdCollection.Where(c => c.Name == Constants.ALL_CHARACTER_CROWD_NAME).FirstOrDefault();
-            if (crowdModelAllCharacters == null)
-            {
-                crowdModelAllCharacters = CreateAllCharactersCrowd();
-            }
-            crowdModelAllCharacters.CrowdMemberCollection.Add(character as CrowdMemberModel);
-            this.characterCollection.Add(character as CrowdMemberModel);
+            if (AllCharactersCrowd == null)
+                CreateAllCharactersCrowd();
+            AllCharactersCrowd.Add(character as CrowdMemberModel);
         }
 
         private void AddCharacterToCrowd(Character character, CrowdModel crowdModel)
         {
             if (crowdModel != null && crowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
-                if (crowdModel.CrowdMemberCollection == null)
-                    crowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name);
-                crowdModel.CrowdMemberCollection.Add(character as CrowdMemberModel);
+                crowdModel.Add(character as CrowdMemberModel);
+                crowdModel.IsExpanded = true;
             }
         }
         
@@ -653,20 +699,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (crowdModel.CrowdMemberCollection != null)
             {
                 var crm = crowdModel.CrowdMemberCollection.Where(cm => cm.Name == nameOfDeletingCrowdMember).FirstOrDefault();
-                crowdModel.CrowdMemberCollection.Remove(crm); 
+                crowdModel.Remove(crm); 
             }
         }
         private void DeleteCrowdMemberFromCharacterCollectionByName(string nameOfDeletingCrowdMember)
         {
-            var charFromAllCrowd = characterCollection.Where(c => c.Name == nameOfDeletingCrowdMember).FirstOrDefault();
-            this.characterCollection.Remove(charFromAllCrowd);
+            var charFromAllCrowd = AllCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+            this.AllCharactersCrowd.Remove(charFromAllCrowd);
         }
         private void DeleteCrowdMemberFromCharacterCollectionByList(List<ICrowdMemberModel> crowdMembersToDelete)
         {
             foreach(var crowdMemberToDelete in crowdMembersToDelete)
             {
-                var deletingCrowdMember = characterCollection.Where(c => c.Name == crowdMemberToDelete.Name).FirstOrDefault();
-                characterCollection.Remove(deletingCrowdMember);
+                var deletingCrowdMember = AllCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == crowdMemberToDelete.Name).FirstOrDefault();
+                AllCharactersCrowd.Remove(deletingCrowdMember);
             }
         }
 
@@ -685,7 +731,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 foreach (var crowdMemberToDelete in crowdMembersToDelete)
                 {
                     var deletingCrowdMemberFromModel = crowdModel.CrowdMemberCollection.Where(cm => cm.Name == crowdMemberToDelete.Name).FirstOrDefault();
-                    crowdModel.CrowdMemberCollection.Remove(deletingCrowdMemberFromModel);
+                    crowdModel.Remove(deletingCrowdMemberFromModel);
                 }
             }
         }
@@ -702,7 +748,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 var crowdModelToDelete = crowdModel.CrowdMemberCollection.Where(cm => cm.Name == nameOfDeletingCrowdModel).FirstOrDefault();
                 if (crowdModelToDelete != null)
-                    crowdModel.CrowdMemberCollection.Remove(crowdModelToDelete); 
+                    crowdModel.Remove(crowdModelToDelete); 
             }
         }
         private void DeleteCrowdFromCrowdCollectionByName(string nameOfDeletingCrowdModel)
@@ -1064,7 +1110,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void EditCharacter(object state)
         {
-            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, Collection<ICrowdMemberModel>>(this.SelectedCrowdMemberModel, this.characterCollection));
+            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(this.SelectedCrowdMemberModel, this.AllCharactersCrowd.CrowdMemberCollection));
         }
 
         #endregion
@@ -1075,23 +1121,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (model is CrowdModel)
             {
                 CrowdModel crowdModel = model as CrowdModel;
-                string suffix = GetAppropriateCrowdNameSuffix(crowdModel.Name);
-                crowdModel.Name += suffix;
+                crowdModel.Name = GetAppropriateCrowdName(crowdModel.Name);
                 if (crowdModel.CrowdMemberCollection != null)
                 {
                     List<ICrowdMemberModel> models = GetFlattenedMemberList(crowdModel.CrowdMemberCollection.ToList());
                     foreach (var member in models)
                     {
-                        suffix = (member is CrowdModel) ? GetAppropriateCrowdNameSuffix(member.Name) : GetAppropriateCharacterNameSuffix(member.Name);
-                        member.Name += suffix;
+                        member.Name = (member is CrowdModel) ? GetAppropriateCrowdName(member.Name) : GetAppropriateCharacterName(member.Name);
                     }
                 }
 
             }
             else if (model is CrowdMemberModel)
             {
-                string suffix = GetAppropriateCharacterNameSuffix(model.Name);
-                model.Name += suffix;
+                model.Name = GetAppropriateCharacterName(model.Name);
             }
         }
 

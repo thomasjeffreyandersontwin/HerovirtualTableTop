@@ -97,8 +97,8 @@ namespace Module.UnitTest.Crowds
             CrowdModel childCrowd = new CrowdModel { Name = "Child Crowd 1" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Test CrowdMember 1" };
             CrowdMemberModel crowdMember2 = new CrowdMemberModel { Name = "Test CrowdMember 1.1" };
-            crowd.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember1, childCrowd };
-            childCrowd.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(x => x.Name) { crowdMember2 };
+            crowd.Add(new List<ICrowdMemberModel>() { crowdMember1, childCrowd });
+            childCrowd.Add( new List<ICrowdMemberModel>() { crowdMember2 });
             string testRepoFileName = "test.data";
             CrowdRepository crowdRepository = new CrowdRepository();
             crowdRepository.CrowdRepositoryPath = testRepoFileName;
@@ -112,7 +112,7 @@ namespace Module.UnitTest.Crowds
                 {
                     // More crowd members being added, repository shouldn't know
                     crowdCollection.Add(new CrowdModel() { Name = "New Crowd 1" });
-                    crowd.CrowdMemberCollection.Add(new CrowdMemberModel() { Name = "New CrowdMember 1" });
+                    crowd.Add(new CrowdMemberModel() { Name = "New CrowdMember 1" });
 
                     List<CrowdModel> retrievedCrowdList = null;
                     crowdRepository.GetCrowdCollection((List<CrowdModel> crowdList) =>

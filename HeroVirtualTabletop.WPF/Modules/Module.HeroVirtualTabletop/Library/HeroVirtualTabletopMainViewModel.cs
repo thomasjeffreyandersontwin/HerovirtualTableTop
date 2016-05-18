@@ -3,6 +3,7 @@ using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Prism.Events;
 using System;
@@ -45,8 +46,10 @@ namespace Module.HeroVirtualTabletop.Library
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
-            
+
             // Just testing how things look at the moment...will change soon.
+            //Load camera on start
+            new Camera().Render();
             LoadCharacterExplorer();
             LoadCharacterEditor();
             LoadRosterExplorer();

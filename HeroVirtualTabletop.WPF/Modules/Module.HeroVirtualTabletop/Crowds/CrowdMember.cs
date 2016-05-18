@@ -11,14 +11,17 @@ using Framework.WPF.Extensions;
 using Module.Shared.Enumerations;
 using Module.Shared;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Framework.WPF.Library;
+using System.ComponentModel;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
-    public interface ICrowdMember
+    public interface ICrowdMember : INotifyPropertyChanged
     {
         string Name { get; set; }
-        Crowd RosterCrowd { get; set; }
-        ObservableCollection<ICrowdMember> CrowdMemberCollection { get; set; }
+        string OldName { get; }
+        ICrowd RosterCrowd { get; set; }
+        //HashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; set; }
 
         void Place(IMemoryElementPosition position);
         void SavePosition();
@@ -28,17 +31,19 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public interface ICrowdMemberModel : ICrowdMember
     {
+        new ICrowdModel RosterCrowd { get; set; }
         bool IsExpanded { get; set; }
         bool IsMatched { get; set; }
         void ApplyFilter(string filter);
         void ResetFilter();
+        int Order { get; set; }
     }
 
     public class CrowdMember : Character, ICrowdMember
     {
-        private Crowd rosterCrowd;
+        private ICrowd rosterCrowd;
         [JsonIgnore]
-        public Crowd RosterCrowd
+        public ICrowd RosterCrowd
         {
             get
             {
@@ -51,22 +56,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 OnPropertyChanged("RosterCrowd");
             }
         }
-
-        private ObservableCollection<ICrowdMember> crowdMemberCollection;
-        [JsonIgnore]
-        public ObservableCollection<ICrowdMember> CrowdMemberCollection
-        {
-            get
-            {
-                return crowdMemberCollection;
-            }
-            set
-            {
-                crowdMemberCollection = value;
-                OnPropertyChanged("CrowdMemberCollection");
-            }
-        }
-
+        
         private IMemoryElementPosition savedPosition;
         public IMemoryElementPosition SavedPosition
         {
@@ -163,7 +153,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isMatched = value;
-                OnPropertyChanged("IsMatch");
+                OnPropertyChanged("IsMatched");
+            }
+        }
+
+        private int order;
+        public int Order
+        {
+            get
+            {
+                return order;
+            }
+            set
+            {
+                order = value;
+                OnPropertyChanged("Order");
             }
         }
 
@@ -192,6 +196,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             alreadyFiltered = false;
         }
 
+        [JsonIgnore]
+        public new ICrowdModel RosterCrowd
+        {
+            get
+            {
+                return base.RosterCrowd as ICrowdModel;
+            }
+            set
+            {
+                base.RosterCrowd = value;
+                OnPropertyChanged("RosterCrowd");//To check if this line is actually needed
+            }
+        }
+
         public override ICrowdMember Clone()
         {
             CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
@@ -208,6 +226,9 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         [JsonConstructor]
         public CrowdMemberModel() : base() { }
-        public CrowdMemberModel(string name): base(name) { }
+        public CrowdMemberModel(string name, int order = 0): base(name)
+        {
+            this.order = order;
+        }
     }
 }

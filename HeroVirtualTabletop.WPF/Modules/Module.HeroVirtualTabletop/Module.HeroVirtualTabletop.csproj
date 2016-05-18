@@ -121,6 +121,7 @@
     <Compile Include="Characters\CharacterManagementMenuControl.xaml.cs">
       <DependentUpon>CharacterManagementMenuControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Identities\Camera.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />

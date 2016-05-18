@@ -40,7 +40,7 @@ namespace Module.HeroVirtualTabletop.Roster
             get
             {
                 if(participants == null)
-                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+                    participants = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.RosterCrowd.Order, x => x.RosterCrowd.Name, x => x.Name );
                 return participants;
             }
             set
@@ -60,11 +60,10 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 selectedParticipants = value;
                 OnPropertyChanged("SelectedParticipants");
-                this.SavePositionCommand.RaiseCanExecuteChanged();
-                this.PlaceCommand.RaiseCanExecuteChanged();
+                Commands_RaiseCanExecuteChanged();
             }
         }
-
+        
         #endregion
 
         #region Commands
@@ -74,6 +73,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> PlaceCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
         public DelegateCommand<object> ToggleTargetedCommand { get; private set; }
+        public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
 
         #endregion
 
@@ -98,15 +98,26 @@ namespace Module.HeroVirtualTabletop.Roster
         private void InitializeCommands()
         {
             this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
-            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
-            this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted);
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
+            this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted, this.CanToggleTargeted);
             this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
             this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
+            this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
         }
 
         #endregion
 
         #region Methods
+
+
+        private void Commands_RaiseCanExecuteChanged()
+        {
+            this.ClearFromDesktopCommand.RaiseCanExecuteChanged();
+            this.ToggleTargetedCommand.RaiseCanExecuteChanged();
+            this.SavePositionCommand.RaiseCanExecuteChanged();
+            this.PlaceCommand.RaiseCanExecuteChanged();
+            this.TargetAndFollowCommand.RaiseCanExecuteChanged();
+        }
 
         #region Add Participant
         private void AddParticipant(IEnumerable<CrowdMemberModel> crowdMembers)
@@ -115,8 +126,9 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 Participants.Add(crowdMember);
             }
+            Participants.Sort();
         }
-#endregion
+        #endregion
 
         #region Spawn
         private void Spawn(object state)
@@ -125,33 +137,36 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.Spawn();
             }
-            this.SavePositionCommand.RaiseCanExecuteChanged();
+            Commands_RaiseCanExecuteChanged();
         }
         #endregion
 
         #region Clear from Desktop
+        private bool CanClearFromDesktop(object state)
+        {
+            if (SelectedParticipants != null && SelectedParticipants.Count > 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
         private void ClearFromDesktop(object state)
         {           
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
                 member.ClearFromDesktop();
             }
-            for (int i = 0; i < SelectedParticipants.Count; i++)
+            while (SelectedParticipants.Count != 0)
             {
-                var participant = SelectedParticipants[i] as CrowdMemberModel;
+                var participant = SelectedParticipants[0] as CrowdMemberModel;
                 Participants.Remove(participant);
+                SelectedParticipants.Remove(participant);
                 participant.RosterCrowd = null;
             }
+            Commands_RaiseCanExecuteChanged();
         }
 
-
-        private void ToggleTargeted(object obj)
-        {
-            foreach (CrowdMemberModel member in SelectedParticipants)
-            {
-                member.ToggleTargeted();
-            }
-        }
         #endregion
 
         #region Save Positon
@@ -217,8 +232,50 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.Place();
             }
+            Commands_RaiseCanExecuteChanged();
         }
         #endregion
+
+        #region ToggleTargeted
+        
+        private bool CanToggleTargeted(object state)
+        {
+            bool canToggleTargeted = false;
+            if (this.SelectedParticipants != null && SelectedParticipants.Count == 1 && (SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned)
+            {
+                canToggleTargeted = true;
+            }
+            return canToggleTargeted;
+        }
+
+        private void ToggleTargeted(object obj)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                member.ToggleTargeted();
+            }
+        }
+
+        #endregion
+
+        #region Target And Follow
+
+        private bool CanTargetAndFollow(object state)
+        {
+            return CanToggleTargeted(state);
+        }
+
+        private void TargetAndFollow(object obj)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                member.TargetAndFollow();
+            }
+        }
+
+        #endregion
+
+
 
         #endregion
     }
