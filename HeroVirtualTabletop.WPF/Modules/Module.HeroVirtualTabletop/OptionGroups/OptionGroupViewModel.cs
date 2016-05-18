@@ -41,7 +41,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 return optionGroup;
             }
-            set
+            private set
             {
                 optionGroup = value;
                 OnPropertyChanged("OptionGroup");
@@ -91,7 +91,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public Character Owner
         {
             get { return owner; }
-            set { owner = value; }
+            private set { owner = value; }
         }
 
 
@@ -109,10 +109,12 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         #region Constructor
 
-        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
+        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator, OptionGroup<T> optionGroup, Character owner)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            this.Owner = owner;
+            this.OptionGroup = optionGroup;
             InitializeCommands();
         }
         

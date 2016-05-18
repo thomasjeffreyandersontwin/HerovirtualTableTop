@@ -25,7 +25,14 @@
     </UserControl.Resources>
     <Grid>
         <StackPanel>
-            <characters:CharacterManagementMenuControl></characters:CharacterManagementMenuControl>
+            <characters:CharacterManagementMenuControl
+                SavePositionCommand="{Binding SavePositionCommand}"
+                PlaceCommand="{Binding PlaceCommand}"
+                SpawnCommand="{Binding SpawnCommand}"
+                ToggleTargetedCommand="{Binding ToggleTargetedCommand}"
+                TargetAndFollowCommand="{Binding TargetAndFollowCommand}"
+                ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
+                ></characters:CharacterManagementMenuControl>
             <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White"
                      SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">

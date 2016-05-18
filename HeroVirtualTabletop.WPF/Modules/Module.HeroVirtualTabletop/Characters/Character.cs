@@ -216,6 +216,8 @@ namespace Module.HeroVirtualTabletop.Characters
                     availableIdentities.Add(value);
                 }
                 activeIdentity = availableIdentities[value.Name];
+                if (HasBeenSpawned)
+                    activeIdentity.Render();
                 OnPropertyChanged("ActiveIdentity");
             }
         }
