@@ -868,7 +868,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                         //if we are cloning a crowd we can not paste to all characters crowd
                         && !(this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
                         //if we are cloning a crowd we can not paste inside itself
-                        && (this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != this.ClipboardObject);
+                        && ((this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != this.ClipboardObject) || this.ClipboardObject is CrowdMemberModel);
                     break;
                 case ClipboardAction.Cut:
                     if (this.ClipboardObject != null && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
@@ -951,8 +951,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                                 } 
                             }
                             this.AddNewCrowdModel(clonedModel);
+                            clipboardObject = null;
                         }
-                        clipboardObject = null;
                         break;
                     }
                 case ClipboardAction.Cut:

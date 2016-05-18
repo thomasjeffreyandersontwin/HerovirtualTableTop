@@ -132,7 +132,9 @@ namespace Module.HeroVirtualTabletop.Library
             AutoItX3 input = new AutoItX3();
 
             input.Send("{ENTER}");
+            System.Threading.Thread.Sleep(250);
             input.Send("/bind_load_file required_keybinds.txt");
+            System.Threading.Thread.Sleep(250);
             input.Send("{ENTER}");
         }
 
