@@ -373,5 +373,16 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             IsTargeted = !IsTargeted;
         }
+
+        public string MoveToCamera(bool completeEvent = true)
+        {
+            Target(false);
+            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
+            if (completeEvent)
+            {
+                keyBindsGenerator.CompleteEvent();
+            }
+            return keybind;
+        }
     }
 }

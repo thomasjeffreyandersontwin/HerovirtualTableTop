@@ -260,5 +260,29 @@ namespace Module.UnitTest.Characters
         }
 
         #endregion
+
+        #region Move To Camera
+
+        [TestMethod]
+        public void MoveCharacterToCamera_GeneratesCorrectKeyBinds()
+        {
+            characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[1];
+            characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.CrowdCollection[1].CrowdMemberCollection[0] as CrowdMemberModel;
+            characterExplorerViewModel.AddToRosterCommand.Execute(null);
+
+            CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
+
+            rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
+            rosterExplorerViewModel.MoveTargetToCameraCommand.Execute(null);
+
+            StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+
+            Assert.IsTrue(sr.ReadLine().Contains(string.Format("target_name {0}$$move_npc", character.Label)));
+
+            sr.Close();
+            File.Delete(new KeyBindsGenerator().BindFile);
+        }
+
+        #endregion
     }
 }
