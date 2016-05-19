@@ -141,14 +141,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             get
             {
-                if (allCharactersCrowd == null)
-                {
-                    allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
-                }
-                if (allCharactersCrowd == null)
-                {
-                    CreateAllCharactersCrowd();
-                }
                 return allCharactersCrowd;
             }
         }
@@ -214,6 +206,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             InitializeCommands();
             LoadCrowdCollection();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
+            
         }
 
         #endregion
@@ -361,7 +354,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
-            
+            allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+            if (allCharactersCrowd == null)
+            {
+                CreateAllCharactersCrowd();
+            }
             //this.BusyService.HideBusy();
         }
 
