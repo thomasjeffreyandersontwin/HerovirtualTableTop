@@ -35,8 +35,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         private string filter;
         private CrowdModel clipboardObjectOriginalCrowd = null;
         private ClipboardAction clipboardAction;
-        private bool isUpdatingCollection = false;
-        private object lastCharacterCrowdStateToUpdate = null;
+        public bool isUpdatingCollection = false;
+        public object lastCharacterCrowdStateToUpdate = null;
         private List<Tuple<string, string>> rosterCrowdCharacterMembershipKeys;
 
         #endregion
@@ -364,8 +364,11 @@ namespace Module.HeroVirtualTabletop.Crowds
                     ICrowdMemberModel selectedCrowdMember;
                     Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(state, out selectedCrowdMember);
                     CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
-                    this.SelectedCrowdModel = crowdModel;
-                    this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
+                    if(crowdModel != null) // Only update if something is selected
+                    {
+                        this.SelectedCrowdModel = crowdModel;
+                        this.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
+                    }
                 }
                 else
                     this.lastCharacterCrowdStateToUpdate = state; 
@@ -403,19 +406,19 @@ namespace Module.HeroVirtualTabletop.Crowds
             // Create a new Crowd
             CrowdModel crowdModel = this.GetNewCrowdModel();
             // Lock character crowd Tree from updating;
-            //this.LockModelAndMemberUpdate(true);
+            this.LockModelAndMemberUpdate(true);
             // Add the new Model
             this.AddNewCrowdModel(crowdModel);
             // Update Repository asynchronously
             this.SaveCrowdCollection();
             // UnLock character crowd Tree from updating;
-            //this.LockModelAndMemberUpdate(false);
+            this.LockModelAndMemberUpdate(false);
             // Update character crowd if necessary
-            //if (this.lastCharacterCrowdStateToUpdate != null)
-            //{
-            //    this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
-            //    this.lastCharacterCrowdStateToUpdate = null;
-            //}
+            if (this.lastCharacterCrowdStateToUpdate != null)
+            {
+                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+                this.lastCharacterCrowdStateToUpdate = null;
+            }
 
             //Update selection in treeview 
             OnSelectionUpdated(crowdModel, null);
@@ -661,7 +664,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
                 this.lastCharacterCrowdStateToUpdate = null;
-        }
+            }
         }
 
         private List<ICrowdMemberModel> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
