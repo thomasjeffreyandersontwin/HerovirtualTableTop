@@ -86,8 +86,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
 
-            this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipant);
-
+            this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipants);
+            this.eventAggregator.GetEvent<DeleteFromRosterEvent>().Subscribe(DeleteParticipant);
             InitializeCommands();
 
         }
@@ -123,21 +123,34 @@ namespace Module.HeroVirtualTabletop.Roster
             this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
         }
 
-        #region Add Participant
-        private void AddParticipant(IEnumerable<CrowdMemberModel> crowdMembers)
+        #region Add Participants
+        private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
         {
-            //CrowdMemberModel[] selection = null;
-            //if (selectedParticipants != null)
-            //{
-            //    selection = new CrowdMemberModel[selectedParticipants.Count];
-            //    selectedParticipants.CopyTo(selection, 0);
-            //}
             foreach (var crowdMember in crowdMembers)
             {
                 Participants.Add(crowdMember);
             }
             Participants.Sort();
-            //selectedParticipants = (IList)selection;
+        }
+        #endregion
+
+        #region Delete Participant
+        private void DeleteParticipant(ICrowdMemberModel crowdMember)
+        {
+            if (this.SelectedParticipants == null)
+                this.SelectedParticipants = new List<CrowdMemberModel>();
+            this.SelectedParticipants.Clear();
+            if (crowdMember is CrowdMemberModel)
+            {
+                this.SelectedParticipants.Add(crowdMember);
+            }
+            else if (crowdMember is CrowdModel)
+            {
+                var participants = this.Participants.Where(p => p.RosterCrowd.Name == crowdMember.Name);
+                foreach (var participant in participants)
+                    this.SelectedParticipants.Add(participant);
+            }
+            this.ClearFromDesktop(null);
         }
         #endregion
 

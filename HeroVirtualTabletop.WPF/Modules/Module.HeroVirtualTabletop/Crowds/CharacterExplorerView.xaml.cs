@@ -55,18 +55,22 @@ namespace Module.HeroVirtualTabletop.Crowds
                 treeViewCrowd.UpdateLayout();
                 if (this.viewModel.SelectedCrowdModel == null)
                 {
-                    TreeViewItem firstItem = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(this.viewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]) as TreeViewItem;
-                    if (firstItem != null)
+                    var allCharsCrowd = this.viewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+                    if(allCharsCrowd != null)
                     {
-                        firstItem.IsSelected = true;
-                        this.viewModel.SelectedCrowdModel = firstItem.DataContext as CrowdModel;
+                        TreeViewItem firstItem = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(allCharsCrowd) as TreeViewItem;
+                        if (firstItem != null)
+                        {
+                            firstItem.IsSelected = true;
+                            this.viewModel.SelectedCrowdModel = firstItem.DataContext as CrowdModel;
+                        }
                     }
                 }
                 if (sender is CrowdModel)
                 {
-                    if (this.viewModel.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME) // A new crowd has been added to the collection
+                    if (this.viewModel.SelectedCrowdModel == null || this.viewModel.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME) // A new crowd has been added to the collection
                     {
-                        for (int i = 1; i < treeViewCrowd.Items.Count; i++) 
+                        for (int i = 0; i < treeViewCrowd.Items.Count; i++) 
                         {
                             TreeViewItem item = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(treeViewCrowd.Items[i]) as TreeViewItem;
                             if (item != null)

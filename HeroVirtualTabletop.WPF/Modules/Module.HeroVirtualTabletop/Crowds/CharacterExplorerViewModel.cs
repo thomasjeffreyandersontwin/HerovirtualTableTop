@@ -607,9 +607,12 @@ namespace Module.HeroVirtualTabletop.Crowds
         { 
             // Lock character crowd Tree from updating;
             this.LockModelAndMemberUpdate(true);
+            ICrowdMemberModel rosterMember = null;
             // Determine if Character or Crowd is to be deleted
             if (SelectedCrowdMemberModel != null) // Delete Character
             {
+                if (SelectedCrowdMemberModel.RosterCrowd != null && SelectedCrowdMemberModel.RosterCrowd.Name == SelectedCrowdModel.Name)
+                    rosterMember = SelectedCrowdMemberModel;
                 // Check if the Character is in All Characters. If so, prompt
                 if(SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
                 {
@@ -629,7 +632,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                     // Delete the Character from all occurances of this crowd
                     DeleteCrowdMemberFromCrowdModelByName(SelectedCrowdModel, SelectedCrowdMemberModel.Name);
                 }
-                
             }
             else // Delete Crowd
             {
@@ -652,11 +654,13 @@ namespace Module.HeroVirtualTabletop.Crowds
                             DeleteCrowdMembersFromAllCrowdsByList(crowdSpecificCharacters);
                             DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowdModel);
                             DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowdModel);
+                            rosterMember = SelectedCrowdModel;
                             break;
                         case System.Windows.MessageBoxResult.No:
                             nameOfDeletingCrowdModel = SelectedCrowdModel.Name;
                             DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowdModel);
                             DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowdModel);
+                            rosterMember = SelectedCrowdModel;
                             break;
                         default:
                             break;
@@ -680,6 +684,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
                 this.lastCharacterCrowdStateToUpdate = null;
             }
+            if (rosterMember != null)
+                this.eventAggregator.GetEvent<DeleteFromRosterEvent>().Publish(rosterMember);
         }
 
         private List<ICrowdMemberModel> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
