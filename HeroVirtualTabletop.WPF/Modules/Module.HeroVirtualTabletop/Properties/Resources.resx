@@ -117,4 +117,39 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="required_keybinds" xml:space="preserve">
+    <value>W "+forward"
+A "+left"
+S "+backward"
+D "+right"
+Z "+down"
+SPACE "+up"
+
+DOWN "+lookup"
+DOWNARROW "+lookup"
+LEFT "+turnleft"
+LEFTARROW "+turnleft"
+RIGHT "+turnright"
+RIGHTARROW "+turnright"
+UP "+lookdown"
+UPARROW "+lookdown"
+
+; "+zoomin"
+. "+zoomout"
+
+B "bind_load_file b.txt"
+C /nop
+H /nop
+delete /nop
+
+M "move_npc"
+
+X /nop"
+
+F "fly"
+N "noclip"
+SHIFT+M "popmenu maps"
+SHIFT+N "popmenu NPC"
+</value>
+  </data>
 </root>

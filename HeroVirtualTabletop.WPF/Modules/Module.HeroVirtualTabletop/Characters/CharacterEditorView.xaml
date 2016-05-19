@@ -24,13 +24,13 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <Image Source="{Binding Path=EditedCharacter.Image}"></Image>
-            <local:CharacterManagementMenuControl></local:CharacterManagementMenuControl>
+            <local:CharacterManagementMenuControl ></local:CharacterManagementMenuControl>
         </StackPanel>
         <StackPanel Grid.Column="1" HorizontalAlignment="Stretch">
             <TextBox Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <GridSplitter></GridSplitter>
             <Grid>
-                <optiongroups:OptionGroupView DataContext="{Binding Path=IdentitiesViewModel}">
+                <optiongroups:OptionGroupView DataContext="{Binding Path=IdentityViewModel}">
                 </optiongroups:OptionGroupView>
             </Grid>
         </StackPanel>

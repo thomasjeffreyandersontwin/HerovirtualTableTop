@@ -216,6 +216,8 @@ namespace Module.HeroVirtualTabletop.Characters
                     availableIdentities.Add(value);
                 }
                 activeIdentity = availableIdentities[value.Name];
+                if (HasBeenSpawned)
+                    activeIdentity.Render();
                 OnPropertyChanged("ActiveIdentity");
             }
         }
@@ -370,6 +372,17 @@ namespace Module.HeroVirtualTabletop.Characters
         public void ToggleTargeted()
         {
             IsTargeted = !IsTargeted;
+        }
+
+        public string MoveToCamera(bool completeEvent = true)
+        {
+            Target(false);
+            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
+            if (completeEvent)
+            {
+                keyBindsGenerator.CompleteEvent();
+            }
+            return keybind;
         }
     }
 }

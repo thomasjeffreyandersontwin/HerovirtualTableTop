@@ -297,8 +297,17 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void RenameCharacterCrowd(string updatedName)
         {
+            if (this.OriginalName == updatedName)
+            {
+                OriginalName = null;
+                return;
+            }
             if (this.IsUpdatingCharacter)
             {
+                if (SelectedCrowdMemberModel == null)
+                {
+                    return;
+                }
                 SelectedCrowdMemberModel.Name = updatedName;
                 //this.characterCollection.UpdateKey(this.OriginalName, updatedName);
                 //this.characterCollection.Sort();
@@ -306,6 +315,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             else
             {
+                if (SelectedCrowdModel == null)
+                {
+                    return;
+                }
                 SelectedCrowdModel.Name = updatedName;
                 this.CrowdCollection.UpdateKey(this.OriginalName, updatedName);
                 this.CrowdCollection.Sort();
@@ -460,10 +473,12 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void AddNewCrowdModel(CrowdModel crowdModel)
         {
             //Methods Swapped by Chris
+            
             // Also add the crowd under any currently selected crowd
             this.AddCrowdToSelectedCrowd(crowdModel);
             // Add the crowd to List of Crowd Members as a new Crowd Member
             this.AddCrowdToCrowdCollection(crowdModel);
+            
         }
 
         private void AddCrowdToCrowdCollection(CrowdModel crowdModel)
@@ -852,7 +867,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             switch(this.clipboardAction)
             {
                 case ClipboardAction.Clone:
-                    canPaste = this.ClipboardObject != null && !(this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME);
+                    canPaste = this.ClipboardObject != null
+                        //if we are cloning a crowd we can not paste to all characters crowd
+                        && !(this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
+                        //if we are cloning a crowd we can not paste inside itself
+                        && ((this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != this.ClipboardObject) || this.ClipboardObject is CrowdMemberModel);
                     break;
                 case ClipboardAction.Cut:
                     if (this.ClipboardObject != null && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
@@ -923,6 +942,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                                 List<ICrowdMemberModel> models = GetFlattenedMemberList(clonedModel.CrowdMemberCollection.ToList());
                                 foreach (var member in models)
                                 {
+                                    EliminateDuplicateName(member);
                                     if (member is CrowdMemberModel)
                                     {
                                         this.AddCharacterToAllCharactersCrowd(member as CrowdMemberModel);
@@ -934,8 +954,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                                 } 
                             }
                             this.AddNewCrowdModel(clonedModel);
+                            clipboardObject = null;
                         }
-                        clipboardObject = null;
                         break;
                     }
                 case ClipboardAction.Cut:

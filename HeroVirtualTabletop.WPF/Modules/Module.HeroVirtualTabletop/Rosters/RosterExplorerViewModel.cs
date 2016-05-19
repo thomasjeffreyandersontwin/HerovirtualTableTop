@@ -74,6 +74,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
         public DelegateCommand<object> ToggleTargetedCommand { get; private set; }
         public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
+        public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
 
         #endregion
 
@@ -103,7 +104,9 @@ namespace Module.HeroVirtualTabletop.Roster
             this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
             this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
+            this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
         }
+
 
         #endregion
 
@@ -117,16 +120,24 @@ namespace Module.HeroVirtualTabletop.Roster
             this.SavePositionCommand.RaiseCanExecuteChanged();
             this.PlaceCommand.RaiseCanExecuteChanged();
             this.TargetAndFollowCommand.RaiseCanExecuteChanged();
+            this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
         }
 
         #region Add Participant
         private void AddParticipant(IEnumerable<CrowdMemberModel> crowdMembers)
         {
+            //CrowdMemberModel[] selection = null;
+            //if (selectedParticipants != null)
+            //{
+            //    selection = new CrowdMemberModel[selectedParticipants.Count];
+            //    selectedParticipants.CopyTo(selection, 0);
+            //}
             foreach (var crowdMember in crowdMembers)
             {
                 Participants.Add(crowdMember);
             }
             Participants.Sort();
+            //selectedParticipants = (IList)selection;
         }
         #endregion
 
@@ -275,6 +286,36 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
+        #region Move Target to Camera
+
+        private bool CanMoveTargetToCamera(object arg)
+        {
+            bool canMoveTargetToCamera = true;
+            if (this.SelectedParticipants == null)
+            {
+                canMoveTargetToCamera = false;
+                return canMoveTargetToCamera;
+            }
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                if (!member.HasBeenSpawned)
+                {
+                    canMoveTargetToCamera = false;
+                    break;
+                }
+            }
+            return canMoveTargetToCamera;
+        }
+
+        private void MoveTargetToCamera(object obj)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                member.MoveToCamera();
+            }
+        }
+
+        #endregion
 
 
         #endregion

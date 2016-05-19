@@ -152,6 +152,11 @@
     <Compile Include="Library\Utility\Helper.cs" />
     <Compile Include="Crowds\CharacterExplorerViewModel.cs" />
     <Compile Include="Library\HeroVirtualTabletopMainViewModel.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Rosters\RosterExplorerViewModel.cs" />
     <Compile Include="Crowds\CharacterExplorerView.xaml.cs">
       <DependentUpon>CharacterExplorerView.xaml</DependentUpon>
@@ -238,6 +243,12 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

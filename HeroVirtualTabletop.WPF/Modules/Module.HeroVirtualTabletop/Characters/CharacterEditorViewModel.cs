@@ -57,7 +57,7 @@ namespace Module.HeroVirtualTabletop.Characters
             set
             {
                 identitiesViewModel = value;
-                OnPropertyChanged("IdentitiesViewModel");
+                OnPropertyChanged("IdentityViewModel");
             }
         }
 
@@ -88,16 +88,17 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private void LoadCharacter(object state)
         {
-            Tuple<ICrowdMemberModel, Collection<ICrowdMemberModel>> tuple = state as Tuple<ICrowdMemberModel, Collection<ICrowdMemberModel>>;
+            Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple = state as Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>;
             if (tuple != null)
             {
                 Character character = tuple.Item1 as Character;
-                HashedObservableCollection<ICrowdMemberModel, string> collection = tuple.Item2 as HashedObservableCollection<ICrowdMemberModel, string>;
+                HashedObservableCollection<ICrowdMemberModel, string> collection = new HashedObservableCollection<ICrowdMemberModel, string>(tuple.Item2, x => x.Name);
                 if(character != null && collection != null)
                 {
-                    this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>();
-                    this.IdentityViewModel.OptionGroup = character.AvailableIdentities;
-                    this.IdentityViewModel.Owner = character;
+                    this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
+                        new ParameterOverride("optionGroup", character.AvailableIdentities),
+                        new ParameterOverride("owner", character)
+                        );
                     this.EditedCharacter = character;
                     this.characterCollection = collection;
                 }
