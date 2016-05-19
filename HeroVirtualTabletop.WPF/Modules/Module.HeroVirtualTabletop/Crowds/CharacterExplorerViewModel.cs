@@ -141,14 +141,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             get
             {
-                if (allCharactersCrowd == null)
-                {
-                    allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
-                }
-                if (allCharactersCrowd == null)
-                {
-                    CreateAllCharactersCrowd();
-                }
+                GetOrCreateAllCharactersCrowd();
                 return allCharactersCrowd;
             }
         }
@@ -214,6 +207,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             InitializeCommands();
             LoadCrowdCollection();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
+            
         }
 
         #endregion
@@ -361,7 +355,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
-            
             //this.BusyService.HideBusy();
         }
 
@@ -473,7 +466,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void AddNewCrowdModel(CrowdModel crowdModel)
         {
             //Methods Swapped by Chris
-            
+
+            GetOrCreateAllCharactersCrowd();
             // Also add the crowd under any currently selected crowd
             this.AddCrowdToSelectedCrowd(crowdModel);
             // Add the crowd to List of Crowd Members as a new Crowd Member
@@ -558,6 +552,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.AddCharacterToCrowd(character, this.SelectedCrowdModel);
         }
 
+        private void GetOrCreateAllCharactersCrowd()
+        {
+            allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+            if (allCharactersCrowd == null)
+            {
+                CreateAllCharactersCrowd();
+            }
+        }
+
         private void CreateAllCharactersCrowd()
         {
             CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME, -1);
@@ -568,8 +571,6 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddCharacterToAllCharactersCrowd(Character character)
         {
-            if (AllCharactersCrowd == null)
-                CreateAllCharactersCrowd();
             AllCharactersCrowd.Add(character as CrowdMemberModel);
         }
 
