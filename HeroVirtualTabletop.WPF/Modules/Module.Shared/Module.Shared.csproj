@@ -109,6 +109,7 @@
     <Compile Include="Enumerations\Enums.cs" />
     <Compile Include="Error\ErrorItem.cs" />
     <Compile Include="Events\CommonEvents.cs" />
+    <Compile Include="Events\CustomEventArgs.cs" />
     <Compile Include="Logging\FileLogManager.cs" />
     <Compile Include="Logging\ILogManager.cs" />
     <Compile Include="Messages\Messages.cs" />

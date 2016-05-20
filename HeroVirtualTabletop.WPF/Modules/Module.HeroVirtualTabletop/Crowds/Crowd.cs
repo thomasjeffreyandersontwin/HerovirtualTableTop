@@ -280,6 +280,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         public override ICrowdMember Clone()
         {
             CrowdModel crowdModel = this.DeepClone() as CrowdModel;
+            crowdModel.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(crowdModel.CrowdMemberCollection, x => x.Name, x => x.Order, x => x.Name);
+            crowdModel.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(crowdModel.crowdMemberCollection);
             return crowdModel;
         }
         public override void SavePosition()

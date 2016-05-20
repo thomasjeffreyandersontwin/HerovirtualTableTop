@@ -108,7 +108,7 @@
                     <Style.Resources>
                         <convertes:BooleanToVisibilityConverter x:Key="boolToVisibility"></convertes:BooleanToVisibilityConverter>
                     </Style.Resources>
-                    <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}" />
+                    <!--<Setter Property="IsExpanded" Value="{Binding Path=IsExpanded, Mode=OneWay}" />-->
                     <Setter Property="Visibility" Value="{Binding Path=IsMatched, Mode=OneWay, Converter={StaticResource ResourceKey=boolToVisibility}}"/>
                 </Style>
             </TreeView.ItemContainerStyle>

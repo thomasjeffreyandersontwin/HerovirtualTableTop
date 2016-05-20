@@ -20,6 +20,7 @@ using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using Module.Shared.Events;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -56,13 +57,20 @@ namespace Module.HeroVirtualTabletop.Crowds
                 EditModeLeave(sender, e);
         }
 
-        public event EventHandler SelectionUpdated;
-        public void OnSelectionUpdated(object sender, EventArgs e)
+        public event EventHandler EditNeeded;
+        public void OnEditNeeded(object sender, EventArgs e)
         {
-            if (SelectionUpdated != null)
+            if (EditNeeded != null)
             {
-                SelectionUpdated(sender, e);
+                EditNeeded(sender, e);
             }
+        }
+
+        public event EventHandler<CustomEventArgs<ExpansionUpdateEvent>> ExpansionUpdateNeeded;
+        public void OnExpansionUpdateNeeded(object sender, CustomEventArgs<ExpansionUpdateEvent> e)
+        {
+            if (ExpansionUpdateNeeded != null)
+                ExpansionUpdateNeeded(sender, e);
         }
         #endregion
 
@@ -384,7 +392,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.SelectedCrowdModel = null;
                 this.SelectedCrowdMemberModel = null;
                 this.SelectedCrowdParent = null;
-                OnSelectionUpdated(null, null);
+                OnEditNeeded(null, null);
             }
         }
 
@@ -426,8 +434,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.lastCharacterCrowdStateToUpdate = null;
             }
 
-            //Update selection in treeview 
-            OnSelectionUpdated(crowdModel, null);
+            // Enter Edit mode for the added model
+            OnEditNeeded(crowdModel, null);
         }
         private CrowdModel GetNewCrowdModel()
         {
@@ -488,8 +496,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 //if (this.SelectedCrowdModel.CrowdMemberCollection == null)
                 //    this.SelectedCrowdModel.CrowdMemberCollection = new SortableObservableCollection<ICrowdMemberModel, string>(ListSortDirection.Ascending, x => x.Name);
                 this.SelectedCrowdModel.Add(crowdModel);
-                this.SelectedCrowdModel.IsExpanded = true;
-                //this.SelectedCrowdModel.CrowdMemberCollection.Sort();
+                //this.SelectedCrowdModel.IsExpanded = true;
+                //OnExpansionNeeded(this.SelectedCrowdModel, null);
             }
         }
 
@@ -506,8 +514,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             // Update Repository asynchronously
             this.SaveCrowdCollection();
 
-            //Update selection in treeview 
-            OnSelectionUpdated(character, null); //Not working
+            // Enter edit mode for the added character
+            OnEditNeeded(character, null); 
         }
 
         private Character GetNewCharacter()
@@ -579,7 +587,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (crowdModel != null && crowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
             {
                 crowdModel.Add(character as CrowdMemberModel);
-                crowdModel.IsExpanded = true;
+                //crowdModel.IsExpanded = true;
             }
         }
         
@@ -687,6 +695,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             if (rosterMember != null)
                 this.eventAggregator.GetEvent<DeleteFromRosterEvent>().Publish(rosterMember);
+            if (this.SelectedCrowdModel != null)
+            {
+                OnExpansionUpdateNeeded(this.SelectedCrowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
+            }
         }
 
         private List<ICrowdMemberModel> FindCrowdSpecificCrowdMembers(CrowdModel crowdModel)
@@ -715,7 +727,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             foreach (CrowdModel cModel in this.CrowdCollection)
             {
-                DeleteCrowdMemberFromCrowdModelByName(cModel, nameOfDeletingCrowdMember);
+                DeleteCrowdMemberFromCrowdModelByName(cModel, nameOfDeletingCrowdMember); 
             }
             DeleteCrowdMemberFromCharacterCollectionByName(nameOfDeletingCrowdMember);
         }
@@ -726,6 +738,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 var crm = crowdModel.CrowdMemberCollection.Where(cm => cm.Name == nameOfDeletingCrowdMember).FirstOrDefault();
                 crowdModel.Remove(crm); 
             }
+            OnExpansionUpdateNeeded(crowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
         }
         private void DeleteCrowdMemberFromCharacterCollectionByName(string nameOfDeletingCrowdMember)
         {
@@ -758,6 +771,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     var deletingCrowdMemberFromModel = crowdModel.CrowdMemberCollection.Where(cm => cm.Name == crowdMemberToDelete.Name).FirstOrDefault();
                     crowdModel.Remove(deletingCrowdMemberFromModel);
                 }
+                OnExpansionUpdateNeeded(crowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
             }
         }
         private void DeleteNestedCrowdFromAllCrowdsByName(string nameOfDeletingCrowdModel)
@@ -773,7 +787,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 var crowdModelToDelete = crowdModel.CrowdMemberCollection.Where(cm => cm.Name == nameOfDeletingCrowdModel).FirstOrDefault();
                 if (crowdModelToDelete != null)
-                    crowdModel.Remove(crowdModelToDelete); 
+                    crowdModel.Remove(crowdModelToDelete);
+                OnExpansionUpdateNeeded(crowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
             }
         }
         private void DeleteCrowdFromCrowdCollectionByName(string nameOfDeletingCrowdModel)
@@ -939,6 +954,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                             CrowdMemberModel clonedModel = (clipboardObject as CrowdMemberModel).Clone() as CrowdMemberModel;
                             EliminateDuplicateName(clonedModel);
                             this.AddNewCharacter(clonedModel);
+                            OnEditNeeded(clonedModel, null);
                         }
                         else
                         {
@@ -961,6 +977,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                                 } 
                             }
                             this.AddNewCrowdModel(clonedModel);
+                            OnEditNeeded(clonedModel, null);
                             clipboardObject = null;
                         }
                         break;
@@ -1017,8 +1034,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             if(saveNeeded)
                 this.SaveCrowdCollection();
-            if(SelectedCrowdModel != null)
-                SelectedCrowdModel.IsExpanded = true;
+            if (SelectedCrowdModel != null)
+            {
+                OnExpansionUpdateNeeded(this.SelectedCrowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Paste});
+            }
             // UnLock character crowd Tree from updating
             this.LockModelAndMemberUpdate(false);
         }
@@ -1037,6 +1056,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             foreach (CrowdModel cr in CrowdCollection)
             {
                 cr.ApplyFilter(filter); //Filter already check
+                OnExpansionUpdateNeeded(cr, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Filter });
             }
         }
 
