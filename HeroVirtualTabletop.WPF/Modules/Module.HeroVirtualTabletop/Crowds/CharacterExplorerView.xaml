@@ -14,9 +14,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext}"/>
+            <ContextMenu x:Key="CharExplorerMenu">
+                <MenuItem Header="Add Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCharacterCommand}"></MenuItem>
+                <MenuItem Header="Add Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdCommand}"></MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid ContextMenu="{StaticResource ResourceKey=CharExplorerMenu}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
