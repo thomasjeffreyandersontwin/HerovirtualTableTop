@@ -61,8 +61,8 @@ namespace Module.HeroVirtualTabletop.Library
             //Load camera on start
             new Camera().Render();
             LoadCharacterExplorer();
-            //LoadCharacterEditor();
-            //LoadRosterExplorer();
+            LoadCharacterEditor();
+            LoadRosterExplorer();
         }
 
         #endregion
