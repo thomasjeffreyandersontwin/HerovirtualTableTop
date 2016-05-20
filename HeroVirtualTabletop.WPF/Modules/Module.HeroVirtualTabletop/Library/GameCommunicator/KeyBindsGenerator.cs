@@ -85,7 +85,17 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
         private static GameEvent lastEvent;
         private static string generatedKeybindText;
+
         private static string lastKeyBindGenerated;
+        public static string LastKeyBindsGenerated
+        {
+            get
+            {
+                return lastKeyBindGenerated;
+            }
+        }
+
+        protected internal static List<string> generatedKeybinds = new List<string>();
 
         public string GenerateKeyBindsForEvent(GameEvent gameEvent, params string[] parameters)
         {
@@ -135,6 +145,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
         private string PopEvents()
         {
             lastKeyBindGenerated = KeyBindsGenerator.generatedKeybindText;
+            generatedKeybinds.Add(lastKeyBindGenerated);
             string GeneratedKeybindText = KeyBindsGenerator.generatedKeybindText;
             KeyBindsGenerator.generatedKeybindText = "";
             return string.Format("\"{0}\"", GeneratedKeybindText);

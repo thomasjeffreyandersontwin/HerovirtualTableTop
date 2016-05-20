@@ -23,7 +23,7 @@
             <Button x:Name="btTarget" Content="&#xf05b;" ToolTip="Toggle Target" Command="{Binding ToggleTargetedCommand}"/>
             <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target" Command="{Binding TargetAndFollowCommand}"/>
             <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera" Command="{Binding MoveTargetToCameraCommand}"/>
-            <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera" Command="{Binding ManeuverWithCameraCommand}" />
+            <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera" Command="{Binding ToggleManeuverWithCameraCommand}" />
             <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop" Command="{Binding ClearFromDesktopCommand}" />
         </WrapPanel>
     </Grid>

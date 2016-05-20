@@ -75,6 +75,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> ToggleTargetedCommand { get; private set; }
         public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
         public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
+        public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
 
         #endregion
 
@@ -105,8 +106,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
+            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
         }
-
 
         #endregion
 
@@ -121,6 +122,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.PlaceCommand.RaiseCanExecuteChanged();
             this.TargetAndFollowCommand.RaiseCanExecuteChanged();
             this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
+            this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
         }
 
         #region Add Participants
@@ -330,6 +332,28 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
+        #region ToggleManeuverWithCamera
+
+
+        private bool CanToggleManeuverWithCamera(object arg)
+        {
+            bool canManeuverWithCamera = false;
+            if (this.SelectedParticipants != null && SelectedParticipants.Count == 1 && ((SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned || (SelectedParticipants[0] as CrowdMemberModel).ManeuveringWithCamera))
+            {
+                canManeuverWithCamera = true;
+            }
+            return canManeuverWithCamera;
+        }
+
+        private void ToggleManeuverWithCamera(object obj)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                member.ToggleManueveringWithCamera();
+            }
+        }
+
+        #endregion
 
         #endregion
     }

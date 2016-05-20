@@ -32,6 +32,7 @@
                 ToggleTargetedCommand="{Binding ToggleTargetedCommand}"
                 TargetAndFollowCommand="{Binding TargetAndFollowCommand}"
                 MoveTargetToCameraCommand="{Binding MoveTargetToCameraCommand}"
+                ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
                 ></characters:CharacterManagementMenuControl>
             <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"

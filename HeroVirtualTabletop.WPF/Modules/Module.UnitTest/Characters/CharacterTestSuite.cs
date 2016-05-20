@@ -8,6 +8,7 @@ using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using System.IO;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Moq;
+using Module.HeroVirtualTabletop.Identities;
 
 namespace Module.UnitTest.Characters
 {
@@ -281,6 +282,56 @@ namespace Module.UnitTest.Characters
 
             sr.Close();
             File.Delete(new KeyBindsGenerator().BindFile);
+        }
+
+        #endregion
+
+        #region Maneuver with Camera
+
+        [TestMethod]
+        public void ManeuverWithCameraToggleOn_WithCostumeBasedCharacter_TargetAndFollowsAndDeletesCharacterThenLoadsCharactersCostumeInCamera()
+        {
+            CrowdMemberModel character = new CrowdMemberModel("Spyder");
+            character.ActiveIdentity = new Identity("Spyder", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
+
+            character.Position = new Mock<Position>(false, (uint)0).Object;
+            Camera.position = new Mock<Position>(false, (uint)0).Object;
+
+            character.ToggleManueveringWithCamera();
+
+            Assert.AreEqual(string.Format("target_name {0}$$follow", character.Label), KeyBindsGenerator.generatedKeybinds[0]);
+            Assert.AreEqual(string.Format("target_name {0}$$delete_npc", character.Label), KeyBindsGenerator.generatedKeybinds[1]);
+            Assert.AreEqual(string.Format("load_costume {0}", character.ActiveIdentity.Surface), KeyBindsGenerator.generatedKeybinds[2]);
+        }
+
+        [TestMethod]
+        public void ManeuverWithCameraToggleOn_WithModelBasedCharacter_TargetAndFollowsAndDeletesCharacterThenCameraBecomesNPC()
+        {
+            CrowdMemberModel character = new CrowdMemberModel("Character");
+            character.Position = new Mock<Position>(false, (uint)0).Object;
+            Camera.position = new Mock<Position>(false, (uint)0).Object;
+
+            character.ToggleManueveringWithCamera();
+
+            Assert.AreEqual(string.Format("target_name {0}$$follow", character.Label), KeyBindsGenerator.generatedKeybinds[0]);
+            Assert.AreEqual(string.Format("target_name {0}$$delete_npc", character.Label), KeyBindsGenerator.generatedKeybinds[1]);
+            Assert.AreEqual(string.Format("benpc {0}", character.ActiveIdentity.Surface), KeyBindsGenerator.generatedKeybinds[2]);
+        }
+
+        [TestMethod]
+        public void ManeuverWithCameraToggleOff_ReloadsCameraSkinOnCameraThenSpawnsCharacter()
+        {
+            CrowdMemberModel character = new CrowdMemberModel("Spyder");
+
+            character.Position = new Mock<Position>(false, (uint)0).Object;
+            Camera.position = new Mock<Position>(false, (uint)0).Object;
+
+            character.ToggleManueveringWithCamera();
+            character.ToggleManueveringWithCamera();
+
+            Assert.AreEqual(string.Format("target_enemy_near$$benpc {0}", (new Camera()).Surface), KeyBindsGenerator.generatedKeybinds[3]);
+            Assert.AreEqual(string.Format("target_enemy_near$$spawn_npc {0} {1}$$target_name {1}$$benpc {0}", character.ActiveIdentity.Surface, character.Label), KeyBindsGenerator.generatedKeybinds[4]);
+            
         }
 
         #endregion

@@ -15,9 +15,9 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
         private uint targetPointer;
         private IntPtr targetMemoryAddress;
 
-        public MemoryInstance(bool initFromCurrentTarget = true)
+        public MemoryInstance(bool initFromCurrentTarget = true, uint targetPointer = 0)
         {
-            this.targetPointer = 0;
+            this.targetPointer = targetPointer;
             this.targetMemoryAddress = new IntPtr(0x00F14FB0);
             this.InitializeGameInMemory();
             if (initFromCurrentTarget)
