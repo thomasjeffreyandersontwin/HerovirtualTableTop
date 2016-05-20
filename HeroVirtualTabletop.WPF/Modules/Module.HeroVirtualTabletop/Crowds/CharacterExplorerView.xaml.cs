@@ -48,8 +48,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 DependencyObject dObject = treeViewCrowd.GetItemFromSelectedObject(treeViewCrowd.SelectedItem);
                 TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
-                if(tvi != null)
+                if (tvi != null)
+                {
                     tvi.IsSelected = false;
+                    this.selectedCrowdRoot = null;
+                }
             }
             else
             {
@@ -168,7 +171,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             BindingExpression expression = txtBox.GetBindingExpression(TextBox.TextProperty);
             expression.UpdateSource(); 
         }
-
         private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
@@ -176,6 +178,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (treeViewItem != null)
             {
                 treeViewItem.Focus();
+                //TextBox txtbox = FindTextBoxInTemplate(treeViewItem);
+                //txtbox.Focus();
+
                 TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
                 if (item != null)
                     this.selectedCrowdRoot = item.DataContext as CrowdModel;
@@ -416,5 +421,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
         #endregion
+
+        private void textBlockCrowd_LostFocus(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void textBlockCrowd_GotFocus(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
