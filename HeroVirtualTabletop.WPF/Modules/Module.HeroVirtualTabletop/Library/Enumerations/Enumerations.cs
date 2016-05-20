@@ -17,4 +17,10 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Cut, 
         Link
     }
+    public enum ExpansionUpdateEvent
+    {
+        Filter,
+        Delete,
+        Paste
+    }
 }

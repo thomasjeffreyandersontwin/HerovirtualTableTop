@@ -17,6 +17,8 @@ using System.Windows.Shapes;
 using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared;
+using Module.Shared.Events;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -35,18 +37,22 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.DataContext = this.viewModel;
             this.viewModel.EditModeEnter += viewModel_EditModeEnter;
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
-            this.viewModel.SelectionUpdated += viewModel_SelectionUpdated;
+            this.viewModel.EditNeeded += viewModel_EditNeeded;
+            this.viewModel.ExpansionUpdateNeeded+=viewModel_ExpansionUpdateNeeded;
         }
 
-        private void viewModel_SelectionUpdated(object sender, EventArgs e)
+        private void viewModel_EditNeeded(object sender, EventArgs e)
         {
             ICrowdMemberModel modelToSelect = sender as ICrowdMemberModel;
             if(sender == null) // need to unselect
             {
                 DependencyObject dObject = treeViewCrowd.GetItemFromSelectedObject(treeViewCrowd.SelectedItem);
                 TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
-                if(tvi != null)
+                if (tvi != null)
+                {
                     tvi.IsSelected = false;
+                    this.selectedCrowdRoot = null;
+                }
             }
             else
             {
@@ -165,7 +171,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             BindingExpression expression = txtBox.GetBindingExpression(TextBox.TextProperty);
             expression.UpdateSource(); 
         }
-
         private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
@@ -173,6 +178,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (treeViewItem != null)
             {
                 treeViewItem.Focus();
+                //TextBox txtbox = FindTextBoxInTemplate(treeViewItem);
+                //txtbox.Focus();
+
                 TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
                 if (item != null)
                     this.selectedCrowdRoot = item.DataContext as CrowdModel;
@@ -255,31 +263,12 @@ namespace Module.HeroVirtualTabletop.Crowds
             return treeViewItem;
         }
 
-        private void treeViewCrowd_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            if (!this.viewModel.isUpdatingCollection)
-            {
-                ICrowdMemberModel selectedCrowdMember;
-                Object selectedCrowdModel = Helper.GetCurrentSelectedCrowdInCrowdCollection(treeViewCrowd, out selectedCrowdMember);
-                CrowdModel crowdModel = selectedCrowdModel as CrowdModel;
-                if (crowdModel != null) // Only update if something is selected
-                {
-                    this.viewModel.SelectedCrowdModel = crowdModel;
-                    this.viewModel.SelectedCrowdMemberModel = selectedCrowdMember as CrowdMemberModel;
-                }
-            }
-            else
-                this.viewModel.lastCharacterCrowdStateToUpdate = treeViewCrowd;
-            
-        }
-
         private void treeViewCrowd_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
 
             if (treeViewItem != null)
             {
-                //treeViewItem.Focus();
                 TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
                 if (item != null)
                     this.selectedCrowdRoot = item.DataContext as CrowdModel;
@@ -296,42 +285,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
                 else
                     this.viewModel.SelectedCrowdParent = null;
-            }
-        }
-
-        private void UpdateTreeView(object crowdMember)
-        {
-            DependencyObject dObject = treeViewCrowd.GetItemFromSelectedObject(this.selectedCrowdRoot);
-            TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem    
-            found = false;
-
-        }
-        bool found = false;
-        private void SetSelectedParent(TreeViewItem tvi)
-        {
-            if (tvi != null && !found)
-            {
-                ICrowdMemberModel model = tvi.DataContext as ICrowdMemberModel;
-                
-                var currentParent = tvi;
-                if (tvi.Items != null)
-                {
-                    for (int i = 0; i < tvi.Items.Count; i++)
-                    {
-                        TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
-                        if (item != null)
-                        {
-                            model = item.DataContext as ICrowdMemberModel;
-                            if (model.Name == this.viewModel.SelectedCrowdModel.Name)
-                            {
-                                this.viewModel.SelectedCrowdParent = tvi.DataContext as CrowdModel;
-                                found = true;
-                            }
-                            else
-                                SetSelectedParent(item);
-                        }
-                    }
-                }
             }
         }
 
@@ -360,6 +313,123 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
             }
             return treeViewItemRet;
+        }
+        #region TreeView Expansion Management
+
+        private void viewModel_ExpansionUpdateNeeded(object sender, CustomEventArgs<ExpansionUpdateEvent> e)
+        {
+            CrowdModel crowdModel = sender as CrowdModel;
+            DependencyObject dObject = null;
+            ExpansionUpdateEvent updateEvent = e.Value;
+            if(updateEvent == ExpansionUpdateEvent.Filter)
+            {
+                ExpandMatchedNode(sender);
+            }
+            else
+            {
+                if (this.selectedCrowdRoot != null && crowdModel != null)
+                {
+                    TreeViewItem item = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(this.selectedCrowdRoot) as TreeViewItem;
+                    dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, crowdModel.Name);
+                    if (dObject == null)
+                        dObject = treeViewCrowd.GetItemFromSelectedObject(crowdModel);
+                }
+                else
+                    dObject = treeViewCrowd.GetItemFromSelectedObject(crowdModel);
+                TreeViewItem tvi = dObject as TreeViewItem; 
+                if (tvi != null)
+                {
+                    ICrowdMemberModel model = tvi.DataContext as ICrowdMemberModel;
+                    if (tvi.Items != null && tvi.Items.Count > 0)
+                    {
+                        if (updateEvent != ExpansionUpdateEvent.Delete)
+                            tvi.IsExpanded = true;
+                        else
+                            UpdateExpansions(tvi);
+                    }
+                    else
+                        tvi.IsExpanded = false;
+                }
+            }
+        }
+        /// <summary>
+        /// This will recursively make the nodes unexpanded if there are no children in it. Otherwise it will hold the current state
+        /// </summary>
+        /// <param name="tvi"></param>
+        private void UpdateExpansions(TreeViewItem tvi)
+        {
+            if(tvi != null)
+            {
+                if (tvi.Items != null && tvi.Items.Count > 0)
+                {
+                    for (int i = 0; i < tvi.Items.Count; i++)
+                    {
+                        TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+                        UpdateExpansions(item);
+                    }
+                }
+                else
+                    tvi.IsExpanded = false;
+            }
+        }
+
+        /// <summary>
+        /// This will expand a matched item and its matched children
+        /// </summary>
+        /// <param name="sender"></param>
+        private void ExpandMatchedNode(object sender)
+        {
+            CrowdModel crowdModel = sender as CrowdModel;
+            if(crowdModel.IsMatched)
+            {
+                DependencyObject dObject = treeViewCrowd.GetItemFromSelectedObject(crowdModel);
+                TreeViewItem tvi = dObject as TreeViewItem; 
+                if (tvi != null)
+                {
+                    tvi.IsExpanded = true;
+                    ExpandMatchedItems(tvi);
+                }
+            }
+        }
+        /// <summary>
+        /// This will recursively expand a matched item and its matched children
+        /// </summary>
+        /// <param name="tvi"></param>
+        private void ExpandMatchedItems(TreeViewItem tvi)
+        {
+            if (tvi != null)
+            {
+                tvi.UpdateLayout();
+                if (tvi.Items != null && tvi.Items.Count > 0)
+                {
+                    for (int i = 0; i < tvi.Items.Count; i++)
+                    {
+                        TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+                        if (item != null)
+                        {
+                            CrowdModel model = item.DataContext as CrowdModel;
+                            if (model != null && model.IsMatched)
+                            {
+                                item.IsExpanded = true;
+                                ExpandMatchedItems(item);
+                            }
+                            else
+                                item.IsExpanded = false; 
+                        }
+                    }
+                }
+            }
+        }
+        #endregion
+
+        private void textBlockCrowd_LostFocus(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void textBlockCrowd_GotFocus(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

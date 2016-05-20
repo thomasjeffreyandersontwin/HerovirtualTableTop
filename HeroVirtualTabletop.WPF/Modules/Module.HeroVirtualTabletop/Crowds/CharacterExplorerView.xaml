@@ -14,9 +14,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext}"/>
+            <ContextMenu x:Key="CharExplorerMenu">
+                <MenuItem Header="Add Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCharacterCommand}"></MenuItem>
+                <MenuItem Header="Add Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdCommand}"></MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid ContextMenu="{StaticResource ResourceKey=CharExplorerMenu}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -46,10 +51,10 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf0c0;" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf0c0;" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        </TextBlock>
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockCrowd" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
-                                    >
+                            <TextBox x:Name="textBlockCrowd" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
                                 <TextBox.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
                                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
@@ -108,13 +113,15 @@
                     <Style.Resources>
                         <convertes:BooleanToVisibilityConverter x:Key="boolToVisibility"></convertes:BooleanToVisibilityConverter>
                     </Style.Resources>
-                    <Setter Property="IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}" />
                     <Setter Property="Visibility" Value="{Binding Path=IsMatched, Mode=OneWay, Converter={StaticResource ResourceKey=boolToVisibility}}"/>
                 </Style>
             </TreeView.ItemContainerStyle>
             <behaviors:CommandBehaviorCollection.Behaviors>
                 <behaviors:BehaviorBinding Event="SelectedItemChanged" Command="{Binding UpdateSelectedCrowdMemberCommand}" CommandParameter="{Binding ElementName=treeViewCrowd}"/>
             </behaviors:CommandBehaviorCollection.Behaviors>
+            <TreeView.InputBindings>
+                <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.UpdateSelectedCrowdMemberCommand}"/>
+            </TreeView.InputBindings>
         </TreeView>
         <Border Grid.Row="1"  Style="{StaticResource SearchBox}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="4 4 20 4">
             <Grid>
