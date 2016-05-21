@@ -24,7 +24,16 @@
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0">
             <Image Source="{Binding Path=EditedCharacter.Image}"></Image>
-            <local:CharacterManagementMenuControl ></local:CharacterManagementMenuControl>
+            <local:CharacterManagementMenuControl
+                SavePositionCommand="{Binding SavePositionCommand}"
+                PlaceCommand="{Binding PlaceCommand}"
+                SpawnCommand="{Binding SpawnCommand}"
+                ToggleTargetedCommand="{Binding ToggleTargetedCommand}"
+                TargetAndFollowCommand="{Binding TargetAndFollowCommand}"
+                MoveTargetToCameraCommand="{Binding MoveTargetToCameraCommand}"
+                ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
+                ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
+                ></local:CharacterManagementMenuControl>
         </StackPanel>
         <StackPanel Grid.Column="1" HorizontalAlignment="Stretch">
             <TextBox Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>

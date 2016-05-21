@@ -364,6 +364,10 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public string ClearFromDesktop(bool completeEvent = true)
         {
+            if (ManeuveringWithCamera)
+            {
+                ManeuveringWithCamera = false;
+            }
             Target(false);
             keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
             if (completeEvent)

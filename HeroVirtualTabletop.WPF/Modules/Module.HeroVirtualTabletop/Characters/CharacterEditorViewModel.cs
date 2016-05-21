@@ -7,6 +7,7 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.OptionGroups;
+using Module.Shared;
 using Prism.Events;
 using Prism.Regions;
 using System;
@@ -65,7 +66,15 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Commands
 
-        
+        public DelegateCommand<object> SpawnCommand { get; private set; }
+        public DelegateCommand<object> SavePositionCommand { get; private set; }
+        public DelegateCommand<object> PlaceCommand { get; private set; }
+        public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
+        public DelegateCommand<object> ToggleTargetedCommand { get; private set; }
+        public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
+        public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
+        public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -83,7 +92,14 @@ namespace Module.HeroVirtualTabletop.Characters
         #region Initialization
         private void InitializeCommands()
         {
-            
+            this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
+            this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted, this.CanToggleTargeted);
+            this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
+            this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
+            this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
+            this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
+            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
         }
 
         private void LoadCharacter(object state)
@@ -108,6 +124,169 @@ namespace Module.HeroVirtualTabletop.Characters
         #endregion
 
         #region Methods
+
+        private void Commands_RaiseCanExecuteChanged()
+        {
+            this.ClearFromDesktopCommand.RaiseCanExecuteChanged();
+            this.ToggleTargetedCommand.RaiseCanExecuteChanged();
+            this.SavePositionCommand.RaiseCanExecuteChanged();
+            this.PlaceCommand.RaiseCanExecuteChanged();
+            this.TargetAndFollowCommand.RaiseCanExecuteChanged();
+            this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
+            this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
+        }
+
+        #region Spawn
+        private void Spawn(object state)
+        {
+            //Check if is in roster, if not add to it
+            if ((EditedCharacter as CrowdMemberModel).RosterCrowd == null)
+            {
+                eventAggregator.GetEvent<AddMemberToRosterEvent>().Publish(new Tuple<CrowdMemberModel, CrowdModel>(EditedCharacter as CrowdMemberModel, null));
+            }
+            EditedCharacter.Spawn();
+            Commands_RaiseCanExecuteChanged();
+        }
+        #endregion
+
+        #region Clear from Desktop
+        private bool CanClearFromDesktop(object state)
+        {
+            return EditedCharacter != null && EditedCharacter.HasBeenSpawned;
+        }
+
+        private void ClearFromDesktop(object state)
+        {
+            EditedCharacter.ClearFromDesktop();
+            Commands_RaiseCanExecuteChanged();
+        }
+
+        #endregion
+
+        #region Save Positon
+
+        private bool CanSavePostion(object state)
+        {
+            bool canSavePosition = false;
+            if (this.EditedCharacter != null && this.EditedCharacter.HasBeenSpawned)
+            {
+                canSavePosition = true;
+            }
+            return canSavePosition;
+        }
+
+        private void SavePostion(object state)
+        {
+            (EditedCharacter as CrowdMemberModel).SavePosition();
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            this.PlaceCommand.RaiseCanExecuteChanged();
+        }
+        #endregion
+
+        #region Place
+        private bool CanPlace(object state)
+        {
+            bool canPlace = false;
+            if (this.EditedCharacter != null)
+            {
+                var crowdMemberModel = EditedCharacter as CrowdMemberModel;
+                if (crowdMemberModel != null && crowdMemberModel.RosterCrowd.Name == Constants.ALL_CHARACTER_CROWD_NAME && crowdMemberModel.SavedPosition != null)
+                {
+                    canPlace = true;
+                }
+                else if (crowdMemberModel != null && crowdMemberModel.RosterCrowd.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+                {
+                    CrowdModel rosterCrowdModel = crowdMemberModel.RosterCrowd as CrowdModel;
+                    if (rosterCrowdModel.SavedPositions.ContainsKey(crowdMemberModel.Name))
+                    {
+                        canPlace = true;
+                    }
+                }
+            }
+            return canPlace;
+        }
+        private void Place(object state)
+        {
+            (EditedCharacter as CrowdMemberModel).Place();
+            Commands_RaiseCanExecuteChanged();
+        }
+        #endregion
+
+        #region ToggleTargeted
+
+        private bool CanToggleTargeted(object state)
+        {
+            bool canToggleTargeted = false;
+            if (this.EditedCharacter != null && EditedCharacter.HasBeenSpawned)
+            {
+                canToggleTargeted = true;
+            }
+            return canToggleTargeted;
+        }
+
+        private void ToggleTargeted(object obj)
+        {
+            EditedCharacter.ToggleTargeted();
+        }
+
+        #endregion
+
+        #region Target And Follow
+
+        private bool CanTargetAndFollow(object state)
+        {
+            return CanToggleTargeted(state);
+        }
+
+        private void TargetAndFollow(object obj)
+        {
+            editedCharacter.TargetAndFollow();
+        }
+
+        #endregion
+
+        #region Move Target to Camera
+
+        private bool CanMoveTargetToCamera(object arg)
+        {
+            bool canMoveTargetToCamera = true;
+            if (this.EditedCharacter == null)
+            {
+                canMoveTargetToCamera = false;
+                return canMoveTargetToCamera;
+            }
+            else
+            {
+                return editedCharacter.HasBeenSpawned;
+            }
+        }
+
+        private void MoveTargetToCamera(object obj)
+        {
+            EditedCharacter.MoveToCamera();
+        }
+
+        #endregion
+
+        #region ToggleManeuverWithCamera
+
+
+        private bool CanToggleManeuverWithCamera(object arg)
+        {
+            bool canManeuverWithCamera = false;
+            if (this.EditedCharacter != null && (EditedCharacter.HasBeenSpawned || EditedCharacter.ManeuveringWithCamera))
+            {
+                canManeuverWithCamera = true;
+            }
+            return canManeuverWithCamera;
+        }
+
+        private void ToggleManeuverWithCamera(object obj)
+        {
+            EditedCharacter.ToggleManueveringWithCamera();
+        }
+
+        #endregion
 
         #endregion
     }
