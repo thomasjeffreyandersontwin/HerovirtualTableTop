@@ -108,7 +108,14 @@ namespace Module.HeroVirtualTabletop.Characters
             if (tuple != null)
             {
                 Character character = tuple.Item1 as Character;
-                HashedObservableCollection<ICrowdMemberModel, string> collection = new HashedObservableCollection<ICrowdMemberModel, string>(tuple.Item2, x => x.Name);
+                HashedObservableCollection<ICrowdMemberModel, string> collection;
+                if (tuple.Item2 != null)
+                    collection = new HashedObservableCollection<ICrowdMemberModel, string>(tuple.Item2, x => x.Name);
+                else
+                {
+                    collection = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name);
+                    collection.Add(character as CrowdMemberModel);
+                }
                 if(character != null && collection != null)
                 {
                     this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(

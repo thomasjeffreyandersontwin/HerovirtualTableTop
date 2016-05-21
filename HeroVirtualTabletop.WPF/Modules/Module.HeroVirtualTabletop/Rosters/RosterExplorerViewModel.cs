@@ -76,6 +76,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
         public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
         public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
+        public DelegateCommand<object> EditCharacterCommand { get; private set; }
 
         #endregion
 
@@ -107,6 +108,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
+            this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
         }
 
         #endregion
@@ -123,6 +125,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.TargetAndFollowCommand.RaiseCanExecuteChanged();
             this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
             this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
+            this.EditCharacterCommand.RaiseCanExecuteChanged();
         }
 
         #region Add Participants
@@ -351,6 +354,21 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.ToggleManueveringWithCamera();
             }
+        }
+
+        #endregion
+
+        #region Edit Character
+
+        private bool CanEditCharacter(object state)
+        {
+            return this.SelectedParticipants != null && this.SelectedParticipants.Count == 1;
+        }
+
+        private void EditCharacter(object state)
+        {
+            CrowdMemberModel c = this.SelectedParticipants[0] as CrowdMemberModel;
+            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(c, null));
         }
 
         #endregion
