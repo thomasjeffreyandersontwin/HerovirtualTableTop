@@ -89,7 +89,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.messageBoxService = messageBoxService;
 
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipants);
-            this.eventAggregator.GetEvent<DeleteFromRosterEvent>().Subscribe(DeleteParticipant);
+            this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(DeleteParticipant);
             InitializeCommands();
 
         }

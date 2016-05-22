@@ -85,6 +85,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.eventAggregator = eventAggregator;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe(this.LoadCharacter);
+            this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(this.UnLoadCharacter);
         }
 
         #endregion
@@ -126,6 +127,13 @@ namespace Module.HeroVirtualTabletop.Characters
                     this.characterCollection = collection;
                 }
             }
+        }
+
+        private void UnLoadCharacter(object state)
+        {
+            ICrowdMemberModel model = state as ICrowdMemberModel;
+            //if (model != null && this.EditedCharacter.Name == model.Name)
+            //    this.EditedCharacter = null;
         }
 
         #endregion

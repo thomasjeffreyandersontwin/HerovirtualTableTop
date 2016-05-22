@@ -121,6 +121,10 @@
     <Compile Include="Characters\CharacterManagementMenuControl.xaml.cs">
       <DependentUpon>CharacterManagementMenuControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Crowds\CharacterCrowdMainView.xaml.cs">
+      <DependentUpon>CharacterCrowdMainView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Crowds\CharacterCrowdMainViewModel.cs" />
     <Compile Include="Identities\Camera.cs" />
     <Compile Include="Identities\IdentityEditorView.xaml.cs">
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>
@@ -206,6 +210,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Characters\CharacterManagementMenuControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Crowds\CharacterCrowdMainView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
