@@ -28,6 +28,31 @@
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
+    <UserControl.InputBindings>
+        <KeyBinding Key="S" 
+                    Modifiers="Control+Shift" 
+                    Command="{Binding SavePositionCommand}" />
+        <KeyBinding Key="S" 
+                    Modifiers="Control" 
+                    Command="{Binding SpawnCommand}" />
+        <KeyBinding Key="P" 
+                    Modifiers="Control" 
+                    Command="{Binding PlaceCommand}" />
+        <KeyBinding Key="C" 
+                    Modifiers="Control+Shift" 
+                    Command="{Binding TargetAndFollowCommand}" />
+        <KeyBinding Key="T" 
+                    Modifiers="Control+Shift" 
+                    Command="{Binding MoveTargetToCameraCommand}" />
+        <KeyBinding Key="T" 
+                    Modifiers="Control" 
+                    Command="{Binding ToggleTargetedCommand}" />
+        <KeyBinding Key="C" 
+                    Modifiers="Control" 
+                    Command="{Binding ToggleManeuverWithCameraCommand}" />
+        <KeyBinding Key="Escape" 
+                    Command="{Binding ClearFromDesktopCommand}" />
+    </UserControl.InputBindings>
     <Grid>
         <StackPanel>
             <characters:CharacterManagementMenuControl
