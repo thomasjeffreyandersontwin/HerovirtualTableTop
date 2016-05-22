@@ -22,7 +22,7 @@ namespace Module.HeroVirtualTabletop.Properties {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    public class Resources {
+    internal class Resources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
@@ -36,7 +36,7 @@ namespace Module.HeroVirtualTabletop.Properties {
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Resources.ResourceManager ResourceManager {
+        internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
                     global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Module.HeroVirtualTabletop.Properties.Resources", typeof(Resources).Assembly);
@@ -51,12 +51,55 @@ namespace Module.HeroVirtualTabletop.Properties {
         ///   resource lookups using this strongly typed resource class.
         /// </summary>
         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Advanced)]
-        public static global::System.Globalization.CultureInfo Culture {
+        internal static global::System.Globalization.CultureInfo Culture {
             get {
                 return resourceCulture;
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 01_Default_Costume
+        ///1stSigArcIssue4_Doctor_Female
+        ///1stSigArcIssue4_Doctor_Male
+        ///1stSigArcIssue4_Patient_Female
+        ///1stSigArcIssue4_Patient_Male
+        ///1stSigArcIssue4_SisterPsyche_Patient
+        ///5thFog_00
+        ///5thFog_01
+        ///5thFog_02
+        ///5thFog_09
+        ///5thFog_091
+        ///5thFog_092
+        ///5thFog_093
+        ///5thFog_094
+        ///5thFog_10
+        ///5thFog_11
+        ///5thFog_12
+        ///5thFog_19
+        ///5thFog_191
+        ///5thFog_192
+        ///5thFog_193
+        ///5thFog_194
+        ///5thFog_20
+        ///5thFog_29
+        ///5thFog_30
+        ///5thFog_39
+        ///5thFog_40
+        ///5thFog_49
+        ///5thFog_Medic
+        ///5thGladiator
+        ///5thNight_00
+        ///5thNight_01
+        ///5thNight_02
+        ///5thNight_09
+        ///5t [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Models {
+            get {
+                return ResourceManager.GetString("Models", resourceCulture);
             }
         }
         
@@ -95,7 +138,7 @@ namespace Module.HeroVirtualTabletop.Properties {
         ///SHIFT+N &quot;popmenu NPC&quot;
         ///.
         /// </summary>
-        public static string required_keybinds {
+        internal static string required_keybinds {
             get {
                 return ResourceManager.GetString("required_keybinds", resourceCulture);
             }

@@ -57,6 +57,8 @@ namespace Module.HeroVirtualTabletop.Library
 
             LaunchGame();
 
+            LoadModelsFile();
+
             // Load camera on start
             new Camera().Render();
 
@@ -172,6 +174,17 @@ namespace Module.HeroVirtualTabletop.Library
                 Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_FILENAME),
                 Resources.required_keybinds
                 );
+        }
+
+        private void LoadModelsFile()
+        {
+            string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_MODELS_FILENAME);
+            if (!File.Exists(filePath))
+            {
+                File.AppendAllText(
+                filePath, Resources.Models
+                );
+            }
         }
 
         #endregion

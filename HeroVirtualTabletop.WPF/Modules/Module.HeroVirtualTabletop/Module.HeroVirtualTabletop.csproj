@@ -251,10 +251,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <None Include="Resources\Models.txt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
+      <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
