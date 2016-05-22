@@ -9,7 +9,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 {
     public class Position : MemoryInstance, IMemoryElementPosition
     {
-        public Position(bool initFromCurrentTarget = true) : base(initFromCurrentTarget) { }
+        public Position(bool initFromCurrentTarget = true, uint targetPointer = 0) : base(initFromCurrentTarget, targetPointer) { }
 
         private float x, y, z = 0;
 

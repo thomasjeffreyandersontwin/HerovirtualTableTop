@@ -6,6 +6,7 @@
              xmlns:roster="clr-namespace:Module.HeroVirtualTabletop.Roster"
              xmlns:characters="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
+             xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              mc:Ignorable="d" >
@@ -21,6 +22,10 @@
                     <PropertyGroupDescription PropertyName="RosterCrowd.Name" />
                 </CollectionViewSource.GroupDescriptions>
             </CollectionViewSource>
+            <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext}"/>
+            <ContextMenu x:Key="RosterExplorerMenu">
+                <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -32,6 +37,7 @@
                 ToggleTargetedCommand="{Binding ToggleTargetedCommand}"
                 TargetAndFollowCommand="{Binding TargetAndFollowCommand}"
                 MoveTargetToCameraCommand="{Binding MoveTargetToCameraCommand}"
+                ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
                 ></characters:CharacterManagementMenuControl>
             <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
@@ -58,8 +64,8 @@
                     </GroupStyle>
                 </ListBox.GroupStyle>
                 <ListBox.ItemTemplate>
-                    <DataTemplate >
-                        <TextBlock Text="{Binding Name}"/>
+                    <DataTemplate>
+                        <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </library:MultiSelectListBox>

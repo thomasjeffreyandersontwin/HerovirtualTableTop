@@ -115,18 +115,18 @@ namespace Module.HeroVirtualTabletop.Characters
             typeof(ICommand), typeof(CharacterManagementMenuControl),
             new PropertyMetadata(null));
 
-        public ICommand ManeuverWithCameraCommand
+        public ICommand ToggleManeuverWithCameraCommand
         {
             get
             {
-                return (ICommand)GetValue(ManeuverWithCameraCommandProperty);
+                return (ICommand)GetValue(ToggleManeuverWithCameraCommandProperty);
             }
-            set { SetValue(ManeuverWithCameraCommandProperty, value); }
+            set { SetValue(ToggleManeuverWithCameraCommandProperty, value); }
         }
 
         public static readonly DependencyProperty
-            ManeuverWithCameraCommandProperty =
-            DependencyProperty.Register("ManeuverWithCameraCommand",
+            ToggleManeuverWithCameraCommandProperty =
+            DependencyProperty.Register("ToggleManeuverWithCameraCommand",
             typeof(ICommand), typeof(CharacterManagementMenuControl),
             new PropertyMetadata(null));
 

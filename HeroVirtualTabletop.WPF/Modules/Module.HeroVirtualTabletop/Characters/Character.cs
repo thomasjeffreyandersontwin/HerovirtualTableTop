@@ -21,7 +21,9 @@ namespace Module.HeroVirtualTabletop.Characters
     public class Character : NotifyPropertyChanged
     {
         private KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+        protected internal Camera camera = new Camera();
         private string keybind;
+        private string[] keybinds;
         protected internal IMemoryElement gamePlayer;
 
         [JsonConstructor()]
@@ -224,6 +226,10 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public string Spawn(bool completeEvent = true)
         {
+            if (ManeuveringWithCamera)
+            {
+                ManeuveringWithCamera = false;
+            }
             if (hasBeenSpawned)
             {
                 Target();
@@ -358,6 +364,10 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public string ClearFromDesktop(bool completeEvent = true)
         {
+            if (ManeuveringWithCamera)
+            {
+                ManeuveringWithCamera = false;
+            }
             Target(false);
             keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
             if (completeEvent)
@@ -383,6 +393,39 @@ namespace Module.HeroVirtualTabletop.Characters
                 keyBindsGenerator.CompleteEvent();
             }
             return keybind;
+        }
+
+        public void ToggleManueveringWithCamera()
+        {
+            ManeuveringWithCamera = !ManeuveringWithCamera;
+        }
+
+        private bool maneuveringWithCamera;
+        [JsonIgnore]
+        public bool ManeuveringWithCamera
+        {
+            get
+            {
+                return maneuveringWithCamera;
+            }
+
+            set
+            {
+                maneuveringWithCamera = value;
+                if (value == true)
+                {
+                    camera.ManeuveredCharacter = this;
+                    keybinds = camera.LastKeybinds;
+                }
+                else
+                {
+                    if (value == false)
+                    {
+                        camera.ManeuveredCharacter = null;
+                        keybinds = camera.LastKeybinds;
+                    }
+                }
+            }
         }
     }
 }
