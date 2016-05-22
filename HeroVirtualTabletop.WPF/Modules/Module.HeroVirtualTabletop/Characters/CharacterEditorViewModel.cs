@@ -142,6 +142,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private void Commands_RaiseCanExecuteChanged()
         {
+            this.SpawnCommand.RaiseCanExecuteChanged();
             this.ClearFromDesktopCommand.RaiseCanExecuteChanged();
             this.ToggleTargetedCommand.RaiseCanExecuteChanged();
             this.SavePositionCommand.RaiseCanExecuteChanged();

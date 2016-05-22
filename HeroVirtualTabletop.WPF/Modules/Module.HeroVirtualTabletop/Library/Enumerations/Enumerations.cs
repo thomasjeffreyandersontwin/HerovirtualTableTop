@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Library.Enumerations
 {
+    public enum AnimationSequenceType
+    {
+        And,
+        Or
+    }
+
     public enum IdentityType
     {
         Model,
