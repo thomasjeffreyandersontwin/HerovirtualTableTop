@@ -93,7 +93,7 @@ namespace Module.HeroVirtualTabletop.Characters
         #region Initialization
         private void InitializeCommands()
         {
-            this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
+            this.SpawnCommand = new DelegateCommand<object>(this.Spawn, this.CanSpawn);
             this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
             this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted, this.CanToggleTargeted);
             this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
@@ -152,6 +152,11 @@ namespace Module.HeroVirtualTabletop.Characters
         }
 
         #region Spawn
+        private bool CanSpawn(object state)
+        {
+            return EditedCharacter != null;
+        }
+
         private void Spawn(object state)
         {
             //Check if is in roster, if not add to it

@@ -126,6 +126,10 @@
     </Compile>
     <Compile Include="Crowds\CharacterCrowdMainViewModel.cs" />
     <Compile Include="Identities\Camera.cs" />
+    <Compile Include="Identities\IdentityEditorView.xaml.cs">
+      <DependentUpon>IdentityEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Identities\IdentityEditorViewModel.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
@@ -218,6 +222,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Crowds\CharacterMenuControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Identities\IdentityEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

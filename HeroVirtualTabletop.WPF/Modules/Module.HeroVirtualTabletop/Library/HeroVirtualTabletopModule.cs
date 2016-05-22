@@ -5,6 +5,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library;
 using Module.HeroVirtualTabletop.Roster;
+using Module.HeroVirtualTabletop.Identities;
 using Module.Shared;
 using Prism.Modularity;
 using Prism.Regions;
@@ -82,6 +83,11 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<CharacterCrowdMainView, CharacterCrowdMainView>();
             this.container.RegisterType<CharacterCrowdMainViewModel, CharacterCrowdMainViewModel>();
+
+            //Registering with ContainerControlledLifeTimeMangager should act like declaring classes as Singleton's
+            //Return a new one the first time only, then always the already instanciated one
+            this.container.RegisterType<IdentityEditorView, IdentityEditorView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<IdentityEditorViewModel, IdentityEditorViewModel>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
         }
