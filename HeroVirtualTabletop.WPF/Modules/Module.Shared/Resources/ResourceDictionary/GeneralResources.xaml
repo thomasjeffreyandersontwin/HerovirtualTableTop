@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                      xmlns:System="clr-namespace:System;assembly=mscorlib"
     x:Class="Module.Shared.Resources.ResourceDictionary.GeneralResources" 
+    xmlns:converters="clr-namespace:Module.Shared.Converters"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:shell="http://schemas.microsoft.com/winfx/2006/xaml/presentation/shell">
@@ -376,5 +377,153 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
+    
+    <Style x:Key="ExpanderToggleButtonStyle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <Border x:Name="ExpanderButtonBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    Padding="{TemplateBinding Padding}"
+                    >
+                    <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="3*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" VerticalAlignment="Bottom">
+                                <Rectangle Fill="Transparent"/>
+                                    <Ellipse Name="Circle"
+                                 Stroke="DarkGray"
+                                 Width="20"
+                                 Height="20"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                            />
+                                <Path x:Name="Sign"
+                              Data="M 0,5 H 10 M 5,0 V 10 Z"
+                              Stroke="#FF666666"
+                              Width="10"
+                              Height="10"
+                              StrokeThickness="2"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              RenderTransformOrigin="0.5,0.5"
+                          >
+                                    <Path.RenderTransform>
+                                        <RotateTransform Angle="0"/>
+                                    </Path.RenderTransform>
+                                </Path>
+                            </Grid>
 
+                            <ContentPresenter x:Name="HeaderContent"
+                              Grid.Row="1"
+                              VerticalAlignment="Top" Margin="0, 5, 0, 0"
+                              ContentSource="Content"/>
+                        </Grid>
+                        </Border>
+                    <ControlTemplate.Triggers>
+                        <!--Change the sign to minus when toggled-->
+                        <Trigger Property="IsChecked"
+                     Value="True">
+                            <Setter Property="Data" 
+                   TargetName="Sign" Value="M 0,5 H 10 Z"/>
+                        </Trigger>
+
+                        <!-- MouseOver, Pressed behaviours-->
+                        <Trigger Property="IsMouseOver"
+                             Value="true">
+                            <Setter Property="Stroke"
+                                Value="#FF3C7FB1"
+                                TargetName="Circle"/>
+                            <Setter Property="Stroke"
+                                Value="#222"
+                                TargetName="Sign"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed"
+                             Value="true">
+                            <Setter Property="Stroke"
+                                Value="#FF526C7B"
+                                TargetName="Circle"/>
+                            <Setter Property="StrokeThickness"
+                                Value="1.5"
+                                TargetName="Circle"/>
+                            <Setter Property="Stroke"
+                                Value="#FF003366"
+                                TargetName="Sign"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="VerticalExpanderStyle" TargetType="{x:Type Expander}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type Expander}">
+                    <Grid SnapsToDevicePixels="true">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="100" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <ContentPresenter x:Name="ExpanderContent" Grid.Column="0" Grid.RowSpan="3" 
+                                    Visibility="Collapsed"/>
+                        <Grid Grid.Column="1" Grid.Row="0">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" HorizontalAlignment="Right" Fill="LightBlue" Width="1" Margin="0,3"/>
+                                <Rectangle Grid.Column="1" HorizontalAlignment="Left" Fill="LightBlue" Width="1" Margin="2,3"/>
+                            </Grid>
+                        </Grid>
+                        <Grid SnapsToDevicePixels="False" Background="Transparent" Grid.Row="1" Grid.Column="1">
+                            <ToggleButton x:Name="ExpanderButton"
+                                          DockPanel.Dock="Right"
+                                          Style="{StaticResource ExpanderToggleButtonStyle}"
+                                          IsChecked="{Binding Path=IsExpanded, 
+                                          RelativeSource={RelativeSource TemplatedParent}}"
+                                          OverridesDefaultStyle="True"
+                                          Padding="1.5,0">
+                                <ToggleButton.Content>
+                                    <TextBlock Text="{Binding Path=Header, 
+                                                        RelativeSource={RelativeSource TemplatedParent}}" >
+                                        <TextBlock.LayoutTransform>
+                                            <TransformGroup>
+                                                <RotateTransform Angle="90"/>
+                                            </TransformGroup>
+                                        </TextBlock.LayoutTransform>
+                                    </TextBlock>
+                                </ToggleButton.Content>
+                            </ToggleButton>
+                        </Grid>
+                        <Grid Grid.Column="1" Grid.Row="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition/>
+                                    <ColumnDefinition/>
+                                </Grid.ColumnDefinitions>
+                                <Rectangle Grid.Column="0" HorizontalAlignment="Right" Fill="LightBlue" Width="1" Margin="0,3"/>
+                                <Rectangle Grid.Column="1" HorizontalAlignment="Left" Fill="LightBlue" Width="1" Margin="2,3"/>
+                            </Grid>   
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsExpanded" Value="True">
+                            <Setter TargetName="ExpanderContent" 
+                                Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

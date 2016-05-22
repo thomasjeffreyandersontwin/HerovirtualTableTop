@@ -57,43 +57,22 @@ namespace Module.HeroVirtualTabletop.Library
 
             LaunchGame();
 
-            // Just testing how things look at the moment...will change soon.
-            //Load camera on start
+            // Load camera on start
             new Camera().Render();
-            LoadCharacterExplorer();
-            LoadCharacterEditor();
-            LoadRosterExplorer();
+
+            LoadMainView();
         }
-
-        #endregion
-
-        #region Initialization
 
         #endregion
 
         #region Methods
 
-        private void LoadCharacterExplorer()
+        private void LoadMainView()
         {
             System.Windows.Style style = Helper.GetCustomWindowStyle();
-            CharacterExplorerViewModel characterExplorerViewModel = this.Container.Resolve<CharacterExplorerViewModel>();
-            PopupService.ShowDialog("CharacterExplorerView", characterExplorerViewModel, "Character Explorer", false, null, new SolidColorBrush(Colors.Transparent), style);
+            CharacterCrowdMainViewModel characterCrowdMainViewModel = this.Container.Resolve<CharacterCrowdMainViewModel>();
+            PopupService.ShowDialog("CharacterCrowdMainView", characterCrowdMainViewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
         }
-
-        private void LoadCharacterEditor()
-        {
-            System.Windows.Style style = Helper.GetCustomWindowStyle();
-            Characters.CharacterEditorViewModel characterEditorViewModel = this.Container.Resolve<Characters.CharacterEditorViewModel>();
-            PopupService.ShowDialog("CharacterEditorView", characterEditorViewModel, "Character Editor", false, null, new SolidColorBrush(Colors.Transparent), style);
-        }
-
-        private void LoadRosterExplorer()
-        {
-            System.Windows.Style style = Helper.GetCustomWindowStyle();
-            Roster.RosterExplorerViewModel RosterExplorerViewModel = this.Container.Resolve<Roster.RosterExplorerViewModel>();
-            PopupService.ShowDialog("RosterExplorerView", RosterExplorerViewModel, "Roster Explorer", false, null, new SolidColorBrush(Colors.Transparent), style);
-        }
-
         private void LaunchGame()
         {
             bool directoryExists = CheckGameDirectory();

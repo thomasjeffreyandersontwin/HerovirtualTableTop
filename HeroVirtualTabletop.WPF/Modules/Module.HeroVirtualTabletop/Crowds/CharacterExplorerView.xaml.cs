@@ -40,7 +40,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.EditNeeded += viewModel_EditNeeded;
             this.viewModel.ExpansionUpdateNeeded+=viewModel_ExpansionUpdateNeeded;
         }
-
         private void viewModel_EditNeeded(object sender, EventArgs e)
         {
             ICrowdMemberModel modelToSelect = sender as ICrowdMemberModel;

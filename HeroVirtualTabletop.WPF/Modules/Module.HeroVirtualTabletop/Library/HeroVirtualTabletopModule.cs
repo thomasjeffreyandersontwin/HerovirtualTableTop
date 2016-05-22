@@ -59,9 +59,7 @@ namespace Module.HeroVirtualTabletop
             mainRegion.Add(view);
 
             IPopupService popupService = this.container.Resolve<IPopupService>();
-            popupService.Register("CharacterExplorerView", typeof(CharacterExplorerView));
-            popupService.Register("RosterExplorerView", typeof(RosterExplorerView));
-            popupService.Register("CharacterEditorView", typeof(CharacterEditorView));
+            popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
 
             this.regionManager.RegisterViewWithRegion(RegionNames.Instance.HeroVirtualTabletopRegion, typeof(HeroVirtualTabletopMainView));
         }
@@ -81,6 +79,9 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<CharacterEditorView, CharacterEditorView>();
             this.container.RegisterType<CharacterEditorViewModel, CharacterEditorViewModel>();
+
+            this.container.RegisterType<CharacterCrowdMainView, CharacterCrowdMainView>();
+            this.container.RegisterType<CharacterCrowdMainViewModel, CharacterCrowdMainViewModel>();
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
         }

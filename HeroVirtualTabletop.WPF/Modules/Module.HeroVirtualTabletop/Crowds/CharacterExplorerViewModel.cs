@@ -631,6 +631,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                         case System.Windows.MessageBoxResult.Yes:
                             // Delete the Character from all the crowds
                             DeleteCrowdMemberFromAllCrowdsByName(SelectedCrowdMemberModel.Name);
+                            rosterMember = SelectedCrowdMemberModel; // Removing character from all crowds, so remove from roster irrespective of roster crowd.
                             break;
                         default:
                             break;
@@ -694,7 +695,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.lastCharacterCrowdStateToUpdate = null;
             }
             if (rosterMember != null)
-                this.eventAggregator.GetEvent<DeleteFromRosterEvent>().Publish(rosterMember);
+                this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Publish(rosterMember);
             if (this.SelectedCrowdModel != null)
             {
                 OnExpansionUpdateNeeded(this.SelectedCrowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
@@ -712,7 +713,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     foreach (CrowdModel cModel in this.CrowdCollection.Where(cm => cm.Name != SelectedCrowdModel.Name))
                     {
                         var crm = cModel.CrowdMemberCollection.Where(cm => cm is CrowdMemberModel && cm.Name == currentCrowdMember.Name).FirstOrDefault();
-                        if (crm == null)
+                        if (crm == null || cModel.Name == AllCharactersCrowd.Name)
                         {
                             if (crowdSpecificCharacters.Where(csc => csc.Name == currentCrowdMember.Name).FirstOrDefault() == null)
                                 crowdSpecificCharacters.Add(currentCrowdMember);
