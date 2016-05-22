@@ -30,7 +30,7 @@
                 SelectedItem="{Binding Path=EditedIdentity.Type, Mode=TwoWay}">
             </ComboBox>
 
-            <TextBox Name="FilterTextBox" TextChanged="FilterTextBox_TextChanged" Margin="5"/>
+            <TextBox Name="FilterTextBox" Margin="5"/>
 
             <Grid x:Name="listGrid" Margin="5">
                 <Grid.Resources>
