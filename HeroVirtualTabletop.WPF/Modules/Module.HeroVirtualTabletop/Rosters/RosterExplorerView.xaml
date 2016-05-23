@@ -50,8 +50,6 @@
         <KeyBinding Key="C" 
                     Modifiers="Alt" 
                     Command="{Binding ToggleManeuverWithCameraCommand}" />
-        <KeyBinding Key="Escape" 
-                    Command="{Binding ClearFromDesktopCommand}" />
     </UserControl.InputBindings>
     <Grid>
         <StackPanel>
