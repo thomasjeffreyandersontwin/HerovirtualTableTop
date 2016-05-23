@@ -33,9 +33,18 @@
                   Height="400" 
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
-                <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer">
-                    <StackPanel x:Name="charExplorerPanel"/>
-                </GroupBox>
+            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" BorderBrush="Blue">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterExplorerExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="CharacterExplorer">
+                    </ToggleButton>
+                    <StackPanel x:Name="charExplorerPanel" Grid.Row="1"/>
+                </Grid>
+            </GroupBox>
         </Expander>
         <Expander Grid.Column="1" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
@@ -47,7 +56,16 @@
                   >
 
             <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer">
-                <StackPanel x:Name="rosterExplorerPanel" Width="Auto"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsRosterExplorerExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="RosterExplorer">
+                    </ToggleButton>
+                    <StackPanel x:Name="rosterExplorerPanel" Width="Auto" Grid.Row="1"/>
+                </Grid>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="2" Style="{StaticResource VerticalExpanderStyle}"
@@ -60,7 +78,16 @@
                   >
 
             <GroupBox Header="Character Editor" x:Name="grpBoxCharacterEditor">
-                <StackPanel x:Name="charEditorPanel" Width="Auto"/>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterEditorExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="ChracterEditor">
+                    </ToggleButton>
+                    <StackPanel x:Name="charEditorPanel" Width="Auto" Grid.Row="1"/>
+                </Grid>
             </GroupBox>
         </Expander>
     </Grid>
