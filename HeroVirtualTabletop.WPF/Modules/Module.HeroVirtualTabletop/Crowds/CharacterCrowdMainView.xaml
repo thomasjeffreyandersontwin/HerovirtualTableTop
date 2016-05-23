@@ -33,7 +33,7 @@
                   Height="400" 
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
-            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" BorderBrush="Blue">
+            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

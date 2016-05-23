@@ -13,7 +13,7 @@ namespace Module.HeroVirtualTabletop.Library.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == parameter)
+            if (value.ToString() == parameter.ToString())
                 return Visibility.Visible;
             return Visibility.Collapsed;
         }

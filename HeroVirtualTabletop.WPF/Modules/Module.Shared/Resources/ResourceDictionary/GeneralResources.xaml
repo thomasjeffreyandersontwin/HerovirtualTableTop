@@ -545,4 +545,37 @@
             </Setter.Value>
         </Setter>
     </Style>
+    
+    <Style TargetType="{x:Type GroupBox}" x:Key="GroupBoxWithBlueBorderStyle">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="GroupBox">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border Grid.Row="0"
+              BorderThickness="1"
+              BorderBrush="#25A0DA"
+              Background="#25A0DA">
+                            <!--<Label Foreground="White">-->
+                                <ContentPresenter Margin="4"
+                          ContentSource="Header"
+                          RecognizesAccessKey="True" />
+                            <!--</Label>-->
+                        </Border>
+
+                        <Border Grid.Row="1"
+              BorderThickness="1,0,1,1"
+              BorderBrush="#25A0DA">
+                            <ContentPresenter Margin="4" />
+                        </Border>
+
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
 </ResourceDictionary>

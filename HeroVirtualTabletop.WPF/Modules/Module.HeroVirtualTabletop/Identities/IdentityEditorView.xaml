@@ -18,8 +18,6 @@
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
         <convertes:IdentityTypeConverter x:Key="identityTypeConverter"></convertes:IdentityTypeConverter>
-        <enumerations:IdentityType x:Key="modelType">Model</enumerations:IdentityType>
-        <enumerations:IdentityType x:Key="costumeType">Costume</enumerations:IdentityType>
     </UserControl.Resources>
     <Grid>
         <StackPanel>
@@ -49,6 +47,7 @@
                          VerticalAlignment="Top" MaxHeight="300" Width="300"
                          SelectionMode="Single"
                          ItemsSource="{Binding ModelsCVS.View}"
+                         Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Model}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}">
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
@@ -61,7 +60,7 @@
                          VerticalAlignment="Top" MaxHeight="300" Width="300"
                          SelectionMode="Single"
                          ItemsSource="{Binding CostumesCVS.View}"
-                         Visibility="Collapsed"
+                         Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Costume}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}">
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
