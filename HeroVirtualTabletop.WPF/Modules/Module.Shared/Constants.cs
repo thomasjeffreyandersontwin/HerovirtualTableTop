@@ -43,9 +43,10 @@ namespace Module.Shared
         public const string GAME_DATA_FOLDERNAME = "data";
         public const string GAME_COSTUMES_FOLDERNAME = "costumes";
         public const string GAME_COSTUMES_EXT = ".costume";
-        public const string GAME_CROWD_REPOSITORY_FILENAME = "CrowdRepoTest.data";
+        public const string GAME_CROWD_REPOSITORY_FILENAME = "CrowdRepo.data";
         public const string GAME_KEYBINDS_FILENAME = "required_keybinds.txt";
         public const string GAME_MODELS_FILENAME = "Models.txt";
+        public const string GAME_DATA_BACKUP_FOLDERNAME = "Backup";
         #endregion
 
         #region Character Explorer

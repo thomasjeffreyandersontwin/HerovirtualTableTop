@@ -51,6 +51,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                         List<CrowdModel> crowdCollection = Helper.GetDeserializedJSONFromFile<List<CrowdModel>>(crowdRepositoryPath);
                         if (crowdCollection == null)
                             crowdCollection = new List<CrowdModel>();
+                        TakeBackup(); // Take backup of valid data file from last execution
                         this.getCrowdCollectionCompleted(crowdCollection);
                     }
                 )
@@ -77,6 +78,19 @@ namespace Module.HeroVirtualTabletop.Crowds
         public CrowdRepository()
         {
             crowdRepositoryPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_CROWD_REPOSITORY_FILENAME);
+        }
+
+        private void TakeBackup()
+        {
+            string backupDir = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_DATA_BACKUP_FOLDERNAME);
+            if (!Directory.Exists(backupDir))
+                Directory.CreateDirectory(backupDir);
+            string backupFilePath = Path.Combine(backupDir, "CrowdRepository_Backup" + String.Format("{0:MMddyyyy}", DateTime.Today) + ".data");
+            if(!File.Exists(backupFilePath))
+            {
+                File.Copy(crowdRepositoryPath, backupFilePath, true);
+            }
+
         }
     }
 }
