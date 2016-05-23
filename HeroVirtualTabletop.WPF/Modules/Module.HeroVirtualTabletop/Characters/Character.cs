@@ -364,7 +364,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public string ClearFromDesktop(bool completeEvent = true)
         {
-            if (ManeuveringWithCamera)
+            if (ManeuveringWithCamera && camera.ManeuveredCharacter != this)
             {
                 ManeuveringWithCamera = false;
             }

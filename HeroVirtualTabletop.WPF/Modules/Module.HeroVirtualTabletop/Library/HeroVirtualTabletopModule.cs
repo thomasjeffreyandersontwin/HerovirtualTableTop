@@ -61,6 +61,7 @@ namespace Module.HeroVirtualTabletop
 
             IPopupService popupService = this.container.Resolve<IPopupService>();
             popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
+            popupService.Register("IdentityEditorView", typeof(IdentityEditorView));
 
             this.regionManager.RegisterViewWithRegion(RegionNames.Instance.HeroVirtualTabletopRegion, typeof(HeroVirtualTabletopMainView));
         }

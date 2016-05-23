@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:Module.HeroVirtualTabletop.OptionGroups"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
+             xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -15,6 +16,11 @@
                     <converters:CharacterOptionComparerConverter x:Key="CharOptComparer"></converters:CharacterOptionComparerConverter>
                 </ResourceDictionary>
             </ResourceDictionary.MergedDictionaries>
+            <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext}"/>
+            <ContextMenu x:Key="optionListBoxMenu">
+                <MenuItem Header="Set as Default" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SetDefaultOptionCommand}"></MenuItem>
+                <MenuItem Header="Edit" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditOptionCommand}"></MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -30,16 +36,9 @@
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
             <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <Grid Name="optGrid">
-                        <Grid.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:OptionListBox}}, Path=SetDefaultOptionCommand }"
-                                          CommandParameter="{Binding ElementName=optGrid}"
-                                          Header="Set as Default">
-                                </MenuItem>
-                            </ContextMenu>
-                        </Grid.ContextMenu>
+                <DataTemplate >
+                    <Grid Name="optGrid" 
+                            ContextMenu="{StaticResource optionListBoxMenu}">
                         <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="#FF3377FF"/>
 
                         <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="Silver">

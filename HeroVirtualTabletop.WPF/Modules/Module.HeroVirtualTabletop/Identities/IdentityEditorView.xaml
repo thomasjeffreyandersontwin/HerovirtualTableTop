@@ -5,9 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Module.HeroVirtualTabletop.Identities"
              xmlns:enumerations="clr-namespace:Module.HeroVirtualTabletop.Library.Enumerations"
+             xmlns:convertes="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             d:DesignHeight="300" d:DesignWidth="300"
+             Visibility="{Binding Visibility}">
     <UserControl.Resources>
         <ObjectDataProvider x:Key="IdentityTypes" MethodName="GetValues"
                             ObjectType="{x:Type system:Enum}">
@@ -15,6 +17,9 @@
                 <x:Type TypeName="enumerations:IdentityType"/>
             </ObjectDataProvider.MethodParameters>
         </ObjectDataProvider>
+        <convertes:IdentityTypeConverter x:Key="identityTypeConverter"></convertes:IdentityTypeConverter>
+        <enumerations:IdentityType x:Key="modelType">Model</enumerations:IdentityType>
+        <enumerations:IdentityType x:Key="costumeType">Costume</enumerations:IdentityType>
     </UserControl.Resources>
     <Grid>
         <StackPanel>
@@ -30,22 +35,20 @@
                 SelectedItem="{Binding Path=EditedIdentity.Type, Mode=TwoWay}">
             </ComboBox>
 
-            <TextBox Name="FilterTextBox" Margin="5"/>
+            <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
 
             <Grid x:Name="listGrid" Margin="5">
+                <!--
                 <Grid.Resources>
                     <Style TargetType="{x:Type ListBox}">
                         <Setter Property="Background" Value="Transparent"/>
                         <Setter Property="TextElement.Foreground" Value="White"/>
                     </Style>
-
-                </Grid.Resources>
+                </Grid.Resources>-->
                 <ListBox x:Name="listBoxModels" 
                          VerticalAlignment="Top" MaxHeight="300" Width="300"
                          SelectionMode="Single"
-                         ItemsSource="{Binding Models}"
-                         DisplayMemberPath="Name"
-                         SelectedValuePath="Surface"
+                         ItemsSource="{Binding ModelsCVS.View}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}">
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
@@ -57,9 +60,7 @@
                 <ListBox x:Name="listBoxCostumes"
                          VerticalAlignment="Top" MaxHeight="300" Width="300"
                          SelectionMode="Single"
-                         ItemsSource="{Binding Costumes}"
-                         DisplayMemberPath="Name"
-                         SelectedValuePath="Surface"
+                         ItemsSource="{Binding CostumesCVS.View}"
                          Visibility="Collapsed"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}">
                     <ListBox.Resources>

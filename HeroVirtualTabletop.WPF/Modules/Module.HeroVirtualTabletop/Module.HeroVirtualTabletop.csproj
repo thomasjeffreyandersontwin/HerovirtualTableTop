@@ -114,7 +114,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="AnimatedAbilities\IAnimatedElement.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="Characters\CharacterEditorView.xaml.cs">
       <DependentUpon>CharacterEditorView.xaml</DependentUpon>
     </Compile>
@@ -132,6 +132,7 @@
     </Compile>
     <Compile Include="Identities\IdentityEditorViewModel.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
+    <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="OptionGroups\OptionGroupView.xaml.cs">

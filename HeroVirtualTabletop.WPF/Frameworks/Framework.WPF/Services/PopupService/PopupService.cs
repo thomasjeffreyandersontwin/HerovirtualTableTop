@@ -172,7 +172,8 @@ namespace Framework.WPF.Services.PopupService
             
             win.ShowInTaskbar = false;
 
-            openedPopups.Add(key, win);
+            if (!openedPopups.ContainsKey(key))
+                openedPopups.Add(key, win);
             win.Tag = key;
 
             if (winClosing != null)

@@ -6,6 +6,7 @@ using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Prism.Events;
 using System;
@@ -103,6 +104,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> RemoveOptionCommand { get; private set; }
 
         public DelegateCommand<object> SetDefaultOptionCommand { get; private set; }
+
+        public DelegateCommand<object> EditOptionCommand { get; private set; }
+
         public ICommand SetActiveOptionCommand { get; private set; }
         
         #endregion
@@ -127,6 +131,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.RemoveOptionCommand = new DelegateCommand<object>(this.RemoveOption);
 
             this.SetDefaultOptionCommand = new DelegateCommand<object>(this.SetDefaultOption);
+            this.EditOptionCommand = new DelegateCommand<object>(this.EditOption);
         }
 
         #endregion
@@ -171,7 +176,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void SetDefaultOption(object state)
         {
-            DefaultOption = (T)(state as FrameworkElement).DataContext;
+            DefaultOption = SelectedOption;
         }
 
         private T GetActiveOption()
@@ -212,6 +217,15 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private Identity GetNewIdentity()
         {
             return new Identity("model_Statesman", IdentityType.Model, optionGroup.NewValidOptionName("Identity"));
+        }
+        
+        private void EditOption(object obj)
+        {
+            if (typeof(T) == typeof(Identity))
+            {
+                Identity identity = (Identity)Convert.ChangeType(SelectedOption, typeof(Identity));
+                eventAggregator.GetEvent<EditIdentityEvent>().Publish(new Tuple<Identity, Character>(identity, Owner));
+            }
         }
 
         #endregion
