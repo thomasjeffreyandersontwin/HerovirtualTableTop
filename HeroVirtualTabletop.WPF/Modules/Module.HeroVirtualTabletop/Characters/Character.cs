@@ -362,12 +362,8 @@ namespace Module.HeroVirtualTabletop.Characters
             return currentTarget;
         }
 
-        public string ClearFromDesktop(bool completeEvent = true)
+        private string clearFromDesktop(bool completeEvent = true)
         {
-            if (ManeuveringWithCamera && camera.ManeuveredCharacter != this)
-            {
-                ManeuveringWithCamera = false;
-            }
             Target(false);
             keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
             if (completeEvent)
@@ -377,6 +373,23 @@ namespace Module.HeroVirtualTabletop.Characters
             gamePlayer = null;
             hasBeenSpawned = false;
             return keybind;
+        }
+
+        public string ClearFromDesktop(bool completeEvent = true)
+        {
+            if (ManeuveringWithCamera)
+            {
+                ManeuveringWithCamera = false;
+            }
+            return clearFromDesktop(completeEvent);
+        }
+
+        public string ClearFromDesktop(bool completeEvent, bool callingFromCamera = false)
+        {
+            if (callingFromCamera)
+                return clearFromDesktop(completeEvent);
+            else
+                return ClearFromDesktop(completeEvent);
         }
 
         public void ToggleTargeted()
