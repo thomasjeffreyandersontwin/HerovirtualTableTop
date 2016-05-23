@@ -61,16 +61,23 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static void SerializeObjectAsJSONToFile<T>(string fileName, T obj)
         {
-            JsonSerializer serializer = new JsonSerializer();
-            using (StreamWriter sw = new StreamWriter(fileName))
-            using (JsonWriter writer = new JsonTextWriter(sw))
+            try
             {
-                    
-                serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
-                serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                serializer.Formatting = Formatting.Indented;
-                serializer.TypeNameHandling = TypeNameHandling.Auto;
-                serializer.Serialize(writer, obj);
+                JsonSerializer serializer = new JsonSerializer();
+                using (StreamWriter sw = new StreamWriter(fileName))
+                using (JsonWriter writer = new JsonTextWriter(sw))
+                {
+
+                    serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
+                    serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    serializer.Formatting = Formatting.Indented;
+                    serializer.TypeNameHandling = TypeNameHandling.Auto;
+                    serializer.Serialize(writer, obj);
+                }
+            }
+            catch (Exception)
+            {
+                
             }
         }
 
