@@ -29,26 +29,26 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <UserControl.InputBindings>
-        <KeyBinding Key="S" 
-                    Modifiers="Control+Shift" 
+        <KeyBinding Key="L" 
+                    Modifiers="Alt" 
                     Command="{Binding SavePositionCommand}" />
         <KeyBinding Key="S" 
-                    Modifiers="Control" 
+                    Modifiers="Alt" 
                     Command="{Binding SpawnCommand}" />
         <KeyBinding Key="P" 
-                    Modifiers="Control" 
+                    Modifiers="Alt" 
                     Command="{Binding PlaceCommand}" />
-        <KeyBinding Key="C" 
-                    Modifiers="Control+Shift" 
+        <KeyBinding Key="F" 
+                    Modifiers="Alt" 
                     Command="{Binding TargetAndFollowCommand}" />
-        <KeyBinding Key="T" 
-                    Modifiers="Control+Shift" 
+        <KeyBinding Key="M" 
+                    Modifiers="Alt" 
                     Command="{Binding MoveTargetToCameraCommand}" />
         <KeyBinding Key="T" 
-                    Modifiers="Control" 
+                    Modifiers="Alt" 
                     Command="{Binding ToggleTargetedCommand}" />
         <KeyBinding Key="C" 
-                    Modifiers="Control" 
+                    Modifiers="Alt" 
                     Command="{Binding ToggleManeuverWithCameraCommand}" />
         <KeyBinding Key="Escape" 
                     Command="{Binding ClearFromDesktopCommand}" />

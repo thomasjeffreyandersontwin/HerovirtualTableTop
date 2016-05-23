@@ -1,5 +1,6 @@
 ﻿using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
+using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Events;
@@ -76,6 +77,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
         #region Commands
 
+        public DelegateCommand<object> CollapsePanelCommand { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -83,8 +86,18 @@ namespace Module.HeroVirtualTabletop.Crowds
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            InitializeCommands();
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe((IEnumerable<CrowdMemberModel> models) => { this.IsRosterExplorerExpanded = true; });
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe((Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple) => { this.IsCharacterEditorExpanded = true; });
+        }
+
+        #endregion
+
+        #region Initialization
+
+        private void InitializeCommands()
+        {
+            this.CollapsePanelCommand = new DelegateCommand<object>(this.CollapsePanel);
         }
 
         #endregion
@@ -104,6 +117,22 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             CharacterEditorView view = this.Container.Resolve<CharacterEditorView>();
             OnViewLoaded(view, null);
+        }
+
+        private void CollapsePanel(object state)
+        {
+            switch(state.ToString())
+            {
+                case "CharacterExplorer":
+                    this.IsCharacterExplorerExpanded = false;
+                    break;
+                case "RosterExplorer":
+                    this.IsRosterExplorerExpanded = false;
+                    break;
+                case "CharacterEditor":
+                    this.IsCharacterEditorExpanded = false;
+                    break;
+            }
         }
         #endregion
     }
