@@ -55,7 +55,7 @@
                   IsExpanded="{Binding IsRosterExplorerExpanded}"
                   >
 
-            <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer">
+            <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -77,7 +77,7 @@
                   IsExpanded="{Binding IsCharacterEditorExpanded}"
                   >
 
-            <GroupBox Header="Character Editor" x:Name="grpBoxCharacterEditor">
+            <GroupBox Header="Character Editor" x:Name="grpBoxCharacterEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
