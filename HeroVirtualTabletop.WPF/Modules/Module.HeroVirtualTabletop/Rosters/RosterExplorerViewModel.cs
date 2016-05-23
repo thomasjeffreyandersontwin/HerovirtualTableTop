@@ -354,6 +354,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.ToggleManueveringWithCamera();
             }
+            Commands_RaiseCanExecuteChanged();
         }
 
         #endregion

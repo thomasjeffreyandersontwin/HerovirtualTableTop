@@ -75,7 +75,7 @@ namespace Module.HeroVirtualTabletop.Identities
                         System.Threading.Thread.Sleep(500);
                     }
 
-                    maneuveredCharacter.ClearFromDesktop();
+                    maneuveredCharacter.ClearFromDesktop(true, true);
                     skin = value.ActiveIdentity;
                     keybinds[1] = skin.Render();
                 }
