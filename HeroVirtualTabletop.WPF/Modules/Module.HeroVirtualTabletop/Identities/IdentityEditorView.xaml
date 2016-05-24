@@ -36,19 +36,19 @@
             <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
 
             <Grid x:Name="listGrid" Margin="5">
-                <!--
                 <Grid.Resources>
                     <Style TargetType="{x:Type ListBox}">
                         <Setter Property="Background" Value="Transparent"/>
                         <Setter Property="TextElement.Foreground" Value="White"/>
                     </Style>
-                </Grid.Resources>-->
+                </Grid.Resources>
                 <ListBox x:Name="listBoxModels" 
                          VerticalAlignment="Top" MaxHeight="300" Width="300"
                          SelectionMode="Single"
                          ItemsSource="{Binding ModelsCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Model}"
-                         SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}">
+                         SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}"
+                         IsSynchronizedWithCurrentItem="True">
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="Background" Value="Transparent" />
@@ -61,7 +61,8 @@
                          SelectionMode="Single"
                          ItemsSource="{Binding CostumesCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Costume}"
-                         SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}">
+                         SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}"
+                         IsSynchronizedWithCurrentItem="True">
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="Background" Value="Transparent" />

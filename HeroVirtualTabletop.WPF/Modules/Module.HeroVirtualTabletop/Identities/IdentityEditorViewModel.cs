@@ -57,11 +57,16 @@ namespace Module.HeroVirtualTabletop.Identities
             }
             set
             {
+                if (editedidentity != null)
+                {
+                    editedidentity.PropertyChanged -= EditedIdentity_PropertyChanged;
+                }
                 editedidentity = value;
+                editedidentity.PropertyChanged += EditedIdentity_PropertyChanged;
                 OnPropertyChanged("EditedIdentity");
             }
         }
-
+        
         public Visibility Visibility
         {
             get
@@ -132,6 +137,22 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
+        public bool IsDefault
+        {
+            get
+            {
+                return EditedIdentity == Owner.DefaultIdentity;
+            }
+            set
+            {
+                if (value == true)
+                    Owner.DefaultIdentity = EditedIdentity;
+                else if (value == false)
+                    Owner.DefaultIdentity = null;
+                OnPropertyChanged("IsDefault");
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -147,7 +168,7 @@ namespace Module.HeroVirtualTabletop.Identities
             CreateModelsViewSource();
             CreateCostumesViewSource();
         }
-        
+
         #endregion
 
         #region Initialization
@@ -176,7 +197,7 @@ namespace Module.HeroVirtualTabletop.Identities
                     (Path.Combine(
                         Settings.Default.CityOfHeroesGameDirectory,
                         Constants.GAME_COSTUMES_FOLDERNAME),
-                    "*.costume"));
+                    "*.costume").Select((file) => { return Path.GetFileNameWithoutExtension(file); }));
             costumesCVS = new CollectionViewSource();
             costumesCVS.Source = Costumes;
             costumesCVS.View.Filter += stringsCVS_Filter;
@@ -190,7 +211,25 @@ namespace Module.HeroVirtualTabletop.Identities
             }
 
             string strItem = item as string;
+            if (EditedIdentity != null && EditedIdentity.Surface == strItem)
+            {
+                return true;
+            }
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(strItem);
+        }
+
+        private void EditedIdentity_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Surface")
+            {
+                if (Owner.HasBeenSpawned)
+                {
+                    if (Owner.ActiveIdentity == EditedIdentity)
+                    {
+                        Owner.ActiveIdentity.Render();
+                    }
+                }
+            }
         }
 
         #endregion
