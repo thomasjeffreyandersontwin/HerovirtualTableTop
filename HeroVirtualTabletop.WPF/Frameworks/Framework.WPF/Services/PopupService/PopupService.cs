@@ -145,7 +145,7 @@ namespace Framework.WPF.Services.PopupService
                 //else
                 {
                     win.SizeToContent = SizeToContent.WidthAndHeight;
-                    win.ResizeMode = ResizeMode.CanResizeWithGrip; // To be able to resize even with windowstyle none and allowtransparency true
+                    //win.ResizeMode = ResizeMode.CanResizeWithGrip; // To be able to resize even with windowstyle none and allowtransparency true
                 }
 
                 // Set any property of the control user wants to set by force

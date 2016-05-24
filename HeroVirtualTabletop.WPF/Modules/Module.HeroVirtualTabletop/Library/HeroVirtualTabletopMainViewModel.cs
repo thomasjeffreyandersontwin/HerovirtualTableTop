@@ -76,6 +76,9 @@ namespace Module.HeroVirtualTabletop.Library
         private void LoadMainView()
         {
             System.Windows.Style style = Helper.GetCustomWindowStyle();
+            double minheight = 400, minwidth = 80;
+            style.Setters.Add(new Setter(Window.MinHeightProperty, minheight));
+            style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
             CharacterCrowdMainViewModel characterCrowdMainViewModel = this.Container.Resolve<CharacterCrowdMainViewModel>();
             PopupService.ShowDialog("CharacterCrowdMainView", characterCrowdMainViewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
         }

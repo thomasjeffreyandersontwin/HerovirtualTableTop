@@ -28,7 +28,7 @@
         </Grid.RowDefinitions>
         <crowd:CharacterMenuControl Grid.Row="0"/>
         <TreeView x:Name="treeViewCrowd" Grid.Row="1" ItemsSource="{Binding CrowdCollection}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
-                  Margin="0" MinHeight="250" MaxHeight="400"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown" PreviewKeyUp="treeViewCrowd_PreviewKeyUp"
+                  Margin="0"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown" PreviewKeyUp="treeViewCrowd_PreviewKeyUp"
                   >
             <TreeView.Resources>
                 <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext}"/>

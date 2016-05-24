@@ -8,7 +8,7 @@
              xmlns:convertes="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" >
+             mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -16,21 +16,19 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
         <Grid.RowDefinitions>
-            <RowDefinition/>
+            <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Expander Grid.Column="0" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
-                  HorizontalAlignment="Right"
-                  VerticalAlignment="Center" 
                   Header="Character Explorer"
-                  Height="400" 
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
             <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
@@ -42,16 +40,14 @@
                     <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterExplorerExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="CharacterExplorer">
                     </ToggleButton>
-                    <StackPanel x:Name="charExplorerPanel" Grid.Row="1"/>
+                    <Grid x:Name="charExplorerPanel" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="1" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
-                  HorizontalAlignment="Right"
-                  VerticalAlignment="Center"
                   Header="Roster Explorer"
-                  Height="400"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsRosterExplorerExpanded}"
                   >
 
@@ -64,16 +60,14 @@
                     <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsRosterExplorerExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="RosterExplorer">
                     </ToggleButton>
-                    <StackPanel x:Name="rosterExplorerPanel" Width="Auto" Grid.Row="1"/>
+                    <Grid x:Name="rosterExplorerPanel" Width="Auto" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="2" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
-                  HorizontalAlignment="Right"
-                  VerticalAlignment="Center"
                   Header="Character Editor"
-                  Height="400"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterEditorExpanded}"
                   >
 
@@ -86,7 +80,7 @@
                     <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterEditorExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="ChracterEditor">
                     </ToggleButton>
-                    <StackPanel x:Name="charEditorPanel" Width="Auto" Grid.Row="1"/>
+                    <Grid x:Name="charEditorPanel" Width="Auto" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>

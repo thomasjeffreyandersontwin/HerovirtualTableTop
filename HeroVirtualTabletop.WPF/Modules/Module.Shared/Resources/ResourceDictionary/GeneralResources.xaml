@@ -21,15 +21,16 @@
 
     <Style x:Key="CustomModelessTransparentWindow" TargetType="{x:Type Window}">
         <Setter Property="Topmost" Value="True"></Setter>
-        <Setter Property="OverridesDefaultStyle" Value="True"></Setter>
+        <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="TextElement.FontSize" Value="13"/>
         <Setter Property="TextElement.Foreground" Value="White"/>
         <Setter Property="AllowsTransparency" Value="True"/>
         <Setter Property="WindowStyle" Value="None"/>
+        <Setter Property="ResizeMode" Value="CanResizeWithGrip"/>
         <Setter Property="shell:WindowChrome.WindowChrome">
             <Setter.Value>
                 <shell:WindowChrome GlassFrameThickness="-1" 
-                            ResizeBorderThickness="0"
+                            ResizeBorderThickness="2"
                             CaptionHeight="36"/>
             </Setter.Value>
         </Setter>
@@ -469,7 +470,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Expander}">
-                    <Grid SnapsToDevicePixels="true">
+                    <Grid SnapsToDevicePixels="true" >
                         <Grid.RowDefinitions>
                             <RowDefinition Height="100" />
                             <RowDefinition Height="Auto" />
@@ -477,11 +478,11 @@
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
+                            <ColumnDefinition />
                         </Grid.ColumnDefinitions>
-                        <ContentPresenter x:Name="ExpanderContent" Grid.Column="0" Grid.RowSpan="3" 
+                        <ContentPresenter x:Name="ExpanderContent" Grid.Column="0" Grid.RowSpan="3" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                     Visibility="Collapsed"/>
-                        <Grid Grid.Column="1" Grid.Row="0" x:Name="TopRectangleArea">
+                        <Grid Grid.Column="1" Grid.Row="0" x:Name="TopRectangleArea" >
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition/>
@@ -491,9 +492,8 @@
                                 <Rectangle Grid.Column="1" HorizontalAlignment="Left" Fill="#FF1144FF" Width="1" Margin="2,3"/>
                             </Grid>
                         </Grid>
-                        <Grid SnapsToDevicePixels="False" Background="Transparent" Grid.Row="1" Grid.Column="1" x:Name="ExpanderButtonArea">
+                        <Grid SnapsToDevicePixels="False" Background="Transparent" Grid.Row="1" Grid.Column="1" x:Name="ExpanderButtonArea" >
                             <ToggleButton x:Name="ExpanderButton"
-                                          DockPanel.Dock="Right"
                                           Style="{StaticResource ExpanderToggleButtonStyle}"
                                           IsChecked="{Binding Path=IsExpanded, 
                                           RelativeSource={RelativeSource TemplatedParent}}"

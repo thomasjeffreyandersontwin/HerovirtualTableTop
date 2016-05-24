@@ -57,5 +57,21 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             this.charEditorPanel.Children.Add(charEditorView);
         }
+
+        private void Expander_ExpansionChanged(object sender, RoutedEventArgs e)
+        {
+            Window window = null;
+            DependencyObject dObj = sender as DependencyObject;
+            while (true)
+            {
+                dObj = VisualTreeHelper.GetParent(dObj);
+                if (dObj is Window)
+                {
+                    window = dObj as Window; break;
+                }
+            }
+            if (window != null)
+                window.SizeToContent = SizeToContent.WidthAndHeight;
+        }
     }
 }
