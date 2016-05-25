@@ -216,7 +216,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             InitializeCommands();
-            //LoadCrowdCollection();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddMemberToRosterEvent>().Subscribe(this.AddToRoster);
         }
