@@ -2,6 +2,7 @@
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
@@ -14,9 +15,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
+[assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
 {
     public class CharacterEditorViewModel : BaseViewModel
@@ -26,6 +29,7 @@ namespace Module.HeroVirtualTabletop.Characters
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private OptionGroupViewModel<Identity> identitiesViewModel;
+        private OptionGroupViewModel<AnimatedAbility> animatedAbilitiesViewModel;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
 
         #endregion
@@ -59,6 +63,19 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 identitiesViewModel = value;
                 OnPropertyChanged("IdentityViewModel");
+            }
+        }
+
+        public OptionGroupViewModel<AnimatedAbility> AnimatedAbilitiesViewModel
+        {
+            get
+            {
+                return animatedAbilitiesViewModel;
+            }
+            set
+            {
+                animatedAbilitiesViewModel = value;
+                OnPropertyChanged("AnimatedAbilitiesViewModel");
             }
         }
 
@@ -103,7 +120,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
         }
 
-        private void LoadCharacter(object state)
+        internal void LoadCharacter(object state)
         {
             Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple = state as Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>;
             if (tuple != null)
@@ -121,6 +138,10 @@ namespace Module.HeroVirtualTabletop.Characters
                 {
                     this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
                         new ParameterOverride("optionGroup", character.AvailableIdentities),
+                        new ParameterOverride("owner", character)
+                        );
+                    this.AnimatedAbilitiesViewModel = this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
+                        new ParameterOverride("optionGroup", character.AnimatedAbilities),
                         new ParameterOverride("owner", character)
                         );
                     this.EditedCharacter = character;

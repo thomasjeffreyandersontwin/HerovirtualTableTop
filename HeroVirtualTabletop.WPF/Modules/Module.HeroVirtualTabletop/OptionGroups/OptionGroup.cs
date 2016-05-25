@@ -19,7 +19,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
 
         }
-
+        
         public string NewValidOptionName(string name = null)
         {
             if (string.IsNullOrWhiteSpace(name))

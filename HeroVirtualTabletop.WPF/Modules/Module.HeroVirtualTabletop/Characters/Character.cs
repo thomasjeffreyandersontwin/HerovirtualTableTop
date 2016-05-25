@@ -14,6 +14,7 @@ using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.Shared.Enumerations;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -35,6 +36,7 @@ namespace Module.HeroVirtualTabletop.Characters
         private void InitializeCharacter()
         {
             availableIdentities = new OptionGroup<Identity>();
+            animatedAbilities = new OptionGroup<AnimatedAbility>();
         }
 
         public Character(string name): this()
@@ -226,9 +228,16 @@ namespace Module.HeroVirtualTabletop.Characters
                 {
                     availableIdentities.Add(value);
                 }
-                activeIdentity = availableIdentities[value.Name];
-                if (HasBeenSpawned)
-                    activeIdentity.Render();
+                if (value != null)
+                {
+                    activeIdentity = availableIdentities[value.Name];
+                    if (HasBeenSpawned)
+                        activeIdentity.Render();
+                }
+                else
+                {
+                    activeIdentity = null;
+                }
                 OnPropertyChanged("ActiveIdentity");
             }
         }
@@ -455,6 +464,20 @@ namespace Module.HeroVirtualTabletop.Characters
             hasBeenSpawned = true;
             gamePlayer = new MemoryElement();
             Position = new Position();
+        }
+
+        private OptionGroup<AnimatedAbility> animatedAbilities;
+        public OptionGroup<AnimatedAbility> AnimatedAbilities
+        {
+            get
+            {
+                return animatedAbilities;
+            }
+            set
+            {
+                animatedAbilities = value;
+                OnPropertyChanged("AnimatedAbilities");
+            }
         }
     }
 }

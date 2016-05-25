@@ -39,10 +39,12 @@
         <StackPanel Grid.Column="1" HorizontalAlignment="Stretch">
             <TextBox Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <GridSplitter></GridSplitter>
-            <Grid>
+            <StackPanel>
                 <optiongroups:OptionGroupView DataContext="{Binding Path=IdentityViewModel}">
                 </optiongroups:OptionGroupView>
-            </Grid>
+                <optiongroups:OptionGroupView DataContext="{Binding Path=AnimatedAbilitiesViewModel}">
+                </optiongroups:OptionGroupView>
+            </StackPanel>
         </StackPanel>
     </Grid>
 </UserControl>

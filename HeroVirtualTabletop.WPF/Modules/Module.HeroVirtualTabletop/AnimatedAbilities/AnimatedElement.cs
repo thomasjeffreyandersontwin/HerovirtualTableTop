@@ -19,6 +19,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
     public interface IAnimationElement
     {
+        string Name { get; set; }
         Character Owner { get; set; }
         int Order { get; set; }
 
@@ -27,10 +28,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class AnimationElement : NotifyPropertyChanged, IAnimationElement
     {
-        public AnimationElement(int order = 1, Character owner = null)
+        public AnimationElement(string name, int order = 1, Character owner = null)
         {
+            this.Name = name;
             this.Order = order;
             this.Owner = owner;
+        }
+
+        private string name;
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+            set
+            {
+                name = value;
+                OnPropertyChanged("Name");
+            }
         }
 
         private int order;
@@ -71,8 +87,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class PauseElement : AnimationElement
     {
-        public PauseElement(int time, int order = 1, Character owner = null)
-            : base(order, owner)
+        public PauseElement(string name, int time, int order = 1, Character owner = null)
+            : base(name, order, owner)
         {
             this.Time = time;
         }
@@ -100,8 +116,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class SoundElement : AnimationElement
     {
-        public SoundElement(string soundFile, int order = 1, Character owner = null)
-            : base(order, owner)
+        public SoundElement(string name, string soundFile, int order = 1, Character owner = null)
+            : base(name, order, owner)
         {
             this.SoundFile = soundFile;
         }
@@ -130,8 +146,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class MOVElement : AnimationElement
     {
-        public MOVElement(string MOVResource, int order = 1, Character owner = null)
-            : base(order, owner)
+        public MOVElement(string name, string MOVResource, int order = 1, Character owner = null)
+            : base(name, order, owner)
         {
             this.MOVResource = MOVResource;
         }
@@ -165,8 +181,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     public class FXEffectElement : AnimationElement
     {
 
-        public FXEffectElement(string effect, bool persistent = false, bool playWithNext = false, int order = 1, Character owner = null)
-            : base(order, owner)
+        public FXEffectElement(string name, string effect, bool persistent = false, bool playWithNext = false, int order = 1, Character owner = null)
+            : base(name, order, owner)
         {
             this.Effect = effect;
             this.Persistent = persistent;
@@ -335,10 +351,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     
     public class NestedAnimationElement : AnimationElement
     {
-        public NestedAnimationElement(AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
-            : base(order, owner)
+        public NestedAnimationElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
+            : base(name, order, owner)
         {
+            this.animationElements = new HashedObservableCollection<IAnimationElement, string>(x => x.Name, x => x.Order);
+            this.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(animationElements);
             this.SequenceType = seqType;
+            this.lastOrder = 0;
         }
 
         private AnimationSequenceType sequenceType;
@@ -355,25 +374,41 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private SortableObservableCollection<IAnimationElement, int> animationElements;
-        public SortableObservableCollection<IAnimationElement, int> AnimationElements
+        private HashedObservableCollection<IAnimationElement, string> animationElements;
+        public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; private set; }
+
+        private int lastOrder;
+        public int LastOrder
         {
             get
             {
-                return animationElements;
+                return lastOrder;
             }
-            set
-            {
-                animationElements = value;
-                OnPropertyChanged("AnimationElements");
-            }
+        }
+
+        public void AddAnimationElement(IAnimationElement element)
+        {
+            this.lastOrder++;
+            element.Owner = this.Owner;
+            element.Order = this.LastOrder;
+            this.animationElements.Add(element);
+        }
+
+        public void RemoveAnimationElement(IAnimationElement element)
+        {
+            animationElements.Remove(element);
+        }
+
+        public void RemoveAnimationElement(string name)
+        {
+            animationElements.Remove(name);
         }
 
         public override string Play(bool completeEvent = true)
         {
             if (SequenceType == AnimationSequenceType.And)
             {
-                AnimationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
+                animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
                 string retVal = string.Empty;
                 foreach (IAnimationElement item in AnimationElements)
                 {
@@ -389,4 +424,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
     }
+
+    public class ReferenceAbility : AnimationElement
+    {
+        public ReferenceAbility(string name, AnimationElement reference, int order = 1, Character owner = null)
+            : base(name, order, owner)
+        {
+            this.Reference = reference;
+        }
+
+        private AnimationElement reference;
+        public AnimationElement Reference
+        {
+            get
+            {
+                return reference;
+            }
+            set
+            {
+                reference = value;
+                OnPropertyChanged("Reference"); 
+            }
+        }
+
+        public override string Play(bool completeEvent = true)
+        {
+            this.Reference.Owner = this.Owner;
+            return this.Reference.Play(completeEvent);
+        }
+    }
+
 }

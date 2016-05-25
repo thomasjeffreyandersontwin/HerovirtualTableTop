@@ -3,6 +3,7 @@ using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
@@ -46,6 +47,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
         }
 
+        private T selectedOption;
         public T SelectedOption
         {
             get
@@ -155,19 +157,28 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void AddOption(object state)
         {
-            if (typeof(T) == typeof(Identities.Identity))
+            if (typeof(T) == typeof(Identity))
             {
                 AddIdentity(state);
                 return;
             }
+            if (typeof(T) == typeof(AnimatedAbility))
+            {
+                AddAbility(state);
+                return;
+            }
         }
-
+        
         private void RemoveOption(object state)
         {
             if (typeof(T) == typeof(Identities.Identity))
             {
                 RemoveIdentity(state);
                 return;
+            }
+            else
+            {
+                optionGroup.Remove(SelectedOption);
             }
         }
 
@@ -218,8 +229,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
             }
-
-            return default(T);
+            else
+            {
+                return selectedOption;
+            }
         }
 
         private void SetSelectedOption(T value)
@@ -227,6 +240,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             if (typeof(T) == typeof(Identity))
             {
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
+            }
+            else
+            {
+                selectedOption = value;
             }
         }
 
@@ -241,7 +258,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 return;
             if (OptionGroup.Count == 1)
             {
-                System.Windows.MessageBox.Show("Every character must have at least 1 Identity");
+                MessageBox.Show("Every character must have at least 1 Identity");
                 return;
             }
             optionGroup.Remove(SelectedOption);
@@ -252,6 +269,16 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             return new Identity("model_Statesman", IdentityType.Model, optionGroup.NewValidOptionName("Identity"));
         }
         
+        private void AddAbility(object state)
+        {
+            (optionGroup as OptionGroup<AnimatedAbility>).Add(GetNewAbility());
+        }
+
+        private AnimatedAbility GetNewAbility()
+        {
+            return new AnimatedAbility(optionGroup.NewValidOptionName("Ability"), owner: this.Owner);
+        }
+
         private void EditOption(object obj)
         {
             if (typeof(T) == typeof(Identity))
