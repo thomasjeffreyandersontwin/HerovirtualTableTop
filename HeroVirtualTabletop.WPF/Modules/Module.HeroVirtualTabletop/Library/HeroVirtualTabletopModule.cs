@@ -38,7 +38,7 @@ namespace Module.HeroVirtualTabletop
         }
 
         #endregion Constructor
-
+        
         #region BaseModule Members
 
         protected override object ModuleView

@@ -363,6 +363,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
+            //Cannot do it here because we can't add to roster from a different thread
+            //var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
+            //eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
+            //CANNOT DO IT HERE, NEED TO PASS THOSE CHARS TO THE ROSTER AND LET IT HANDLE THEM
+            //foreach (CrowdMemberModel member in rosterMembers)
+            //{
+            //    this.rosterCrowdCharacterMembershipKeys = new List<Tuple<string, string>>();
+            //    ConstructRosterCrowdCharacterMembershipKeys(member.RosterCrowd as CrowdModel);
+            //    if (!rosterCrowdCharacterMembershipKeys.Contains(new Tuple<string, string>(member.Name, member.RosterCrowd.Name)))
+            //    {
+            //        AddToRoster(new Tuple<CrowdMemberModel, CrowdModel>(member, member.RosterCrowd as CrowdModel));
+            //    }
+            //}
+            
             //this.BusyService.HideBusy();
         }
 

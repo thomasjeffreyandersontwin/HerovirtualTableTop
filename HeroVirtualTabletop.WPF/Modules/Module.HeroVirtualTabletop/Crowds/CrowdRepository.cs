@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Crowds
@@ -25,6 +26,9 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public class CrowdRepository : ICrowdRepository
     {
+        List<Mutex> mutexes;
+        List<AutoResetEvent> events;
+
         private string crowdRepositoryPath;
         public string CrowdRepositoryPath
         {
@@ -43,19 +47,41 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             this.getCrowdCollectionCompleted = GetCrowdCollectionCompleted;
 
-            System.Threading.ThreadPool.QueueUserWorkItem
-            (new System.Threading.WaitCallback
-                (
-                    delegate(object state)
+            ThreadPool.QueueUserWorkItem
+                (new WaitCallback(
+                    delegate (object state)
                     {
+                        AutoResetEvent e = new AutoResetEvent(false);
+                        events.Add(e);
+                        if (mutexes.Count > 0)
+                            Mutex.WaitAll(mutexes.ToArray());
+                        Mutex m = new Mutex(true);
+                        mutexes.Add(m);
+
                         List<CrowdModel> crowdCollection = Helper.GetDeserializedJSONFromFile<List<CrowdModel>>(crowdRepositoryPath);
                         if (crowdCollection == null)
                             crowdCollection = new List<CrowdModel>();
                         TakeBackup(); // Take backup of valid data file from last execution
                         this.getCrowdCollectionCompleted(crowdCollection);
-                    }
-                )
-            );
+
+                        m.ReleaseMutex();
+                        mutexes.Remove(m);
+                        e.Set();
+                    }));
+
+            //System.Threading.ThreadPool.QueueUserWorkItem
+            //(new System.Threading.WaitCallback
+            //    (
+            //        delegate(object state)
+            //        {
+            //            List<CrowdModel> crowdCollection = Helper.GetDeserializedJSONFromFile<List<CrowdModel>>(crowdRepositoryPath);
+            //            if (crowdCollection == null)
+            //                crowdCollection = new List<CrowdModel>();
+            //            TakeBackup(); // Take backup of valid data file from last execution
+            //            this.getCrowdCollectionCompleted(crowdCollection);
+            //        }
+            //    )
+            //);
         }
 
         private Action saveCrowdCollectionCompleted;
@@ -63,21 +89,48 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             this.saveCrowdCollectionCompleted = SaveCrowdCollectionCompleted;
 
-            System.Threading.ThreadPool.QueueUserWorkItem
-            (new System.Threading.WaitCallback
-                (
-                    delegate(object state)
-                    {
-                        Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
-                        this.saveCrowdCollectionCompleted();
-                    }
-                )
-            );
+            ThreadPool.QueueUserWorkItem
+                (new WaitCallback(
+                    delegate (object state)
+                        {
+                            AutoResetEvent e = new AutoResetEvent(false);
+                            events.Add(e);
+                            if (mutexes.Count > 0)
+                                Mutex.WaitAll(mutexes.ToArray());
+                            Mutex m = new Mutex(true);
+                            mutexes.Add(m);
+
+                            Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
+                            this.saveCrowdCollectionCompleted();
+
+                            m.ReleaseMutex();
+                            mutexes.Remove(m);
+                            e.Set();
+                            events.Remove(e);
+                        }));
+
+            //System.Threading.ThreadPool.QueueUserWorkItem
+            //(new System.Threading.WaitCallback
+            //    (
+            //        delegate(object state)
+            //        {
+            //            Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
+            //            this.saveCrowdCollectionCompleted();
+            //        }
+            //    )
+            //);
+        }
+
+        public void WaitCompletion()
+        {
+            WaitHandle.WaitAll(events.ToArray());
         }
 
         public CrowdRepository()
         {
-            crowdRepositoryPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_CROWD_REPOSITORY_FILENAME);
+            crowdRepositoryPath = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_CROWD_REPOSITORY_FILENAME);
+            mutexes = new List<Mutex>();
+            events = new List<AutoResetEvent>();
         }
 
         private void TakeBackup()

@@ -66,6 +66,11 @@ namespace Module.HeroVirtualTabletop.Characters
                     }
                     //Costume exists, use it
                     this.ActiveIdentity = availableIdentities[name];
+                    this.DefaultIdentity = availableIdentities[name];
+                    if (availableIdentities.ContainsKey("Base"))
+                    {
+                        AvailableIdentities.Remove("Base");
+                    }
                 }
             }
             else if (identityType == IdentityType.Costume) //A surface has been passed and it should be a Costume
@@ -357,7 +362,7 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 w++;
                 currentTarget = new MemoryElement();
-                if (w > 500)
+                if (w > 5)
                 {
                     currentTarget = null;
                     break;
@@ -443,6 +448,13 @@ namespace Module.HeroVirtualTabletop.Characters
                     }
                 }
             }
+        }
+        
+        internal void SetAsSpawned()
+        {
+            hasBeenSpawned = true;
+            gamePlayer = new MemoryElement();
+            Position = new Position();
         }
     }
 }

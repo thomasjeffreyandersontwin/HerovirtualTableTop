@@ -52,7 +52,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
                 serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 serializer.Formatting = Formatting.Indented;
-                serializer.TypeNameHandling = TypeNameHandling.Auto;
+                serializer.TypeNameHandling = TypeNameHandling.Objects;
 
                 obj = serializer.Deserialize<T>(reader);
             }
@@ -71,7 +71,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
                     serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                     serializer.Formatting = Formatting.Indented;
-                    serializer.TypeNameHandling = TypeNameHandling.Auto;
+                    serializer.TypeNameHandling = TypeNameHandling.Objects;
                     serializer.Serialize(writer, obj);
                 }
             }

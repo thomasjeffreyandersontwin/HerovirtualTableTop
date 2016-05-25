@@ -19,9 +19,10 @@
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="0"/>
             <ColumnDefinition Width="auto" MinWidth="250"/>
         </Grid.ColumnDefinitions>
+        <!--
         <StackPanel Grid.Column="0">
             <Image Source="{Binding Path=EditedCharacter.Image}"></Image>
             <local:CharacterManagementMenuControl
@@ -34,7 +35,7 @@
                 ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
                 ></local:CharacterManagementMenuControl>
-        </StackPanel>
+        </StackPanel>-->
         <StackPanel Grid.Column="1" HorizontalAlignment="Stretch">
             <TextBox Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <GridSplitter></GridSplitter>
