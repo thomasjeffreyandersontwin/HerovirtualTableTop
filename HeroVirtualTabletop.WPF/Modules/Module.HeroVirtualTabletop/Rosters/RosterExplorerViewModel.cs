@@ -7,6 +7,7 @@ using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.Shared;
 using Prism.Events;
 using System;
@@ -90,6 +91,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipants);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(DeleteParticipant);
+            this.eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Subscribe(CheckRosterConsistency);
             InitializeCommands();
 
         }
@@ -127,6 +129,17 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
             this.EditCharacterCommand.RaiseCanExecuteChanged();
         }
+        
+        private void CheckRosterConsistency(IEnumerable<CrowdMemberModel> members)
+        {
+            foreach (CrowdMemberModel member in members)
+            {
+                if (!Participants.Contains(member))
+                {
+                    AddParticipants(new List<CrowdMemberModel>() { member });
+                }
+            }
+        }
 
         #region Add Participants
         private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
@@ -134,8 +147,21 @@ namespace Module.HeroVirtualTabletop.Roster
             foreach (var crowdMember in crowdMembers)
             {
                 Participants.Add(crowdMember);
+                CheckIfCharacterExistsInGame(crowdMember);
             }
             Participants.Sort();
+        }
+
+        private void CheckIfCharacterExistsInGame(CrowdMemberModel crowdMember)
+        {
+            MemoryElement oldTargeted = new MemoryElement();
+            crowdMember.Target();
+            MemoryElement currentTargeted = new MemoryElement();
+            if (currentTargeted.Label == crowdMember.Label)
+            {
+                crowdMember.SetAsSpawned();
+            }
+            oldTargeted.Target();
         }
         #endregion
 

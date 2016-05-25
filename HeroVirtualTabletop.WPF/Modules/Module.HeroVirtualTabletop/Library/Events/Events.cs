@@ -14,4 +14,5 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class SaveCrowdEvent : PubSubEvent<object> { }
     public class AddMemberToRosterEvent : PubSubEvent<Tuple<CrowdMemberModel, CrowdModel>> { };
     public class EditIdentityEvent : PubSubEvent<Tuple<Identity, Character>> { };
+    public class CheckRosterConsistencyEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { };
 }

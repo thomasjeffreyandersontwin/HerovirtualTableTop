@@ -25,9 +25,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private EventAggregator eventAggregator;
         private OptionGroup<T> optionGroup;
-        private T selectedOption;
-        private T defaultOption;
-        private T activeOption;
         #endregion
 
         #region Events
@@ -53,11 +50,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             get
             {
-                return selectedOption;
+                return GetSelectedOption();
             }
             set
             {
-                selectedOption = value;
+                SetSelectedOption(value);
                 OnPropertyChanged("SelectedOption");
             }
         }
@@ -118,10 +115,28 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             this.eventAggregator = eventAggregator;
             this.Owner = owner;
+            this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
             InitializeCommands();
         }
-        
+
+        private void Owner_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (typeof(T) == typeof(Identity))
+            {
+                switch (e.PropertyName)
+                {
+                    case "ActiveIdentity":
+                        OnPropertyChanged("ActiveOption");
+                        OnPropertyChanged("SelectedOption");
+                        break;
+                    case "DefaultIdentity":
+                        OnPropertyChanged("DefaultOption");
+                        break;
+                }
+            }
+        }
+
         #endregion
 
         #region Initialization
@@ -158,7 +173,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private T GetDefaultOption()
         {
-            if (typeof(T) == typeof(Identities.Identity))
+            if (typeof(T) == typeof(Identity))
             {
                 return (T)Convert.ChangeType(owner.DefaultIdentity, typeof(T));
             }
@@ -168,7 +183,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void SetDefaultOption(T value)
         {
-            if (typeof(T) == typeof(Identities.Identity))
+            if (typeof(T) == typeof(Identity))
             {
                 owner.DefaultIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
@@ -181,7 +196,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private T GetActiveOption()
         {
-            if (typeof(T) == typeof(Identities.Identity))
+            if (typeof(T) == typeof(Identity))
             {
                 return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
             }
@@ -191,7 +206,25 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void SetActiveOption(T value)
         {
-            if (typeof(T) == typeof(Identities.Identity))
+            if (typeof(T) == typeof(Identity))
+            {
+                owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
+            }
+        }
+
+        private T GetSelectedOption()
+        {
+            if (typeof(T) == typeof(Identity))
+            {
+                return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
+            }
+
+            return default(T);
+        }
+
+        private void SetSelectedOption(T value)
+        {
+            if (typeof(T) == typeof(Identity))
             {
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
@@ -204,14 +237,14 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void RemoveIdentity(object state)
         {
-            if (selectedOption == null)
+            if (SelectedOption == null)
                 return;
             if (OptionGroup.Count == 1)
             {
                 System.Windows.MessageBox.Show("Every character must have at least 1 Identity");
                 return;
             }
-            optionGroup.Remove(selectedOption);
+            optionGroup.Remove(SelectedOption);
         }
 
         private Identity GetNewIdentity()

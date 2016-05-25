@@ -31,6 +31,7 @@ namespace Module.HeroVirtualTabletop.Crowds
     public class Crowd : NotifyPropertyChanged, ICrowd
     {
         private string name;
+        [JsonProperty(Order = 0)]
         public string Name
         {
             get
@@ -64,7 +65,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
+        [JsonIgnore]
         private HashedObservableCollection<ICrowdMember, string> crowdMemberCollection;
+        [JsonIgnore]
         public ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; private set; }
         
         public Crowd()
@@ -108,8 +111,9 @@ namespace Module.HeroVirtualTabletop.Crowds
 
     public class CrowdModel : Crowd, ICrowdModel
     {
-        [JsonProperty(PropertyName = "Members")]
+        [JsonProperty(PropertyName = "CrowdMemberCollection", Order = 2)]
         private HashedObservableCollection<ICrowdMemberModel, string> crowdMemberCollection;
+        [JsonIgnore]
         public new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string> CrowdMemberCollection { get; private set; }
 
         [JsonIgnore]
@@ -171,6 +175,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         private Dictionary<string, IMemoryElementPosition> savedPositions;
+        [JsonProperty(Order = 3)]
         public Dictionary<string, IMemoryElementPosition> SavedPositions
         {
             get
@@ -216,6 +221,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         private int order;
+        [JsonProperty(Order = 1)]
         public int Order
         {
             get
@@ -284,6 +290,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             crowdModel.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(crowdModel.crowdMemberCollection);
             return crowdModel;
         }
+
         public override void SavePosition()
         {
             foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
@@ -296,6 +303,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
             }
         }
+
         public override void SavePosition(ICrowdMember c)
         {
             var position = (c as Character).Position.Clone(false);
@@ -304,6 +312,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             else
                 this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
         }
+
         public override void Place(IMemoryElementPosition position)
         {
             foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
@@ -339,6 +348,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     
             }
         }
+
         public CrowdModel() : base()
         {
             this.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.Order, x => x.Name);

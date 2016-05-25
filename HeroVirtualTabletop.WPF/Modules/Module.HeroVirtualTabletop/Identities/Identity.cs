@@ -8,6 +8,7 @@ using Module.Shared.Enumerations;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Newtonsoft.Json;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
@@ -81,7 +82,6 @@ namespace Module.HeroVirtualTabletop.Identities
         }
 
         private IdentityType type;
-
         public IdentityType Type
         {
             get
@@ -95,35 +95,33 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
-        private bool isDefault;
+        //private bool isDefault;
+        //public bool IsDefault
+        //{
+        //    get
+        //    {
+        //        return isDefault;
+        //    }
+        //    set
+        //    {
+        //        isDefault = value;
+        //        OnPropertyChanged("IsDefault");
+        //    }
+        //}
 
-        public bool IsDefault
-        {
-            get
-            {
-                return isDefault;
-            }
-            set
-            {
-                isDefault = value;
-                OnPropertyChanged("IsDefault");
-            }
-        }
-
-        private bool isActive;
-
-        public bool IsActive
-        {
-            get
-            {
-                return isActive;
-            }
-            set
-            {
-                isActive = value;
-                OnPropertyChanged("IsActive");
-            }
-        }
+        //private bool isActive;
+        //public bool IsActive
+        //{
+        //    get
+        //    {
+        //        return isActive;
+        //    }
+        //    set
+        //    {
+        //        isActive = value;
+        //        OnPropertyChanged("IsActive");
+        //    }
+        //}
 
         /// <param name="surface">Represents the name of the model or the costume to load</param>
         /// <param name="type">The type of the identity, it can be either a Model or a Costume</param>
@@ -133,8 +131,8 @@ namespace Module.HeroVirtualTabletop.Identities
             Type = type;
             Surface = surface;
             this.Name = name == null ? surface : name;
-            isDefault = false;
-            isActive = false;
+            //isDefault = false;
+            //isActive = false;
             this.keyBindsGenerator = new KeyBindsGenerator();
         }
 

@@ -104,6 +104,7 @@
                         <Setter Property="BorderThickness" Value="0"/>
                         <Setter Property="FontSize" Value="15"/>
                         <Setter Property="Background" Value="#00000000"/>
+                        <Setter Property="Width" Value="auto"/>
                     </Style>
                 </StackPanel.Resources>
                 <Button x:Name="AddOption" Content="&#xf067;" Foreground="Green" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>

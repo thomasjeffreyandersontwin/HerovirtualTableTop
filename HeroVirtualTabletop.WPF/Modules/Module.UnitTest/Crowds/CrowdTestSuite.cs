@@ -898,16 +898,16 @@ namespace Module.UnitTest.Crowds
             var clonedCharacter = characterExplorerViewModel.CrowdCollection[2].CrowdMemberCollection.Where(c => c.Name == "Batman (1)").FirstOrDefault() as CrowdMemberModel;
             if(originalCharacter.ActiveIdentity != null)
             {
-                Assert.AreEqual(originalCharacter.ActiveIdentity.IsActive, clonedCharacter.ActiveIdentity.IsActive);
-                Assert.AreEqual(originalCharacter.ActiveIdentity.IsDefault, clonedCharacter.ActiveIdentity.IsDefault);
+                //Assert.AreEqual(originalCharacter.ActiveIdentity.IsActive, clonedCharacter.ActiveIdentity.IsActive);
+                //Assert.AreEqual(originalCharacter.ActiveIdentity.IsDefault, clonedCharacter.ActiveIdentity.IsDefault);
                 Assert.AreEqual(originalCharacter.ActiveIdentity.Name, clonedCharacter.ActiveIdentity.Name);
                 Assert.AreEqual(originalCharacter.ActiveIdentity.Surface, clonedCharacter.ActiveIdentity.Surface);
                 Assert.AreEqual(originalCharacter.ActiveIdentity.Type, clonedCharacter.ActiveIdentity.Type);
             }
             if (originalCharacter.DefaultIdentity != null)
             {
-                Assert.AreEqual(originalCharacter.DefaultIdentity.IsActive, clonedCharacter.DefaultIdentity.IsActive);
-                Assert.AreEqual(originalCharacter.DefaultIdentity.IsDefault, clonedCharacter.DefaultIdentity.IsDefault);
+                //Assert.AreEqual(originalCharacter.DefaultIdentity.IsActive, clonedCharacter.DefaultIdentity.IsActive);
+                //Assert.AreEqual(originalCharacter.DefaultIdentity.IsDefault, clonedCharacter.DefaultIdentity.IsDefault);
                 Assert.AreEqual(originalCharacter.DefaultIdentity.Name, clonedCharacter.DefaultIdentity.Name);
                 Assert.AreEqual(originalCharacter.DefaultIdentity.Surface, clonedCharacter.DefaultIdentity.Surface);
                 Assert.AreEqual(originalCharacter.DefaultIdentity.Type, clonedCharacter.DefaultIdentity.Type);
@@ -917,8 +917,8 @@ namespace Module.UnitTest.Crowds
                 Assert.AreEqual(originalCharacter.AvailableIdentities.Count, clonedCharacter.AvailableIdentities.Count);
                 foreach (var identity in originalCharacter.AvailableIdentities)
                 {
-                    var clonedIdentity = clonedCharacter.AvailableIdentities.Where(i => i.IsActive == identity.IsActive && i.IsDefault == identity.IsDefault
-                        && i.Name == identity.Name && i.Surface == identity.Surface && i.Type == identity.Type).FirstOrDefault();
+                    var clonedIdentity = clonedCharacter.AvailableIdentities.Where(i =>
+                        i.Name == identity.Name && i.Surface == identity.Surface && i.Type == identity.Type).FirstOrDefault();
                     Assert.IsNotNull(clonedIdentity);
                 }
             }

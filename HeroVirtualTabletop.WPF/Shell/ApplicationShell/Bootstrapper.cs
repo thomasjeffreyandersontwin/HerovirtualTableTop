@@ -42,9 +42,15 @@ namespace ApplicationShell
                 NavigationManager.Navigate(ModuleEnum.HeroVirtualTabletop);
             });
 
+            Application.Current.Exit += Current_Exit;
+
             return shell;
         }
 
+        private void Current_Exit(object sender, ExitEventArgs e)
+        {
+            //Call CrowdRepository.WaitCompletion()
+        }
 
         void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
         {

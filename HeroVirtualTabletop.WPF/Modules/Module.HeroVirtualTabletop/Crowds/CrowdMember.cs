@@ -124,6 +124,27 @@ namespace Module.HeroVirtualTabletop.Crowds
                 return Name + crowdLabel;
             }
         }
+        
+        internal void CheckIfExistsInGame()
+        {
+            //bool retV = false;
+            MemoryElement oldTargeted = new MemoryElement();
+            Target();
+            MemoryElement currentTargeted = new MemoryElement();
+            if (currentTargeted.Label == Label)
+            {
+                //retV = true;
+                SetAsSpawned();
+            }
+            oldTargeted.Target();
+            //return retV;
+        }
+
+        public new string Spawn(bool completeEvent = true)
+        {
+            CheckIfExistsInGame();
+            return base.Spawn();
+        }
     }
     public class CrowdMemberModel : CrowdMember, ICrowdMemberModel
     {
@@ -196,7 +217,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             alreadyFiltered = false;
         }
 
-        [JsonIgnore]
+        //[JsonIgnore]
         public new ICrowdModel RosterCrowd
         {
             get
