@@ -124,17 +124,21 @@ namespace Framework.WPF.Services.PopupService
 
                 // Create window and add the user control to it
                 win = new Window();
+                win.Name = key;
                 //if(this.icon != null)
                 //    win.Icon = this.icon;
 
                 System.Windows.Media.SolidColorBrush backgroundBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.White);
                 if (background != null)
                     backgroundBrush = background;
+                var adornerDecorator = new System.Windows.Documents.AdornerDecorator();
                 Grid layoutGrid = new Grid();
+                layoutGrid.Name = "popupGrid";
                 layoutGrid.Background = backgroundBrush;
                 ctrl.Margin = new Thickness(5);
                 layoutGrid.Children.Add(ctrl);
-                win.Content = layoutGrid;
+                adornerDecorator.Child = layoutGrid;
+                win.Content = adornerDecorator;
                 win.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
                 // Adjust popup window's sizing properties with the user control

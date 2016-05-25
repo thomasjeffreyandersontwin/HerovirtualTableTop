@@ -57,5 +57,11 @@ namespace Framework.WPF.Services.BusyService
         {
             sbLoading.Stop();
         }
+
+        public void OverlayWithoutAnimation()
+        {
+            tbLoadingText.Visibility = Visibility.Collapsed;
+            grdLoadingAnimation.Visibility = Visibility.Collapsed;
+        }
     }
 }

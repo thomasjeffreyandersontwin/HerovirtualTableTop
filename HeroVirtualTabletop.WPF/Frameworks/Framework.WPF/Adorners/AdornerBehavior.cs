@@ -50,8 +50,10 @@ namespace Framework.WPF.Adorners
                     if (bValue && adorningElement != null)
                     {
                         ctrlAdorner = new ControlAdorner(adornedElement, adorningElement);
+                        adornedElement.UpdateLayout();
                         var adornerLayer = AdornerLayer.GetAdornerLayer(adornedElement);
-                        ctrlAdorner.SetLayer(adornerLayer);
+                        if(adornerLayer != null)
+                            ctrlAdorner.SetLayer(adornerLayer);
                         d.SetValue(CtrlAdornerProperty, ctrlAdorner);
                     }
                 }

@@ -10,6 +10,7 @@ namespace Framework.WPF.Services.BusyService
     {
         void ShowBusy();
         void ShowBusy(string text);
+        void ShowBusy(string[] windowNames);
         void HideBusy();
         void HideAllBusy();
         bool IsShowingBusy { get; }
