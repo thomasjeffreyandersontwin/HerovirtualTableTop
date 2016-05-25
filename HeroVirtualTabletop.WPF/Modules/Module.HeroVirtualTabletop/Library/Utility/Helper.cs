@@ -178,6 +178,26 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             return foundElement;
         }
 
+        public static string GetContainerWindowName(object element)
+        {
+            Window win = null;
+            string winName = "";
+            
+            DependencyObject dObj = element as DependencyObject;
+            while (win == null)
+            {
+                FrameworkElement elem = dObj as FrameworkElement;
+                dObj = elem.Parent;
+                if(dObj is Window)
+                {
+                    win = dObj as Window;
+                    winName = win.Name;
+                    break;
+                }
+            }
+            return winName;
+        }
+
         #endregion
     }
 }

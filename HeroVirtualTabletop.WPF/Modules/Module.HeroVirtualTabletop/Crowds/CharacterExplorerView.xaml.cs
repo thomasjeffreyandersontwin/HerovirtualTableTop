@@ -420,15 +420,5 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
         #endregion
-
-        private void textBlockCrowd_LostFocus(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void textBlockCrowd_GotFocus(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

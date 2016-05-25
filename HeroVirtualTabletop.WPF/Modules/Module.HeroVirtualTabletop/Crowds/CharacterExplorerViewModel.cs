@@ -34,9 +34,11 @@ namespace Module.HeroVirtualTabletop.Crowds
         //private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
         
         private string filter;
+        private string containerWindowName = "";
         private CrowdModel clipboardObjectOriginalCrowd = null;
         private ClipboardAction clipboardAction;
         public bool isUpdatingCollection = false;
+        private bool crowdCollectionLoaded = false;
         public object lastCharacterCrowdStateToUpdate = null;
         private List<Tuple<string, string>> rosterCrowdCharacterMembershipKeys;
 
@@ -188,6 +190,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #region Commands
 
+        public DelegateCommand<object> LoadCrowdCollectionCommand { get; private set; }
         public DelegateCommand<object> AddCrowdCommand { get; private set; }
         public DelegateCommand<object> AddCharacterCommand { get; private set; }
         public DelegateCommand<object> DeleteCharacterCrowdCommand { get; private set; }
@@ -213,7 +216,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             InitializeCommands();
-            LoadCrowdCollection();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddMemberToRosterEvent>().Subscribe(this.AddToRoster);
         }
@@ -223,6 +225,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Initialization
         private void InitializeCommands()
         {
+            this.LoadCrowdCollectionCommand = new DelegateCommand<object>(this.LoadCrowdCollection);
             this.AddCrowdCommand = new DelegateCommand<object>(this.AddCrowd);
             this.AddCharacterCommand = new DelegateCommand<object>(this.AddCharacter);
             this.DeleteCharacterCrowdCommand = new DelegateCommand<object>(this.DeleteCharacterCrowd, this.CanDeleteCharacterCrowd);
@@ -352,10 +355,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
 
         #region Load Crowd Collection
-        private void LoadCrowdCollection()
+        private void LoadCrowdCollection(object state)
         {
-            //this.BusyService.ShowBusy();
+            this.containerWindowName = Helper.GetContainerWindowName(state);
+            if(!crowdCollectionLoaded)
+        {
+                this.BusyService.ShowBusy(new string[] { containerWindowName });
             this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
+        }
         }
 
         private void LoadCrowdCollectionCallback(List<CrowdModel> crowdList)
@@ -377,7 +384,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             //    }
             //}
             
-            //this.BusyService.HideBusy();
+            this.BusyService.HideBusy();
+            this.crowdCollectionLoaded = true;
         }
 
         #endregion
@@ -817,13 +825,13 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void SaveCrowdCollection(object o = null)
         {
-            //this.BusyService.ShowBusy();
+            this.BusyService.ShowBusy(new string[] { containerWindowName});
             this.crowdRepository.SaveCrowdCollection(this.SaveCrowdCollectionCallback, this.CrowdCollection.ToList());
         }
 
         private void SaveCrowdCollectionCallback()
         {
-            //this.BusyService.HideBusy();
+            this.BusyService.HideBusy();
         }
 
         #endregion

@@ -68,20 +68,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                         mutexes.Remove(m);
                         e.Set();
                     }));
-
-            //System.Threading.ThreadPool.QueueUserWorkItem
-            //(new System.Threading.WaitCallback
-            //    (
-            //        delegate(object state)
-            //        {
-            //            List<CrowdModel> crowdCollection = Helper.GetDeserializedJSONFromFile<List<CrowdModel>>(crowdRepositoryPath);
-            //            if (crowdCollection == null)
-            //                crowdCollection = new List<CrowdModel>();
-            //            TakeBackup(); // Take backup of valid data file from last execution
-            //            this.getCrowdCollectionCompleted(crowdCollection);
-            //        }
-            //    )
-            //);
         }
 
         private Action saveCrowdCollectionCompleted;
@@ -108,17 +94,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                             e.Set();
                             events.Remove(e);
                         }));
-
-            //System.Threading.ThreadPool.QueueUserWorkItem
-            //(new System.Threading.WaitCallback
-            //    (
-            //        delegate(object state)
-            //        {
-            //            Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
-            //            this.saveCrowdCollectionCompleted();
-            //        }
-            //    )
-            //);
         }
 
         public void WaitCompletion()
