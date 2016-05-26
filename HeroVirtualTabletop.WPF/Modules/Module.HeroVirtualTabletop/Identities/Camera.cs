@@ -58,6 +58,12 @@ namespace Module.HeroVirtualTabletop.Identities
             set
             {
                 string[] keybinds = new string[2];
+                if (maneuveredCharacter != null)
+                {
+                    keybinds[0] = Render();
+                    keybinds[1] = maneuveredCharacter.Spawn();
+                    maneuveredCharacter = null;
+                }
                 if (value != null)
                 {
                     maneuveredCharacter = value;
@@ -78,15 +84,6 @@ namespace Module.HeroVirtualTabletop.Identities
                     maneuveredCharacter.ClearFromDesktop(true, true);
                     skin = value.ActiveIdentity;
                     keybinds[1] = skin.Render();
-                }
-                else
-                {
-                    if (maneuveredCharacter != null)
-                    {
-                        keybinds[0] = Render();
-                        keybinds[1] = maneuveredCharacter.Spawn();
-                        maneuveredCharacter = null;
-                    }
                 }
                 lastKeybinds = keybinds;
             }
