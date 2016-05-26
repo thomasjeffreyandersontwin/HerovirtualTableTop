@@ -279,8 +279,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                 if (!duplicateName)
                 {
                     RenameCharacterCrowd(updatedName);
-                    this.SaveCrowdCollection();
                     OnEditModeLeave(state, null);
+                    //System.Threading.Thread.Sleep(1000);
+                    this.SaveCrowdCollection();
                 }
                 else
                 {
