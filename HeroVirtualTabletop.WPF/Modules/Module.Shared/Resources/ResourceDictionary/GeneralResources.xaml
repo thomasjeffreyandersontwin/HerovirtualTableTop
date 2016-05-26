@@ -20,7 +20,7 @@
     <FontWeight x:Key="FontWeight_Bold">Bold</FontWeight>
 
     <Style x:Key="CustomModelessTransparentWindow" TargetType="{x:Type Window}">
-        <!--<Setter Property="Topmost" Value="True"></Setter>-->
+        <Setter Property="Topmost" Value="True"></Setter>
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="TextElement.FontSize" Value="13"/>
         <Setter Property="TextElement.Foreground" Value="White"/>
