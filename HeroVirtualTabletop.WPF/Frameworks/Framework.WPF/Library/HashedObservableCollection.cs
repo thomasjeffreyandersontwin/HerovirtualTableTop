@@ -17,12 +17,7 @@ namespace Framework.WPF.Library
         {
             this.collection = collection;
         }
-
-        //public void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, params Func<TValue, IComparable>[] keySelectors)
-        //{
-        //    collection.Sort(sortOrder, keySelectors);
-        //}
-
+                
         public virtual TValue this[TKey key]
         {
             get

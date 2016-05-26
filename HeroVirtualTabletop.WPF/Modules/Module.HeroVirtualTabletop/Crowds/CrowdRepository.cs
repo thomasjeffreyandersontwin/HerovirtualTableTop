@@ -67,6 +67,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                         m.ReleaseMutex();
                         mutexes.Remove(m);
                         e.Set();
+                        events.Remove(e);
                     }));
         }
 
@@ -87,8 +88,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                             mutexes.Add(m);
 
                             Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
+                            
                             this.saveCrowdCollectionCompleted();
-
+                            
                             m.ReleaseMutex();
                             mutexes.Remove(m);
                             e.Set();

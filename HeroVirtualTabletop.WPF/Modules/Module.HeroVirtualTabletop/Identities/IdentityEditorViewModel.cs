@@ -2,6 +2,7 @@
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Characters;
+using Module.HeroVirtualTabletop.Library.Events;
 using Module.Shared;
 using Prism.Events;
 using System.Collections.ObjectModel;
@@ -10,6 +11,8 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
+using System;
+using Microsoft.Practices.Prism.Commands;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
@@ -57,7 +60,10 @@ namespace Module.HeroVirtualTabletop.Identities
                     editedidentity.PropertyChanged -= EditedIdentity_PropertyChanged;
                 }
                 editedidentity = value;
-                editedidentity.PropertyChanged += EditedIdentity_PropertyChanged;
+                if (editedidentity != null)
+                {
+                    editedidentity.PropertyChanged += EditedIdentity_PropertyChanged;
+                }
                 OnPropertyChanged("EditedIdentity");
             }
         }
@@ -136,7 +142,7 @@ namespace Module.HeroVirtualTabletop.Identities
         {
             get
             {
-                return EditedIdentity == Owner.DefaultIdentity;
+                return EditedIdentity != null && EditedIdentity == Owner.DefaultIdentity;
             }
             set
             {
@@ -151,6 +157,9 @@ namespace Module.HeroVirtualTabletop.Identities
         #endregion
 
         #region Commands
+
+        public DelegateCommand<object> CloseEditorCommand { get; private set; }
+
         #endregion
 
         #region Constructor
@@ -162,20 +171,46 @@ namespace Module.HeroVirtualTabletop.Identities
             InitializeCommands();
             CreateModelsViewSource();
             CreateCostumesViewSource();
+            eventAggregator.GetEvent<EditIdentityEvent>().Subscribe(this.LoadIdentity);
         }
-
+        
         #endregion
 
         #region Initialization
 
         private void InitializeCommands()
         {
-            
+            this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadIdentity);
         }
 
         #endregion
 
         #region Methods
+        
+        private void LoadIdentity(Tuple<Identity, Character> data)
+        {
+            this.EditedIdentity = data.Item1;
+            this.Owner = data.Item2;
+            this.Owner.AvailableIdentities.CollectionChanged += AvailableIdentities_CollectionChanged;
+            this.Visibility = Visibility.Visible;
+        }
+
+        private void UnloadIdentity(object state = null)
+        {
+            this.EditedIdentity = null;
+            this.Owner.AvailableIdentities.CollectionChanged -= AvailableIdentities_CollectionChanged;
+            this.Owner = null;
+            this.Visibility = Visibility.Collapsed;
+        }
+
+        private void AvailableIdentities_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove 
+                && e.OldItems.Contains(this.EditedIdentity))
+            {
+                this.UnloadIdentity();
+            }
+        }
 
         private void CreateModelsViewSource()
         {

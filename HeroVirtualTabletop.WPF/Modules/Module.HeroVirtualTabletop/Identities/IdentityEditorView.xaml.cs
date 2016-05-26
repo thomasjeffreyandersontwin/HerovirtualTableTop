@@ -20,9 +20,12 @@ namespace Module.HeroVirtualTabletop.Identities
     /// </summary>
     public partial class IdentityEditorView : UserControl
     {
-        public IdentityEditorView()
+        private IdentityEditorViewModel viewModel;
+        public IdentityEditorView(IdentityEditorViewModel viewModel)
         {
             InitializeComponent();
+            this.viewModel = viewModel;
+            this.DataContext = this.viewModel;
         }
     }
 }

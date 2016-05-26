@@ -21,6 +21,7 @@ using Module.HeroVirtualTabletop.Library.Events;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Module.Shared.Events;
+using System.Windows;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -280,7 +281,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                 {
                     RenameCharacterCrowd(updatedName);
                     OnEditModeLeave(state, null);
-                    //System.Threading.Thread.Sleep(1000);
                     this.SaveCrowdCollection();
                 }
                 else
@@ -371,23 +371,18 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
-            //Cannot do it here because we can't add to roster from a different thread
-            //var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
-            //eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
-            //CANNOT DO IT HERE, NEED TO PASS THOSE CHARS TO THE ROSTER AND LET IT HANDLE THEM
-            //foreach (CrowdMemberModel member in rosterMembers)
-            //{
-            //    this.rosterCrowdCharacterMembershipKeys = new List<Tuple<string, string>>();
-            //    ConstructRosterCrowdCharacterMembershipKeys(member.RosterCrowd as CrowdModel);
-            //    if (!rosterCrowdCharacterMembershipKeys.Contains(new Tuple<string, string>(member.Name, member.RosterCrowd.Name)))
-            //    {
-            //        AddToRoster(new Tuple<CrowdMemberModel, CrowdModel>(member, member.RosterCrowd as CrowdModel));
-            //    }
-            //}
+            Action d =
+               delegate ()
+               {
+                   var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
+                   eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
+               };
+            Application.Current.Dispatcher.BeginInvoke(d);
             
             this.BusyService.HideBusy();
             this.crowdCollectionLoaded = true;
         }
+
 
         #endregion
 
@@ -1104,7 +1099,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             CrowdMemberModel crowdMember = data.Item1;
             CrowdModel rosterCrowd = data.Item2;
-            bool saveNeeded = false;
             List<CrowdMemberModel> rosterCharacters = new List<CrowdMemberModel>();
             if (rosterCrowd == null)
             {
@@ -1123,7 +1117,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                     CrowdMemberModel clonedModel = crowdMember.Clone() as CrowdMemberModel;
                     EliminateDuplicateName(clonedModel);
                     this.AddNewCharacter(clonedModel);
-                    saveNeeded = true;
                     // Now send to roster the cloned character
                     clonedModel.RosterCrowd = rosterCrowd;
                     rosterCharacters.Add(clonedModel);
@@ -1154,7 +1147,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                         EliminateDuplicateName(clonedModel);
                         this.AddCharacterToAllCharactersCrowd(clonedModel);
                         this.AddCharacterToCrowd(clonedModel, crowdModel);
-                        saveNeeded = true;
                         // Now send to roster the cloned character
                         clonedModel.RosterCrowd = crowdModel;
                         rosterCharacters.Add(clonedModel);
@@ -1164,7 +1156,6 @@ namespace Module.HeroVirtualTabletop.Crowds
 
             if (rosterCharacters.Count > 0)
                 eventAggregator.GetEvent<AddToRosterEvent>().Publish(rosterCharacters);
-            if (saveNeeded)
                 this.SaveCrowdCollection();
         }
 

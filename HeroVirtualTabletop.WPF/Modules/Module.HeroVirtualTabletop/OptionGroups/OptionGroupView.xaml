@@ -24,92 +24,102 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
+        <GroupBox Header="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:OptionGroupView}, Path=Name}" x:Name="grpBox" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+            <Grid>
+                <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
                             DefaultOption="{Binding Path=DefaultOption}"
                             ActiveOption="{Binding Path=ActiveOption}"
                             HorizontalAlignment="Stretch" 
                             SelectionMode="Single"
+                            MinHeight="70"
+                            MaxHeight="150"
                             Margin="0 0 28 0" Background="Transparent">
-            <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <WrapPanel />
-                </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>
-            <ListBox.ItemTemplate>
-                <DataTemplate >
-                    <Grid Name="optGrid" 
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="5" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate >
+                            <Grid Name="optGrid" 
                             ContextMenu="{StaticResource optionListBoxMenu}">
-                        <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="#FF3377FF"/>
+                                <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="#FF3377FF"/>
 
-                        <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="Silver">
-                            <Ellipse.Style>
-                                <Style TargetType="Ellipse">
-                                    <Setter Property="Visibility" Value="Hidden"></Setter>
-                                    <Style.Triggers>
-                                        <DataTrigger Value="True">
-                                            <DataTrigger.Binding>
-                                                <MultiBinding Converter="{StaticResource ResourceKey=CharOptComparer}">
-                                                    <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:OptionListBox}}" Path="DefaultOption"></Binding>
-                                                    <Binding RelativeSource="{RelativeSource Self}" Path="DataContext"></Binding>
-                                                </MultiBinding>
-                                            </DataTrigger.Binding>
-                                            <Setter Property="Visibility" Value="Visible"></Setter>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Ellipse.Style>
-                        </Ellipse>
-                        
-                        <Ellipse Width="64" Height="64" StrokeThickness="2" Stroke="Red">
-                            <Ellipse.Style>
-                                <Style TargetType="Ellipse">
-                                    <Setter Property="Visibility" Value="Hidden"></Setter>
-                                    <Style.Triggers>
-                                        <DataTrigger Value="True">
-                                            <DataTrigger.Binding>
-                                                <MultiBinding Converter="{StaticResource ResourceKey=CharOptComparer}">
-                                                    <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:OptionListBox}}" Path="ActiveOption"></Binding>
-                                                    <Binding RelativeSource="{RelativeSource Self}" Path="DataContext"></Binding>
-                                                </MultiBinding>
-                                            </DataTrigger.Binding>
-                                            <Setter Property="Visibility" Value="Visible"></Setter>
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Ellipse.Style>
-                        </Ellipse>
-                        <TextBlock Text="{Binding Path=Name}" Width="60" VerticalAlignment="Center" TextAlignment="Center" Foreground="White"></TextBlock>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </local:OptionListBox>
-        <Border>
-            <Border.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="Width" Value="Auto"/>
-                    <Setter Property="Panel.ZIndex" Value="1000"/>
-                    <Setter Property="HorizontalAlignment" Value="Right"/>
-                    <Setter Property="VerticalAlignment" Value="Top"/>
-                    <Setter Property="Margin" Value="4 4 4 4"/>
-                    <Setter Property="CornerRadius" Value="3"/>
-                    <Setter Property="BorderBrush" Value="DarkGray"/>
-                    <Setter Property="BorderThickness" Value="0"/>
-                </Style>
-            </Border.Resources>
-            <StackPanel VerticalAlignment="Bottom">
-                <StackPanel.Resources>
-                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
-                        <Setter Property="Padding" Value="0"/>
-                        <Setter Property="Margin" Value="0"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                        <Setter Property="FontSize" Value="15"/>
-                        <Setter Property="Background" Value="#00000000"/>
-                        <Setter Property="Width" Value="auto"/>
-                    </Style>
-                </StackPanel.Resources>
-                <Button x:Name="AddOption" Content="&#xf067;" Foreground="Green" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
-                <Button x:Name="RemoveOption" Content="&#xf068;" Foreground="Red" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
-            </StackPanel>
-        </Border>
+                                <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="Silver">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                                            <Style.Triggers>
+                                                <DataTrigger Value="True">
+                                                    <DataTrigger.Binding>
+                                                        <MultiBinding Converter="{StaticResource ResourceKey=CharOptComparer}">
+                                                            <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:OptionListBox}}" Path="DefaultOption"></Binding>
+                                                            <Binding RelativeSource="{RelativeSource Self}" Path="DataContext"></Binding>
+                                                        </MultiBinding>
+                                                    </DataTrigger.Binding>
+                                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+
+                                <Ellipse Width="64" Height="64" StrokeThickness="2" Stroke="Red">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
+                                            <Style.Triggers>
+                                                <DataTrigger Value="True">
+                                                    <DataTrigger.Binding>
+                                                        <MultiBinding Converter="{StaticResource ResourceKey=CharOptComparer}">
+                                                            <Binding RelativeSource="{RelativeSource Mode=FindAncestor, AncestorType={x:Type local:OptionListBox}}" Path="ActiveOption"></Binding>
+                                                            <Binding RelativeSource="{RelativeSource Self}" Path="DataContext"></Binding>
+                                                        </MultiBinding>
+                                                    </DataTrigger.Binding>
+                                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <TextBlock Text="{Binding Path=Name}" Width="60" VerticalAlignment="Center" TextAlignment="Center" Foreground="White">
+                                    <TextBlock.InputBindings>
+                                        <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EditOptionCommand}" MouseAction="LeftDoubleClick"/>
+                                    </TextBlock.InputBindings>
+                                </TextBlock>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </local:OptionListBox>
+                <Border>
+                    <Border.Resources>
+                        <Style TargetType="{x:Type Border}">
+                            <Setter Property="Width" Value="Auto"/>
+                            <Setter Property="Panel.ZIndex" Value="1000"/>
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="Margin" Value="4 4 4 4"/>
+                            <Setter Property="CornerRadius" Value="3"/>
+                            <Setter Property="BorderBrush" Value="DarkGray"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                        </Style>
+                    </Border.Resources>
+                    <StackPanel VerticalAlignment="Bottom">
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="FontSize" Value="15"/>
+                                <Setter Property="Background" Value="#00000000"/>
+                                <Setter Property="Width" Value="auto"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <Button x:Name="AddOption" Content="&#xf067;" Foreground="Green" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
+                        <Button x:Name="RemoveOption" Content="&#xf068;" Foreground="Red" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </GroupBox>
     </Grid>
 </UserControl>

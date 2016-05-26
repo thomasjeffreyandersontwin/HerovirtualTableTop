@@ -40,9 +40,9 @@
             <TextBox Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <GridSplitter></GridSplitter>
             <StackPanel>
-                <optiongroups:OptionGroupView DataContext="{Binding Path=IdentityViewModel}">
+                <optiongroups:OptionGroupView x:Name="Identities" DataContext="{Binding Path=IdentityViewModel}">
                 </optiongroups:OptionGroupView>
-                <optiongroups:OptionGroupView DataContext="{Binding Path=AnimatedAbilitiesViewModel}">
+                <optiongroups:OptionGroupView x:Name="Abilitities" DataContext="{Binding Path=AnimatedAbilitiesViewModel}">
                 </optiongroups:OptionGroupView>
             </StackPanel>
         </StackPanel>

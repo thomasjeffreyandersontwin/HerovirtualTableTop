@@ -65,8 +65,7 @@ namespace Module.HeroVirtualTabletop.Library
             new Camera().Render();
 
             LoadMainView();
-
-            eventAggregator.GetEvent<EditIdentityEvent>().Subscribe(this.LoadIdentityEditorView);
+            
         }
 
         #endregion
@@ -82,17 +81,7 @@ namespace Module.HeroVirtualTabletop.Library
             CharacterCrowdMainViewModel characterCrowdMainViewModel = this.Container.Resolve<CharacterCrowdMainViewModel>();
             PopupService.ShowDialog("CharacterCrowdMainView", characterCrowdMainViewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
         }
-
-        private void LoadIdentityEditorView(Tuple<Identity, Character> data)
-        {
-            System.Windows.Style style = Helper.GetCustomWindowStyle();
-            IdentityEditorViewModel identityEditorViewModel = this.Container.Resolve<IdentityEditorViewModel>();
-            identityEditorViewModel.EditedIdentity = data.Item1;
-            identityEditorViewModel.Owner = data.Item2;
-            identityEditorViewModel.Visibility = Visibility.Visible;
-            PopupService.ShowDialog("IdentityEditorView", identityEditorViewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
-        }
-
+        
         private void LaunchGame()
         {
             bool directoryExists = CheckGameDirectory();
