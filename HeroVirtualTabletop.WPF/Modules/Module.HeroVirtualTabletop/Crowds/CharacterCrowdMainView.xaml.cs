@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Module.HeroVirtualTabletop.Identities;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -33,6 +34,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.LoadCharacterExplorer();
             this.viewModel.LoadRosterExplorer();
             this.viewModel.LoadCharacterEditor();
+            this.viewModel.LoadIdentityEditor();
         }
 
         void viewModel_ViewLoaded(object sender, EventArgs e)
@@ -43,6 +45,13 @@ namespace Module.HeroVirtualTabletop.Crowds
                 RenderRosterExplorer(sender as RosterExplorerView);
             else if (sender != null && sender is CharacterEditorView)
                 RenderCharacterEditor(sender as CharacterEditorView);
+            else if (sender != null && sender is IdentityEditorView)
+                RenderIdentityEditor(sender as IdentityEditorView);
+        }
+
+        private void RenderIdentityEditor(IdentityEditorView identityEditorView)
+        {
+            this.identityEditorPanel.Children.Add(identityEditorView);
         }
 
         private void RenderCharacterExplorer(CharacterExplorerView charExplorerView)

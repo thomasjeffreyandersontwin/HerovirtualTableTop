@@ -11,17 +11,57 @@
              d:DesignHeight="300" d:DesignWidth="300"
              Visibility="{Binding Visibility}">
     <UserControl.Resources>
-        <ObjectDataProvider x:Key="IdentityTypes" MethodName="GetValues"
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <ObjectDataProvider x:Key="IdentityTypes" MethodName="GetValues"
                             ObjectType="{x:Type system:Enum}">
-            <ObjectDataProvider.MethodParameters>
-                <x:Type TypeName="enumerations:IdentityType"/>
-            </ObjectDataProvider.MethodParameters>
-        </ObjectDataProvider>
-        <convertes:IdentityTypeConverter x:Key="identityTypeConverter"></convertes:IdentityTypeConverter>
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="enumerations:IdentityType"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
+            <convertes:IdentityTypeConverter x:Key="identityTypeConverter"></convertes:IdentityTypeConverter>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <StackPanel>
-            <TextBox Name="txtBoxName" Text="{Binding Path=EditedIdentity.Name, UpdateSourceTrigger=PropertyChanged}" Margin="5,10,5,5"></TextBox>
+            <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0">
+                <Button.Template>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Grid>
+                            <Ellipse x:Name="Circle" Fill="Transparent" Stroke="DarkGray" StrokeThickness="1"/>
+                            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver"
+                             Value="true">
+                                <Setter Property="Stroke"
+                                Value="Red"
+                                TargetName="Circle"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Button.Template>
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="FontFamily" Value="{StaticResource FontFamily_FontAwesome}"/>
+                        <Setter Property="FontSize" Value="15"/>
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="DarkGray"/>
+                        <Setter Property="Width" Value="20"/>
+                        <Setter Property="Height" Value="20"/>
+                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver"
+                             Value="true">
+                                <Setter Property="Foreground" Value="Red"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            <TextBox Name="txtBoxName" Text="{Binding Path=EditedIdentity.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="5,5,5,5"></TextBox>
 
             <CheckBox Name="IsDefault" IsChecked="{Binding Path=IsDefault, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Default Identity" Foreground="White" Margin="5"/>
 

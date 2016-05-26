@@ -24,6 +24,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Expander Grid.Column="0" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
@@ -81,6 +82,27 @@
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="ChracterEditor">
                     </ToggleButton>
                     <Grid x:Name="charEditorPanel" Width="Auto" Grid.Row="1"/>
+                </Grid>
+            </GroupBox>
+        </Expander>
+        <Expander Grid.Column="3" Style="{StaticResource VerticalExpanderStyle}"
+                  OverridesDefaultStyle="True"
+                  Header="Identity Editor"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
+                  Visibility="{Binding ElementName=identityEditorPanel, Path=Children[0].DataContext.Visibility}"
+                  IsExpanded="{Binding IsIdentityEditorExpanded}"
+                  >
+
+            <GroupBox Header="Identity Editor" x:Name="grpBoxIdentityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsIdentityEditorExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="IdentityEditor">
+                    </ToggleButton>
+                    <Grid x:Name="identityEditorPanel" Width="Auto" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>
