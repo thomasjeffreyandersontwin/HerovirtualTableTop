@@ -85,7 +85,7 @@
                                                 <Expander.Header>
                                                     <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
                                                 </Expander.Header>
-                                                <ItemsPresenter></ItemsPresenter>
+                                                <ItemsPresenter PreviewMouseDown="ListViewItem_PreviewMouseDown"></ItemsPresenter>
                                             </Expander>
                                         </ControlTemplate>
                                     </Setter.Value>
@@ -96,7 +96,7 @@
                 </ListBox.GroupStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}"/>
+                        <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </library:MultiSelectListBox>
