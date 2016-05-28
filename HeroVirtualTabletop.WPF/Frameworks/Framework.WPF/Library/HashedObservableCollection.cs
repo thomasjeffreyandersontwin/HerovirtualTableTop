@@ -191,7 +191,7 @@ namespace Framework.WPF.Library
 
         public virtual bool UpdateKey(TKey oldKey, TKey newKey)
         {
-            if (!indices.ContainsKey(oldKey)) 
+            if (!indices.ContainsKey(oldKey) || indices.ContainsKey(newKey)) 
                 return false;
             
             int x = indices[oldKey];
@@ -208,6 +208,12 @@ namespace Framework.WPF.Library
             {
                 indices[keySelector(item)] = Items.IndexOf(item);
             }
+        }
+
+        public TKey GetKeyFromItem(TValue item)
+        {
+            int index = this.IndexOf(item);
+            return indices.Keys.ToList()[indices.Values.ToList().IndexOf(index)];
         }
 
     }

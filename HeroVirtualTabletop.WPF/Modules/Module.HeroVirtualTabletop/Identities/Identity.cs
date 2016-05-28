@@ -50,7 +50,7 @@ namespace Module.HeroVirtualTabletop.Identities
         }
 
         #endregion
-
+        
         protected KeyBindsGenerator keyBindsGenerator;
 
         private string name;
@@ -62,6 +62,7 @@ namespace Module.HeroVirtualTabletop.Identities
             }
             set
             {
+                object oldValue = name;
                 name = value;
                 OnPropertyChanged("Name");
             }

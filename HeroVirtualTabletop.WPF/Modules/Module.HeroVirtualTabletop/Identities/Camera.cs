@@ -21,12 +21,12 @@ namespace Module.HeroVirtualTabletop.Identities
 
         public string MoveToTarget(bool completeEvent = true)
         {
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow, "");
+            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow, "");
             if (completeEvent)
             {
                 return keyBindsGenerator.CompleteEvent();
             }
-            return string.Empty;
+            return keybind;
         }
 
         public new string Render(bool completeEvent = true)
@@ -68,16 +68,15 @@ namespace Module.HeroVirtualTabletop.Identities
                 {
                     maneuveredCharacter = value;
                     maneuveredCharacter.Target(false);
-
-                    MoveToTarget(false);
-                    keybinds[0] = keyBindsGenerator.CompleteEvent();
+                    
+                    keybinds[0] = MoveToTarget();
 
                     DateTime k = DateTime.Now;
                     Position lastPosition = position.Clone(false) as Position;
                     float dist = 10;
                     while (position.IsWithin(dist, maneuveredCharacter.Position) == false && position != lastPosition) //(DateTime.Now - k).Seconds < 10 &&
                     {
-                        lastPosition = position.Clone() as Position;
+                        lastPosition = position.Clone(false) as Position;
                         System.Threading.Thread.Sleep(500);
                     }
 
