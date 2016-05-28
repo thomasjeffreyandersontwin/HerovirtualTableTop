@@ -167,7 +167,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 AddAbility(state);
                 return;
             }
-            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            //eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
         
         private void RemoveOption(object state)
@@ -181,9 +181,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 optionGroup.Remove(SelectedOption);
             }
-            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            //eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
-
+        
         private T GetDefaultOption()
         {
             if (typeof(T) == typeof(Identity))
@@ -275,7 +275,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             (optionGroup as OptionGroup<AnimatedAbility>).Add(GetNewAbility());
         }
-
+        
         private AnimatedAbility GetNewAbility()
         {
             return new AnimatedAbility(optionGroup.NewValidOptionName("Ability"), owner: this.Owner);
