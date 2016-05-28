@@ -328,6 +328,28 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        public void TargetOrFollow()
+        {
+
+            if (this.CanToggleTargeted(null))
+            {
+                foreach (CrowdMemberModel member in SelectedParticipants)
+                {
+                    if (member.IsTargeted)
+                        member.TargetAndFollow();
+                    else
+                        member.ToggleTargeted();
+                }
+            }
+        }
+        public void TargetAndFollow()
+        {
+            if(this.CanTargetAndFollow(null))
+            {
+                this.TargetAndFollow(null);
+            }
+        }
+
         #endregion
 
         #region Move Target to Camera
@@ -381,6 +403,14 @@ namespace Module.HeroVirtualTabletop.Roster
                 member.ToggleManueveringWithCamera();
             }
             Commands_RaiseCanExecuteChanged();
+        }
+
+        public void ToggleManueverWithCamera()
+        {
+            if(this.CanToggleManeuverWithCamera(null))
+            {
+                this.ToggleManeuverWithCamera(null);
+            }
         }
 
         #endregion

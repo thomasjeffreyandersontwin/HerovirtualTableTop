@@ -114,6 +114,9 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="AnimatedAbilities\AbilityEditorView.xaml.cs">
+      <DependentUpon>AbilityEditorView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="AnimatedAbilities\AnimatedAbility.cs" />
     <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="Characters\CharacterEditorView.xaml.cs">
@@ -207,6 +210,10 @@
     <Folder Include="Movements\" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="AnimatedAbilities\AbilityEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Characters\CharacterEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -25,6 +25,14 @@
             <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext}"/>
             <ContextMenu x:Key="RosterExplorerMenu">
                 <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
+                <MenuItem Header="Save Position" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SavePositionCommand}"></MenuItem>
+                <MenuItem Header="Place" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlaceCommand}"></MenuItem>
+                <MenuItem Header="Spawn" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SpawnCommand}"></MenuItem>
+                <MenuItem Header="Toggle Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ToggleTargetedCommand}"></MenuItem>
+                <MenuItem Header="Move Camera to Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.TargetAndFollowCommand}"></MenuItem>
+                <MenuItem Header="Move Target to Camera" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.MoveTargetToCameraCommand}"></MenuItem>
+                <MenuItem Header="Maneuver with camera" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ToggleManeuverWithCameraCommand}"></MenuItem>
+                <MenuItem Header="Clear From Desktop" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ClearFromDesktopCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -77,7 +85,7 @@
                                                 <Expander.Header>
                                                     <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
                                                 </Expander.Header>
-                                                <ItemsPresenter></ItemsPresenter>
+                                                <ItemsPresenter PreviewMouseDown="ListViewItem_PreviewMouseDown"></ItemsPresenter>
                                             </Expander>
                                         </ControlTemplate>
                                     </Setter.Value>
@@ -88,7 +96,7 @@
                 </ListBox.GroupStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}"/>
+                        <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </library:MultiSelectListBox>

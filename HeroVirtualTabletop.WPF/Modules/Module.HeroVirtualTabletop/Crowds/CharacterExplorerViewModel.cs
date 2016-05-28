@@ -378,11 +378,11 @@ namespace Module.HeroVirtualTabletop.Crowds
                    eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
                };
             Application.Current.Dispatcher.BeginInvoke(d);
-
+            
             this.BusyService.HideBusy();
             this.crowdCollectionLoaded = true;
         }
-        
+
 
         #endregion
 
@@ -1156,7 +1156,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
             if (rosterCharacters.Count > 0)
                 eventAggregator.GetEvent<AddToRosterEvent>().Publish(rosterCharacters);
-            this.SaveCrowdCollection();
+                this.SaveCrowdCollection();
         }
 
         public void ConstructRosterCrowdCharacterMembershipKeys(CrowdModel crowdModel)
