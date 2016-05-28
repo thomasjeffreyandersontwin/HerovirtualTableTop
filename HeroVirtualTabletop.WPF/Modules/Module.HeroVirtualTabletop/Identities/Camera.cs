@@ -4,6 +4,7 @@ using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.Shared.Enumerations;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -71,15 +72,28 @@ namespace Module.HeroVirtualTabletop.Identities
                     
                     keybinds[0] = MoveToTarget();
 
-                    DateTime k = DateTime.Now;
-                    Position lastPosition = position.Clone(false) as Position;
-                    float dist = 10;
-                    while (position.IsWithin(dist, maneuveredCharacter.Position) == false && position != lastPosition) //(DateTime.Now - k).Seconds < 10 &&
+                    float dist = 13.23f, calculatedDistance, lastCalculatedDistance = 0f;
+                    int maxRecalculationCount = 5; // We will allow the same distance to be calculated 5 times at max. After this we'll assume that the camera is stuck.
+                    Hashtable distanceTable = new Hashtable();
+                    while (position.IsWithin(dist, maneuveredCharacter.Position, out calculatedDistance) == false)
                     {
-                        lastPosition = position.Clone(false) as Position;
+                        lastCalculatedDistance = calculatedDistance;
+                        if(distanceTable.Contains(calculatedDistance))
+                        {
+                            int count = (int)distanceTable[calculatedDistance];
+                            count++;
+                            if (count > maxRecalculationCount)
+                                break;
+                            else
+                                distanceTable[calculatedDistance] = count;
+                        }
+                        else
+                        {
+                            distanceTable.Add(calculatedDistance, 1);
+                        }
                         System.Threading.Thread.Sleep(500);
                     }
-
+                    distanceTable.Clear();
                     maneuveredCharacter.ClearFromDesktop(true, true);
                     skin = value.ActiveIdentity;
                     keybinds[1] = skin.Render();

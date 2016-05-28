@@ -2,7 +2,6 @@
 using Module.Shared.Enumerations;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -184,8 +183,6 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
                 return command;
             }
 
-            IntPtr HVThWnd = Process.GetCurrentProcess().MainWindowHandle;
-
             Utility.WindowsUtilities.SetForegroundWindow(hWnd);
             Utility.WindowsUtilities.SetActiveWindow(hWnd);
             Utility.WindowsUtilities.ShowWindow(hWnd, 3); // 3 = SW_SHOWMAXIMIZED
@@ -199,10 +196,9 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             System.Threading.Thread.Sleep(250);
 
             input.Send(triggerKey.ToLower());
-            
-            Utility.WindowsUtilities.SetForegroundWindow(HVThWnd);
-            Utility.WindowsUtilities.SetActiveWindow(HVThWnd);
-            
+
+            System.Threading.Thread.Sleep(250);
+
             return command;
         }
     }
