@@ -14,6 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <convertes:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -25,11 +26,11 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Expander Grid.Column="0" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Character Explorer"
-                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
             <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
@@ -48,7 +49,6 @@
         <Expander Grid.Column="1" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Roster Explorer"
-                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsRosterExplorerExpanded}"
                   >
 
@@ -68,7 +68,6 @@
         <Expander Grid.Column="2" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Character Editor"
-                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterEditorExpanded}"
                   >
 
@@ -88,7 +87,6 @@
         <Expander Grid.Column="3" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Identity Editor"
-                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   Visibility="{Binding ElementName=identityEditorPanel, Path=Children[0].DataContext.Visibility}"
                   IsExpanded="{Binding IsIdentityEditorExpanded}"
                   >
@@ -103,6 +101,26 @@
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="IdentityEditor">
                     </ToggleButton>
                     <Grid x:Name="identityEditorPanel" Width="Auto" Grid.Row="1"/>
+                </Grid>
+            </GroupBox>
+        </Expander>
+        <Expander Grid.Column="4" Style="{StaticResource VerticalExpanderStyle}"
+                  OverridesDefaultStyle="True"
+                  Header="Ability Editor"
+                  Visibility="{Binding ElementName=abilityEditorPanel, Path=Children[0].DataContext.IsShowingAbilityEditor, Converter={StaticResource BooleanToVisibilityConverter}}"
+                  IsExpanded="{Binding IsAbilityEditorExpanded}"
+                  >
+
+            <GroupBox Header="Ability Editor" x:Name="grpBoxAbilityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsAbilityEditorExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="AbilityEditor">
+                    </ToggleButton>
+                    <Grid x:Name="abilityEditorPanel" Width="Auto" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>

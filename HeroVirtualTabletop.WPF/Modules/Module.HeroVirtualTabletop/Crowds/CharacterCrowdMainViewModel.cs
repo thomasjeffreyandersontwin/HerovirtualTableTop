@@ -2,6 +2,7 @@
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Events;
@@ -89,7 +90,22 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
+        private bool isAbilityEditorExpanded;
+        public bool IsAbilityEditorExpanded
+        {
+            get
+            {
+                return isAbilityEditorExpanded;
+            }
+            set
+            {
+                isAbilityEditorExpanded = value;
+                OnPropertyChanged("IsAbilityEditorExpanded");
+            }
+        }
+
         #endregion
+
         #region Commands
 
         public DelegateCommand<object> CollapsePanelCommand { get; private set; }
@@ -105,6 +121,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe((IEnumerable<CrowdMemberModel> models) => { this.IsRosterExplorerExpanded = true; });
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe((Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple) => { this.IsCharacterEditorExpanded = true; });
             this.eventAggregator.GetEvent<EditIdentityEvent>().Subscribe((Tuple<Identity, Character> tuple) => { this.IsIdentityEditorExpanded = true; });
+            this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe((Tuple<AnimatedAbility, Character> tuple) => { this.IsAbilityEditorExpanded = true; });
         }
 
         #endregion
@@ -139,6 +156,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             IdentityEditorView view = this.Container.Resolve<IdentityEditorView>();
             OnViewLoaded(view, null);
         }
+        public void LoadAbilityEditor()
+        {
+            AbilityEditorView view = this.Container.Resolve<AbilityEditorView>();
+            OnViewLoaded(view, null);
+        }
 
         private void CollapsePanel(object state)
         {
@@ -155,6 +177,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                     break;
                 case "IdentityEditor":
                     this.IsIdentityEditorExpanded = false;
+                    break;
+                case "AbilityEditor":
+                    this.IsAbilityEditorExpanded = false;
                     break;
             }
         }

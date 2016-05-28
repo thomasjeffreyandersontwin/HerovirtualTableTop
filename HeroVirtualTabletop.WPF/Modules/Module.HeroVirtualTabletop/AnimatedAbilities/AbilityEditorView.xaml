@@ -3,9 +3,131 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
+             xmlns:abilities="clr-namespace:Module.HeroVirtualTabletop.AnimatedAbilities"
+             mc:Ignorable="d" >
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <Grid>
-            
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <Button x:Name="closeBtn" Grid.Row="0" Grid.Column="2"  HorizontalAlignment="Right" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="txtBoxName" Grid.Row="0" Grid.Column="0" Text="{Binding EditedAbility.Name, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+            <CheckBox Name="chkBoxIsAttack" Grid.Row="0" Grid.Column="1"  IsChecked="{Binding IsAttack}" Content="Attack" Foreground="White" Margin="5"/>
+            <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding EditedAbility.Sequence}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding EditedAbility.Sequence}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            </Grid>
+            <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack" Margin="2" Style="{StaticResource IconButton}"/>
+                <Button x:Name="btnDefense" Grid.Column="1" Content="&#xf132;" ToolTip="Defense" Margin="2" Style="{StaticResource IconButton}"/>
+            </Grid>
+        </Grid>
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <StackPanel.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
+            </StackPanel.Resources>
+            <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Clone" Command="{Binding CloneCharacterCrowdCommand}"/>
+            <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Cut" Command="{Binding CutCharacterCrowdCommand}"/>
+            <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Link" Command="{Binding LinkCharacterCrowdCommand}"/>
+            <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Paste" Command="{Binding PasteCharacterCrowdCommand}"/>
+            <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
+            <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Crowd" Command="{Binding AddCrowdCommand}"/>
+            <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Remove" Command="{Binding DeleteCharacterCrowdCommand}" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" >
+            <StackPanel.Resources>
+                <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
+            </StackPanel.Resources>
+            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCharacterCrowdCommand}"/>
+            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCharacterCrowdCommand}"/>
+            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Link" Command="{Binding LinkCharacterCrowdCommand}"/>
+            <Button x:Name="btnRemove" Content="&#xf235;" ToolTip="Paste" Command="{Binding PasteCharacterCrowdCommand}"/>
+            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
+        </StackPanel>
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>
+            <CheckBox Name="chkBoxPlayWithNext" Grid.Column="1" IsChecked="{Binding PlayWithNext}" Content="Play W/ Next" Foreground="White" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+        </Grid>
+        <TreeView x:Name="treeViewCrowd" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding character.AnimatedAbilities}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
+                  Margin="0"
+                  >
+            <TreeView.Resources>
+                <HierarchicalDataTemplate DataType="{x:Type abilities:NestedAnimationElement}"
+                                    ItemsSource="{Binding AnimationElements}"
+                                    >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding TextToUseAccordingToAnimationType}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        </TextBlock>
+                        <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
+                            <TextBox x:Name="textBlockCrowd" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                            </TextBox>
+                            <TextBox x:Name="textBoxCrowd" Visibility="Hidden" MinWidth="100"
+                                         Text="{Binding Name, UpdateSourceTrigger=Explicit}">
+                            </TextBox>
+                        </Grid>
+                    </Grid>
+                </HierarchicalDataTemplate>
+
+                <DataTemplate DataType="{x:Type abilities:AnimationElement}" >
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding TextToUseAccordingToAnimationType}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
+                            <TextBox x:Name="textBlockCharacter" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
+                                              >
+                            </TextBox>
+                            <TextBox x:Name="textBoxCharacter" Visibility="Hidden" MinWidth="100"
+                                             Text="{Binding Path=Name, UpdateSourceTrigger=Explicit}">
+                            </TextBox>
+                        </Grid>
+                    </Grid>
+                </DataTemplate>
+            </TreeView.Resources>
+        </TreeView>
+        <DataGrid x:Name="dataGridAnimationResource" Grid.Row="3" Grid.Column="1" Background="Transparent" RowBackground="Transparent" Style="{DynamicResource DataGridStyle1}"></DataGrid>
     </Grid>
 </UserControl>

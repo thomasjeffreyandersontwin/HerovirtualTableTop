@@ -91,13 +91,13 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             return clone;
         }
 
-        public bool IsWithin(float maxDistance, IMemoryElementPosition From)
+        public bool IsWithin(float maxDistance, IMemoryElementPosition From, out float calculatedDistance)
         {
             bool isWithinDistance = false;
-            Vector3 my_pos = new Vector3(X, Y, Z);
-            Vector3 target_pos = new Vector3(From.X, From.Y, From.Z);
-            float dist = Vector3.Distance(my_pos, target_pos);
-            if ((dist >= 0 && dist <= maxDistance) || (dist < 0 && dist >= -maxDistance))
+            Vector3 currentCameraPosition = new Vector3(X, Y, Z);
+            Vector3 targetElementPosition = new Vector3(From.X, From.Y, From.Z);
+            calculatedDistance = Vector3.Distance(currentCameraPosition, targetElementPosition);
+            if ((calculatedDistance >= 0 && calculatedDistance <= maxDistance) || (calculatedDistance < 0 && calculatedDistance >= -maxDistance))
             {
                 isWithinDistance = true;
             }

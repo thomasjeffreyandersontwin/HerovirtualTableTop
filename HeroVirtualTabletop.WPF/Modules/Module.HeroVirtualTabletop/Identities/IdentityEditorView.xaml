@@ -28,41 +28,8 @@
     </UserControl.Resources>
     <Grid>
         <StackPanel>
-            <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0">
-                <Button.Template>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Grid>
-                            <Ellipse x:Name="Circle" Fill="Transparent" Stroke="DarkGray" StrokeThickness="1"/>
-                            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver"
-                             Value="true">
-                                <Setter Property="Stroke"
-                                Value="Red"
-                                TargetName="Circle"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-                <Button.Style>
-                    <Style TargetType="Button">
-                        <Setter Property="FontFamily" Value="{StaticResource FontFamily_FontAwesome}"/>
-                        <Setter Property="FontSize" Value="15"/>
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="Foreground" Value="DarkGray"/>
-                        <Setter Property="Width" Value="20"/>
-                        <Setter Property="Height" Value="20"/>
-                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                        <Style.Triggers>
-                            <Trigger Property="IsMouseOver"
-                             Value="true">
-                                <Setter Property="Foreground" Value="Red"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </Button.Style>
-            </Button>
+            <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
+
             <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
                 <TextBox x:Name="textBlockName" Text="{Binding Path=EditedIdentity.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
                     <TextBox.InputBindings>
@@ -80,7 +47,7 @@
                     </TextBox.InputBindings>
                 </TextBox>
             </Grid>
-
+            
             <CheckBox Name="IsDefault" IsChecked="{Binding Path=IsDefault, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Default Identity" Foreground="White" Margin="5"/>
 
             <ComboBox

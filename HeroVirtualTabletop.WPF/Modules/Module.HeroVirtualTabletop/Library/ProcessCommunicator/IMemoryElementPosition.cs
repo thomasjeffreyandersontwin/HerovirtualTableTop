@@ -12,6 +12,6 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
         float Y { get; set; }
         float Z { get; set; }
         IMemoryElementPosition Clone(bool preserveTargetPointer = true, uint oldTargetPointer = 0);
-        bool IsWithin(float maxDistance, IMemoryElementPosition From);
+        bool IsWithin(float maxDistance, IMemoryElementPosition From, out float calculatedDistance);
     }
 }

@@ -286,6 +286,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 Identity identity = (Identity)Convert.ChangeType(SelectedOption, typeof(Identity));
                 eventAggregator.GetEvent<EditIdentityEvent>().Publish(new Tuple<Identity, Character>(identity, Owner));
             }
+            else if (typeof(T) == typeof(AnimatedAbility))
+            {
+                AnimatedAbility ability = (AnimatedAbility)Convert.ChangeType(SelectedOption, typeof(AnimatedAbility));
+                eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(ability, Owner));
+            }
         }
 
         #endregion
