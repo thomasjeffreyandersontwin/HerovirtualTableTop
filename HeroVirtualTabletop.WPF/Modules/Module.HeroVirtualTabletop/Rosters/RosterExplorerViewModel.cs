@@ -182,6 +182,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     this.SelectedParticipants.Add(participant);
             }
             this.ClearFromDesktop(null);
+            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
         #endregion
 
