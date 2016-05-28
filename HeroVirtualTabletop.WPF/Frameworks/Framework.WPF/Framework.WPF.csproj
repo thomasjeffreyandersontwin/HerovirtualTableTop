@@ -89,6 +89,7 @@
     <Compile Include="Behaviors\MultiSelectionBinding\IListItemConverter.cs" />
     <Compile Include="Behaviors\MultiSelectionBinding\MultiSelectorBehaviours.cs" />
     <Compile Include="Behaviors\MultiSelectionBinding\TwoListSynchronizer.cs" />
+    <Compile Include="Behaviors\ScrollView\ScrollViewIntoListBox.cs" />
     <Compile Include="Events\Events.cs" />
     <Compile Include="Extensions\FocusExtension.cs" />
     <Compile Include="Extensions\ObjectExtensions.cs" />

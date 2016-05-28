@@ -13,6 +13,9 @@ using System.Windows;
 using System.Windows.Data;
 using System;
 using Microsoft.Practices.Prism.Commands;
+using Module.HeroVirtualTabletop.Library.Utility;
+using Framework.WPF.Services.MessageBoxService;
+using Module.Shared.Messages;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
@@ -21,6 +24,7 @@ namespace Module.HeroVirtualTabletop.Identities
         #region Private Fields
 
         private EventAggregator eventAggregator;
+        private IMessageBoxService messageBoxService;
         private Character owner;
         private Identity editedidentity;
         private Visibility visibility = Visibility.Collapsed;
@@ -154,20 +158,44 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
+        public string OriginalName { get; set; }
+
+        #endregion
+
+        #region Events
+
+        public event EventHandler EditModeEnter;
+        public void OnEditModeEnter(object sender, EventArgs e)
+        {
+            if (EditModeEnter != null)
+                EditModeEnter(sender, e);
+        }
+
+        public event EventHandler EditModeLeave;
+        public void OnEditModeLeave(object sender, EventArgs e)
+        {
+            if (EditModeLeave != null)
+                EditModeLeave(sender, e);
+        }
+
         #endregion
 
         #region Commands
 
         public DelegateCommand<object> CloseEditorCommand { get; private set; }
+        public DelegateCommand<object> EnterEditModeCommand { get; private set; }
+        public DelegateCommand<object> SubmitIdentityRenameCommand { get; private set; }
+        public DelegateCommand<object> CancelEditModeCommand { get; private set; }
 
         #endregion
 
         #region Constructor
 
-        public IdentityEditorViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
+        public IdentityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            this.messageBoxService = messageBoxService;
             InitializeCommands();
             CreateModelsViewSource();
             CreateCostumesViewSource();
@@ -181,14 +209,18 @@ namespace Module.HeroVirtualTabletop.Identities
         private void InitializeCommands()
         {
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadIdentity);
+            this.SubmitIdentityRenameCommand = new DelegateCommand<object>(this.SubmitIdentityRename);
+            this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
+            this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
         }
-
+        
         #endregion
 
         #region Methods
-        
+
         private void LoadIdentity(Tuple<Identity, Character> data)
         {
+            Filter = null;
             this.EditedIdentity = data.Item1;
             this.Owner = data.Item2;
             this.Owner.AvailableIdentities.CollectionChanged += AvailableIdentities_CollectionChanged;
@@ -201,6 +233,53 @@ namespace Module.HeroVirtualTabletop.Identities
             this.Owner.AvailableIdentities.CollectionChanged -= AvailableIdentities_CollectionChanged;
             this.Owner = null;
             this.Visibility = Visibility.Collapsed;
+        }
+
+        private void EnterEditMode(object state)
+        {
+            this.OriginalName = EditedIdentity.Name;
+            OnEditModeEnter(state, null);
+        }
+
+        private void CancelEditMode(object state)
+        {
+            EditedIdentity.Name = this.OriginalName;
+            OnEditModeLeave(state, null);
+        }
+
+        private void SubmitIdentityRename(object state)
+        {
+            if (this.OriginalName != null)
+            {
+                string updatedName = Helper.GetTextFromControlObject(state);
+
+                bool duplicateName = false;
+                if (updatedName != this.OriginalName)
+                    duplicateName = this.Owner.AvailableIdentities.ContainsKey(updatedName);
+
+                if (!duplicateName)
+                {
+                    RenameIdentity(updatedName);
+                    OnEditModeLeave(state, null);
+                }
+                else
+                {
+                    messageBoxService.ShowDialog(Messages.DUPLICATE_NAME_MESSAGE, "Rename Identity", MessageBoxButton.OK, MessageBoxImage.Error);
+                    this.CancelEditMode(state);
+                }
+            }
+        }
+
+        private void RenameIdentity(string updatedName)
+        {
+            if (this.OriginalName == updatedName)
+            {
+                OriginalName = null;
+                return;
+            }
+            EditedIdentity.Name = updatedName;
+            Owner.AvailableIdentities.UpdateKey(OriginalName, updatedName);
+            OriginalName = null;
         }
 
         private void AvailableIdentities_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

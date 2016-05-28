@@ -19,26 +19,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public OptionGroup(): base(opt => { return opt.Name; })
         {
 
-        }
-
-        protected override void InsertItem(int index, T item)
-        {
-            base.InsertItem(index, item);
-            item.PropertyChanged += Item_PropertyChanged;
-        }
-
-        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Name")
-            {
-                string key = this.GetKeyFromItem((T)sender);
-                if (!this.UpdateKey(key, ((T)sender).Name))
-                {
-                    System.Windows.MessageBox.Show(Messages.DUPLICATE_NAME_MESSAGE, "Rename", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
-                    ((T)sender).Name = key;
-                }               
-            }
-        }
+        }        
 
         public string NewValidOptionName(string name = null)
         {

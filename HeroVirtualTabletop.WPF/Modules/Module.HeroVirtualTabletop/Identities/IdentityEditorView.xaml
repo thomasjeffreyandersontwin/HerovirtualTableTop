@@ -4,8 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Module.HeroVirtualTabletop.Identities"
+             xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:enumerations="clr-namespace:Module.HeroVirtualTabletop.Library.Enumerations"
              xmlns:convertes="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300"
@@ -61,7 +63,23 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <TextBox Name="txtBoxName" Text="{Binding Path=EditedIdentity.Name, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}" Margin="5,5,5,5"></TextBox>
+            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
+                <TextBox x:Name="textBlockName" Text="{Binding Path=EditedIdentity.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                    <TextBox.InputBindings>
+                        <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
+                        <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=EditedIdentity.Name, UpdateSourceTrigger=Explicit}">
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.SubmitIdentityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.SubmitIdentityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                        <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+            </Grid>
 
             <CheckBox Name="IsDefault" IsChecked="{Binding Path=IsDefault, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Default Identity" Foreground="White" Margin="5"/>
 
@@ -87,8 +105,11 @@
                          SelectionMode="Single"
                          ItemsSource="{Binding ModelsCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Model}"
-                         SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}"
+                         SelectedValue="{Binding Path=EditedIdentity.Surface, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                          IsSynchronizedWithCurrentItem="True">
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForListBox />
+                    </i:Interaction.Behaviors>
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="Background" Value="Transparent" />
@@ -101,8 +122,11 @@
                          SelectionMode="Single"
                          ItemsSource="{Binding CostumesCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Costume}"
-                         SelectedValue="{Binding Path=EditedIdentity.Surface, Mode=TwoWay}"
+                         SelectedValue="{Binding Path=EditedIdentity.Surface, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
                          IsSynchronizedWithCurrentItem="True">
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForListBox />
+                    </i:Interaction.Behaviors>
                     <ListBox.Resources>
                         <Style TargetType="{x:Type ListBoxItem}">
                             <Setter Property="Background" Value="Transparent" />

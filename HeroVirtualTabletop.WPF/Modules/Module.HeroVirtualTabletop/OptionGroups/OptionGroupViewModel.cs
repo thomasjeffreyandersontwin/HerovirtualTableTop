@@ -266,7 +266,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private Identity GetNewIdentity()
         {
-            return new Identity("model_Statesman", IdentityType.Model, optionGroup.NewValidOptionName("Identity"));
+            return new Identity("Model_Statesman", IdentityType.Model, optionGroup.NewValidOptionName("Identity"));
         }
         
         private void AddAbility(object state)

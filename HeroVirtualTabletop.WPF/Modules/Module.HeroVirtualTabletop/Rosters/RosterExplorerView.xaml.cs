@@ -28,7 +28,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isTripleClick = false;
         private bool isQuadrupleClick = false;
         private int milliseconds = 0;
-        private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime * 3;
+        private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime * 4;
         private System.Windows.Forms.Timer clickTimer = new System.Windows.Forms.Timer();
         public RosterExplorerView(RosterExplorerViewModel viewModel)
         {
