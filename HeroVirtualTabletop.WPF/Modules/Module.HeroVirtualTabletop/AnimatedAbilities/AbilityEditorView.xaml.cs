@@ -20,9 +20,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     /// </summary>
     public partial class AbilityEditorView : UserControl
     {
-        public AbilityEditorView()
+        private AbilityEditorViewModel viewModel;
+        public AbilityEditorView(AbilityEditorViewModel viewModel)
         {
             InitializeComponent();
+            this.viewModel = viewModel;
+            this.DataContext = this.viewModel;
         }
     }
 }

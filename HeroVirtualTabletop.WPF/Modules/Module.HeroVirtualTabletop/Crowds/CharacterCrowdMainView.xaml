@@ -14,6 +14,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <convertes:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
@@ -21,6 +22,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
@@ -103,6 +105,27 @@
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="IdentityEditor">
                     </ToggleButton>
                     <Grid x:Name="identityEditorPanel" Width="Auto" Grid.Row="1"/>
+                </Grid>
+            </GroupBox>
+        </Expander>
+        <Expander Grid.Column="4" Style="{StaticResource VerticalExpanderStyle}"
+                  OverridesDefaultStyle="True"
+                  Header="Ability Editor"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
+                  Visibility="{Binding ElementName=abilityEditorPanel, Path=Children[0].DataContext.IsShowingAbilityEditor, Converter={StaticResource BooleanToVisibilityConverter}}"
+                  IsExpanded="{Binding IsAbilityEditorExpanded}"
+                  >
+
+            <GroupBox Header="Ability Editor" x:Name="grpBoxAbilityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsAbilityEditorExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="AbilityEditor">
+                    </ToggleButton>
+                    <Grid x:Name="abilityEditorPanel" Width="Auto" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>

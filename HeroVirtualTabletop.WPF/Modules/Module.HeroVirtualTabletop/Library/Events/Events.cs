@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Characters;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Library.Events
 {
@@ -14,5 +15,6 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class SaveCrowdEvent : PubSubEvent<object> { }
     public class AddMemberToRosterEvent : PubSubEvent<Tuple<CrowdMemberModel, CrowdModel>> { };
     public class EditIdentityEvent : PubSubEvent<Tuple<Identity, Character>> { };
+    public class EditAbilityEvent : PubSubEvent<Tuple<AnimatedAbility, Character>> { };
     public class CheckRosterConsistencyEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { };
 }

@@ -117,6 +117,7 @@
     <Compile Include="AnimatedAbilities\AbilityEditorView.xaml.cs">
       <DependentUpon>AbilityEditorView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AnimatedAbilities\AbilityEditorViewModel.cs" />
     <Compile Include="AnimatedAbilities\AnimatedAbility.cs" />
     <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="Characters\CharacterEditorView.xaml.cs">

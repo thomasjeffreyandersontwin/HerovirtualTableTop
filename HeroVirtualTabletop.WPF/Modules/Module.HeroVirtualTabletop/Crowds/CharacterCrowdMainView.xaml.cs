@@ -15,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -35,6 +36,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.LoadRosterExplorer();
             this.viewModel.LoadCharacterEditor();
             this.viewModel.LoadIdentityEditor();
+            this.viewModel.LoadAbilityEditor();
         }
 
         void viewModel_ViewLoaded(object sender, EventArgs e)
@@ -47,11 +49,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 RenderCharacterEditor(sender as CharacterEditorView);
             else if (sender != null && sender is IdentityEditorView)
                 RenderIdentityEditor(sender as IdentityEditorView);
-        }
-
-        private void RenderIdentityEditor(IdentityEditorView identityEditorView)
-        {
-            this.identityEditorPanel.Children.Add(identityEditorView);
+            else if (sender != null && sender is AbilityEditorView)
+                RenderAbilityEditor(sender as AbilityEditorView);
         }
 
         private void RenderCharacterExplorer(CharacterExplorerView charExplorerView)
@@ -65,6 +64,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void RenderCharacterEditor(CharacterEditorView charEditorView)
         {
             this.charEditorPanel.Children.Add(charEditorView);
+        }
+        private void RenderIdentityEditor(IdentityEditorView identityEditorView)
+        {
+            this.identityEditorPanel.Children.Add(identityEditorView);
+        }
+        private void RenderAbilityEditor(AbilityEditorView abilityEditorView)
+        {
+            this.abilityEditorPanel.Children.Add(abilityEditorView);
         }
 
         private void Expander_ExpansionChanged(object sender, RoutedEventArgs e)
