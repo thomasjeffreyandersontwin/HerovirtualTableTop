@@ -1,15 +1,19 @@
 ﻿using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
+using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared.Messages;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -18,11 +22,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Private Fields
 
         private EventAggregator eventAggregator;
+        private IMessageBoxService messageBoxService;
 
         #endregion
 
         #region Events
 
+        public event EventHandler EditModeEnter;
+        public void OnEditModeEnter(object sender, EventArgs e)
+        {
+            if (EditModeEnter != null)
+                EditModeEnter(sender, e);
+        }
+
+        public event EventHandler EditModeLeave;
+        public void OnEditModeLeave(object sender, EventArgs e)
+        {
+            if (EditModeLeave != null)
+                EditModeLeave(sender, e);
+        }
         #endregion
 
         #region Public Properties
@@ -74,20 +92,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public string OriginalName { get; set; }
+
         #endregion
 
         #region Commands
 
         public DelegateCommand<object> CloseEditorCommand { get; private set; }
+        public DelegateCommand<object> EnterEditModeCommand { get; private set; }
+        public DelegateCommand<object> SubmitAbilityRenameCommand { get; private set; }
+        public DelegateCommand<object> CancelEditModeCommand { get; private set; }
 
         #endregion
 
         #region Constructor
 
-        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
+        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            this.messageBoxService = messageBoxService;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
         }
@@ -99,6 +123,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void InitializeCommands()
         {
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
+            this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
+            this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
+            this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
         }
 
         #endregion
@@ -118,6 +145,54 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Owner = null;
             this.IsShowingAbilityEditor = false;
         }
+
+        private void EnterEditMode(object state)
+        {
+            this.OriginalName = EditedAbility.Name;
+            OnEditModeEnter(state, null);
+        }
+
+        private void CancelEditMode(object state)
+        {
+            EditedAbility.Name = this.OriginalName;
+            OnEditModeLeave(state, null);
+        }
+
+        private void SubmitAbilityRename(object state)
+        {
+            if (this.OriginalName != null)
+            {
+                string updatedName = Helper.GetTextFromControlObject(state);
+
+                bool duplicateName = false;
+                if (updatedName != this.OriginalName)
+                    duplicateName = this.Owner.AnimatedAbilities.ContainsKey(updatedName);
+
+                if (!duplicateName)
+                {
+                    RenameAbility(updatedName);
+                    OnEditModeLeave(state, null);
+                }
+                else
+                {
+                    messageBoxService.ShowDialog(Messages.DUPLICATE_NAME_MESSAGE, "Rename Ability", MessageBoxButton.OK, MessageBoxImage.Error);
+                    this.CancelEditMode(state);
+                }
+            }
+        }
+
+        private void RenameAbility(string updatedName)
+        {
+            if (this.OriginalName == updatedName)
+            {
+                OriginalName = null;
+                return;
+            }
+            EditedAbility.Name = updatedName;
+            Owner.AnimatedAbilities.UpdateKey(OriginalName, updatedName);
+            OriginalName = null;
+        }
+
         #endregion
     }
 }
