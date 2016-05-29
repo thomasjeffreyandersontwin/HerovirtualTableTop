@@ -6,6 +6,7 @@
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              xmlns:convertes="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
+             xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d">
@@ -17,7 +18,7 @@
             <convertes:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" x:Name="characterCrowdMainLayoutGrid">
         <Grid.RowDefinitions>
             <RowDefinition />
         </Grid.RowDefinitions>
@@ -31,6 +32,7 @@
         <Expander Grid.Column="0" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Character Explorer"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
             <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
@@ -49,6 +51,7 @@
         <Expander Grid.Column="1" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Roster Explorer"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsRosterExplorerExpanded}"
                   >
 
@@ -68,6 +71,7 @@
         <Expander Grid.Column="2" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Character Editor"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterEditorExpanded}"
                   >
 
@@ -87,6 +91,7 @@
         <Expander Grid.Column="3" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Identity Editor"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   Visibility="{Binding ElementName=identityEditorPanel, Path=Children[0].DataContext.Visibility}"
                   IsExpanded="{Binding IsIdentityEditorExpanded}"
                   >
@@ -107,6 +112,7 @@
         <Expander Grid.Column="4" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
                   Header="Ability Editor"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   Visibility="{Binding ElementName=abilityEditorPanel, Path=Children[0].DataContext.IsShowingAbilityEditor, Converter={StaticResource BooleanToVisibilityConverter}}"
                   IsExpanded="{Binding IsAbilityEditorExpanded}"
                   >

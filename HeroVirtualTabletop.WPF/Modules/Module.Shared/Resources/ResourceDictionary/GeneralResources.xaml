@@ -30,7 +30,7 @@
         <Setter Property="shell:WindowChrome.WindowChrome">
             <Setter.Value>
                 <shell:WindowChrome GlassFrameThickness="-1" 
-                            ResizeBorderThickness="2"
+                            ResizeBorderThickness="0, 2"
                             CaptionHeight="36"/>
             </Setter.Value>
         </Setter>

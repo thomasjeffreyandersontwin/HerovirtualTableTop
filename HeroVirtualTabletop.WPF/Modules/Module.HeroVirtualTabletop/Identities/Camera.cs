@@ -72,12 +72,11 @@ namespace Module.HeroVirtualTabletop.Identities
                     
                     keybinds[0] = MoveToTarget();
 
-                    float dist = 13.23f, calculatedDistance, lastCalculatedDistance = 0f;
+                    float dist = 13.23f, calculatedDistance;
                     int maxRecalculationCount = 5; // We will allow the same distance to be calculated 5 times at max. After this we'll assume that the camera is stuck.
                     Hashtable distanceTable = new Hashtable();
                     while (position.IsWithin(dist, maneuveredCharacter.Position, out calculatedDistance) == false)
                     {
-                        lastCalculatedDistance = calculatedDistance;
                         if(distanceTable.Contains(calculatedDistance))
                         {
                             int count = (int)distanceTable[calculatedDistance];
