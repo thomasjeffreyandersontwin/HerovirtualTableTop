@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Library.Converters;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -87,7 +88,10 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
             }
             if (window != null)
-                window.SizeToContent = SizeToContent.WidthAndHeight;
+            {              
+                window.SizeToContent = SizeToContent.Width;
+            }  
+            
         }
     }
 }

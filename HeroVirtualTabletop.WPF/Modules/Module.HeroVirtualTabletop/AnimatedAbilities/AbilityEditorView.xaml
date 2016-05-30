@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:abilities="clr-namespace:Module.HeroVirtualTabletop.AnimatedAbilities"
              mc:Ignorable="d" >
     <UserControl.Resources>
@@ -34,7 +35,23 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <TextBox x:Name="txtBoxName" Grid.Row="0" Grid.Column="0" Text="{Binding EditedAbility.Name, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+            <Grid Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5,0,0,0">
+                <TextBox x:Name="textBlockName" Text="{Binding Path=EditedAbility.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                    <TextBox.InputBindings>
+                        <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
+                        <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=EditedAbility.Name, UpdateSourceTrigger=Explicit}">
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAbilityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAbilityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                        <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                    </TextBox.InputBindings>
+                </TextBox>
+            </Grid>
             <CheckBox Name="chkBoxIsAttack" Grid.Row="0" Grid.Column="1"  IsChecked="{Binding IsAttack}" Content="Attack" Foreground="White" Margin="5"/>
             <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
