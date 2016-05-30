@@ -467,6 +467,7 @@ namespace Module.HeroVirtualTabletop.Characters
         }
 
         private OptionGroup<AnimatedAbility> animatedAbilities;
+        [JsonProperty(Order = 3)]
         public OptionGroup<AnimatedAbility> AnimatedAbilities
         {
             get
