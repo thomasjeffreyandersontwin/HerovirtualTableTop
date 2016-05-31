@@ -188,7 +188,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     }
                     else
                     {
-                        defaultIdentity = new Identity("model_Statesman", IdentityType.Model, "Base");
+                        defaultIdentity = new Identity("Model_Statesman", IdentityType.Model, "Base");
                         AvailableIdentities.Add(defaultIdentity);
                     }
                 }

@@ -151,8 +151,9 @@ namespace Module.UnitTest.Characters
             rosterExplorerViewModel.SpawnCommand.Execute(null);
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
+            string result = sr.ReadLine();
 
-            Assert.IsTrue(sr.ReadLine().Contains(string.Format("spawn_npc Model_Statesman {0} [{1}]", character.Name, character.RosterCrowd.Name)));
+            Assert.IsTrue(result.Contains(string.Format("spawn_npc Model_Statesman {0} [{1}]", character.Name, character.RosterCrowd.Name)));
 
             sr.Close();
             File.Delete(new KeyBindsGenerator().BindFile);
