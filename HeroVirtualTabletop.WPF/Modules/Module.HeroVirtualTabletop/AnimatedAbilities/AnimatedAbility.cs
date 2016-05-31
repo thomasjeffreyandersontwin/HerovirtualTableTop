@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
-    public class AnimatedAbility : NestedAnimationElement, ICharacterOption
+    public class AnimatedAbility : SequenceElement, ICharacterOption
     {
         [JsonConstructor]
         private AnimatedAbility() : base(string.Empty) { }

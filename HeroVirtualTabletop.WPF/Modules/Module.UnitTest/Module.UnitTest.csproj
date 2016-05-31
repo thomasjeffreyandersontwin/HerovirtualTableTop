@@ -124,6 +124,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="AnimatedAbilities\AnimatedAbilityTestSuite.cs" />
     <Compile Include="Characters\CharacterTestSuite.cs" />
     <Compile Include="Crowds\BaseCrowdTest.cs" />
     <Compile Include="Crowds\CrowdTestSuite.cs" />

@@ -177,9 +177,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             if (treeViewItem != null)
             {
                 treeViewItem.Focus();
-                //TextBox txtbox = FindTextBoxInTemplate(treeViewItem);
-                //txtbox.Focus();
-
                 TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
                 if (item != null)
                     this.selectedCrowdRoot = item.DataContext as CrowdModel;
