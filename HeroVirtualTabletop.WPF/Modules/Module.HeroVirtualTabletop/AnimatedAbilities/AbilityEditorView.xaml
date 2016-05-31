@@ -65,8 +65,8 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=EditedAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
-                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=EditedAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}"/>
+                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}"/>
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>

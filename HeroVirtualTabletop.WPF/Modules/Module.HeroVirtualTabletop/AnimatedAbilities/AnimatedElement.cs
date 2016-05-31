@@ -280,7 +280,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("PlayWithNext");
             }
         }
-
+        [JsonIgnore]
         public string CostumeText
         {
             get
@@ -391,11 +391,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Initialize();
         }
 
-        public NestedAnimationElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
+        public SequenceElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
             : base(name, order, owner)
         {
             Initialize();
             this.SequenceType = seqType;
+            this.Type = AnimationType.Sequence;
             this.lastOrder = 0;
         }
 
@@ -403,9 +404,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.animationElements = new HashedObservableCollection<IAnimationElement, string>(x => x.Name, x => x.Order);
             this.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(animationElements);
-            this.SequenceType = seqType;
-            this.Type = AnimationType.Sequence;
-            this.lastOrder = 0;
         }
 
         private AnimationSequenceType sequenceType;

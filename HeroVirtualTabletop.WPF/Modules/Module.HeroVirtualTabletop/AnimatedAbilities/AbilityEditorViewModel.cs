@@ -145,6 +145,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> SubmitAbilityRenameCommand { get; private set; }
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
         public DelegateCommand<object> AddAnimationElementCommand { get; private set; }
+        public DelegateCommand<object> SaveAbilityCommand { get; private set; }
         public ICommand UpdateSelectedAnimationCommand { get; private set; }
 
         #endregion
@@ -168,6 +169,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
+            this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility);
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
             this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimatedAbility);
@@ -302,6 +304,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             int order = GetAppropriateOrderForAnimationElement();
             this.CurrentAbility.AddAnimationElement(animationElement, order);
             OnAnimationAdded(animationElement, null);
+            this.SaveAbility(null);
         }
 
         private AnimationElement GetAnimationElement(AnimationType abilityType)
@@ -375,6 +378,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         #endregion
+
+        private void SaveAbility(object state)
+        {
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
+        }
 
         #endregion
     }
