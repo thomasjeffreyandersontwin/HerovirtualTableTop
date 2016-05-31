@@ -161,7 +161,11 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 crowdMember.SetAsSpawned();
             }
-            oldTargeted.Target();
+            try
+            {
+                oldTargeted.Target();
+            }
+            catch { }
         }
         #endregion
 
@@ -221,6 +225,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 participant.RosterCrowd = null;
             }
             Commands_RaiseCanExecuteChanged();
+            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 
         #endregion

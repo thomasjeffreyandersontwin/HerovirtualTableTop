@@ -220,6 +220,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             InitializeCommands();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddMemberToRosterEvent>().Subscribe(this.AddToRoster);
+            //LoadCrowdCollection(Application.Current.MainWindow);
         }
 
         #endregion
@@ -362,10 +363,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             this.containerWindowName = Helper.GetContainerWindowName(state);
             if(!crowdCollectionLoaded)
-        {
+            {
                 this.BusyService.ShowBusy(new string[] { containerWindowName });
-            this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
-        }
+                this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
+            }
         }
 
         private void LoadCrowdCollectionCallback(List<CrowdModel> crowdList)
@@ -518,7 +519,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             //Methods Swapped by Chris
 
-            GetOrCreateAllCharactersCrowd();
+            //GetOrCreateAllCharactersCrowd();
             // Also add the crowd under any currently selected crowd
             this.AddCrowdToSelectedCrowd(crowdModel);
             // Add the crowd to List of Crowd Members as a new Crowd Member
@@ -1008,7 +1009,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                                 List<ICrowdMemberModel> models = GetFlattenedMemberList(clonedModel.CrowdMemberCollection.ToList());
                                 foreach (var member in models)
                                 {
-                                    EliminateDuplicateName(member);
                                     if (member is CrowdMemberModel)
                                     {
                                         this.AddCharacterToAllCharactersCrowd(member as CrowdMemberModel);

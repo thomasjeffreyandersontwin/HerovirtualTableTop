@@ -15,7 +15,6 @@ namespace Module.UnitTest.Characters
     [TestClass]
     public class CharacterTestSuite : BaseCrowdTest
     {
-        private CharacterExplorerViewModel characterExplorerViewModel;
         private RosterExplorerViewModel rosterExplorerViewModel;
 
         [TestInitialize]
@@ -25,7 +24,6 @@ namespace Module.UnitTest.Characters
             InitializeCrowdRepositoryMockWithDefaultList();
             this.numberOfItemsFound = 0;
 
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
         }
 
@@ -91,7 +89,7 @@ namespace Module.UnitTest.Characters
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
 
             string result = sr.ReadLine();
-            Assert.IsTrue(result.Contains(string.Format("spawn_npc model_Statesman {0} [{1}]$$target_name {0} [{1}]$$load_costume {2}", character.Name, character.RosterCrowd.Name, character.ActiveIdentity.Surface)));
+            Assert.IsTrue(result.Contains(string.Format("spawn_npc Model_Statesman {0} [{1}]$$target_name {0} [{1}]$$load_costume {2}", character.Name, character.RosterCrowd.Name, character.ActiveIdentity.Surface)));
 
             sr.Close();
             File.Delete(new KeyBindsGenerator().BindFile);
@@ -126,7 +124,7 @@ namespace Module.UnitTest.Characters
 
             CrowdMemberModel character = rosterExplorerViewModel.Participants[0] as CrowdMemberModel;
 
-            character.ActiveIdentity = new HeroVirtualTabletop.Identities.Identity("Spyder", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
+            character.ActiveIdentity = new Identity("Spyder", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
 
             rosterExplorerViewModel.SelectedParticipants = new ArrayList { character };
             rosterExplorerViewModel.SpawnCommand.Execute(null);
@@ -134,7 +132,8 @@ namespace Module.UnitTest.Characters
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
 
             string result = sr.ReadLine();
-            Assert.IsTrue(result.Contains(string.Format("spawn_npc model_Statesman {0} [{1}]$$target_name {0} [{1}]$$load_costume {2}", character.Name, character.RosterCrowd.Name, character.ActiveIdentity.Surface)));
+            string valid = string.Format("Y \"target_enemy_near$$nop$$spawn_npc Model_Statesman {0} [{1}]$$target_name {0} [{1}]$$load_costume {2}\"", character.Name, character.RosterCrowd.Name, character.ActiveIdentity.Surface);
+            Assert.AreEqual(valid, result);
 
             sr.Close();
             File.Delete(new KeyBindsGenerator().BindFile);
@@ -153,7 +152,7 @@ namespace Module.UnitTest.Characters
 
             StreamReader sr = File.OpenText(new KeyBindsGenerator().BindFile);
 
-            Assert.IsTrue(sr.ReadLine().Contains(string.Format("spawn_npc model_Statesman {0} [{1}]", character.Name, character.RosterCrowd.Name)));
+            Assert.IsTrue(sr.ReadLine().Contains(string.Format("spawn_npc Model_Statesman {0} [{1}]", character.Name, character.RosterCrowd.Name)));
 
             sr.Close();
             File.Delete(new KeyBindsGenerator().BindFile);
@@ -330,7 +329,7 @@ namespace Module.UnitTest.Characters
             character.ToggleManueveringWithCamera();
 
             Assert.AreEqual(string.Format("target_enemy_near$$benpc {0}", (new Camera()).Surface), KeyBindsGenerator.generatedKeybinds[3]);
-            Assert.AreEqual(string.Format("target_enemy_near$$spawn_npc {0} {1}$$target_name {1}$$benpc {0}", character.ActiveIdentity.Surface, character.Label), KeyBindsGenerator.generatedKeybinds[4]);
+            Assert.AreEqual(string.Format("target_enemy_near$$nop$$spawn_npc {0} {1}$$target_name {1}$$benpc {0}", character.ActiveIdentity.Surface, character.Label), KeyBindsGenerator.generatedKeybinds[4]);
             
         }
 

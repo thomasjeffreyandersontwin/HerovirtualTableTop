@@ -125,17 +125,24 @@ namespace Module.HeroVirtualTabletop.Crowds
         
         internal void CheckIfExistsInGame()
         {
-            //bool retV = false;
-            MemoryElement oldTargeted = new MemoryElement();
-            Target();
-            MemoryElement currentTargeted = new MemoryElement();
-            if (currentTargeted.Label == Label)
+            try
             {
-                //retV = true;
-                SetAsSpawned();
+                //bool retV = false;
+                MemoryElement oldTargeted = new MemoryElement();
+                Target();
+                MemoryElement currentTargeted = new MemoryElement();
+                if (currentTargeted.Label == Label)
+                {
+                    //retV = true;
+                    SetAsSpawned();
+                }
+                oldTargeted.Target();
+                //return retV;
             }
-            oldTargeted.Target();
-            //return retV;
+            catch (Exception)
+            {
+                
+            }
         }
 
         public new string Spawn(bool completeEvent = true)
@@ -232,6 +239,18 @@ namespace Module.HeroVirtualTabletop.Crowds
         public override ICrowdMember Clone()
         {
             CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
+            crowdMemberModel.InitializeCharacter();
+            crowdMemberModel.RosterCrowd = null; //RosterCrowd should not be cloned
+            foreach (Identities.Identity id in this.AvailableIdentities)
+            {
+                crowdMemberModel.AvailableIdentities.Add(id);
+            }
+            crowdMemberModel.ActiveIdentity = this.ActiveIdentity;
+            crowdMemberModel.DefaultIdentity = this.DefaultIdentity;
+            foreach (AnimatedAbilities.AnimatedAbility ab in this.AnimatedAbilities)
+            {
+                crowdMemberModel.AnimatedAbilities.Add(ab);
+            }
             return crowdMemberModel;
         }
         public override void SavePosition()

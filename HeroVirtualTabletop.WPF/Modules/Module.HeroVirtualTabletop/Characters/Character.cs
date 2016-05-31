@@ -33,7 +33,7 @@ namespace Module.HeroVirtualTabletop.Characters
             InitializeCharacter();
         }
 
-        private void InitializeCharacter()
+        protected void InitializeCharacter()
         {
             availableIdentities = new OptionGroup<Identity>();
             animatedAbilities = new OptionGroup<AnimatedAbility>();

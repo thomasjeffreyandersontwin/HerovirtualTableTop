@@ -16,13 +16,19 @@ namespace Module.UnitTest
     {
         protected Mock<ICrowdRepository> crowdRepositoryMock = new Mock<ICrowdRepository>();
         protected List<CrowdModel> crowdModelList;
+        protected CharacterExplorerViewModel characterExplorerViewModel;
+
+        public BaseCrowdTest() : base()
+        {
+            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
+        }
 
         protected void InitializeCrowdRepositoryMockWithDefaultList()
         {
-            InitializeCrowdRepositoryMockWithList(this.crowdModelList);
+            InitializeCrowdRepositoryMockWithListAndSynchViewModel(this.crowdModelList);
         }
 
-        protected void InitializeCrowdRepositoryMockWithList(List<CrowdModel> crowdModelList)
+        protected void InitializeCrowdRepositoryMockWithListAndSynchViewModel(List<CrowdModel> crowdModelList)
         {
             this.crowdRepositoryMock
                .Setup(repository => repository.GetCrowdCollection(It.IsAny<Action<List<CrowdModel>>>()))
@@ -30,6 +36,9 @@ namespace Module.UnitTest
             this.crowdRepositoryMock
                .Setup(repository => repository.SaveCrowdCollection(It.IsAny<Action>(), It.IsAny<List<CrowdModel>>()))
                .Callback((Action action, List<CrowdModel> cm) => action());
+            characterExplorerViewModel.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdModelList,
+                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
+                 );
         }
 
         protected void InitializeMessageBoxService(MessageBoxResult messageBoxResult)
@@ -41,7 +50,7 @@ namespace Module.UnitTest
 
         protected void InitializeDefaultList(bool nestCrowd = false)
         {
-            CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters" };
+            CrowdModel crowdAllChars = new CrowdModel { Name = "All Characters", Order = -1 };
             CrowdModel crowd1 = new CrowdModel { Name = "Gotham City" };
             CrowdMemberModel crowdMember1 = new CrowdMemberModel { Name = "Batman" };
             crowd1.SavedPositions = new Dictionary<string, IMemoryElementPosition>();

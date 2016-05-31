@@ -60,8 +60,12 @@
                     Command="{Binding ToggleManeuverWithCameraCommand}" />
     </UserControl.InputBindings>
     <Grid>
-        <StackPanel>
-            <characters:CharacterManagementMenuControl
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <characters:CharacterManagementMenuControl
+                Grid.Row="0"
                 SavePositionCommand="{Binding SavePositionCommand}"
                 PlaceCommand="{Binding PlaceCommand}"
                 SpawnCommand="{Binding SpawnCommand}"
@@ -71,35 +75,34 @@
                 ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
                 ></characters:CharacterManagementMenuControl>
-            <library:MultiSelectListBox x:Name="RosterViewListBox" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
+        <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White"
                      SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
-                <ListBox.GroupStyle>
-                    <GroupStyle>
-                        <GroupStyle.ContainerStyle>
-                            <Style TargetType="{x:Type GroupItem}">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate>
-                                            <Expander IsExpanded="True" Background="Transparent" TextElement.Foreground="White">
-                                                <Expander.Header>
-                                                    <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
-                                                </Expander.Header>
-                                                <ItemsPresenter PreviewMouseDown="ListViewItem_PreviewMouseDown"></ItemsPresenter>
-                                            </Expander>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                            </Style>
-                        </GroupStyle.ContainerStyle>
-                    </GroupStyle>
-                </ListBox.GroupStyle>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}" />
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </library:MultiSelectListBox>
-        </StackPanel>
+            <ListBox.GroupStyle>
+                <GroupStyle>
+                    <GroupStyle.ContainerStyle>
+                        <Style TargetType="{x:Type GroupItem}">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate>
+                                        <Expander IsExpanded="True" Background="Transparent" TextElement.Foreground="White">
+                                            <Expander.Header>
+                                                <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
+                                            </Expander.Header>
+                                            <ItemsPresenter PreviewMouseDown="ListViewItem_PreviewMouseDown"></ItemsPresenter>
+                                        </Expander>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </GroupStyle.ContainerStyle>
+                </GroupStyle>
+            </ListBox.GroupStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </library:MultiSelectListBox>
     </Grid>
 </UserControl>

@@ -54,7 +54,14 @@ namespace Module.HeroVirtualTabletop.Crowds
                         AutoResetEvent e = new AutoResetEvent(false);
                         events.Add(e);
                         if (mutexes.Count > 0)
-                            Mutex.WaitAll(mutexes.ToArray());
+                            try
+                            {
+                                Mutex.WaitAll(mutexes.ToArray());
+                            }
+                            catch (Exception ex)
+                            {
+                            }
+                            
                         Mutex m = new Mutex(true);
                         mutexes.Add(m);
 
@@ -64,10 +71,10 @@ namespace Module.HeroVirtualTabletop.Crowds
                         TakeBackup(); // Take backup of valid data file from last execution
                         this.getCrowdCollectionCompleted(crowdCollection);
 
-                        m.ReleaseMutex();
                         mutexes.Remove(m);
-                        e.Set();
+                        m.ReleaseMutex();
                         events.Remove(e);
+                        e.Set();
                     }));
         }
 
@@ -83,18 +90,24 @@ namespace Module.HeroVirtualTabletop.Crowds
                             AutoResetEvent e = new AutoResetEvent(false);
                             events.Add(e);
                             if (mutexes.Count > 0)
-                                Mutex.WaitAll(mutexes.ToArray());
+                                try
+                                {
+                                    Mutex.WaitAll(mutexes.ToArray());
+                                }
+                                catch (Exception ex)
+                                {
+                                }
                             Mutex m = new Mutex(true);
                             mutexes.Add(m);
 
                             Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
                             
                             this.saveCrowdCollectionCompleted();
-                            
-                            m.ReleaseMutex();
+
                             mutexes.Remove(m);
-                            e.Set();
+                            m.ReleaseMutex();
                             events.Remove(e);
+                            e.Set();
                         }));
         }
 

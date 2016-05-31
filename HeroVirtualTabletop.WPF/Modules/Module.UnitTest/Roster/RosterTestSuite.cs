@@ -15,7 +15,6 @@ namespace Module.UnitTest.Roster
     [TestClass]
     public class RosterTest : BaseCrowdTest
     {
-        private CharacterExplorerViewModel characterExplorerViewModel;
         private RosterExplorerViewModel rosterExplorerViewModel;
 
         [TestInitialize]
@@ -25,7 +24,6 @@ namespace Module.UnitTest.Roster
             InitializeCrowdRepositoryMockWithDefaultList();
             this.numberOfItemsFound = 0;
 
-            characterExplorerViewModel = new CharacterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, crowdRepositoryMock.Object, eventAggregatorMock.Object);
             rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
         }
 
@@ -116,7 +114,7 @@ namespace Module.UnitTest.Roster
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
             crowdRepositoryMock.Verify(
                 repo => repo.SaveCrowdCollection(It.IsAny<Action>(),
-                    It.IsAny<List<CrowdModel>>()), Times.Never); // No cloning was done, so repository need not be updated
+                    It.IsAny<List<CrowdModel>>()), Times.Once()); // We added to roster so saving RosterCrowd change
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"]; // Selecting Gotham City
             characterExplorerViewModel.SelectedCrowdMemberModel = null; // All the characters would be added to roster
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
