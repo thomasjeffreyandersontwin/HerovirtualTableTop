@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
-    public class AnimatedAbility : NestedAnimationElement, ICharacterOption
+    public class AnimatedAbility : SequenceElement, ICharacterOption
     {
         public AnimatedAbility(string name, string activateOnKey = null, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
             : base(name, seqType, order, owner)

@@ -136,6 +136,7 @@
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Identities\IdentityEditorViewModel.cs" />
+    <Compile Include="Library\Converters\AnimationTypeToAnimationIconTextConverter.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />

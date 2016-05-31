@@ -79,6 +79,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private AnimationType type;
+        public AnimationType Type
+        {
+            get
+            {
+                return type;
+            }
+
+            set
+            {
+                type = value;
+                OnPropertyChanged("Type");
+            }
+        }
+
         public virtual string Play(bool completeEvent = true)
         {
             return "Playing " + this.Order + " for " + this.Owner.Name;
@@ -91,6 +106,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, order, owner)
         {
             this.Time = time;
+            this.Type = AnimationType.Pause;
         }
 
         private int time;
@@ -120,6 +136,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, order, owner)
         {
             this.SoundFile = soundFile;
+            this.Type = AnimationType.Sound;
         }
 
         private string soundFile;
@@ -150,6 +167,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, order, owner)
         {
             this.MOVResource = MOVResource;
+            this.Type = AnimationType.Movement;
         }
 
         private string movResource;
@@ -185,6 +203,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, order, owner)
         {
             this.Effect = effect;
+            this.Type = AnimationType.FX;
             this.Persistent = persistent;
             this.PlayWithNext = playWithNext;
             this.Colors = new Color[4];
@@ -349,14 +368,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
     }
     
-    public class NestedAnimationElement : AnimationElement
+    public class SequenceElement : AnimationElement
     {
-        public NestedAnimationElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
+        public SequenceElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
             : base(name, order, owner)
         {
             this.animationElements = new HashedObservableCollection<IAnimationElement, string>(x => x.Name, x => x.Order);
             this.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(animationElements);
             this.SequenceType = seqType;
+            this.Type = AnimationType.Sequence;
             this.lastOrder = 0;
         }
 
@@ -386,12 +406,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public void AddAnimationElement(IAnimationElement element)
+        public void AddAnimationElement(IAnimationElement element, int order = 0)
         {
             this.lastOrder++;
             element.Owner = this.Owner;
-            element.Order = this.LastOrder;
+            if (order == 0)
+                element.Order = this.LastOrder;
+            else
+                element.Order = order;
             this.animationElements.Add(element);
+            this.animationElements.Sort();
         }
 
         public void RemoveAnimationElement(IAnimationElement element)
@@ -431,6 +455,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, order, owner)
         {
             this.Reference = reference;
+            this.Type = AnimationType.Reference;
         }
 
         private AnimationElement reference;
@@ -453,5 +478,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return this.Reference.Play(completeEvent);
         }
     }
+
+
 
 }

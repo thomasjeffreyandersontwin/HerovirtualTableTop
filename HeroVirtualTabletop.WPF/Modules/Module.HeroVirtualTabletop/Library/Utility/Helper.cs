@@ -13,6 +13,7 @@ using System.Windows.Media;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.OptionGroups;
 using System.Reflection;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -123,6 +124,38 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             }
 
             return containingCrowdModel;
+        }
+
+        public static object GetCurrentSelectedAnimationInAnimationCollection(Object tv, out IAnimationElement animationElement)
+        {
+            IAnimationElement selectedAnimationElement = null;
+            animationElement = null;
+            TreeView treeView = tv as TreeView;
+
+            if (treeView != null && treeView.SelectedItem != null)
+            {
+                DependencyObject dObject = treeView.GetItemFromSelectedObject(treeView.SelectedItem);
+                TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                if(tvi != null)
+                    selectedAnimationElement = tvi.DataContext as IAnimationElement;
+                dObject = VisualTreeHelper.GetParent(tvi); // got the immediate parent
+                tvi = dObject as TreeViewItem; // now get first treeview item parent
+                while (tvi == null)
+                {
+                    dObject = VisualTreeHelper.GetParent(dObject);
+                    tvi = dObject as TreeViewItem;
+                    if (tvi == null)
+                    {
+                        var tView = dObject as TreeView;
+                        if (tView != null)
+                            break;
+                    }
+                    else
+                        animationElement = tvi.DataContext as IAnimationElement;
+                }
+            }
+
+            return selectedAnimationElement;
         }
 
         public static string GetTextFromControlObject(object control)

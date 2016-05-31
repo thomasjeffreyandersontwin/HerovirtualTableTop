@@ -106,6 +106,7 @@
     <Compile Include="Converters\BooleanToVisibilityInvertConverter.cs" />
     <Compile Include="Converters\BorderGapMaskConverters.cs" />
     <Compile Include="Converters\CharacterOptionComparerConverter.cs" />
+    <Compile Include="Converters\EnumToBooleanConverter.cs" />
     <Compile Include="Converters\InvertBooleanConverter.cs" />
     <Compile Include="Enumerations\Enums.cs" />
     <Compile Include="Error\ErrorItem.cs" />

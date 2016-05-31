@@ -29,4 +29,13 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Delete,
         Paste
     }
+    public enum AnimationType
+    {
+        Movement,
+        Sound,
+        FX,
+        Reference,
+        Sequence,
+        Pause
+    }
 }
