@@ -18,6 +18,7 @@
             <ContextMenu x:Key="CharExplorerMenu">
                 <MenuItem Header="Add Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCharacterCommand}"></MenuItem>
                 <MenuItem Header="Add Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdCommand}"></MenuItem>
+                <MenuItem Header="Add Crowd From Models" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdFromModelsCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>

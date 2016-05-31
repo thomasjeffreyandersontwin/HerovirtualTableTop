@@ -104,6 +104,20 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
+        private bool isCrowdFromModelsExpanded;
+        public bool IsCrowdFromModelsExpanded
+        {
+            get
+            {
+                return isCrowdFromModelsExpanded;
+            }
+            set
+            {
+                isCrowdFromModelsExpanded = value;
+                OnPropertyChanged("IsCrowdFromModelsExpanded");
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -122,6 +136,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe((Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple) => { this.IsCharacterEditorExpanded = true; });
             this.eventAggregator.GetEvent<EditIdentityEvent>().Subscribe((Tuple<Identity, Character> tuple) => { this.IsIdentityEditorExpanded = true; });
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe((Tuple<AnimatedAbility, Character> tuple) => { this.IsAbilityEditorExpanded = true; });
+            this.eventAggregator.GetEvent<CreateCrowdFromModelsEvent>().Subscribe((CrowdModel crowd) => { this.IsCrowdFromModelsExpanded = true; });
         }
 
         #endregion
@@ -161,6 +176,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             AbilityEditorView view = this.Container.Resolve<AbilityEditorView>();
             OnViewLoaded(view, null);
         }
+        public void LoadCrowdFromModelsView()
+        {
+            CrowdFromModelsView view = this.Container.Resolve<CrowdFromModelsView>();
+            OnViewLoaded(view, null);
+        }
 
         private void CollapsePanel(object state)
         {
@@ -180,6 +200,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                     break;
                 case "AbilityEditor":
                     this.IsAbilityEditorExpanded = false;
+                    break;
+                case "CrowdFromModelsView":
+                    this.IsCrowdFromModelsExpanded = false;
                     break;
             }
         }

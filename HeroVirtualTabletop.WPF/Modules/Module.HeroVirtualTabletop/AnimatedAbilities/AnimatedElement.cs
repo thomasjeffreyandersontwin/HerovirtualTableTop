@@ -14,6 +14,7 @@ using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -28,6 +29,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class AnimationElement : NotifyPropertyChanged, IAnimationElement
     {
+        [JsonConstructor]
+        private AnimationElement() { }
+
         public AnimationElement(string name, int order = 1, Character owner = null)
         {
             this.Name = name;
@@ -102,6 +106,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class PauseElement : AnimationElement
     {
+        [JsonConstructor]
+        private PauseElement() : base(string.Empty) { }
+
         public PauseElement(string name, int time, int order = 1, Character owner = null)
             : base(name, order, owner)
         {
@@ -132,6 +139,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class SoundElement : AnimationElement
     {
+        [JsonConstructor]
+        private SoundElement() : base(string.Empty) { }
+
         public SoundElement(string name, string soundFile, int order = 1, Character owner = null)
             : base(name, order, owner)
         {
@@ -163,6 +173,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class MOVElement : AnimationElement
     {
+        [JsonConstructor]
+        private MOVElement() : base(string.Empty) { }
+
         public MOVElement(string name, string MOVResource, int order = 1, Character owner = null)
             : base(name, order, owner)
         {
@@ -198,6 +211,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class FXEffectElement : AnimationElement
     {
+        [JsonConstructor]
+        private FXEffectElement() : base(string.Empty) { }
 
         public FXEffectElement(string name, string effect, bool persistent = false, bool playWithNext = false, int order = 1, Character owner = null)
             : base(name, order, owner)
@@ -370,8 +385,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     
     public class SequenceElement : AnimationElement
     {
-        public SequenceElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
+        [JsonConstructor]
+        private SequenceElement() : base(string.Empty)
+        {
+            Initialize();
+        }
+
+        public NestedAnimationElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
             : base(name, order, owner)
+        {
+            Initialize();
+            this.SequenceType = seqType;
+            this.lastOrder = 0;
+        }
+
+        private void Initialize()
         {
             this.animationElements = new HashedObservableCollection<IAnimationElement, string>(x => x.Name, x => x.Order);
             this.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(animationElements);
@@ -394,7 +422,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        [JsonProperty(PropertyName = "AnimationElements")]
         private HashedObservableCollection<IAnimationElement, string> animationElements;
+        [JsonIgnore]
         public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; private set; }
 
         private int lastOrder;
@@ -411,7 +441,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.lastOrder++;
             element.Owner = this.Owner;
             if (order == 0)
-                element.Order = this.LastOrder;
+            element.Order = this.LastOrder;
             else
                 element.Order = order;
             this.animationElements.Add(element);

@@ -173,6 +173,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.crowdMemberCollection.Remove(member);
             member.PropertyChanged -= Member_PropertyChanged;
         }
+        
+        public void RemoveAll()
+        {
+            while (CrowdMemberCollection.Count > 0)
+            {
+                Remove(CrowdMemberCollection[0]);
+            }
+        }
 
         private Dictionary<string, IMemoryElementPosition> savedPositions;
         [JsonProperty(Order = 3)]
@@ -272,7 +280,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             IsExpanded = IsMatched;
             alreadyFiltered = true;
         }
-
+        
         private bool alreadyFiltered = false;
         public void ResetFilter()
         {

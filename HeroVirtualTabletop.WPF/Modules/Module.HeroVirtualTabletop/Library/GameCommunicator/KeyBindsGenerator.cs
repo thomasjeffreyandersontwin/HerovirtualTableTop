@@ -43,6 +43,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             { GameEvent.LoadMap , "loadmap"},
             { GameEvent.BindLoadFile , "bind_load_file"},
             { GameEvent.Macro , "macro"},
+            { GameEvent.NOP , "nop" }
         };
         #endregion
 

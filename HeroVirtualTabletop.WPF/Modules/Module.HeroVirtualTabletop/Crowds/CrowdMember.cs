@@ -13,6 +13,7 @@ using Module.Shared;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Framework.WPF.Library;
 using System.ComponentModel;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -71,14 +72,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
         [JsonConstructor]
-        public CrowdMember(): base()
-        { 
-            
-        }
-        public CrowdMember(string name): base(name)
-        {
-            
-        }
+        public CrowdMember(): base() { }
+        
+        public CrowdMember(string name): base(name) { }
+
+        public CrowdMember(string name, string surface, IdentityType identityType) : base(name, surface, identityType) { }
 
         public virtual ICrowdMember Clone()
         {
@@ -248,6 +246,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         [JsonConstructor]
         public CrowdMemberModel() : base() { }
         public CrowdMemberModel(string name, int order = 0): base(name)
+        {
+            this.order = order;
+        }
+        public CrowdMemberModel(string name, string surface, IdentityType identityType, int order = 0) : base(name, surface, identityType)
         {
             this.order = order;
         }

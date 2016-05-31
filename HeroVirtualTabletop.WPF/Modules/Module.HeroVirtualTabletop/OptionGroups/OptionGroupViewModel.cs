@@ -160,28 +160,28 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             if (typeof(T) == typeof(Identity))
             {
                 AddIdentity(state);
-                return;
+                goto save;
             }
             if (typeof(T) == typeof(AnimatedAbility))
             {
                 AddAbility(state);
-                return;
+                goto save;
             }
-            //eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+save:
+            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
         
         private void RemoveOption(object state)
         {
-            if (typeof(T) == typeof(Identities.Identity))
+            if (typeof(T) == typeof(Identity))
             {
                 RemoveIdentity(state);
-                return;
             }
             else
             {
                 optionGroup.Remove(SelectedOption);
             }
-            //eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
         
         private T GetDefaultOption()

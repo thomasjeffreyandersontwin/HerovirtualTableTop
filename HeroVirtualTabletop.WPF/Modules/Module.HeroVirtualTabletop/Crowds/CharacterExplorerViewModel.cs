@@ -205,6 +205,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> PasteCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> EditCharacterCommand { get; private set; }
         public ICommand UpdateSelectedCrowdMemberCommand { get; private set; }
+        public DelegateCommand<object> AddCrowdFromModelsCommand { get; private set; }
 
         #endregion
 
@@ -239,6 +240,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.PasteCharacterCrowdCommand = new DelegateCommand<object>(this.PasteCharacterCrowd, this.CanPasteCharacterCrowd);
             this.AddToRosterCommand = new DelegateCommand<object>(this.AddToRoster, this.CanAddToRoster);
             this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
+            this.AddCrowdFromModelsCommand = new DelegateCommand<object>(this.AddCrowdFromModels);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -455,9 +457,32 @@ namespace Module.HeroVirtualTabletop.Crowds
             // Enter Edit mode for the added model
             OnEditNeeded(crowdModel, null);
         }
-        private CrowdModel GetNewCrowdModel()
+
+        private void AddCrowdFromModels(object state)
         {
-            string name = "Crowd";
+            // Create a new Crowd
+            CrowdModel crowdModel = this.GetNewCrowdModel("Crowd From Models");
+            // Lock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(true);
+            // Add the new Model
+            this.AddNewCrowdModel(crowdModel);
+            // Update Repository asynchronously
+            this.SaveCrowdCollection();
+            // UnLock character crowd Tree from updating;
+            this.LockModelAndMemberUpdate(false);
+            // Update character crowd if necessary
+            if (this.lastCharacterCrowdStateToUpdate != null)
+            {
+                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+                this.lastCharacterCrowdStateToUpdate = null;
+            }
+
+            this.eventAggregator.GetEvent<CreateCrowdFromModelsEvent>().Publish(crowdModel);
+        }
+
+        private CrowdModel GetNewCrowdModel(string name = "Crowd")
+        {
+            //string name = "Crowd";
             string fullName = GetAppropriateCrowdName(name);
             return new CrowdModel(fullName);
         }
@@ -536,14 +561,13 @@ namespace Module.HeroVirtualTabletop.Crowds
             OnEditNeeded(character, null); 
         }
 
-        private Character GetNewCharacter()
+        public Character GetNewCharacter(string name = "Character", string surface = null, IdentityType type = IdentityType.Model)
         {
-            string name = "Character";
             string fullName = GetAppropriateCharacterName(name);
-            return new CrowdMemberModel(fullName);
+            return new CrowdMemberModel(fullName, surface, type);
         }
 
-        private string GetAppropriateCharacterName(string name)
+        public string GetAppropriateCharacterName(string name)
         {
             string suffix = string.Empty;
             string rootName = name;

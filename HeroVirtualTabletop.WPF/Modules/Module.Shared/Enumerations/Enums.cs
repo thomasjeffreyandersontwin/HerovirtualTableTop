@@ -46,7 +46,8 @@ namespace Module.Shared.Enumerations
         Follow,
         LoadMap,
         BindLoadFile,
-        Macro
+        Macro,
+        NOP
     }
 
 }

@@ -38,6 +38,8 @@ namespace Module.HeroVirtualTabletop.Identities
         }
 
         protected internal static Position position = new Position(false, 1696336);
+        public static Position Position { get { return position; } }
+
         private static Identity skin;
 
         private static string[] lastKeybinds;
