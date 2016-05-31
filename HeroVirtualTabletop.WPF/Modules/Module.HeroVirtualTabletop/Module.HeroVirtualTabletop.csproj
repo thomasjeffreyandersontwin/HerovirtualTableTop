@@ -131,6 +131,10 @@
       <DependentUpon>CharacterCrowdMainView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Crowds\CharacterCrowdMainViewModel.cs" />
+    <Compile Include="Crowds\CrowdFromModelsView.xaml.cs">
+      <DependentUpon>CrowdFromModelsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Crowds\CrowdFromModelsViewModel.cs" />
     <Compile Include="Identities\Camera.cs" />
     <Compile Include="Identities\IdentityEditorView.xaml.cs">
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>
@@ -232,6 +236,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Crowds\CharacterMenuControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Crowds\CrowdFromModelsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

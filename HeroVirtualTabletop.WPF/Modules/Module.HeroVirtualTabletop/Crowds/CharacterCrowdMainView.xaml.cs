@@ -38,6 +38,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.LoadCharacterEditor();
             this.viewModel.LoadIdentityEditor();
             this.viewModel.LoadAbilityEditor();
+            this.viewModel.LoadCrowdFromModelsView();
         }
 
         void viewModel_ViewLoaded(object sender, EventArgs e)
@@ -52,6 +53,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 RenderIdentityEditor(sender as IdentityEditorView);
             else if (sender != null && sender is AbilityEditorView)
                 RenderAbilityEditor(sender as AbilityEditorView);
+            else if (sender != null && sender is CrowdFromModelsView)
+                RenderCrowdFromModelsView(sender as CrowdFromModelsView);
         }
 
         private void RenderCharacterExplorer(CharacterExplorerView charExplorerView)
@@ -73,6 +76,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void RenderAbilityEditor(AbilityEditorView abilityEditorView)
         {
             this.abilityEditorPanel.Children.Add(abilityEditorView);
+        }
+        private void RenderCrowdFromModelsView(CrowdFromModelsView crowdFromModelsView)
+        {
+            this.crowdFromModelsPanel.Children.Add(crowdFromModelsView);
         }
 
         private void Expander_ExpansionChanged(object sender, RoutedEventArgs e)

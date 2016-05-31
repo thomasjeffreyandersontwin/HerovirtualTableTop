@@ -73,8 +73,8 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<HeroVirtualTabletopMainView, HeroVirtualTabletopMainView>();
             this.container.RegisterType<HeroVirtualTabletopMainViewModel, HeroVirtualTabletopMainViewModel>();
             
-            this.container.RegisterType<CharacterExplorerView, CharacterExplorerView>();
-            this.container.RegisterType<CharacterExplorerViewModel, CharacterExplorerViewModel>();
+            this.container.RegisterType<CharacterExplorerView, CharacterExplorerView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<CharacterExplorerViewModel, CharacterExplorerViewModel>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<RosterExplorerView, RosterExplorerView>();
             this.container.RegisterType<RosterExplorerViewModel, RosterExplorerViewModel>();
@@ -89,6 +89,9 @@ namespace Module.HeroVirtualTabletop
             //Return a new one the first time only, then always the already instanciated one
             this.container.RegisterType<IdentityEditorView, IdentityEditorView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<IdentityEditorViewModel, IdentityEditorViewModel>(new ContainerControlledLifetimeManager());
+
+            this.container.RegisterType<CrowdFromModelsView, CrowdFromModelsView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<CrowdFromModelsViewModel, CrowdFromModelsViewModel>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
         }

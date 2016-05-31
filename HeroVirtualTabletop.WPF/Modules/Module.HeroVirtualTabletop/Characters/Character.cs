@@ -251,13 +251,15 @@ namespace Module.HeroVirtualTabletop.Characters
             if (hasBeenSpawned)
             {
                 Target();
+                WaitUntilTargetIsRegistered();
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
                 gamePlayer = null;
             }
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NOP); //No operation, let the game untarget whatever it has targeted
             
             hasBeenSpawned = true;
-            string model = "model_Statesman";
+            string model = "Model_Statesman";
             if (ActiveIdentity.Type == IdentityType.Model)
             {
                 model = ActiveIdentity.Surface;
