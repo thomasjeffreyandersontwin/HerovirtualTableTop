@@ -85,7 +85,7 @@
             <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
             <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
             <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" Command="{Binding PasteCharacterCrowdCommand}"/>
-            <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddCharacterCommand}"/>
+            <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
             <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddCrowdCommand}"/>
             <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Play" Command="{Binding DeleteCharacterCrowdCommand}" />
         </StackPanel>
@@ -93,19 +93,22 @@
             <StackPanel.Resources>
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
             </StackPanel.Resources>
-            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCharacterCrowdCommand}"/>
-            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCharacterCrowdCommand}"/>
-            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Link" Command="{Binding LinkCharacterCrowdCommand}"/>
+            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCommand}"/>
+            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCommand}"/>
+            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteCommand}"/>
             <Button x:Name="btnRemove" Content="&#xf235;" ToolTip="Paste" Command="{Binding RemoveAnimationCommand}"/>
-            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
+            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Play" Command="{Binding PlayCommand}"/>
         </StackPanel>
         <Grid Grid.Row="2" Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>
-            <CheckBox Name="chkBoxPlayWithNext" Grid.Column="1" IsChecked="{Binding PlayWithNext}" Content="Play W/ Next" Foreground="White" Margin="5" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
+                <CheckBox Name="chkBoxPlayWithNext" IsChecked="{Binding PlayWithNext}" Content="Play W/ Next" Foreground="White"  HorizontalAlignment="Left" />
+                <CheckBox Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
+            </StackPanel>
+            <ComboBox Grid.Column="1" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>
         </Grid>
         <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
                   PreviewMouseDown="OnPreviewMouseDown" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5"

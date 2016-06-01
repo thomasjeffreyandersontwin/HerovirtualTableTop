@@ -190,7 +190,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility);
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
-            this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimatedAbility);
+            this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement);
             this.RemoveAnimationCommand = new DelegateCommand<object>(this.RemoveAnimation, this.CanRemoveAnimation);
             UpdateSelectedAnimationCommand = new SimpleCommand
             {
@@ -218,7 +218,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.SelectedAnimationElement = selectedAnimationElement as IAnimationElement;
                         this.SelectedAnimationParent = parentAnimationElement;
                     }
-                    else if(selectedAnimationElement == null && this.CurrentAbility.AnimationElements.Count == 0)
+                    else if(selectedAnimationElement == null && (this.CurrentAbility == null || this.CurrentAbility.AnimationElements.Count == 0))
                     {
                         this.SelectedAnimationElement = null;
                         this.SelectedAnimationParent = null;
@@ -319,9 +319,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         #endregion
 
-        #region Add Animated Ability
+        #region Add Animation Element
 
-        private void AddAnimatedAbility(object state)
+        private void AddAnimationElement(object state)
         {
             AnimationType animationType = (AnimationType)state;
             AnimationElement animationElement = this.GetAnimationElement(animationType);
@@ -348,6 +348,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 case AnimationType.Sound:
                     animationElement = new SoundElement("", "");
                     name = "Sound Element";
+                    break;
+                case AnimationType.Sequence:
+                    animationElement = new SequenceElement("");
+                    name = "Seq Element";
                     break;
             }
             
@@ -443,20 +447,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
 
-            var soundFiles = Directory.EnumerateFiles
-                        (Path.Combine(
-                            Settings.Default.CityOfHeroesGameDirectory,
-                            Constants.GAME_SOUND_FOLDERNAME),
-                        "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
+            //var soundFiles = Directory.EnumerateFiles
+            //            (Path.Combine(
+            //                Settings.Default.CityOfHeroesGameDirectory,
+            //                Constants.GAME_SOUND_FOLDERNAME),
+            //            "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
             
-            foreach (string file in soundFiles)
-            {
-                string name = Path.GetFileNameWithoutExtension(file);
-                string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
-                    Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
-                tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
-                soundElements.Add(new SoundElement(name, file, tags: tags));
-            }
+            //foreach (string file in soundFiles)
+            //{
+            //    string name = Path.GetFileNameWithoutExtension(file);
+            //    string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
+            //        Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
+            //    tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
+            //    soundElements.Add(new SoundElement(name, file, tags: tags));
+            //}
 
         }
 

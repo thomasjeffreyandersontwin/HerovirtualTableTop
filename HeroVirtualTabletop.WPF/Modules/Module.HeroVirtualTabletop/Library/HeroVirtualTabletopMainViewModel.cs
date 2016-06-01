@@ -57,7 +57,7 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadModelsFile();
 
-            LoadSoundFiles();
+            //LoadSoundFiles();
 
             // Load camera on start
             new Camera().Render();
