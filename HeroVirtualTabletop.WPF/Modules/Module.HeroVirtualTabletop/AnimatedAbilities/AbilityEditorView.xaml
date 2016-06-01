@@ -96,7 +96,7 @@
             <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCharacterCrowdCommand}"/>
             <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCharacterCrowdCommand}"/>
             <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Link" Command="{Binding LinkCharacterCrowdCommand}"/>
-            <Button x:Name="btnRemove" Content="&#xf235;" ToolTip="Paste" Command="{Binding PasteCharacterCrowdCommand}"/>
+            <Button x:Name="btnRemove" Content="&#xf235;" ToolTip="Paste" Command="{Binding RemoveAnimationCommand}"/>
             <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
         </StackPanel>
         <Grid Grid.Row="2" Grid.Column="1">

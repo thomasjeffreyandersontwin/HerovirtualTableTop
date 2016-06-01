@@ -67,5 +67,25 @@ namespace Module.UnitTest.AnimatedAbilities
             this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
             Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Order == 2);
         }
+        [TestMethod]
+        public void RemoveAnimationElement_RemovesAnimationElement()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            this.abilityEditorViewModel.SelectedAnimationElement = this.abilityEditorViewModel.CurrentAbility.AnimationElements["Mov Element 1"];
+            this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
+            var deletedElement = this.abilityEditorViewModel.CurrentAbility.AnimationElements.Where(a => a.Name == "Mov Element 1").FirstOrDefault();
+            Assert.IsNull(deletedElement);
+        }
+        [TestMethod]
+        public void RemoveAnimationElement_UpdatesOrder()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            this.abilityEditorViewModel.SelectedAnimationElement = this.abilityEditorViewModel.CurrentAbility.AnimationElements["Mov Element 1"];
+            this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
+            var updatedElement = this.abilityEditorViewModel.CurrentAbility.AnimationElements.Where(a => a.Name == "FX Element 1").FirstOrDefault();
+            Assert.AreEqual(updatedElement.Order, 1);
+        }
     }
 }
