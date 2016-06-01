@@ -462,12 +462,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public void RemoveAnimationElement(IAnimationElement element)
         {
+            foreach (IAnimationElement elem in animationElements.Where(a => a.Order > element.Order))
+                elem.Order -= 1;
             animationElements.Remove(element);
         }
 
         public void RemoveAnimationElement(string name)
         {
-            animationElements.Remove(name);
+            IAnimationElement element = animationElements[name];
+            RemoveAnimationElement(element);
         }
 
         public override string Play(bool completeEvent = true)

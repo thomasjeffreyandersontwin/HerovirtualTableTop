@@ -8,6 +8,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared.Events;
 using Module.Shared.Messages;
 using Prism.Events;
 using System;
@@ -122,6 +123,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 selectedAnimationElement = value;
+                this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -135,6 +137,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 selectedAnimationParent = value;
+                this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -159,6 +162,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
         public DelegateCommand<object> AddAnimationElementCommand { get; private set; }
         public DelegateCommand<object> SaveAbilityCommand { get; private set; }
+        public DelegateCommand<object> RemoveAnimationCommand { get; private set; }
         public ICommand UpdateSelectedAnimationCommand { get; private set; }
 
         #endregion
@@ -187,6 +191,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
             this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimatedAbility);
+            this.RemoveAnimationCommand = new DelegateCommand<object>(this.RemoveAnimation, this.CanRemoveAnimation);
             UpdateSelectedAnimationCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -212,6 +217,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         this.SelectedAnimationElement = selectedAnimationElement as IAnimationElement;
                         this.SelectedAnimationParent = parentAnimationElement;
+                    }
+                    else if(selectedAnimationElement == null && this.CurrentAbility.AnimationElements.Count == 0)
+                    {
+                        this.SelectedAnimationElement = null;
+                        this.SelectedAnimationParent = null;
                     }
                 }
                 else
@@ -393,6 +403,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        #region Save Ability
+
         private void SaveAbility(object state)
         {
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
@@ -447,6 +459,44 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
 
         }
+
+        #endregion
+
+        #region Remove Animation
+
+        private bool CanRemoveAnimation(object state)
+        {
+            return this.SelectedAnimationElement != null;
+        }
+
+        private void RemoveAnimation(object state)
+        {
+            this.LockModelAndMemberUpdate(true);
+            if(this.SelectedAnimationParent != null)
+            {
+                // Will need to add more logic during remove animation from sequence story
+                this.DeleteAnimationElementFromParentElementByName(this.SelectedAnimationParent, this.SelectedAnimationElement.Name);
+            }
+            else
+            {
+                this.CurrentAbility.RemoveAnimationElement(this.SelectedAnimationElement.Name);
+            }
+            this.SaveAbility(null);
+            this.LockModelAndMemberUpdate(false);
+        }
+
+        private void DeleteAnimationElementFromParentElementByName(IAnimationElement parent, string nameOfDeletingAnimation)
+        {
+            SequenceElement parentSequenceElement = parent as SequenceElement;
+            if (parentSequenceElement != null && parentSequenceElement.AnimationElements.Count > 0)
+            {
+                //var anim = parentSequenceElement.AnimationElements.Where(a => a.Name == nameOfDeletingAnimation).FirstOrDefault();
+                parentSequenceElement.RemoveAnimationElement(nameOfDeletingAnimation);
+            }
+            //OnExpansionUpdateNeeded(parent, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
+        }
+
+        #endregion
 
         #endregion
     }
