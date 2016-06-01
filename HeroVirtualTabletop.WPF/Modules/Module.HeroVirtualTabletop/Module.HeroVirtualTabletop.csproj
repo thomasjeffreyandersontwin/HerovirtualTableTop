@@ -97,6 +97,8 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xaml" />
@@ -201,6 +203,7 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="packages.config" />
+    <EmbeddedResource Include="Resources\MOVElements.csv" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Frameworks\Framework.WPF\Framework.WPF.csproj">
@@ -278,6 +281,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <EmbeddedResource Include="Resources\FXElements.csv" />
     <None Include="Resources\Models.txt" />
   </ItemGroup>
   <ItemGroup>

@@ -47,6 +47,7 @@ namespace Module.Shared
         public const string GAME_KEYBINDS_FILENAME = "required_keybinds.txt";
         public const string GAME_MODELS_FILENAME = "Models.txt";
         public const string GAME_DATA_BACKUP_FOLDERNAME = "Backup";
+        public const string GAME_SOUND_FOLDERNAME = "sound";
         #endregion
 
         #region Character Explorer

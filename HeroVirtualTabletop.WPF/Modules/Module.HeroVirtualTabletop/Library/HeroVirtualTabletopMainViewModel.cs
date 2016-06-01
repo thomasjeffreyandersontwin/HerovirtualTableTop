@@ -6,22 +6,18 @@ using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Properties;
 using Module.Shared;
 using Module.Shared.Messages;
 using Prism.Events;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO.Compression;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Media;
-using System.Resources;
-using Module.HeroVirtualTabletop.Properties;
-using Module.HeroVirtualTabletop.Library.Events;
-using Module.HeroVirtualTabletop.Characters;
+using System.Windows.Resources;
 
 namespace Module.HeroVirtualTabletop.Library
 {
@@ -61,13 +57,15 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadModelsFile();
 
+            LoadSoundFiles();
+
             // Load camera on start
             new Camera().Render();
 
             LoadMainView();
             
         }
-
+        
         #endregion
 
         #region Methods
@@ -191,6 +189,23 @@ namespace Module.HeroVirtualTabletop.Library
                 File.AppendAllText(
                 filePath, Resources.Models
                 );
+            }
+        }
+
+        private void LoadSoundFiles()
+        {
+            string folderPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_SOUND_FOLDERNAME);
+            if (Directory.Exists(folderPath)) //&& Directory.GetFiles(folderPath, "*.ogg", SearchOption.AllDirectories).Count() >= 6218)
+            {
+                return;
+            }
+            else
+            {
+                Uri uri = new Uri("/Resources/sound.zip", UriKind.Relative);
+                StreamResourceInfo data = Application.GetContentStream(uri);
+
+                ZipArchive archive = new ZipArchive(data.Stream);
+                archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
             }
         }
 
