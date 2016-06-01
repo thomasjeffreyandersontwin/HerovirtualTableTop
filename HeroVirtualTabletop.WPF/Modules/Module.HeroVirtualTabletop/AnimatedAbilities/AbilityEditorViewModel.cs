@@ -447,20 +447,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
 
-            var soundFiles = Directory.EnumerateFiles
-                        (Path.Combine(
-                            Settings.Default.CityOfHeroesGameDirectory,
-                            Constants.GAME_SOUND_FOLDERNAME),
-                        "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
+            //var soundFiles = Directory.EnumerateFiles
+            //            (Path.Combine(
+            //                Settings.Default.CityOfHeroesGameDirectory,
+            //                Constants.GAME_SOUND_FOLDERNAME),
+            //            "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
             
-            foreach (string file in soundFiles)
-            {
-                string name = Path.GetFileNameWithoutExtension(file);
-                string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
-                    Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
-                tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
-                soundElements.Add(new SoundElement(name, file, tags: tags));
-            }
+            //foreach (string file in soundFiles)
+            //{
+            //    string name = Path.GetFileNameWithoutExtension(file);
+            //    string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
+            //        Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
+            //    tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
+            //    soundElements.Add(new SoundElement(name, file, tags: tags));
+            //}
 
         }
 

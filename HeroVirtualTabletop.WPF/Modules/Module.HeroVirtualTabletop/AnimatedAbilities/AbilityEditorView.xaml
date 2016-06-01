@@ -106,7 +106,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
                 <CheckBox Name="chkBoxPlayWithNext" IsChecked="{Binding PlayWithNext}" Content="Play W/ Next" Foreground="White"  HorizontalAlignment="Left" />
-                <CheckBox Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" />
+                <CheckBox Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
             </StackPanel>
             <ComboBox Grid.Column="1" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>
         </Grid>
