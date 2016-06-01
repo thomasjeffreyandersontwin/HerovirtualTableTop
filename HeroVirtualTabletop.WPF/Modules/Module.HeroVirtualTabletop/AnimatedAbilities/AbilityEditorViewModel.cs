@@ -18,6 +18,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Reflection;
+using System.IO;
+using System.Collections.ObjectModel;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -136,6 +140,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public string OriginalName { get; set; }
 
+        private ObservableCollection<MOVElement> movElements;
+        public ReadOnlyObservableCollection<MOVElement> MOVElements { get; private set; }
+
+        private ObservableCollection<FXEffectElement> fxElements;
+        public ReadOnlyObservableCollection<FXEffectElement> FXElements { get; private set; }
+
+        private ObservableCollection<SoundElement> soundElements;
+        public ReadOnlyObservableCollection<SoundElement> SoundElements { get; private set; }
+
         #endregion
 
         #region Commands
@@ -158,9 +171,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             InitializeCommands();
+            LoadResources();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
         }
-
+        
         #endregion
 
         #region Initialization
@@ -382,6 +396,56 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void SaveAbility(object state)
         {
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
+        }
+
+        private void LoadResources()
+        {
+            movElements = new ObservableCollection<MOVElement>();
+            MOVElements = new ReadOnlyObservableCollection<MOVElement>(movElements);
+            fxElements = new ObservableCollection<FXEffectElement>();
+            FXElements = new ReadOnlyObservableCollection<FXEffectElement>(fxElements);
+            soundElements = new ObservableCollection<SoundElement>();
+            SoundElements = new ReadOnlyObservableCollection<SoundElement>(soundElements);
+
+            Assembly assembly = Assembly.GetExecutingAssembly();
+
+            string resName = "Module.HeroVirtualTabletop.Resources.MOVElements.csv";
+            using (StreamReader Sr = new StreamReader(assembly.GetManifestResourceStream(resName)))
+            {
+                while (!Sr.EndOfStream)
+                {
+                    string resLine = Sr.ReadLine();
+                    string[] resArray = resLine.Split(';');
+                    movElements.Add(new MOVElement(resArray[1], resArray[1], tags: resArray[0]));
+                }
+            }
+
+            resName = "Module.HeroVirtualTabletop.Resources.FXElements.csv";
+            using (StreamReader Sr = new StreamReader(assembly.GetManifestResourceStream(resName)))
+            {
+                while (!Sr.EndOfStream)
+                {
+                    string resLine = Sr.ReadLine();
+                    string[] resArray = resLine.Split(';');
+                    fxElements.Add(new FXEffectElement(resArray[1], resArray[2], tags: resArray[0]));
+                }
+            }
+
+            var soundFiles = Directory.EnumerateFiles
+                        (Path.Combine(
+                            Settings.Default.CityOfHeroesGameDirectory,
+                            Constants.GAME_SOUND_FOLDERNAME),
+                        "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
+            
+            foreach (string file in soundFiles)
+            {
+                string name = Path.GetFileNameWithoutExtension(file);
+                string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
+                    Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
+                tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
+                soundElements.Add(new SoundElement(name, file, tags: tags));
+            }
+
         }
 
         #endregion

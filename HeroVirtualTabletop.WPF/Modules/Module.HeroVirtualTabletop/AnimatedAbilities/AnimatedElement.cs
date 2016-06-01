@@ -32,11 +32,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private AnimationElement() { }
 
-        public AnimationElement(string name, int order = 1, Character owner = null)
+        public AnimationElement(string name, int order = 1, Character owner = null, params string[] tags)
         {
             this.Name = name;
             this.Order = order;
             this.Owner = owner;
+            this.tags = new ObservableCollection<string>(tags);
+            Tags = new ReadOnlyObservableCollection<string>(this.tags);
         }
 
         private string name;
@@ -98,6 +100,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private ObservableCollection<string> tags;
+        public ReadOnlyObservableCollection<string> Tags { get; private set; }
+
+        public string TagLine
+        {
+            get
+            {
+                return string.Join(", ", tags);
+            }
+        }
+
         public virtual string Play(bool completeEvent = true)
         {
             return "Playing " + this.Order + " for " + this.Owner.Name;
@@ -142,8 +155,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private SoundElement() : base(string.Empty) { }
 
-        public SoundElement(string name, string soundFile, int order = 1, Character owner = null)
-            : base(name, order, owner)
+        public SoundElement(string name, string soundFile, int order = 1, Character owner = null, params string[] tags)
+            : base(name, order, owner, tags)
         {
             this.SoundFile = soundFile;
             this.Type = AnimationType.Sound;
@@ -176,8 +189,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private MOVElement() : base(string.Empty) { }
 
-        public MOVElement(string name, string MOVResource, int order = 1, Character owner = null)
-            : base(name, order, owner)
+        public MOVElement(string name, string MOVResource, int order = 1, Character owner = null, params string[] tags)
+            : base(name, order, owner, tags)
         {
             this.MOVResource = MOVResource;
             this.Type = AnimationType.Movement;
@@ -214,8 +227,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private FXEffectElement() : base(string.Empty) { }
 
-        public FXEffectElement(string name, string effect, bool persistent = false, bool playWithNext = false, int order = 1, Character owner = null)
-            : base(name, order, owner)
+        public FXEffectElement(string name, string effect, bool persistent = false, bool playWithNext = false,
+            int order = 1, Character owner = null, params string[] tags)
+            : base(name, order, owner, tags)
         {
             this.Effect = effect;
             this.Type = AnimationType.FX;
