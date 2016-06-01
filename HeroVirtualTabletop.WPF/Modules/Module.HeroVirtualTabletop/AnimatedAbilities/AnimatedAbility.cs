@@ -15,8 +15,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private AnimatedAbility() : base(string.Empty) { }
 
-        public AnimatedAbility(string name, string activateOnKey = null, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
-            : base(name, seqType, order, owner)
+        public AnimatedAbility(string name, string activateOnKey = null, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, seqType, persistent, order, owner)
         {
             this.ActivateOnKey = activateOnKey;
         }

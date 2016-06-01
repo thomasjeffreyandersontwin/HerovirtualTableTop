@@ -24,7 +24,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         Character Owner { get; set; }
         int Order { get; set; }
 
-        string Play(bool completeEvent = true);
+        string Play(bool persistent = false);
     }
 
     public class AnimationElement : NotifyPropertyChanged, IAnimationElement
@@ -32,11 +32,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private AnimationElement() { }
 
-        public AnimationElement(string name, int order = 1, Character owner = null, params string[] tags)
+        public AnimationElement(string name, bool persistent = false, int order = 1, Character owner = null, params string[] tags)
         {
             this.Name = name;
             this.Order = order;
             this.Owner = owner;
+            this.Persistent = persistent;
             this.tags = new ObservableCollection<string>(tags);
             Tags = new ReadOnlyObservableCollection<string>(this.tags);
         }
@@ -100,6 +101,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+
+        private bool persistent;
+        public bool Persistent
+        {
+            get
+            {
+                return persistent;
+            }
+            set
+            {
+                persistent = value;
+                OnPropertyChanged("Persistent");
+            }
+        }
+
         private ObservableCollection<string> tags;
         public ReadOnlyObservableCollection<string> Tags { get; private set; }
 
@@ -111,7 +127,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public virtual string Play(bool completeEvent = true)
+        public virtual string Play(bool persistent = false)
         {
             return "Playing " + this.Order + " for " + this.Owner.Name;
         }
@@ -122,8 +138,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private PauseElement() : base(string.Empty) { }
 
-        public PauseElement(string name, int time, int order = 1, Character owner = null)
-            : base(name, order, owner)
+        public PauseElement(string name, int time, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
         {
             this.Time = time;
             this.Type = AnimationType.Pause;
@@ -143,7 +159,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool completeEvent = true)
+        public override string Play(bool persistent = false)
         {
             System.Threading.Thread.Sleep(Time);
             return string.Empty;
@@ -155,8 +171,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private SoundElement() : base(string.Empty) { }
 
-        public SoundElement(string name, string soundFile, int order = 1, Character owner = null, params string[] tags)
-            : base(name, order, owner, tags)
+        public SoundElement(string name, string soundFile, bool persistent = false, int order = 1, Character owner = null, params string[] tags)
+            : base(name, persistent, order, owner, tags)
         {
             this.SoundFile = soundFile;
             this.Type = AnimationType.Sound;
@@ -176,11 +192,38 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool completeEvent = true)
+        private bool active;
+        public bool Active
         {
-            SoundPlayer player = new SoundPlayer(SoundFile);
-            player.PlaySync();
-            return base.Play(completeEvent);
+            get
+            {
+                return active;
+            }
+            private set
+            {
+                active = value;
+                OnPropertyChanged("Active");
+            }
+        }
+
+        private SoundPlayer player;
+        public override string Play(bool persistent = false)
+        {
+            if (Active)
+            {
+                player.Stop();
+                Active = false;
+                return string.Empty;
+            }
+            player = new SoundPlayer(SoundFile);
+            if (this.Persistent || persistent)
+            {
+                player.PlayLooping();
+                Active = true;
+            }
+            else
+                player.PlaySync();
+            return base.Play(this.Persistent || persistent);
         }
     }
 
@@ -189,8 +232,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private MOVElement() : base(string.Empty) { }
 
-        public MOVElement(string name, string MOVResource, int order = 1, Character owner = null, params string[] tags)
-            : base(name, order, owner, tags)
+        public MOVElement(string name, string MOVResource, bool persistent = false, int order = 1, Character owner = null, params string[] tags)
+            : base(name, persistent, order, owner, tags)
         {
             this.MOVResource = MOVResource;
             this.Type = AnimationType.Movement;
@@ -210,15 +253,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool completeEvent = true)
+        public override string Play(bool persistent = true)
         {
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
-            if (completeEvent)
-            {
-                keybind = keyBindsGenerator.CompleteEvent();
-            }
-            return keybind;
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            return keyBindsGenerator.CompleteEvent();
         }
     }
 
@@ -229,11 +268,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public FXEffectElement(string name, string effect, bool persistent = false, bool playWithNext = false,
             int order = 1, Character owner = null, params string[] tags)
-            : base(name, order, owner, tags)
+            : base(name, persistent, order, owner, tags)
         {
             this.Effect = effect;
             this.Type = AnimationType.FX;
-            this.Persistent = persistent;
             this.PlayWithNext = playWithNext;
             this.Colors = new Color[4];
             this.Colors.Initialize();
@@ -266,21 +304,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Effect");
             }
         }
-
-        private bool persistent;
-        public bool Persistent
-        {
-            get
-            {
-                return persistent;
-            }
-            set
-            {
-                persistent = value;
-                OnPropertyChanged("Persistent");
-            }
-        }
-
+        
         private bool playWithNext;
         public bool PlayWithNext
         {
@@ -309,7 +333,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool completeEvent = true)
+        public override string Play(bool persistent = false)
         {
             string keybind = string.Empty;
             string name = Owner.Name;
@@ -334,12 +358,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string fxCostume = Path.Combine(name, string.Format("{0}_{1}", name, FXName));
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                 keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume);
-                if (PlayWithNext == false && completeEvent)
+                if (PlayWithNext == false)
                 {
                     keybind = keyBindsGenerator.CompleteEvent();
                 }
             }
-            if (Persistent)
+            if (Persistent || persistent)
             {
                 archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
             }
@@ -405,8 +429,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Initialize();
         }
 
-        public SequenceElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, int order = 1, Character owner = null)
-            : base(name, order, owner)
+        public SequenceElement(string name, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
         {
             Initialize();
             this.SequenceType = seqType;
@@ -473,7 +497,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             RemoveAnimationElement(element);
         }
 
-        public override string Play(bool completeEvent = true)
+        public override string Play(bool persistent = false)
         {
             if (SequenceType == AnimationSequenceType.And)
             {
@@ -481,7 +505,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string retVal = string.Empty;
                 foreach (IAnimationElement item in AnimationElements)
                 {
-                    retVal += item.Play(completeEvent);
+                    retVal += item.Play(this.Persistent || persistent);
                 }
                 return retVal;
             }
@@ -489,15 +513,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(AnimationElements.Count - 1);
-                return AnimationElements[chosen].Play(completeEvent);
+                return AnimationElements[chosen].Play(this.Persistent || persistent);
             }
         }
     }
 
     public class ReferenceAbility : AnimationElement
     {
-        public ReferenceAbility(string name, AnimationElement reference, int order = 1, Character owner = null)
-            : base(name, order, owner)
+        public ReferenceAbility(string name, AnimationElement reference, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
         {
             this.Reference = reference;
             this.Type = AnimationType.Reference;
@@ -517,10 +541,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool completeEvent = true)
+        public override string Play(bool persistent = false)
         {
             this.Reference.Owner = this.Owner;
-            return this.Reference.Play(completeEvent);
+            return this.Reference.Play(this.Persistent || persistent);
         }
     }
 
