@@ -32,16 +32,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.viewModel.EditModeEnter += viewModel_EditModeEnter;
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
             this.viewModel.AnimationAdded += viewModel_AnimationAddedUpdateTreeView;
-            this.viewModel.AnimationAdded += ViewModel_AnimationAddedUpdateDataGrid;
+            this.viewModel.AnimationAdded += viewModel_AnimationAddedOrSelectedUpdateDataGrid;
+            this.viewModel.SelectionChanged += viewModel_AnimationAddedOrSelectedUpdateDataGrid;
         }
 
-        private void ViewModel_AnimationAddedUpdateDataGrid(object sender, EventArgs e)
+        private void viewModel_AnimationAddedOrSelectedUpdateDataGrid(object sender, EventArgs e)
         {
+            if (sender == null)
+            {
+                dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding());
+                return;
+            }
             AnimationElement animationAdded = sender as AnimationElement;
             switch (animationAdded.Type)
             {
+                case Library.Enumerations.AnimationType.Movement:
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVElementsCVS.View"));
+                    break;
                 case Library.Enumerations.AnimationType.FX:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXElements"));
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXElementsCVS.View"));
+                    break;
+                case Library.Enumerations.AnimationType.Sound:
+                    //dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundElementsCVS.View"));
                     break;
             }
         }

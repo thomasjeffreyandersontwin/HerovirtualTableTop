@@ -23,6 +23,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         string Name { get; set; }
         Character Owner { get; set; }
         int Order { get; set; }
+        AnimationType Type { get; set; }
 
         string Play(bool persistent = false);
     }

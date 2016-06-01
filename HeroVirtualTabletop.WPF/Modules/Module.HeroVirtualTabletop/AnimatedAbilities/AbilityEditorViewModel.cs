@@ -23,6 +23,7 @@ using System.Reflection;
 using System.IO;
 using System.Collections.ObjectModel;
 using Module.Shared;
+using System.Windows.Data;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -61,6 +62,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             if (EditModeLeave != null)
                 EditModeLeave(sender, e);
+        }
+
+        public event EventHandler SelectionChanged;
+        public void OnSelectionChanged(object sender, EventArgs e)
+        {
+            if (SelectionChanged != null)
+            {
+                SelectionChanged(sender, e);
+            }
         }
         #endregion
 
@@ -123,6 +133,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 selectedAnimationElement = value;
+                OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
         }
@@ -146,11 +157,65 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private ObservableCollection<MOVElement> movElements;
         public ReadOnlyObservableCollection<MOVElement> MOVElements { get; private set; }
 
+        private CollectionViewSource movElementsCVS;
+        public CollectionViewSource MOVElementsCVS
+        {
+            get
+            {
+                return movElementsCVS;
+            }
+        }
+
         private ObservableCollection<FXEffectElement> fxElements;
         public ReadOnlyObservableCollection<FXEffectElement> FXElements { get; private set; }
 
+        private CollectionViewSource fxElementsCVS;
+        public CollectionViewSource FXElementsCVS
+        {
+            get
+            {
+                return fxElementsCVS;
+            }
+        }
+
         private ObservableCollection<SoundElement> soundElements;
         public ReadOnlyObservableCollection<SoundElement> SoundElements { get; private set; }
+
+        private CollectionViewSource soundElementsCVS;
+        public CollectionViewSource SoundElementsCVS
+        {
+            get
+            {
+                return soundElementsCVS;
+            }
+        }
+
+        private string filter;
+        public string Filter
+        {
+            get
+            {
+                return filter;
+            }
+            set
+            {
+                filter = value;
+                if (SelectedAnimationElement != null)
+                    switch (SelectedAnimationElement.Type)
+                    {
+                        case AnimationType.Movement:
+                            movElementsCVS.View.Refresh();
+                            break;
+                        case AnimationType.FX:
+                            fxElementsCVS.View.Refresh();
+                            break;
+                        case AnimationType.Sound:
+                            //soundElementsCVS.View.Refresh();
+                            break;
+                    }
+                OnPropertyChanged("Filter");
+            }
+        }
 
         #endregion
 
@@ -452,7 +517,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //                Settings.Default.CityOfHeroesGameDirectory,
             //                Constants.GAME_SOUND_FOLDERNAME),
             //            "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
-            
+
             //foreach (string file in soundFiles)
             //{
             //    string name = Path.GetFileNameWithoutExtension(file);
@@ -462,6 +527,46 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //    soundElements.Add(new SoundElement(name, file, tags: tags));
             //}
 
+            movElementsCVS = new CollectionViewSource();
+            movElementsCVS.Source = MOVElements;
+            MOVElementsCVS.View.Filter += ResourcesCVS_Filter;
+
+            fxElementsCVS = new CollectionViewSource();
+            fxElementsCVS.Source = FXElements;
+            fxElementsCVS.View.Filter += ResourcesCVS_Filter;
+
+            //soundElementsCVS = new CollectionViewSource();
+            //soundElementsCVS.Source = SoundElements;
+            //soundElementsCVS.View.Filter += ResourcesCVS_Filter;
+        }
+
+        private bool ResourcesCVS_Filter(object item)
+        {
+            if (string.IsNullOrWhiteSpace(Filter))
+            {
+                return true;
+            }
+
+            AnimationElement animationItem = item as AnimationElement;
+            if (SelectedAnimationElement != null)
+            {
+                bool actual = false;
+                switch (SelectedAnimationElement.Type)
+                {
+                    case AnimationType.Movement:
+                        actual = (SelectedAnimationElement as MOVElement).MOVResource == (animationItem as MOVElement).MOVResource;
+                        break;
+                    case AnimationType.FX:
+                        actual = (SelectedAnimationElement as FXEffectElement).Effect == (animationItem as FXEffectElement).Effect;
+                        break;
+                    case AnimationType.Sound:
+                        actual = (SelectedAnimationElement as SoundElement).SoundFile == (animationItem as SoundElement).SoundFile;
+                        break;
+                }
+                if (actual)
+                    return true;
+            }
+            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationItem.TagLine);
         }
 
         #endregion
