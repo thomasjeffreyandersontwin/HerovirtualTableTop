@@ -44,6 +44,7 @@
                     <MenuItem Header="Add Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdCommand}"></MenuItem>
                     <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
                     <MenuItem Header="Remove" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.DeleteCharacterCrowdCommand}"></MenuItem>
+                    <MenuItem Header="Add Crowd From Models" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdFromModelsCommand}"></MenuItem>
                 </ContextMenu>
                 <HierarchicalDataTemplate DataType="{x:Type crowd:CrowdModel}"
                                     ItemsSource="{Binding CrowdMemberCollection}"
