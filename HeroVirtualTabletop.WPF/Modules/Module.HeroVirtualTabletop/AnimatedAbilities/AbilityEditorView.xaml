@@ -153,7 +153,18 @@
                 <behaviors:BehaviorBinding Event="SelectedItemChanged" Command="{Binding UpdateSelectedAnimationCommand}" CommandParameter="{Binding ElementName=treeViewAnimations}"/>
             </behaviors:CommandBehaviorCollection.Behaviors>
         </TreeView>
-        <DataGrid x:Name="dataGridAnimationResource" Grid.Row="3" Grid.Column="1" Background="Transparent" RowBackground="Transparent" Margin="5"></DataGrid>
+        <DataGrid x:Name="dataGridAnimationResource" Grid.Row="3" Grid.Column="1" Background="Transparent" RowBackground="Transparent" Margin="5"
+                  SelectionUnit="FullRow" AutoGenerateColumns="False">
+            <DataGrid.Resources>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="Foreground" Value="White"></Setter>
+                </Style>
+            </DataGrid.Resources>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
         <Grid.InputBindings>
             <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>
         </Grid.InputBindings>

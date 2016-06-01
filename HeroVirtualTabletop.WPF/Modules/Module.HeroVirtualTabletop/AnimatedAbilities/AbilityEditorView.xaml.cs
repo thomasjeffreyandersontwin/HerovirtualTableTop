@@ -31,8 +31,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.DataContext = this.viewModel;
             this.viewModel.EditModeEnter += viewModel_EditModeEnter;
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
-            this.viewModel.AnimationAdded += viewModel_AnimationAdded;
+            this.viewModel.AnimationAdded += viewModel_AnimationAddedUpdateTreeView;
+            this.viewModel.AnimationAdded += ViewModel_AnimationAddedUpdateDataGrid;
         }
+
+        private void ViewModel_AnimationAddedUpdateDataGrid(object sender, EventArgs e)
+        {
+            AnimationElement animationAdded = sender as AnimationElement;
+            switch (animationAdded.Type)
+            {
+                case Library.Enumerations.AnimationType.FX:
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXElements"));
+                    break;
+            }
+        }
+
         private void viewModel_EditModeEnter(object sender, EventArgs e)
         {
             TextBox txtBox = sender as TextBox;
@@ -51,7 +64,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             expression.UpdateSource();
         }
 
-        private void viewModel_AnimationAdded(object sender, EventArgs e)
+        private void viewModel_AnimationAddedUpdateTreeView(object sender, EventArgs e)
         {
             IAnimationElement modelToSelect = sender as IAnimationElement;
             if (sender == null) // need to unselect
