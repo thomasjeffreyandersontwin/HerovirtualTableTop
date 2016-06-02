@@ -31,20 +31,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.DataContext = this.viewModel;
             this.viewModel.EditModeEnter += viewModel_EditModeEnter;
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
-            this.viewModel.AnimationAdded += viewModel_AnimationAddedUpdateTreeView;
-            this.viewModel.AnimationAdded += viewModel_AnimationAddedOrSelectedUpdateDataGrid;
-            this.viewModel.SelectionChanged += viewModel_AnimationAddedOrSelectedUpdateDataGrid;
+            this.viewModel.AnimationAdded += viewModel_AnimationAdded;
+            this.viewModel.SelectionChanged += viewModel_SelectionChanged;
         }
 
-        private void viewModel_AnimationAddedOrSelectedUpdateDataGrid(object sender, EventArgs e)
+        private void UpdateDataGrid(IAnimationElement element)
         {
-            if (sender == null)
+            if (element == null)
             {
                 dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding());
                 return;
             }
-            AnimationElement animationAdded = sender as AnimationElement;
-            switch (animationAdded.Type)
+            switch (element.Type)
             {
                 case Library.Enumerations.AnimationType.Movement:
                     dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVElementsCVS.View"));
@@ -56,6 +54,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     //dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundElementsCVS.View"));
                     break;
             }
+        }
+
+        private void viewModel_SelectionChanged(object sender, EventArgs e)
+        {
+            this.UpdateDataGrid(sender as IAnimationElement);
         }
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)
@@ -76,7 +79,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             expression.UpdateSource();
         }
 
-        private void viewModel_AnimationAddedUpdateTreeView(object sender, EventArgs e)
+        private void viewModel_AnimationAdded(object sender, EventArgs e)
         {
             IAnimationElement modelToSelect = sender as IAnimationElement;
             if (sender == null) // need to unselect
@@ -162,6 +165,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //if (txtBox != null)
                 //    this.viewModel.EnterEditModeCommand.Execute(txtBox);
             }
+            this.UpdateDataGrid(modelToSelect);
         }
 
         private TextBox FindTextBoxInTemplate(TreeViewItem item)
