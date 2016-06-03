@@ -72,6 +72,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 SelectionChanged(sender, e);
             }
         }
+        
         #endregion
 
         #region Public Properties
@@ -137,6 +138,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
         }
+
+        //private IAnimationElement selectedAnimationResource;
+        //public IAnimationElement SelectedAnimationResource
+        //{
+        //    get
+        //    {
+        //        return selectedAnimationResource;
+        //    }
+        //    set
+        //    {
+        //        selectedAnimationResource = value;
+        //        OnPropertyChanged("SelectedAnimationResource");
+        //    }
+        //}
 
         private IAnimationElement selectedAnimationParent;
         public IAnimationElement SelectedAnimationParent
@@ -667,24 +682,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return true;
             }
 
-            AnimationElement animationItem = item as AnimationElement;
-            if (SelectedAnimationElement != null)
+            IAnimationElement animationItem = item as IAnimationElement;
+            if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationItem.Resource)
             {
-                bool actual = false;
-                switch (SelectedAnimationElement.Type)
-                {
-                    case AnimationType.Movement:
-                        actual = (SelectedAnimationElement as MOVElement).MOVResource == (animationItem as MOVElement).MOVResource;
-                        break;
-                    case AnimationType.FX:
-                        actual = (SelectedAnimationElement as FXEffectElement).Effect == (animationItem as FXEffectElement).Effect;
-                        break;
-                    case AnimationType.Sound:
-                        actual = (SelectedAnimationElement as SoundElement).SoundFile == (animationItem as SoundElement).SoundFile;
-                        break;
-                }
-                if (actual)
-                    return true;
+                return true;
+                //bool actual = false;
+                //switch (SelectedAnimationElement.Type)
+                //{
+                //    case AnimationType.Movement:
+                //        actual = (SelectedAnimationElement as MOVElement).MOVResource == (animationItem as MOVElement).MOVResource;
+                //        break;
+                //    case AnimationType.FX:
+                //        actual = (SelectedAnimationElement as FXEffectElement).Effect == (animationItem as FXEffectElement).Effect;
+                //        break;
+                //    case AnimationType.Sound:
+                //        actual = (SelectedAnimationElement as SoundElement).SoundFile == (animationItem as SoundElement).SoundFile;
+                //        break;
+                //}
+                //if (actual)
+                //    return true;
             }
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationItem.TagLine);
         }
