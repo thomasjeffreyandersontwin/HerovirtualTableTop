@@ -24,6 +24,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         Character Owner { get; set; }
         int Order { get; set; }
         AnimationType Type { get; set; }
+        string Resource { get; set; }
+        string TagLine { get; }
 
         string Play(bool persistent = false);
     }
@@ -101,8 +103,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Type");
             }
         }
-
-
+        
         private bool persistent;
         public bool Persistent
         {
@@ -128,9 +129,32 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public string Resource
+        {
+            get
+            {
+                return GetResource();
+            }
+            set
+            {
+                SetResource(value);
+                OnPropertyChanged("Resource");
+            }
+        }
+
         public virtual string Play(bool persistent = false)
         {
             return "Playing " + this.Order + " for " + this.Owner.Name;
+        }
+
+        protected virtual string GetResource()
+        {
+            return string.Empty;
+        }
+
+        protected virtual void SetResource(string value)
+        {
+            
         }
     }
 
@@ -164,6 +188,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             System.Threading.Thread.Sleep(Time);
             return string.Empty;
+        }
+
+        protected override string GetResource()
+        {
+            return Time.ToString();
+        }
+
+        protected override void SetResource(string value)
+        {
+            int x;
+            if (int.TryParse(value, out x))
+                Time = x;
         }
     }
 
@@ -226,6 +262,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 player.PlaySync();
             return base.Play(this.Persistent || persistent);
         }
+
+        protected override string GetResource()
+        {
+            return SoundFile;
+        }
+
+        protected override void SetResource(string value)
+        {
+            SoundFile = value;
+        }
     }
 
     public class MOVElement : AnimationElement
@@ -259,6 +305,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
             return keyBindsGenerator.CompleteEvent();
+        }
+
+        protected override string GetResource()
+        {
+            return MOVResource;
+        }
+
+        protected override void SetResource(string value)
+        {
+            MOVResource = value;
         }
     }
 
@@ -334,7 +390,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string newFolder = Path.Combine(location, name);
                 string FXName = ParseFXName(Effect);
                 string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", newFolder, FXName, Constants.GAME_COSTUMES_EXT));
-                return File.ReadAllText(newFile);
+                if (File.Exists(newFile))
+                    return File.ReadAllText(newFile);
+                return string.Empty;
             }
         }
 
@@ -423,6 +481,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     );
             output = outputStart + outputColors + outputEnd;
             File.AppendAllText(newFile, output);
+        }
+
+        protected override string GetResource()
+        {
+            return Effect;
+        }
+
+        protected override void SetResource(string value)
+        {
+            Effect = value;
         }
     }
     
