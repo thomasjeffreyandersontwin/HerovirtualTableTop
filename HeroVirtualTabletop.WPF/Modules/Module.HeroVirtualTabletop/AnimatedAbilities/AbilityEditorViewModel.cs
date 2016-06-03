@@ -139,19 +139,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        //private IAnimationElement selectedAnimationResource;
-        //public IAnimationElement SelectedAnimationResource
-        //{
-        //    get
-        //    {
-        //        return selectedAnimationResource;
-        //    }
-        //    set
-        //    {
-        //        selectedAnimationResource = value;
-        //        OnPropertyChanged("SelectedAnimationResource");
-        //    }
-        //}
+        private IAnimationElement selectedAnimationResource;
+        public IAnimationElement SelectedAnimationResource
+        {
+            get
+            {
+                return selectedAnimationResource;
+            }
+            set
+            {
+                selectedAnimationResource = value;
+                SelectedAnimationElement.Resource = selectedAnimationResource.Resource;
+                DemoAnimation();
+                OnPropertyChanged("SelectedAnimationResource");
+            }
+        }
 
         private IAnimationElement selectedAnimationParent;
         public IAnimationElement SelectedAnimationParent
@@ -619,6 +621,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 parentSequenceElement.RemoveAnimationElement(nameOfDeletingAnimation);
             }
             //OnExpansionUpdateNeeded(parent, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
+        }
+
+        #endregion
+
+        #region Demo Animation
+        
+        private void DemoAnimation()
+        {
+            if (!this.Owner.HasBeenSpawned)
+                this.Owner.Spawn(false);
+            this.Owner.Target(false);
+            this.SelectedAnimationElement.Play();
         }
 
         #endregion

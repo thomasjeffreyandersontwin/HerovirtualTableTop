@@ -7,7 +7,6 @@ using Module.Shared.Enumerations;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -15,6 +14,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using System.Windows.Media;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -129,14 +129,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private string resource;
         public string Resource
         {
             get
             {
+                //return resource;
                 return GetResource();
             }
             set
             {
+                //resource = value;
                 SetResource(value);
                 OnPropertyChanged("Resource");
             }
@@ -330,12 +333,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Effect = effect;
             this.Type = AnimationType.FX;
             this.PlayWithNext = playWithNext;
-            this.Colors = new Color[4];
-            this.Colors.Initialize();
+            this.colors = new ObservableCollection<Color>() { new Color(), new Color(), new Color(), new Color() };
         }
 
-        private Color[] colors;
-        public Color[] Colors
+        private ObservableCollection<Color> colors;
+        public ObservableCollection<Color> Colors
         {
             get
             {
@@ -348,6 +350,55 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public Color Color1
+        {
+            get
+            {
+                return Colors[0];
+            }
+            set
+            {
+                Colors[0] = value;
+                OnPropertyChanged("Color1");
+            }
+        }
+
+        public Color Color2
+        {
+            get
+            {
+                return Colors[1];
+            }
+            set
+            {
+                Colors[1] = value;
+                OnPropertyChanged("Color2");
+            }
+        }
+        public Color Color3
+        {
+            get
+            {
+                return Colors[2];
+            }
+            set
+            {
+                Colors[2] = value;
+                OnPropertyChanged("Color3");
+            }
+        }
+        public Color Color4
+        {
+            get
+            {
+                return Colors[3];
+            }
+            set
+            {
+                Colors[3] = value;
+                OnPropertyChanged("Color4");
+            }
+        }
         private string effect;
         public string Effect
         {
@@ -389,7 +440,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string file = name + Constants.GAME_COSTUMES_EXT;
                 string newFolder = Path.Combine(location, name);
                 string FXName = ParseFXName(Effect);
-                string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", newFolder, FXName, Constants.GAME_COSTUMES_EXT));
+                string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, FXName, Constants.GAME_COSTUMES_EXT));
                 if (File.Exists(newFile))
                     return File.ReadAllText(newFile);
                 return string.Empty;
@@ -405,7 +456,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string origFile = Path.Combine(location, file);
             string newFolder = Path.Combine(location, name);
             string FXName = ParseFXName(Effect);
-            string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", newFolder, FXName, Constants.GAME_COSTUMES_EXT));
+            string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, FXName, Constants.GAME_COSTUMES_EXT));
 
             if (!Directory.Exists(newFolder))
             {

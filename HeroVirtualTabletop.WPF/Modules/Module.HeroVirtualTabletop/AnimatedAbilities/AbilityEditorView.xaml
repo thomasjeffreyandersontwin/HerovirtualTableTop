@@ -9,6 +9,7 @@
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
+             xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              mc:Ignorable="d" >
     <UserControl.Resources>
         <ResourceDictionary>
@@ -25,10 +26,11 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition Height="2*"/>
+            <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
+            <ColumnDefinition Width="auto"/>
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Button x:Name="closeBtn" Grid.Row="0" Grid.Column="2"  HorizontalAlignment="Right" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
@@ -113,7 +115,7 @@
             <TextBox Grid.Column="1" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5" 
                      Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
         </Grid>
-        <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
+        <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.RowSpan="2" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
                   PreviewMouseDown="OnPreviewMouseDown" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5"
                   >
             <TreeView.Resources>
@@ -159,11 +161,13 @@
                 <behaviors:BehaviorBinding Event="SelectedItemChanged" Command="{Binding UpdateSelectedAnimationCommand}" CommandParameter="{Binding ElementName=treeViewAnimations}"/>
             </behaviors:CommandBehaviorCollection.Behaviors>
         </TreeView>
-        <DataGrid x:Name="dataGridAnimationResource" Grid.Row="3" Grid.Column="1" Background="Transparent" RowBackground="Transparent" Margin="5"
+        <DataGrid x:Name="dataGridAnimationResource" Grid.Row="3" Grid.Column="1"
+                  HorizontalAlignment="Stretch"
+                  Background="Transparent" RowBackground="Transparent" Margin="5"
                   SelectionUnit="FullRow" AutoGenerateColumns="False"
-                  SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  SelectedValuePath="Resource"
-                  IsSynchronizedWithCurrentItem="True">
+                  SelectionMode="Single"
+                  SelectedValue="{Binding SelectedAnimationResource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  >
             <DataGrid.Resources>
                 <Style TargetType="DataGridCell">
                     <Setter Property="Foreground" Value="White"></Setter>
@@ -174,6 +178,64 @@
                 <DataGridTextColumn Header="Resource" Binding="{Binding Resource}"></DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
+        <Grid x:Name="colorsGrid" Grid.Row="4" Grid.Column="1">
+            <!---
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Setter Property="Visibility" Value="Collapsed"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Value="{x:Static enumerations:AnimationType.FX}">
+                            <DataTrigger.Binding>
+                                <Binding Path="Type"></Binding>
+                            </DataTrigger.Binding>
+                            <Setter Property="Visibility" Value="Visible"></Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>-->
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.Resources>
+                <Style TargetType="WrapPanel">
+                    <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+                </Style>
+                <Style TargetType="Label">
+                    <Setter Property="Foreground" Value="White"></Setter>
+                    <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+                </Style>
+                <Style TargetType="xctk:ColorPicker">
+                    <Setter Property="Margin" Value="5"></Setter>
+                </Style>
+            </Grid.Resources>
+            <WrapPanel Grid.Column="0" Grid.Row="0">
+                <Label>Color 1:</Label>
+                <xctk:ColorPicker Width="50"
+                    SelectedColor="{Binding SelectedAnimationElement.Color1, Mode=TwoWay, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"></xctk:ColorPicker>
+            </WrapPanel>
+            <WrapPanel Grid.Column="1" Grid.Row="0">
+                <Label>Color 2:</Label>
+                <xctk:ColorPicker Width="50"
+                    SelectedColor="{Binding SelectedAnimationElement.Color2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+            </WrapPanel>
+            <WrapPanel Grid.Column="0" Grid.Row="1">
+                <Label>Color 3:</Label>
+                <xctk:ColorPicker Width="50"
+                    SelectedColor="{Binding SelectedAnimationElement.Color3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+            </WrapPanel>
+            <WrapPanel Grid.Column="1" Grid.Row="1">
+                <Label>Color 4:</Label>
+                <xctk:ColorPicker Width="50"
+                    SelectedColor="{Binding SelectedAnimationElement.Color4, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+            </WrapPanel>
+        </Grid>
         <Grid.InputBindings>
             <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>
         </Grid.InputBindings>
