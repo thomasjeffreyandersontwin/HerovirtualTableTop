@@ -17,6 +17,7 @@
             </ResourceDictionary.MergedDictionaries>
             <localconverters:AnimationTypeToAnimationIconTextConverter x:Key="AnimationTypeToAnimationIconTextConverter"/>
             <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
