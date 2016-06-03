@@ -14,6 +14,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared.Events;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -23,7 +25,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     public partial class AbilityEditorView : UserControl
     {
         private AbilityEditorViewModel viewModel;
-        private IAnimationElement selectedAnimationElementRoot;
+        
         public AbilityEditorView(AbilityEditorViewModel viewModel)
         {
             InitializeComponent();
@@ -31,20 +33,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.DataContext = this.viewModel;
             this.viewModel.EditModeEnter += viewModel_EditModeEnter;
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
-            this.viewModel.AnimationAdded += viewModel_AnimationAddedUpdateTreeView;
-            this.viewModel.AnimationAdded += viewModel_AnimationAddedOrSelectedUpdateDataGrid;
-            this.viewModel.SelectionChanged += viewModel_AnimationAddedOrSelectedUpdateDataGrid;
+            this.viewModel.AnimationAdded += viewModel_AnimationAdded;
+            this.viewModel.SelectionChanged += viewModel_SelectionChanged;
+            this.viewModel.ExpansionUpdateNeeded += viewModel_ExpansionUpdateNeeded;
         }
 
-        private void viewModel_AnimationAddedOrSelectedUpdateDataGrid(object sender, EventArgs e)
+        private void UpdateDataGrid(IAnimationElement element)
         {
-            if (sender == null)
+            if (element == null)
             {
                 dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding());
                 return;
             }
-            AnimationElement animationAdded = sender as AnimationElement;
-            switch (animationAdded.Type)
+            switch (element.Type)
             {
                 case Library.Enumerations.AnimationType.Movement:
                     dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVElementsCVS.View"));
@@ -56,6 +57,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     //dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundElementsCVS.View"));
                     break;
             }
+        }
+
+        private void viewModel_SelectionChanged(object sender, EventArgs e)
+        {
+            this.UpdateDataGrid(sender as IAnimationElement);
         }
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)
@@ -76,17 +82,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             expression.UpdateSource();
         }
 
-        private void viewModel_AnimationAddedUpdateTreeView(object sender, EventArgs e)
+        private void viewModel_AnimationAdded(object sender, EventArgs e)
         {
             IAnimationElement modelToSelect = sender as IAnimationElement;
-            if (sender == null) // need to unselect
+            if (sender == null) // Need to unselect
             {
                 DependencyObject dObject = treeViewAnimations.GetItemFromSelectedObject(treeViewAnimations.SelectedItem);
-                TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                TreeViewItem tvi = dObject as TreeViewItem; // Got the selected treeviewitem
                 if (tvi != null)
                 {
                     tvi.IsSelected = false;
-                    this.selectedAnimationElementRoot = null;
+                    this.viewModel.SelectedAnimationElementRoot = null;
                 }
             }
             else
@@ -96,7 +102,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 treeViewAnimations.UpdateLayout();
                 if (sender is IAnimationElement)
                 {
-                    if (this.viewModel.SelectedAnimationElement == null || !(this.viewModel.SelectedAnimationElement is SequenceElement)) // A new animation has been added to the collection
+                    if (this.viewModel.SelectedAnimationElement == null || !(this.viewModel.SelectedAnimationElement is SequenceElement || this.viewModel.SelectedAnimationParent is SequenceElement)) // A new animation has been added to the collection
                     {
                         for (int i = 0; i < treeViewAnimations.Items.Count; i++)
                         {
@@ -111,24 +117,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                                     txtBox = FindTextBoxInTemplate(item);
                                     this.viewModel.SelectedAnimationElement = model as IAnimationElement;
                                     this.viewModel.SelectedAnimationParent = null;
-                                    this.selectedAnimationElementRoot = null;
+                                    this.viewModel.SelectedAnimationElementRoot = null;
                                     break;
                                 }
                             }
                         }
                     }
                 }
-                if (!itemFound && this.viewModel.SelectedAnimationElement is SequenceElement) // Added somewhere in nested animation
+                if (!itemFound && (this.viewModel.SelectedAnimationElement is SequenceElement || this.viewModel.SelectedAnimationParent is SequenceElement)) // Added somewhere in nested animation
                 {
                     DependencyObject dObject = null;
-                    if (this.selectedAnimationElementRoot != null && this.viewModel.SelectedAnimationElement != null)
+                    if (this.viewModel.SelectedAnimationElementRoot != null && this.viewModel.SelectedAnimationParent != null)
                     {
-                        TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.selectedAnimationElementRoot) as TreeViewItem;
+                        if (this.viewModel.SelectedAnimationElement is SequenceElement) // Sequence within a sequence
+                        {
+                            TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
                         dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationElement.Name);
                     }
+                        else if(this.viewModel.SelectedAnimationElementRoot.Name == this.viewModel.SelectedAnimationParent.Name) // They are the same element
+                            dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationParent);
                     else
+                        {
+                            TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                            dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationParent.Name);
+                        }
+                    }
+                    else if(this.viewModel.SelectedAnimationElementRoot == null && this.viewModel.SelectedAnimationElement is SequenceElement)
                         dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationElement);
-                    TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                    TreeViewItem tvi = dObject as TreeViewItem; // Got the selected treeviewitem
                     if (tvi != null)
                     {
                         IAnimationElement model = tvi.DataContext as IAnimationElement;
@@ -150,8 +166,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                                         txtBox = FindTextBoxInTemplate(item);
                                         this.viewModel.SelectedAnimationElement = model as IAnimationElement;
                                         this.viewModel.SelectedAnimationParent = tvi.DataContext as IAnimationElement;
-                                        if (this.selectedAnimationElementRoot == null)
-                                            this.selectedAnimationElementRoot = tvi.DataContext as IAnimationElement;
+                                        if (this.viewModel.SelectedAnimationElementRoot == null)
+                                            this.viewModel.SelectedAnimationElementRoot = tvi.DataContext as IAnimationElement;
                                         break;
                                     }
                                 }
@@ -162,6 +178,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //if (txtBox != null)
                 //    this.viewModel.EnterEditModeCommand.Execute(txtBox);
             }
+            this.UpdateDataGrid(modelToSelect);
         }
 
         private TextBox FindTextBoxInTemplate(TreeViewItem item)
@@ -204,10 +221,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 treeViewItem.Focus();
                 TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
                 if (item != null)
-                    this.selectedAnimationElementRoot = item.DataContext as IAnimationElement;
+                {
+                    this.viewModel.SelectedAnimationElementRoot = item.DataContext as IAnimationElement;
+                    if (this.viewModel.SelectedAnimationElementRoot is SequenceElement)
+                        this.viewModel.IsSequenceAbilitySelected = true;
                 else
-                    this.selectedAnimationElementRoot = null;
-                if (treeViewItem.DataContext is SequenceElement)
+                        this.viewModel.IsSequenceAbilitySelected = false;
+                }
+                else
+                    this.viewModel.SelectedAnimationElementRoot = null;
+                //if (treeViewItem.DataContext is SequenceElement)
                 {
                     treeViewItem = GetImmediateTreeViewItemParent(treeViewItem);
                     if (treeViewItem != null)
@@ -216,8 +239,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.viewModel.SelectedAnimationParent = null;
 
                 }
-                else
-                    this.viewModel.SelectedAnimationParent = null;
+                //else
+                //    this.viewModel.SelectedAnimationParent = null;
             }
         }
         private TreeViewItem VisualUpwardSearch(DependencyObject source)
@@ -282,5 +305,147 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return treeViewItem;
         }
+
+        private void treeViewAnimations_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
+
+            if (treeViewItem != null)
+            {
+                TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
+                if (item != null)
+                {
+                    this.viewModel.SelectedAnimationElementRoot = item.DataContext as IAnimationElement;
+                    if (this.viewModel.SelectedAnimationElementRoot is SequenceElement)
+                        this.viewModel.IsSequenceAbilitySelected = true;
+                    else
+                        this.viewModel.IsSequenceAbilitySelected = false;
+                }
+                else
+                    this.viewModel.SelectedAnimationElementRoot = null;
+
+                treeViewItem = GetImmediateTreeViewItemParent(treeViewItem);
+                if (treeViewItem != null)
+                    this.viewModel.SelectedAnimationParent = treeViewItem.DataContext as IAnimationElement;
+                else
+                    this.viewModel.SelectedAnimationParent = null;
+            }
+        }
+
+        #region TreeView Expansion Management
+
+        private void viewModel_ExpansionUpdateNeeded(object sender, CustomEventArgs<ExpansionUpdateEvent> e)
+        {
+            SequenceElement sequenceElement = sender as SequenceElement;
+            DependencyObject dObject = null;
+            ExpansionUpdateEvent updateEvent = e.Value;
+            if (updateEvent == ExpansionUpdateEvent.Filter)
+            {
+                ExpandMatchedNode(sender); // Keeping way open for future filtering feature
+            }
+            else
+            {
+                if (this.viewModel.SelectedAnimationElementRoot != null && this.viewModel.SelectedAnimationParent != null)
+                {
+                    if (this.viewModel.SelectedAnimationElement is SequenceElement) // Sequence within a sequence
+                    {
+                        TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                        dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationElement.Name);
+                    }
+                    else if (this.viewModel.SelectedAnimationElementRoot.Name == this.viewModel.SelectedAnimationParent.Name) // They are the same element
+                        dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationParent);
+                    else
+                    {
+                        TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                        dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationParent.Name);
+                    }
+                }
+                else if (this.viewModel.SelectedAnimationElementRoot == null && this.viewModel.SelectedAnimationElement is SequenceElement)
+                    dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationElement);
+                TreeViewItem tvi = dObject as TreeViewItem;
+                if (tvi != null)
+                {
+                    IAnimationElement model = tvi.DataContext as IAnimationElement;
+                    if (tvi.Items != null && tvi.Items.Count > 0)
+                    {
+                        if (updateEvent != ExpansionUpdateEvent.Delete)
+                            tvi.IsExpanded = true;
+                        else
+                            UpdateExpansions(tvi);
+                    }
+                    else
+                        tvi.IsExpanded = false;
+                }
+            }
+        }
+        /// <summary>
+        /// This will recursively make the nodes unexpanded if there are no children in it. Otherwise it will hold the current state
+        /// </summary>
+        /// <param name="tvi"></param>
+        private void UpdateExpansions(TreeViewItem tvi)
+        {
+            if (tvi != null)
+            {
+                if (tvi.Items != null && tvi.Items.Count > 0)
+                {
+                    for (int i = 0; i < tvi.Items.Count; i++)
+                    {
+                        TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+                        UpdateExpansions(item);
+                    }
+                }
+                else
+                    tvi.IsExpanded = false;
+            }
+        }
+
+        /// <summary>
+        /// This will expand a matched item and its matched children
+        /// </summary>
+        /// <param name="sender"></param>
+        private void ExpandMatchedNode(object sender)
+        {
+            //SequenceElement sequenceElement = sender as SequenceElement;
+            //if (sequenceElement.IsMatched)
+            //{
+            //    DependencyObject dObject = this.treeViewAnimations.GetItemFromSelectedObject(sequenceElement);
+            //    TreeViewItem tvi = dObject as TreeViewItem;
+            //    if (tvi != null)
+            //    {
+            //        tvi.IsExpanded = true;
+            //        ExpandMatchedItems(tvi);
+            //    }
+            //}
+        }
+        /// <summary>
+        /// This will recursively expand a matched item and its matched children
+        /// </summary>
+        /// <param name="tvi"></param>
+        private void ExpandMatchedItems(TreeViewItem tvi)
+        {
+            //if (tvi != null)
+            //{
+            //    tvi.UpdateLayout();
+            //    if (tvi.Items != null && tvi.Items.Count > 0)
+            //    {
+            //        for (int i = 0; i < tvi.Items.Count; i++)
+            //        {
+            //            TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+            //            if (item != null)
+            //            {
+            //                SequenceElement model = item.DataContext as SequenceElement;
+            //                if (model != null && model.IsMatched)
+            //                {
+            //                    item.IsExpanded = true;
+            //                    ExpandMatchedItems(item);
+            //                }
+            //                else
+            //                    item.IsExpanded = false;
+            //            }
+            //        }
+            //    }
+            //}
+        }
+        #endregion
     }
 }

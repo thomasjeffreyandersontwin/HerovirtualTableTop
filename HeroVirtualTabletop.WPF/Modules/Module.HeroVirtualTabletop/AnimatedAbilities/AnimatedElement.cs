@@ -103,7 +103,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Type");
             }
         }
-        
+        private string displayName;
+        public virtual string DisplayName
+        {
+            get
+            {
+                return displayName;
+            }
+
+            set
+            {
+                displayName = value;
+                OnPropertyChanged("DisplayName");
+            }
+        }
+
         private bool persistent;
         public bool Persistent
         {
@@ -142,7 +156,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //resource = value;
                 SetResource(value);
                 OnPropertyChanged("Resource");
-            }
+        }
         }
 
         public virtual string Play(bool persistent = false)
@@ -153,7 +167,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         protected virtual string GetResource()
         {
             return string.Empty;
-        }
+    }
 
         protected virtual void SetResource(string value)
         {
@@ -313,7 +327,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         protected override string GetResource()
         {
             return MOVResource;
-        }
+    }
 
         protected override void SetResource(string value)
         {
@@ -442,7 +456,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string FXName = ParseFXName(Effect);
                 string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, FXName, Constants.GAME_COSTUMES_EXT));
                 if (File.Exists(newFile))
-                    return File.ReadAllText(newFile);
+                return File.ReadAllText(newFile);
                 return string.Empty;
             }
         }

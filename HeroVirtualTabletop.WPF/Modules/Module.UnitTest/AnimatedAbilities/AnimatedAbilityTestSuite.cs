@@ -23,7 +23,10 @@ namespace Module.UnitTest.AnimatedAbilities
             this.abilityEditorViewModel.CurrentAbility = new AnimatedAbility("Ability");
             this.abilityEditorViewModel.Owner = character;
 
-            this.abilityEditorViewModel.AnimationAdded += (delegate(object state, EventArgs e) { this.abilityEditorViewModel.SelectedAnimationElement = state as IAnimationElement; });
+            this.abilityEditorViewModel.AnimationAdded += (delegate(object state, EventArgs e) 
+            { 
+                this.abilityEditorViewModel.SelectedAnimationElement = state as IAnimationElement;
+            });
         }
 
         [TestMethod]
@@ -86,6 +89,66 @@ namespace Module.UnitTest.AnimatedAbilities
             this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
             var updatedElement = this.abilityEditorViewModel.CurrentAbility.AnimationElements.Where(a => a.Name == "FX Element 1").FirstOrDefault();
             Assert.AreEqual(updatedElement.Order, 1);
+        }
+        [TestMethod]
+        public void AssignSequenceToAbility_AddsSequenceElement()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement is SequenceElement);
+        }
+        [TestMethod]
+        public void AssignSequenceToAbility_AddsSequenceElementWithDefaultSequenceAnd()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            Assert.IsTrue((this.abilityEditorViewModel.SelectedAnimationElement as SequenceElement).SequenceType == AnimationSequenceType.And);
+        }
+        [TestMethod]
+        public void AddAnimationElementToParentSequence_NestsAnimationInParent()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            this.abilityEditorViewModel.IsSequenceAbilitySelected = true;
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Order == 1);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements.Count == 1);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements[0].Name == "Mov Element 2");
+        }
+        [TestMethod]
+        public void AddAnimationElementToParentSequence_AddsChildrenInProperOrder()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            this.abilityEditorViewModel.IsSequenceAbilitySelected = true;
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);           
+            this.abilityEditorViewModel.SelectedAnimationParent = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            this.abilityEditorViewModel.SelectedAnimationElement = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements[0];
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 2);
+        }
+        [TestMethod]
+        public void RemoveAnimationElementFromParentSequence_RemovesAnimationElementFromParent()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            this.abilityEditorViewModel.IsSequenceAbilitySelected = true;
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.SelectedAnimationParent = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements.Count == 1);
+            this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements.Count == 0);
+        }
+        [TestMethod]
+        public void RemoveAnimationElementFromParentSequence_UpdatesOrderInNestedElements()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            this.abilityEditorViewModel.IsSequenceAbilitySelected = true;
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.SelectedAnimationParent = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 3);
+            this.abilityEditorViewModel.SelectedAnimationElement = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["FX Element 1"];
+            this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 2);
         }
     }
 }

@@ -72,6 +72,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 SelectionChanged(sender, e);
             }
         }
+
+        public event EventHandler<CustomEventArgs<ExpansionUpdateEvent>> ExpansionUpdateNeeded;
+        public void OnExpansionUpdateNeeded(object sender, CustomEventArgs<ExpansionUpdateEvent> e)
+        {
+            if (ExpansionUpdateNeeded != null)
+                ExpansionUpdateNeeded(sender, e);
+        }
         
         #endregion
 
@@ -169,6 +176,72 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private AnimationSequenceType sequenceType;
+
+        public AnimationSequenceType SequenceType
+        {
+            get 
+            { 
+                return sequenceType;
+            }
+            set 
+            { 
+                sequenceType = value;
+                OnPropertyChanged("SequenceType");
+            }
+        }
+
+
+        private bool isSequenceAbilitySelected;
+        public bool IsSequenceAbilitySelected
+        {
+            get
+            {
+                return isSequenceAbilitySelected;
+            }
+            set
+            {
+                isSequenceAbilitySelected = value;
+                OnPropertyChanged("IsSequenceAbilitySelected");
+            }
+        }
+
+        private SequenceElement currentSequenceElement;
+        public SequenceElement CurrentSequenceElement
+        {
+            get
+            {
+                return currentSequenceElement;
+            }
+            set
+            {
+                currentSequenceElement = value;
+                OnPropertyChanged("CurrentSequenceElement");
+            }
+        }
+
+        private IAnimationElement selectedAnimationElementRoot;
+        public IAnimationElement SelectedAnimationElementRoot 
+        { 
+            get
+            {
+                return selectedAnimationElementRoot;
+            }
+            set
+            {
+                selectedAnimationElementRoot = value;
+                //this.SetCurrentSequenceAnimation();
+                //if (value is SequenceElement)
+                //{
+                //    this.IsSequenceAbilitySelected = true;
+                //    this.CurrentSequenceElement = selectedAnimationElementRoot as SequenceElement;
+                //}
+                //else // value is null
+                //{
+                //    this.SetCurrentSequenceAnimation();
+                //}
+            }
+        }
         public string OriginalName { get; set; }
 
         private ObservableCollection<MOVElement> movElements;
@@ -245,6 +318,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> AddAnimationElementCommand { get; private set; }
         public DelegateCommand<object> SaveAbilityCommand { get; private set; }
         public DelegateCommand<object> RemoveAnimationCommand { get; private set; }
+        public DelegateCommand<object> SaveSequenceCommand { get; private set; }
         public ICommand UpdateSelectedAnimationCommand { get; private set; }
 
         #endregion
@@ -270,6 +344,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
             this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility);
+            this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence);
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
             this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement);
@@ -299,11 +374,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         this.SelectedAnimationElement = selectedAnimationElement as IAnimationElement;
                         this.SelectedAnimationParent = parentAnimationElement;
+                        this.SetCurrentSequenceAnimation();
                     }
                     else if(selectedAnimationElement == null && (this.CurrentAbility == null || this.CurrentAbility.AnimationElements.Count == 0))
                     {
                         this.SelectedAnimationElement = null;
                         this.SelectedAnimationParent = null;
+                        this.IsSequenceAbilitySelected = false;
+                        this.CurrentSequenceElement = null;
                     }
                 }
                 else
@@ -331,6 +409,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.UpdateSelectedAnimation(lastAnimationElementsStateToUpdate);
                 this.lastAnimationElementsStateToUpdate = null;
+            }
+        }
+
+        private void SetCurrentSequenceAnimation()
+        {
+            if (this.SelectedAnimationElement is SequenceElement)
+            {
+                this.IsSequenceAbilitySelected = true;
+                this.CurrentSequenceElement = this.SelectedAnimationElement as SequenceElement;
+            }
+            else if (this.SelectedAnimationParent is SequenceElement)
+            {
+                this.IsSequenceAbilitySelected = true;
+                this.CurrentSequenceElement = this.SelectedAnimationParent as SequenceElement;
+            }
+            else
+            {
+                this.IsSequenceAbilitySelected = false;
+                this.CurrentSequenceElement = null;
             }
         }
         #endregion
@@ -408,7 +505,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimationType animationType = (AnimationType)state;
             AnimationElement animationElement = this.GetAnimationElement(animationType);
             int order = GetAppropriateOrderForAnimationElement();
-            this.CurrentAbility.AddAnimationElement(animationElement, order);
+            if(!this.IsSequenceAbilitySelected)
+                this.CurrentAbility.AddAnimationElement(animationElement, order);
+            else
+            {
+                if (this.SelectedAnimationElement is SequenceElement)
+                    (this.SelectedAnimationElement as SequenceElement).AddAnimationElement(animationElement, order);
+                else
+                    (this.SelectedAnimationParent as SequenceElement).AddAnimationElement(animationElement, order);
+            }
             OnAnimationAdded(animationElement, null);
             this.SaveAbility(null);
         }
@@ -416,29 +521,37 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private AnimationElement GetAnimationElement(AnimationType abilityType)
         {
             AnimationElement animationElement = null;
-            string name = "";
+            List<IAnimationElement> flattenedList = GetFlattenedAnimationList(CurrentAbility.AnimationElements.ToList());
+            string fullName = "";
             switch(abilityType)
             {
                 case AnimationType.Movement:
                     animationElement = new MOVElement("", "");
-                    name = "Mov Element";
+                    fullName = GetAppropriateAnimationName("Mov Element", flattenedList);
+                    animationElement.Name = fullName;
+                    animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.FX:
                     animationElement = new FXEffectElement("", "");
-                    name = "FX Element";
+                    fullName = GetAppropriateAnimationName("FX Element", flattenedList);
+                    animationElement.Name = fullName;
+                    animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.Sound:
                     animationElement = new SoundElement("", "");
-                    name = "Sound Element";
+                    fullName = GetAppropriateAnimationName("Sound Element", flattenedList);
+                    animationElement.Name = fullName;
+                    animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.Sequence:
                     animationElement = new SequenceElement("");
-                    name = "Seq Element";
+                    fullName = GetAppropriateAnimationName("Seq Element", flattenedList);
+                    animationElement.Name = fullName;
+                    (animationElement as SequenceElement).SequenceType = AnimationSequenceType.And;
+                    animationElement.DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
                     break;
             }
-            
-            string fullName = GetAppropriateAnimationName(name, CurrentAbility.AnimationElements);
-            animationElement.Name = fullName;
+
             return animationElement;
         }
         private int GetAppropriateOrderForAnimationElement()
@@ -450,6 +563,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     order = this.CurrentAbility.AnimationElements.Count + 1;
                 }
+                else if(this.SelectedAnimationElement is SequenceElement)
+                {
+                    order = (this.SelectedAnimationElement as SequenceElement).AnimationElements.Count + 1;
+                }
                 else
                 {
                     int prevOrder = this.SelectedAnimationElement.Order;
@@ -458,9 +575,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         element.Order += 1;
                 }
             }
+            else
+            {
+                if(this.SelectedAnimationParent is SequenceElement)
+                {
+                    int prevOrder = this.SelectedAnimationElement.Order;
+                    order = prevOrder + 1;
+                    foreach (var element in (this.SelectedAnimationParent as SequenceElement).AnimationElements.Where(e => e.Order > prevOrder))
+                        element.Order += 1;
+                }
+            }
             return order;
         }
-        private string GetAppropriateAnimationName(string name, ReadOnlyHashedObservableCollection<IAnimationElement, string> collection)
+        private string GetAppropriateAnimationName(string name, List<IAnimationElement> collection)
         {
             string suffix = " 1";
             string rootName = name;
@@ -479,7 +606,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
             string newName = rootName + suffix;
-            while (collection.ContainsKey(newName))
+            while (collection.Where(a=>a.Name == newName).FirstOrDefault() != null)
             {
                 suffix = string.Format(" {0}", ++i);
                 newName = rootName + suffix;
@@ -589,6 +716,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        #region Save Sequence
+        private void SaveSequence(object state)
+        {
+            if(this.CurrentSequenceElement != null)
+            {
+                this.CurrentSequenceElement.DisplayName = "Sequence: " + this.CurrentSequenceElement.SequenceType.ToString();
+            }
+            this.SaveAbility(state);
+        }
+        #endregion
+
         #region Remove Animation
 
         private bool CanRemoveAnimation(object state)
@@ -619,8 +757,32 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 //var anim = parentSequenceElement.AnimationElements.Where(a => a.Name == nameOfDeletingAnimation).FirstOrDefault();
                 parentSequenceElement.RemoveAnimationElement(nameOfDeletingAnimation);
+                if(parentSequenceElement.AnimationElements.Count == 0 && parentSequenceElement.Name == this.SelectedAnimationElementRoot.Name)
+                {
+                    this.SelectedAnimationElementRoot = null;
+                }
             }
-            //OnExpansionUpdateNeeded(parent, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
+            OnExpansionUpdateNeeded(parent, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
+        }
+
+        #endregion
+
+        #region Utility Methods
+
+        private List<IAnimationElement> GetFlattenedAnimationList(List<IAnimationElement> animationElementList)
+        {
+            List<IAnimationElement> _list = new List<IAnimationElement>();
+            foreach (IAnimationElement animationElement in animationElementList)
+            {
+                if (animationElement is SequenceElement)
+                {
+                    SequenceElement sequenceElement = (animationElement as SequenceElement);
+                    if (sequenceElement.AnimationElements != null && sequenceElement.AnimationElements.Count > 0)
+                        _list.AddRange(GetFlattenedAnimationList(sequenceElement.AnimationElements.ToList()));
+                }
+                _list.Add(animationElement);
+            }
+            return _list;
         }
 
         #endregion
