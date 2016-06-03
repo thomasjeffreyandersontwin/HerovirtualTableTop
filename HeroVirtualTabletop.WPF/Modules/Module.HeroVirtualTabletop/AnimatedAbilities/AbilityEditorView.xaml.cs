@@ -14,6 +14,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared.Events;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -33,6 +35,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
             this.viewModel.AnimationAdded += viewModel_AnimationAdded;
             this.viewModel.SelectionChanged += viewModel_SelectionChanged;
+            this.viewModel.ExpansionUpdateNeeded += viewModel_ExpansionUpdateNeeded;
         }
 
         private void UpdateDataGrid(IAnimationElement element)
@@ -302,5 +305,147 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return treeViewItem;
         }
+
+        private void treeViewAnimations_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
+
+            if (treeViewItem != null)
+            {
+                TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
+                if (item != null)
+                {
+                    this.viewModel.SelectedAnimationElementRoot = item.DataContext as IAnimationElement;
+                    if (this.viewModel.SelectedAnimationElementRoot is SequenceElement)
+                        this.viewModel.IsSequenceAbilitySelected = true;
+                    else
+                        this.viewModel.IsSequenceAbilitySelected = false;
+                }
+                else
+                    this.viewModel.SelectedAnimationElementRoot = null;
+
+                treeViewItem = GetImmediateTreeViewItemParent(treeViewItem);
+                if (treeViewItem != null)
+                    this.viewModel.SelectedAnimationParent = treeViewItem.DataContext as IAnimationElement;
+                else
+                    this.viewModel.SelectedAnimationParent = null;
+            }
+        }
+
+        #region TreeView Expansion Management
+
+        private void viewModel_ExpansionUpdateNeeded(object sender, CustomEventArgs<ExpansionUpdateEvent> e)
+        {
+            SequenceElement sequenceElement = sender as SequenceElement;
+            DependencyObject dObject = null;
+            ExpansionUpdateEvent updateEvent = e.Value;
+            if (updateEvent == ExpansionUpdateEvent.Filter)
+            {
+                ExpandMatchedNode(sender); // Keeping way open for future filtering feature
+            }
+            else
+            {
+                if (this.viewModel.SelectedAnimationElementRoot != null && this.viewModel.SelectedAnimationParent != null)
+                {
+                    if (this.viewModel.SelectedAnimationElement is SequenceElement) // Sequence within a sequence
+                    {
+                        TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                        dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationElement.Name);
+                    }
+                    else if (this.viewModel.SelectedAnimationElementRoot.Name == this.viewModel.SelectedAnimationParent.Name) // They are the same element
+                        dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationParent);
+                    else
+                    {
+                        TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                        dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationParent.Name);
+                    }
+                }
+                else if (this.viewModel.SelectedAnimationElementRoot == null && this.viewModel.SelectedAnimationElement is SequenceElement)
+                    dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationElement);
+                TreeViewItem tvi = dObject as TreeViewItem;
+                if (tvi != null)
+                {
+                    IAnimationElement model = tvi.DataContext as IAnimationElement;
+                    if (tvi.Items != null && tvi.Items.Count > 0)
+                    {
+                        if (updateEvent != ExpansionUpdateEvent.Delete)
+                            tvi.IsExpanded = true;
+                        else
+                            UpdateExpansions(tvi);
+                    }
+                    else
+                        tvi.IsExpanded = false;
+                }
+            }
+        }
+        /// <summary>
+        /// This will recursively make the nodes unexpanded if there are no children in it. Otherwise it will hold the current state
+        /// </summary>
+        /// <param name="tvi"></param>
+        private void UpdateExpansions(TreeViewItem tvi)
+        {
+            if (tvi != null)
+            {
+                if (tvi.Items != null && tvi.Items.Count > 0)
+                {
+                    for (int i = 0; i < tvi.Items.Count; i++)
+                    {
+                        TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+                        UpdateExpansions(item);
+                    }
+                }
+                else
+                    tvi.IsExpanded = false;
+            }
+        }
+
+        /// <summary>
+        /// This will expand a matched item and its matched children
+        /// </summary>
+        /// <param name="sender"></param>
+        private void ExpandMatchedNode(object sender)
+        {
+            //SequenceElement sequenceElement = sender as SequenceElement;
+            //if (sequenceElement.IsMatched)
+            //{
+            //    DependencyObject dObject = this.treeViewAnimations.GetItemFromSelectedObject(sequenceElement);
+            //    TreeViewItem tvi = dObject as TreeViewItem;
+            //    if (tvi != null)
+            //    {
+            //        tvi.IsExpanded = true;
+            //        ExpandMatchedItems(tvi);
+            //    }
+            //}
+        }
+        /// <summary>
+        /// This will recursively expand a matched item and its matched children
+        /// </summary>
+        /// <param name="tvi"></param>
+        private void ExpandMatchedItems(TreeViewItem tvi)
+        {
+            //if (tvi != null)
+            //{
+            //    tvi.UpdateLayout();
+            //    if (tvi.Items != null && tvi.Items.Count > 0)
+            //    {
+            //        for (int i = 0; i < tvi.Items.Count; i++)
+            //        {
+            //            TreeViewItem item = tvi.ItemContainerGenerator.ContainerFromItem(tvi.Items[i]) as TreeViewItem;
+            //            if (item != null)
+            //            {
+            //                SequenceElement model = item.DataContext as SequenceElement;
+            //                if (model != null && model.IsMatched)
+            //                {
+            //                    item.IsExpanded = true;
+            //                    ExpandMatchedItems(item);
+            //                }
+            //                else
+            //                    item.IsExpanded = false;
+            //            }
+            //        }
+            //    }
+            //}
+        }
+        #endregion
     }
 }

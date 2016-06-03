@@ -125,5 +125,30 @@ namespace Module.UnitTest.AnimatedAbilities
             this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
             Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 2);
         }
+        [TestMethod]
+        public void RemoveAnimationElementFromParentSequence_RemovesAnimationElementFromParent()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            this.abilityEditorViewModel.IsSequenceAbilitySelected = true;
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.SelectedAnimationParent = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements.Count == 1);
+            this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements.Count == 0);
+        }
+        [TestMethod]
+        public void RemoveAnimationElementFromParentSequence_UpdatesOrderInNestedElements()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+            this.abilityEditorViewModel.IsSequenceAbilitySelected = true;
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            this.abilityEditorViewModel.SelectedAnimationParent = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 3);
+            this.abilityEditorViewModel.SelectedAnimationElement = (this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["FX Element 1"];
+            this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
+            Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 2);
+        }
     }
 }

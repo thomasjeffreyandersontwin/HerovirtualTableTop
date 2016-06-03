@@ -72,6 +72,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 SelectionChanged(sender, e);
             }
         }
+
+        public event EventHandler<CustomEventArgs<ExpansionUpdateEvent>> ExpansionUpdateNeeded;
+        public void OnExpansionUpdateNeeded(object sender, CustomEventArgs<ExpansionUpdateEvent> e)
+        {
+            if (ExpansionUpdateNeeded != null)
+                ExpansionUpdateNeeded(sender, e);
+        }
         
         #endregion
 
@@ -748,8 +755,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 //var anim = parentSequenceElement.AnimationElements.Where(a => a.Name == nameOfDeletingAnimation).FirstOrDefault();
                 parentSequenceElement.RemoveAnimationElement(nameOfDeletingAnimation);
+                if(parentSequenceElement.AnimationElements.Count == 0 && parentSequenceElement.Name == this.SelectedAnimationElementRoot.Name)
+                {
+                    this.SelectedAnimationElementRoot = null;
+                }
             }
-            //OnExpansionUpdateNeeded(parent, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
+            OnExpansionUpdateNeeded(parent, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Delete });
         }
 
         #endregion

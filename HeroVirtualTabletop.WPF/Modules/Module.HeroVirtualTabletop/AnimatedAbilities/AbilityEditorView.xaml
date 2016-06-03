@@ -100,7 +100,7 @@
             <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCommand}"/>
             <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCommand}"/>
             <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteCommand}"/>
-            <Button x:Name="btnRemove" Content="&#xf235;" ToolTip="Paste" Command="{Binding RemoveAnimationCommand}"/>
+            <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove" Command="{Binding RemoveAnimationCommand}"/>
             <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Play" Command="{Binding PlayCommand}"/>
         </StackPanel>
         <Grid Grid.Row="2" Grid.Column="1">
@@ -117,7 +117,7 @@
                      Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
         </Grid>
         <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
-                  PreviewMouseDown="OnPreviewMouseDown" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5"
+                  PreviewMouseDown="OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5"
                   >
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type abilities:SequenceElement}"
@@ -179,6 +179,7 @@
         </DataGrid>
         <Grid.InputBindings>
             <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>
+            <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
         </Grid.InputBindings>
     </Grid>
 </UserControl>
