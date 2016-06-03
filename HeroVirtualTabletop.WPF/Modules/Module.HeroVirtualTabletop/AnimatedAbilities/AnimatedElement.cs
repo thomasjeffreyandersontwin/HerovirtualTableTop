@@ -101,7 +101,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Type");
             }
         }
+        private string displayName;
+        public virtual string DisplayName
+        {
+            get
+            {
+                return displayName;
+            }
 
+            set
+            {
+                displayName = value;
+                OnPropertyChanged("DisplayName");
+            }
+        }
 
         private bool persistent;
         public bool Persistent

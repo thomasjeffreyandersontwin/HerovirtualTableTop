@@ -18,6 +18,7 @@
             <localconverters:AnimationTypeToAnimationIconTextConverter x:Key="AnimationTypeToAnimationIconTextConverter"/>
             <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:BooleanToVisibilityInvertConverter x:Key="BooleanToVisibilityInvertConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -66,8 +67,10 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}"/>
-                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}"/>
+                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
+                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
+                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
             <Grid Grid.Row="1" Grid.Column="1" VerticalAlignment="Top">
                 <Grid.ColumnDefinitions>
@@ -128,10 +131,10 @@
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding Type, Converter={StaticResource AnimationTypeToAnimationIconTextConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         </TextBlock>
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockAnimationElement" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                            <TextBox x:Name="textBlockAnimationElement" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}">
                             </TextBox>
                             <TextBox x:Name="textBoxAnimationElement" Visibility="Hidden" MinWidth="100"
-                                         Text="{Binding Name, UpdateSourceTrigger=Explicit}">
+                                         Text="{Binding DisplayName, UpdateSourceTrigger=Explicit}">
                             </TextBox>
                         </Grid>
                     </Grid>
@@ -145,11 +148,11 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding Type, Converter={StaticResource AnimationTypeToAnimationIconTextConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockAnimationElementChild" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
+                            <TextBox x:Name="textBlockAnimationElementChild" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}"
                                               >
                             </TextBox>
                             <TextBox x:Name="textBoxAnimationElementChild" Visibility="Hidden" MinWidth="100"
-                                             Text="{Binding Path=Name, UpdateSourceTrigger=Explicit}">
+                                             Text="{Binding Path=DisplayName, UpdateSourceTrigger=Explicit}">
                             </TextBox>
                         </Grid>
                     </Grid>

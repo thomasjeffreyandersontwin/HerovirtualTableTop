@@ -23,7 +23,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     public partial class AbilityEditorView : UserControl
     {
         private AbilityEditorViewModel viewModel;
-        private IAnimationElement selectedAnimationElementRoot;
+        
         public AbilityEditorView(AbilityEditorViewModel viewModel)
         {
             InitializeComponent();
@@ -82,14 +82,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void viewModel_AnimationAdded(object sender, EventArgs e)
         {
             IAnimationElement modelToSelect = sender as IAnimationElement;
-            if (sender == null) // need to unselect
+            if (sender == null) // Need to unselect
             {
                 DependencyObject dObject = treeViewAnimations.GetItemFromSelectedObject(treeViewAnimations.SelectedItem);
-                TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                TreeViewItem tvi = dObject as TreeViewItem; // Got the selected treeviewitem
                 if (tvi != null)
                 {
                     tvi.IsSelected = false;
-                    this.selectedAnimationElementRoot = null;
+                    this.viewModel.SelectedAnimationElementRoot = null;
                 }
             }
             else
@@ -99,7 +99,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 treeViewAnimations.UpdateLayout();
                 if (sender is IAnimationElement)
                 {
-                    if (this.viewModel.SelectedAnimationElement == null || !(this.viewModel.SelectedAnimationElement is SequenceElement)) // A new animation has been added to the collection
+                    if (this.viewModel.SelectedAnimationElement == null || !(this.viewModel.SelectedAnimationElement is SequenceElement || this.viewModel.SelectedAnimationParent is SequenceElement)) // A new animation has been added to the collection
                     {
                         for (int i = 0; i < treeViewAnimations.Items.Count; i++)
                         {
@@ -114,24 +114,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                                     txtBox = FindTextBoxInTemplate(item);
                                     this.viewModel.SelectedAnimationElement = model as IAnimationElement;
                                     this.viewModel.SelectedAnimationParent = null;
-                                    this.selectedAnimationElementRoot = null;
+                                    this.viewModel.SelectedAnimationElementRoot = null;
                                     break;
                                 }
                             }
                         }
                     }
                 }
-                if (!itemFound && this.viewModel.SelectedAnimationElement is SequenceElement) // Added somewhere in nested animation
+                if (!itemFound && (this.viewModel.SelectedAnimationElement is SequenceElement || this.viewModel.SelectedAnimationParent is SequenceElement)) // Added somewhere in nested animation
                 {
                     DependencyObject dObject = null;
-                    if (this.selectedAnimationElementRoot != null && this.viewModel.SelectedAnimationElement != null)
+                    if (this.viewModel.SelectedAnimationElementRoot != null && this.viewModel.SelectedAnimationParent != null)
                     {
-                        TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.selectedAnimationElementRoot) as TreeViewItem;
-                        dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationElement.Name);
+                        if (this.viewModel.SelectedAnimationElement is SequenceElement) // Sequence within a sequence
+                        {
+                            TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                            dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationElement.Name);
+                        }
+                        else if(this.viewModel.SelectedAnimationElementRoot.Name == this.viewModel.SelectedAnimationParent.Name) // They are the same element
+                            dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationParent);
+                        else
+                        {
+                            TreeViewItem item = treeViewAnimations.ItemContainerGenerator.ContainerFromItem(this.viewModel.SelectedAnimationElementRoot) as TreeViewItem;
+                            dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedAnimationParent.Name);
+                        }
                     }
-                    else
+                    else if(this.viewModel.SelectedAnimationElementRoot == null && this.viewModel.SelectedAnimationElement is SequenceElement)
                         dObject = treeViewAnimations.GetItemFromSelectedObject(this.viewModel.SelectedAnimationElement);
-                    TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
+                    TreeViewItem tvi = dObject as TreeViewItem; // Got the selected treeviewitem
                     if (tvi != null)
                     {
                         IAnimationElement model = tvi.DataContext as IAnimationElement;
@@ -153,8 +163,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                                         txtBox = FindTextBoxInTemplate(item);
                                         this.viewModel.SelectedAnimationElement = model as IAnimationElement;
                                         this.viewModel.SelectedAnimationParent = tvi.DataContext as IAnimationElement;
-                                        if (this.selectedAnimationElementRoot == null)
-                                            this.selectedAnimationElementRoot = tvi.DataContext as IAnimationElement;
+                                        if (this.viewModel.SelectedAnimationElementRoot == null)
+                                            this.viewModel.SelectedAnimationElementRoot = tvi.DataContext as IAnimationElement;
                                         break;
                                     }
                                 }
@@ -208,10 +218,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 treeViewItem.Focus();
                 TreeViewItem item = GetRootTreeViewItemParent(treeViewItem);
                 if (item != null)
-                    this.selectedAnimationElementRoot = item.DataContext as IAnimationElement;
+                {
+                    this.viewModel.SelectedAnimationElementRoot = item.DataContext as IAnimationElement;
+                    if (this.viewModel.SelectedAnimationElementRoot is SequenceElement)
+                        this.viewModel.IsSequenceAbilitySelected = true;
+                    else
+                        this.viewModel.IsSequenceAbilitySelected = false;
+                }
                 else
-                    this.selectedAnimationElementRoot = null;
-                if (treeViewItem.DataContext is SequenceElement)
+                    this.viewModel.SelectedAnimationElementRoot = null;
+                //if (treeViewItem.DataContext is SequenceElement)
                 {
                     treeViewItem = GetImmediateTreeViewItemParent(treeViewItem);
                     if (treeViewItem != null)
@@ -220,8 +236,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.viewModel.SelectedAnimationParent = null;
 
                 }
-                else
-                    this.viewModel.SelectedAnimationParent = null;
+                //else
+                //    this.viewModel.SelectedAnimationParent = null;
             }
         }
         private TreeViewItem VisualUpwardSearch(DependencyObject source)
