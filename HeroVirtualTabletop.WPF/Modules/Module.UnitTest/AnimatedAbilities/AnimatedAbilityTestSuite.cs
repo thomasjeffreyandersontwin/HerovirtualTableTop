@@ -150,5 +150,17 @@ namespace Module.UnitTest.AnimatedAbilities
             this.abilityEditorViewModel.RemoveAnimationCommand.Execute(null);
             Assert.IsTrue((this.abilityEditorViewModel.CurrentAbility.AnimationElements["Seq Element 1"] as SequenceElement).AnimationElements["Sound Element 1"].Order == 2);
         }
+        [TestMethod]
+        public void AssignPauseElementToAbility_AddsPauseElement()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Pause);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement is PauseElement);
+        }
+        [TestMethod]
+        public void AssignPauseElementToAbility_SetsDefaultPauseTimeToOne()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Pause);
+            Assert.IsTrue((this.abilityEditorViewModel.SelectedAnimationElement as PauseElement).Time == 1);
+        }
     }
 }
