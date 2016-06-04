@@ -141,6 +141,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 selectedAnimationElement = value;
+                OnPropertyChanged("SelectedAnimationElement");
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
@@ -175,7 +176,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
         }
-
+        
         private AnimationSequenceType sequenceType;
 
         public AnimationSequenceType SequenceType
@@ -300,7 +301,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             fxElementsCVS.View.Refresh();
                             break;
                         case AnimationType.Sound:
-                            //soundElementsCVS.View.Refresh();
+                            soundElementsCVS.View.Refresh();
                             break;
                     }
                 OnPropertyChanged("Filter");
@@ -641,7 +642,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     string resLine = Sr.ReadLine();
                     string[] resArray = resLine.Split(';');
-                    movElements.Add(new MOVElement(resArray[1], resArray[1], tags: resArray[0]));
+                    movElements.Add(new MOVElement(Path.GetFileNameWithoutExtension(resArray[1]), resArray[1], tags: resArray[0]));
                 }
             }
 
@@ -656,20 +657,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
 
-            //var soundFiles = Directory.EnumerateFiles
-            //            (Path.Combine(
-            //                Settings.Default.CityOfHeroesGameDirectory,
-            //                Constants.GAME_SOUND_FOLDERNAME),
-            //            "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
+            var soundFiles = Directory.EnumerateFiles
+                        (Path.Combine(
+                            Settings.Default.CityOfHeroesGameDirectory,
+                            Constants.GAME_SOUND_FOLDERNAME),
+                        "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
 
-            //foreach (string file in soundFiles)
-            //{
-            //    string name = Path.GetFileNameWithoutExtension(file);
-            //    string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
-            //        Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
-            //    tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
-            //    soundElements.Add(new SoundElement(name, file, tags: tags));
-            //}
+            foreach (string file in soundFiles)
+            {
+                string name = Path.GetFileNameWithoutExtension(file);
+                string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
+                    Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
+                tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
+                soundElements.Add(new SoundElement(name, file, tags: tags));
+            }
 
             movElementsCVS = new CollectionViewSource();
             movElementsCVS.Source = MOVElements;
@@ -679,9 +680,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             fxElementsCVS.Source = FXElements;
             fxElementsCVS.View.Filter += ResourcesCVS_Filter;
 
-            //soundElementsCVS = new CollectionViewSource();
-            //soundElementsCVS.Source = SoundElements;
-            //soundElementsCVS.View.Filter += ResourcesCVS_Filter;
+            soundElementsCVS = new CollectionViewSource();
+            soundElementsCVS.Source = SoundElements;
+            soundElementsCVS.View.Filter += ResourcesCVS_Filter;
         }
 
         private bool ResourcesCVS_Filter(object item)
@@ -695,21 +696,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationItem.Resource)
             {
                 return true;
-                //bool actual = false;
-                //switch (SelectedAnimationElement.Type)
-                //{
-                //    case AnimationType.Movement:
-                //        actual = (SelectedAnimationElement as MOVElement).MOVResource == (animationItem as MOVElement).MOVResource;
-                //        break;
-                //    case AnimationType.FX:
-                //        actual = (SelectedAnimationElement as FXEffectElement).Effect == (animationItem as FXEffectElement).Effect;
-                //        break;
-                //    case AnimationType.Sound:
-                //        actual = (SelectedAnimationElement as SoundElement).SoundFile == (animationItem as SoundElement).SoundFile;
-                //        break;
-                //}
-                //if (actual)
-                //    return true;
             }
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationItem.TagLine);
         }
@@ -791,6 +777,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         
         private void DemoAnimation()
         {
+            //We need to make a call to charexplorer and roster to spawn and target
             if (!this.Owner.HasBeenSpawned)
                 this.Owner.Spawn(false);
             this.Owner.Target(false);

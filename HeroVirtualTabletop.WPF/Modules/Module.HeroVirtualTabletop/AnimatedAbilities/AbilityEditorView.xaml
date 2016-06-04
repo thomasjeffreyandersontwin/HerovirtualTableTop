@@ -178,24 +178,11 @@
             </DataGrid.Resources>
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Resource" Binding="{Binding Resource}"></DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
-        <Grid x:Name="colorsGrid" Grid.Row="4" Grid.Column="1">
-            <!---
-            <Grid.Style>
-                <Style TargetType="Grid">
-                    <Setter Property="Visibility" Value="Collapsed"></Setter>
-                    <Style.Triggers>
-                        <DataTrigger Value="{x:Static enumerations:AnimationType.FX}">
-                            <DataTrigger.Binding>
-                                <Binding Path="Type"></Binding>
-                            </DataTrigger.Binding>
-                            <Setter Property="Visibility" Value="Visible"></Setter>
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Grid.Style>-->
+        <Grid x:Name="colorsGrid" Grid.Row="4" Grid.Column="1" Visibility="Collapsed">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
                 <ColumnDefinition></ColumnDefinition>
@@ -221,22 +208,22 @@
             <WrapPanel Grid.Column="0" Grid.Row="0">
                 <Label>Color 1:</Label>
                 <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Color1, Mode=TwoWay, NotifyOnTargetUpdated=True, NotifyOnSourceUpdated=True, NotifyOnValidationError=True, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True, ValidatesOnExceptions=True}"></xctk:ColorPicker>
+                    SelectedColor="{Binding SelectedAnimationElement.Colors[0], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
             </WrapPanel>
             <WrapPanel Grid.Column="1" Grid.Row="0">
                 <Label>Color 2:</Label>
                 <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Color2, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                    SelectedColor="{Binding SelectedAnimationElement.Colors[1], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
             </WrapPanel>
             <WrapPanel Grid.Column="0" Grid.Row="1">
                 <Label>Color 3:</Label>
                 <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Color3, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                    SelectedColor="{Binding SelectedAnimationElement.Colors[2], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
             </WrapPanel>
             <WrapPanel Grid.Column="1" Grid.Row="1">
                 <Label>Color 4:</Label>
                 <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Color4, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                    SelectedColor="{Binding SelectedAnimationElement.Colors[3], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
             </WrapPanel>
         </Grid>
         <Grid.InputBindings>
