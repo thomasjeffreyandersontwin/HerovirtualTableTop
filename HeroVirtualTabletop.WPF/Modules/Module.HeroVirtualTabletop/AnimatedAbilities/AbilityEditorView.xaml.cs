@@ -179,8 +179,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         }
                     }
                 }
-                //if (txtBox != null)
-                //    this.viewModel.EnterEditModeCommand.Execute(txtBox);
+                if (txtBox != null && this.viewModel.SelectedAnimationElement is PauseElement)
+                    this.viewModel.EnterAnimationElementEditModeCommand.Execute(txtBox);
             }
             this.UpdateDataGrid(modelToSelect);
         }

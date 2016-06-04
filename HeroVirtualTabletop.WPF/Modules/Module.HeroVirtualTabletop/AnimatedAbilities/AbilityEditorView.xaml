@@ -47,8 +47,8 @@
             <Grid Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5,0,0,0">
                 <TextBox x:Name="textBlockName" Text="{Binding Path=CurrentAbility.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
                     <TextBox.InputBindings>
-                        <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
-                        <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
+                        <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
+                        <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
                     </TextBox.InputBindings>
                 </TextBox>
                 <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=CurrentAbility.Name, UpdateSourceTrigger=Explicit}">
@@ -57,7 +57,7 @@
                     </behaviors:CommandBehaviorCollection.Behaviors>
                     <TextBox.InputBindings>
                         <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAbilityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
-                        <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                        <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.CancelAbilityEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                     </TextBox.InputBindings>
                 </TextBox>
             </Grid>
@@ -90,10 +90,10 @@
             <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Movement" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
             <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
             <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
-            <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" Command="{Binding PasteCharacterCrowdCommand}"/>
+            <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" />
             <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
-            <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddCrowdCommand}"/>
-            <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Play" Command="{Binding DeleteCharacterCrowdCommand}" />
+            <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
+            <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Play"  />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" >
             <StackPanel.Resources>
@@ -134,9 +134,21 @@
                         </TextBlock>
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
                             <TextBox x:Name="textBlockAnimationElement" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                                <TextBox.InputBindings>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockAnimationElement}"/>
+                                    <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" CommandParameter="{Binding ElementName=textBlockAnimationElement}"/>
+                                    <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
+                                </TextBox.InputBindings>
                             </TextBox>
                             <TextBox x:Name="textBoxAnimationElement" Visibility="Hidden" MinWidth="100"
-                                         Text="{Binding DisplayName, UpdateSourceTrigger=Explicit}">
+                                         Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EditableAnimationDisplayName, UpdateSourceTrigger=Explicit}">
+                                <behaviors:CommandBehaviorCollection.Behaviors>
+                                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAnimationElementRenameCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElement}"/>
+                                </behaviors:CommandBehaviorCollection.Behaviors>
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAnimationElementRenameCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElement}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.CancelAnimationElementEditModeCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElement}"/>
+                                </TextBox.InputBindings>
                             </TextBox>
                         </Grid>
                     </Grid>
@@ -150,11 +162,22 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding Type, Converter={StaticResource AnimationTypeToAnimationIconTextConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockAnimationElementChild" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}"
-                                              >
+                            <TextBox x:Name="textBlockAnimationElementChild" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                                <TextBox.InputBindings>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockAnimationElementChild}"/>
+                                    <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" CommandParameter="{Binding ElementName=textBlockAnimationElementChild}"/>
+                                    <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
+                                </TextBox.InputBindings>
                             </TextBox>
                             <TextBox x:Name="textBoxAnimationElementChild" Visibility="Hidden" MinWidth="100"
-                                             Text="{Binding Path=DisplayName, UpdateSourceTrigger=Explicit}">
+                                             Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EditableAnimationDisplayName, UpdateSourceTrigger=Explicit}">
+                                <behaviors:CommandBehaviorCollection.Behaviors>
+                                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAnimationElementRenameCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElementChild}"/>
+                                </behaviors:CommandBehaviorCollection.Behaviors>
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAnimationElementRenameCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElementChild}"/>
+                                    <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.CancelAnimationElementEditModeCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElementChild}"/>
+                                </TextBox.InputBindings>
                             </TextBox>
                         </Grid>
                     </Grid>
@@ -227,7 +250,7 @@
             </WrapPanel>
         </Grid>
         <Grid.InputBindings>
-            <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>
+            <!--<KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>-->
             <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
         </Grid.InputBindings>
     </Grid>

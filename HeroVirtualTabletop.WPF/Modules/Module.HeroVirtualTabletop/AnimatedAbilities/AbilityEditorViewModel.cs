@@ -231,19 +231,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 selectedAnimationElementRoot = value;
-                //this.SetCurrentSequenceAnimation();
-                //if (value is SequenceElement)
-                //{
-                //    this.IsSequenceAbilitySelected = true;
-                //    this.CurrentSequenceElement = selectedAnimationElementRoot as SequenceElement;
-                //}
-                //else // value is null
-                //{
-                //    this.SetCurrentSequenceAnimation();
-                //}
             }
         }
         public string OriginalName { get; set; }
+        public string OriginalAnimationDisplayName { get; set; }
+        private string editableAnimationDisplayName;
+        public string EditableAnimationDisplayName
+        {
+            get
+            {
+                return editableAnimationDisplayName;
+            }
+            set
+            {
+                editableAnimationDisplayName = value;
+                OnPropertyChanged("EditableAnimationDisplayName");
+            }
+        }
 
         private ObservableCollection<MOVElement> movElements;
         public ReadOnlyObservableCollection<MOVElement> MOVElements { get; private set; }
@@ -313,14 +317,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Commands
 
         public DelegateCommand<object> CloseEditorCommand { get; private set; }
-        public DelegateCommand<object> EnterEditModeCommand { get; private set; }
+        public DelegateCommand<object> EnterAbilityEditModeCommand { get; private set; }
         public DelegateCommand<object> SubmitAbilityRenameCommand { get; private set; }
-        public DelegateCommand<object> CancelEditModeCommand { get; private set; }
+        public DelegateCommand<object> CancelAbilityEditModeCommand { get; private set; }
         public DelegateCommand<object> AddAnimationElementCommand { get; private set; }
         public DelegateCommand<object> SaveAbilityCommand { get; private set; }
         public DelegateCommand<object> RemoveAnimationCommand { get; private set; }
         public DelegateCommand<object> SaveSequenceCommand { get; private set; }
-        public ICommand UpdateSelectedAnimationCommand { get; private set; }
+        public DelegateCommand<object> UpdateSelectedAnimationCommand { get; private set; }
+        public DelegateCommand<object> SubmitAnimationElementRenameCommand { get; private set; }
+        public DelegateCommand<object> EnterAnimationElementEditModeCommand { get; private set; }
+        public DelegateCommand<object> CancelAnimationElementEditModeCommand { get; private set; }
 
         #endregion
 
@@ -346,15 +353,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
             this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility);
             this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence);
-            this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
-            this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
+            this.EnterAbilityEditModeCommand = new DelegateCommand<object>(this.EnterAbilityEditMode);
+            this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
             this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement);
             this.RemoveAnimationCommand = new DelegateCommand<object>(this.RemoveAnimation, this.CanRemoveAnimation);
-            UpdateSelectedAnimationCommand = new SimpleCommand
-            {
-                ExecuteDelegate = x =>
-                    UpdateSelectedAnimation(x)
-            };
+            UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
+            this.SubmitAnimationElementRenameCommand = new DelegateCommand<object>(this.SubmitAnimationElementRename);
+            this.EnterAnimationElementEditModeCommand = new DelegateCommand<object>(this.EnterAnimationElementEditMode, this.CanEnterAnimationElementEditMode);
+            this.CancelAnimationElementEditModeCommand = new DelegateCommand<object>(this.CancelAnimationElementEditMode);
         }
 
         #endregion
@@ -451,13 +457,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Rename
-        private void EnterEditMode(object state)
+        private void EnterAbilityEditMode(object state)
         {
             this.OriginalName = CurrentAbility.Name;
             OnEditModeEnter(state, null);
         }
 
-        private void CancelEditMode(object state)
+        private void CancelAbilityEditMode(object state)
         {
             CurrentAbility.Name = this.OriginalName;
             OnEditModeLeave(state, null);
@@ -481,7 +487,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 else
                 {
                     messageBoxService.ShowDialog(Messages.DUPLICATE_NAME_MESSAGE, "Rename Ability", MessageBoxButton.OK, MessageBoxImage.Error);
-                    this.CancelEditMode(state);
+                    this.CancelAbilityEditMode(state);
                 }
             }
         }
@@ -496,6 +502,42 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             CurrentAbility.Name = updatedName;
             Owner.AnimatedAbilities.UpdateKey(OriginalName, updatedName);
             OriginalName = null;
+        }
+
+        private bool CanEnterAnimationElementEditMode(object state)
+        {
+            return this.SelectedAnimationElement is PauseElement;
+        }
+
+        private void EnterAnimationElementEditMode(object state)
+        {
+            this.OriginalAnimationDisplayName = (this.SelectedAnimationElement as AnimationElement).DisplayName;
+            if (this.SelectedAnimationElement is PauseElement)
+                this.EditableAnimationDisplayName = (this.SelectedAnimationElement as PauseElement).Time.ToString();
+            OnEditModeEnter(state, null);
+        }
+
+        private void CancelAnimationElementEditMode(object state)
+        {
+            (this.SelectedAnimationElement as AnimationElement).DisplayName = this.OriginalAnimationDisplayName;
+            this.OriginalAnimationDisplayName = "";
+            OnEditModeLeave(state, null);
+        }
+        private void SubmitAnimationElementRename(object state)
+        {
+            if (this.SelectedAnimationElement is PauseElement && this.OriginalAnimationDisplayName != "") // Original Display Name empty means we already cancelled the rename
+            {
+                string pausePeriod = Helper.GetTextFromControlObject(state);
+                int period;
+                if (!Int32.TryParse(pausePeriod, out period))
+                    pausePeriod = "1";
+                else
+                    (this.SelectedAnimationElement as PauseElement).Time = period;
+
+                (this.SelectedAnimationElement as PauseElement).DisplayName = "Pause " + pausePeriod.ToString();
+                this.OriginalAnimationDisplayName = "";
+                OnEditModeLeave(state, null);
+            }
         }
         #endregion
 
@@ -550,6 +592,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     animationElement.Name = fullName;
                     (animationElement as SequenceElement).SequenceType = AnimationSequenceType.And;
                     animationElement.DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
+                    break;
+                case AnimationType.Pause:
+                    animationElement = new PauseElement("", 1);
+                    fullName = GetAppropriateAnimationName("Pause Element", flattenedList);
+                    animationElement.Name = fullName;
+                    animationElement.DisplayName = "Pause " + (animationElement as PauseElement).Time.ToString();
                     break;
             }
 
