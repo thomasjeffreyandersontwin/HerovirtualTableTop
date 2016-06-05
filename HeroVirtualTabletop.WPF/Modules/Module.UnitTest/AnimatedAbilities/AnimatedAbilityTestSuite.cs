@@ -162,5 +162,48 @@ namespace Module.UnitTest.AnimatedAbilities
             this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Pause);
             Assert.IsTrue((this.abilityEditorViewModel.SelectedAnimationElement as PauseElement).Time == 1);
         }
+        [TestMethod]
+        public void AssignMovToAbility_AddsMovElementToAbility()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Type == AnimationType.Movement);
+        }
+        [TestMethod]
+        public void AssignMovToAbility_AddsMovWithCorrectName()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Name.EndsWith("1"));
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Movement);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Name.EndsWith("2"));
+        }
+        [TestMethod]
+        public void AssignFXToAbility_AddsFXElementToAbility()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Type == AnimationType.FX);
+        }
+        [TestMethod]
+        public void AssignFXToAbility_AddsFXWithCorrectName()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Name.EndsWith("1"));
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.FX);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Name.EndsWith("2"));
+        }
+        [TestMethod]
+        public void AssignSoundToAbility_AddsSoundElementToAbility()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Type == AnimationType.Sound);
+        }
+        [TestMethod]
+        public void AssignSoundToAbility_AddsSoundWithCorrectName()
+        {
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Name.EndsWith("1"));
+            this.abilityEditorViewModel.AddAnimationElementCommand.Execute(AnimationType.Sound);
+            Assert.IsTrue(this.abilityEditorViewModel.SelectedAnimationElement.Name.EndsWith("2"));
+        }
+
     }
 }
