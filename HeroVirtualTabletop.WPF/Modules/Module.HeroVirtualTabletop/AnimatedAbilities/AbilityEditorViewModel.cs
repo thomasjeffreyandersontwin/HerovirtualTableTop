@@ -142,23 +142,33 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 selectedAnimationElement = value;
                 OnSelectionChanged(value, null);
+                //if(value != null && this.SelectedResourceAnimationElement != null)
+                //{
+                //    this.SelectedResourceAnimationElement.Resource = this.SelectedAnimationElement.Resource;
+                //}
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
-        private IAnimationElement selectedAnimationResource;
-        public IAnimationElement SelectedAnimationResource
+        private IAnimationElement selectedResourceAnimationElement;
+        public IAnimationElement SelectedResourceAnimationElement
         {
             get
             {
-                return selectedAnimationResource;
+                return selectedResourceAnimationElement;
             }
             set
             {
-                selectedAnimationResource = value;
-                SelectedAnimationElement.Resource = selectedAnimationResource.Resource;
-                DemoAnimation();
-                OnPropertyChanged("SelectedAnimationResource");
+                selectedResourceAnimationElement = value;
+                string resourceName = selectedResourceAnimationElement.Resource;
+                if(this.SelectedAnimationElement != null)
+                {
+                    SelectedAnimationElement.Resource = resourceName;
+                    DemoAnimation();
+                    (SelectedAnimationElement as AnimationElement).DisplayName = this.GetDisplayNameFromResourceName(resourceName);
+                    this.SaveAbility(null);
+                }
+                OnPropertyChanged("SelectedResourceAnimationElement");
             }
         }
 
@@ -340,6 +350,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             InitializeCommands();
             LoadResources();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
+            this.SelectedResourceAnimationElement = new AnimationElement("");
         }
         
         #endregion
@@ -482,6 +493,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     RenameAbility(updatedName);
                     OnEditModeLeave(state, null);
+                    this.SaveAbility(null);
                 }
                 else
                 {
@@ -536,6 +548,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 (this.SelectedAnimationElement as PauseElement).DisplayName = "Pause " + pausePeriod.ToString();
                 this.OriginalAnimationDisplayName = "";
                 OnEditModeLeave(state, null);
+                this.SaveAbility(null);
             }
         }
         #endregion
@@ -732,6 +745,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //soundElementsCVS.View.Filter += ResourcesCVS_Filter;
         }
 
+        private void LoadResourcesNew()
+        {
+
+        }
+
         private bool ResourcesCVS_Filter(object item)
         {
             if (string.IsNullOrWhiteSpace(Filter))
@@ -832,6 +850,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return _list;
         }
+        private string GetDisplayNameFromResourceName(string resourceName)
+        {
+            return Path.GetFileNameWithoutExtension(resourceName);
+        }
+
 
         #endregion
 
@@ -844,7 +867,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Owner.Target(false);
             this.SelectedAnimationElement.Play();
         }
-
         #endregion
 
         #endregion

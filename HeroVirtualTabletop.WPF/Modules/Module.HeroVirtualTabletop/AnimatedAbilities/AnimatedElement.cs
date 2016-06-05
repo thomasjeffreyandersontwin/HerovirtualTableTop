@@ -43,6 +43,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Persistent = persistent;
             this.tags = new ObservableCollection<string>(tags);
             Tags = new ReadOnlyObservableCollection<string>(this.tags);
+            this.ResourceCollection = new ObservableCollection<AnimationResource>();
         }
 
         private string name;
@@ -167,11 +168,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         protected virtual string GetResource()
         {
             return string.Empty;
-    }
+        }
 
         protected virtual void SetResource(string value)
         {
             
+        }
+
+        private ObservableCollection<AnimationResource> resourceCollection;
+        public ObservableCollection<AnimationResource> ResourceCollection
+        {
+            get
+            {
+                return resourceCollection;
+            }
+            set
+            {
+                resourceCollection = value;
+                OnPropertyChanged("ResourceCollection");
+            }
         }
     }
 
