@@ -16,6 +16,7 @@ using Framework.WPF.Extensions;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared.Events;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Xceed.Wpf.Toolkit;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -45,6 +46,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding());
                 return;
             }
+            Visibility colorsGridVisibility = Visibility.Collapsed;
             switch (element.Type)
             {
                 case Library.Enumerations.AnimationType.Movement:
@@ -52,11 +54,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     break;
                 case Library.Enumerations.AnimationType.FX:
                     dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXElementsCVS.View"));
+                    colorsGridVisibility = Visibility.Visible;
                     break;
                 case Library.Enumerations.AnimationType.Sound:
-                    //dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundElementsCVS.View"));
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundElementsCVS.View"));
                     break;
             }
+            colorsGrid.Visibility = colorsGridVisibility;
         }
 
         private void viewModel_SelectionChanged(object sender, EventArgs e)
@@ -447,5 +451,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //}
         }
         #endregion
+        
     }
 }

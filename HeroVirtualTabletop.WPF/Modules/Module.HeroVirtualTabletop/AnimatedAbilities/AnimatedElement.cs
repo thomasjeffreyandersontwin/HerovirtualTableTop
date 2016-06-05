@@ -15,6 +15,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Windows.Media;
+using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Identities;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -275,23 +277,33 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private SoundPlayer player;
+        private NAudio.Vorbis.VorbisWaveReader soundReader;
+        private NAudio.Wave.WaveOut waveOut;
+
         public override string Play(bool persistent = false)
         {
             if (Active)
             {
-                player.Stop();
+                waveOut.Stop();
                 Active = false;
                 return string.Empty;
             }
-            player = new SoundPlayer(SoundFile);
+            soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
+            waveOut = new NAudio.Wave.WaveOut();
+            float dist = 0;
+            //Owner.Position.IsWithin(0, Camera.Position, out dist);
+            waveOut.Volume = 1.0f; //Determine based on dist
             if (this.Persistent || persistent)
             {
-                player.PlayLooping();
+                LoopWaveStream loop = new LoopWaveStream(soundReader);
+                waveOut.Init(loop);
                 Active = true;
             }
             else
-                player.PlaySync();
+            {
+                waveOut.Init(soundReader);
+            }
+            waveOut.Play();
             return base.Play(this.Persistent || persistent);
         }
 
@@ -362,7 +374,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Effect = effect;
             this.Type = AnimationType.FX;
             this.PlayWithNext = playWithNext;
-            this.colors = new ObservableCollection<Color>() { new Color(), new Color(), new Color(), new Color() };
+            Color black = Color.FromRgb(0, 0, 0);
+            this.colors = new ObservableCollection<Color>() { black, black, black, black };
         }
 
         private ObservableCollection<Color> colors;
@@ -378,56 +391,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Colors");
             }
         }
-
-        public Color Color1
-        {
-            get
-            {
-                return Colors[0];
-            }
-            set
-            {
-                Colors[0] = value;
-                OnPropertyChanged("Color1");
-            }
-        }
-
-        public Color Color2
-        {
-            get
-            {
-                return Colors[1];
-            }
-            set
-            {
-                Colors[1] = value;
-                OnPropertyChanged("Color2");
-            }
-        }
-        public Color Color3
-        {
-            get
-            {
-                return Colors[2];
-            }
-            set
-            {
-                Colors[2] = value;
-                OnPropertyChanged("Color3");
-            }
-        }
-        public Color Color4
-        {
-            get
-            {
-                return Colors[3];
-            }
-            set
-            {
-                Colors[3] = value;
-                OnPropertyChanged("Color4");
-            }
-        }
+        
         private string effect;
         public string Effect
         {
