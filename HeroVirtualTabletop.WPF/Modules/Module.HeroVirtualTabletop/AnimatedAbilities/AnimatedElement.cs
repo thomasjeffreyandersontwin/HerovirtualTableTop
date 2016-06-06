@@ -121,6 +121,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private bool playOnTargeted;
+        public bool PlayOnTargeted
+        {
+            get
+            {
+                return playOnTargeted;
+            }
+            set
+            {
+                playOnTargeted = value;
+                OnPropertyChanged("PlayOnTargeted");
+            }
+        }
+
         private bool persistent;
         public bool Persistent
         {
@@ -629,7 +643,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
             {
                 var rnd = new Random();
-                int chosen = rnd.Next(AnimationElements.Count - 1);
+                int chosen = rnd.Next(0, AnimationElements.Count);
                 return AnimationElements[chosen].Play(this.Persistent || persistent);
             }
         }

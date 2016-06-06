@@ -62,16 +62,21 @@
             </Grid>
             <CheckBox Name="chkBoxIsAttack" Grid.Row="0" Grid.Column="1"  IsChecked="{Binding IsAttack}" Content="Attack" Foreground="White" Margin="5"/>
             <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
-                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
-                <RadioButton Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <RadioButton Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
+                <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
+                <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
             <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
                 <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack" Margin="2" Style="{StaticResource IconButton}"/>
@@ -88,7 +93,7 @@
             <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" />
             <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
             <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
-            <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Play"  />
+            <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
         </StackPanel>
         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" >
             <StackPanel.Resources>
@@ -98,7 +103,7 @@
             <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCommand}"/>
             <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteCommand}"/>
             <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove" Command="{Binding RemoveAnimationCommand}"/>
-            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Play" Command="{Binding PlayCommand}"/>
+            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation" Command="{Binding DemoAnimationCommand}"/>
         </StackPanel>
         <Grid Grid.Row="2" Grid.Column="1">
             <Grid.ColumnDefinitions>
@@ -107,7 +112,7 @@
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
                 <CheckBox Name="chkBoxPlayWithNext" IsChecked="{Binding PlayWithNext}" Content="Play W/ Next" Foreground="White"  HorizontalAlignment="Left" />
-                <CheckBox Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
+                <CheckBox Name="chkBoxPlayOnTargeted" IsChecked="{Binding CurrentAbility.PlayOnTargeted}" Content="Play On Targeted" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
             </StackPanel>
             <!--<ComboBox Grid.Column="1" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>-->
             <TextBox Grid.Column="1" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5" 
@@ -194,35 +199,17 @@
                   SelectionMode="Single"
                   SelectedValue="{Binding SelectedResourceAnimationElement, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   >
-            <DataGrid.Resources>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Foreground" Value="White"></Setter>
-                </Style>
-            </DataGrid.Resources>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Resource" Binding="{Binding Resource}"></DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-            <!--<DataGrid x:Name="dataGridAnimationResourceNew" Grid.Row="0"
-                  MaxWidth="400" 
-                  Background="Transparent" RowBackground="Transparent" Margin="5"
-                  SelectionUnit="FullRow" AutoGenerateColumns="True"
-                  SelectionMode="Single"
-                  ItemsSource="{Binding SelectedAnimationElement.ResourceCollection}"
-                  SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  >
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="Foreground" Value="White"></Setter>
                     </Style>
                 </DataGrid.Resources>
-                --><!--<DataGrid.Columns>
+                <DataGrid.Columns>
                     <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
                     <DataGridTextColumn Header="Resource" Binding="{Binding Resource}"></DataGridTextColumn>
-                </DataGrid.Columns>--><!--
-            </DataGrid>-->
+                </DataGrid.Columns>
+            </DataGrid>
             <Grid x:Name="colorsGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>

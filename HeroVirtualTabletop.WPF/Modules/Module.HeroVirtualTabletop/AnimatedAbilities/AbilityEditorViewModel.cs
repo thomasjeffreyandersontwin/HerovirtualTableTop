@@ -24,6 +24,7 @@ using System.IO;
 using System.Collections.ObjectModel;
 using Module.Shared;
 using System.Windows.Data;
+using Module.HeroVirtualTabletop.Crowds;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -165,7 +166,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if(this.SelectedAnimationElement != null)
                 {
                     SelectedAnimationElement.Resource = resourceName;
-                    DemoAnimation();
+                    DemoAnimation(null);
                     (SelectedAnimationElement as AnimationElement).DisplayName = this.GetDisplayNameFromResourceName(resourceName);
                     this.SaveAbility(null);
                 }
@@ -338,6 +339,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> SubmitAnimationElementRenameCommand { get; private set; }
         public DelegateCommand<object> EnterAnimationElementEditModeCommand { get; private set; }
         public DelegateCommand<object> CancelAnimationElementEditModeCommand { get; private set; }
+        public DelegateCommand<object> DemoAnimatedAbilityCommand { get; private set; }
+        public DelegateCommand<object> DemoAnimationCommand { get; private set; }
 
         #endregion
 
@@ -372,6 +375,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SubmitAnimationElementRenameCommand = new DelegateCommand<object>(this.SubmitAnimationElementRename);
             this.EnterAnimationElementEditModeCommand = new DelegateCommand<object>(this.EnterAnimationElementEditMode, this.CanEnterAnimationElementEditMode);
             this.CancelAnimationElementEditModeCommand = new DelegateCommand<object>(this.CancelAnimationElementEditMode);
+            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(this.DemoAnimatedAbility);
+            this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation);
         }
 
         #endregion
@@ -718,20 +723,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
 
-            var soundFiles = Directory.EnumerateFiles
-                        (Path.Combine(
-                            Settings.Default.CityOfHeroesGameDirectory,
-                            Constants.GAME_SOUND_FOLDERNAME),
-                        "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
+            //var soundFiles = Directory.EnumerateFiles
+            //            (Path.Combine(
+            //                Settings.Default.CityOfHeroesGameDirectory,
+            //                Constants.GAME_SOUND_FOLDERNAME),
+            //            "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
 
-            foreach (string file in soundFiles)
-            {
-                string name = Path.GetFileNameWithoutExtension(file);
-                string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
-                    Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
-                tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
-                soundElements.Add(new SoundElement(name, file, tags: tags));
-            }
+            //foreach (string file in soundFiles)
+            //{
+            //    string name = Path.GetFileNameWithoutExtension(file);
+            //    string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
+            //        Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
+            //    tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
+            //    soundElements.Add(new SoundElement(name, file, tags: tags));
+            //}
 
             movElementsCVS = new CollectionViewSource();
             movElementsCVS.Source = MOVElements;
@@ -741,9 +746,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             fxElementsCVS.Source = FXElements;
             fxElementsCVS.View.Filter += ResourcesCVS_Filter;
 
-            soundElementsCVS = new CollectionViewSource();
-            soundElementsCVS.Source = SoundElements;
-            soundElementsCVS.View.Filter += ResourcesCVS_Filter;
+            //soundElementsCVS = new CollectionViewSource();
+            //soundElementsCVS.Source = SoundElements;
+            //soundElementsCVS.View.Filter += ResourcesCVS_Filter;
         }
 
         private void LoadResourcesNew()
@@ -846,13 +851,33 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Demo Animation
         
-        private void DemoAnimation()
+        private void DemoAnimatedAbility(object state)
         {
-            //We need to make a call to charexplorer and roster to spawn and target
+            if (!this.CurrentAbility.PlayOnTargeted)
+            {
+                this.SpawnAndTargetCharacter();
+            }
+            this.CurrentAbility.Play();
+        }
+
+        private void DemoAnimation(object state)
+        {
+            if (!this.CurrentAbility.PlayOnTargeted)
+            {
+                this.SpawnAndTargetCharacter();
+            }
+            this.SelectedAnimationElement.Play();
+        }
+
+        private void SpawnAndTargetCharacter()
+        {
+            if ((this.Owner as CrowdMemberModel).RosterCrowd == null)
+            {
+                eventAggregator.GetEvent<AddMemberToRosterEvent>().Publish(new Tuple<CrowdMemberModel, CrowdModel>(this.Owner as CrowdMemberModel, null));
+            }
             if (!this.Owner.HasBeenSpawned)
                 this.Owner.Spawn(false);
-            this.Owner.Target(false);
-            this.SelectedAnimationElement.Play();
+            this.Owner.Target(false); 
         }
         #endregion
 
