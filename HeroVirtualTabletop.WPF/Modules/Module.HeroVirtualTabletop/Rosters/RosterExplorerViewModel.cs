@@ -117,7 +117,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Methods
 
-
         private void Commands_RaiseCanExecuteChanged()
         {
             this.ClearFromDesktopCommand.RaiseCanExecuteChanged();
@@ -139,6 +138,13 @@ namespace Module.HeroVirtualTabletop.Roster
                     AddParticipants(new List<CrowdMemberModel>() { member });
                 }
             }
+        }
+
+        public ICrowdMemberModel GetCurrentTarget()
+        {
+            MemoryElement target = new MemoryElement();
+            return this.Participants.FirstOrDefault((x) => {
+                return (x as CrowdMemberModel).Label == target.Label; });
         }
 
         #region Add Participants

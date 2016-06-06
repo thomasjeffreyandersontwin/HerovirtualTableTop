@@ -35,6 +35,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
 
+        private CharacterExplorerViewModel charExpVM;
+
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
 
@@ -139,6 +141,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (value as AnimationElement).PropertyChanged += SelectedAnimationElement_PropertyChanged;
                 selectedAnimationElement = value;
                 OnPropertyChanged("SelectedAnimationElement");
+                OnPropertyChanged("CanPlayWithNext");
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
             }
@@ -172,6 +175,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (SelectedAnimationElement as AnimationElement).DisplayName = this.GetDisplayNameFromResourceName(resourceName);
                     this.SaveAbility(null);
                 }
+                Filter = string.Empty;
                 OnPropertyChanged("SelectedResourceAnimationElement");
             }
         }
@@ -298,6 +302,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private CollectionViewSource referenceAbilitiesCVS;
+        public CollectionViewSource ReferenceAbilitiesCVS
+        {
+            get
+            {
+                return referenceAbilitiesCVS;
+            }
+        }
+
         private string filter;
         public string Filter
         {
@@ -325,6 +338,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public bool CanPlayWithNext
+        {
+            get
+            {
+                bool canPlayWithNext = false;
+                if (SelectedAnimationElement != null)
+                {
+                    if (SelectedAnimationElement.Type == AnimationType.FX || SelectedAnimationElement.Type == AnimationType.Movement)
+                    {
+                        IAnimationElement next = GetNextAnimationElement(SelectedAnimationElement);
+                        if (next != null && (next.Type == AnimationType.FX || next.Type == AnimationType.Movement))
+                            canPlayWithNext = true;
+                    }
+                }
+                return canPlayWithNext;
+            }
+        }
+        
         #endregion
 
         #region Commands
@@ -692,6 +723,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
         }
 
+        #endregion
+
         private void LoadResources()
         {
             movResources = new ObservableCollection<AnimationResource>();
@@ -753,11 +786,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             soundResourcesCVS = new CollectionViewSource();
             soundResourcesCVS.Source = SoundResources;
             soundResourcesCVS.View.Filter += ResourcesCVS_Filter;
-        }
 
-        private void LoadResourcesNew()
-        {
-
+            charExpVM = this.Container.Resolve<CharacterExplorerViewModel>();
+            referenceAbilitiesCVS = new CollectionViewSource();
+            //The following doesn't work cause getAbilities tries to access AllCharactersCrowd before LoadCrowdCollectionhas been called
+            //referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(charExpVM.GetAbilitiesCollection().Select((x) =>
+            //{
+            //    return new AnimationResource(x);
+            //}));
+            //referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
         }
 
         private bool ResourcesCVS_Filter(object item)
@@ -772,11 +809,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return true;
             }
-            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine);
+            bool caseReferences = false;
+            if (animationRes.Reference != null)
+            {
+                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name);
+            }
+            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || caseReferences;
         }
-
-        #endregion
-
+        
         #region Save Sequence
         private void SaveSequence(object state)
         {
@@ -845,23 +885,35 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return _list;
         }
+
         private string GetDisplayNameFromResourceName(string resourceName)
         {
             return Path.GetFileNameWithoutExtension(resourceName);
         }
-
-
+        
+        private IAnimationElement GetNextAnimationElement(IAnimationElement selectedAnimationElement)
+        {
+            if (selectedAnimationElement.Order == currentAbility.LastOrder)
+                return null;
+            return currentAbility.AnimationElements.Where(x => { return x.Order == selectedAnimationElement.Order + 1; }).FirstOrDefault();
+        }
         #endregion
 
         #region Demo Animation
-        
+
         private void DemoAnimatedAbility(object state)
         {
+            Character currentTarget = null;
             if (!this.CurrentAbility.PlayOnTargeted)
             {
                 this.SpawnAndTargetCharacter();
             }
-            this.CurrentAbility.Play();
+            else
+            {
+                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+                currentTarget = rostExpVM.GetCurrentTarget() as Character;
+            }
+            this.CurrentAbility.Play(Target: currentTarget);
         }
 
         private void DemoAnimation(object state)
@@ -875,10 +927,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void SpawnAndTargetCharacter()
         {
-            if ((this.Owner as CrowdMemberModel).RosterCrowd == null)
-        {
-                eventAggregator.GetEvent<AddMemberToRosterEvent>().Publish(new Tuple<CrowdMemberModel, CrowdModel>(this.Owner as CrowdMemberModel, null));
-            }
             if (!this.Owner.HasBeenSpawned)
             {
                 Crowds.CrowdMemberModel member = this.Owner as Crowds.CrowdMemberModel;

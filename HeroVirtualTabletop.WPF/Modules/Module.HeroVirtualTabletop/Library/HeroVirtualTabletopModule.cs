@@ -76,14 +76,14 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<CharacterExplorerView, CharacterExplorerView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<CharacterExplorerViewModel, CharacterExplorerViewModel>(new ContainerControlledLifetimeManager());
 
-            this.container.RegisterType<RosterExplorerView, RosterExplorerView>();
-            this.container.RegisterType<RosterExplorerViewModel, RosterExplorerViewModel>();
+            this.container.RegisterType<RosterExplorerView, RosterExplorerView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<RosterExplorerViewModel, RosterExplorerViewModel>(new ContainerControlledLifetimeManager());
 
-            this.container.RegisterType<CharacterEditorView, CharacterEditorView>();
-            this.container.RegisterType<CharacterEditorViewModel, CharacterEditorViewModel>();
+            this.container.RegisterType<CharacterEditorView, CharacterEditorView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<CharacterEditorViewModel, CharacterEditorViewModel>(new ContainerControlledLifetimeManager());
 
-            this.container.RegisterType<CharacterCrowdMainView, CharacterCrowdMainView>();
-            this.container.RegisterType<CharacterCrowdMainViewModel, CharacterCrowdMainViewModel>();
+            this.container.RegisterType<CharacterCrowdMainView, CharacterCrowdMainView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<CharacterCrowdMainViewModel, CharacterCrowdMainViewModel>(new ContainerControlledLifetimeManager());
 
             //Registering with ContainerControlledLifeTimeMangager should act like declaring classes as Singleton's
             //Return a new one the first time only, then always the already instanciated one

@@ -187,6 +187,11 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public string OriginalName { get; set; }
         public bool IsUpdatingCharacter { get; set; }
+
+        public ObservableCollection<AnimatedAbilities.AnimatedAbility> GetAbilitiesCollection()
+        {
+            return new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }));
+        }
         #endregion
 
         #region Commands

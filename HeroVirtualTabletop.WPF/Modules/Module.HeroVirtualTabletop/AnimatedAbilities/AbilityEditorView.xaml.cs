@@ -39,33 +39,33 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.viewModel.ExpansionUpdateNeeded += viewModel_ExpansionUpdateNeeded;
         }
 
-        private void UpdateDataGrid(IAnimationElement element)
-        {
-            if (element == null)
-            {
-                dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding());
-                return;
-            }
-            Visibility colorsGridVisibility = Visibility.Collapsed;
-            switch (element.Type)
-            {
-                case Library.Enumerations.AnimationType.Movement:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVResourcesCVS.View"));
-                    break;
-                case Library.Enumerations.AnimationType.FX:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXResourcesCVS.View"));
-                    colorsGridVisibility = Visibility.Visible;
-                    break;
-                case Library.Enumerations.AnimationType.Sound:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundResourcesCVS.View"));
-                    break;
-            }
-            colorsGrid.Visibility = colorsGridVisibility;
-        }
+        //private void UpdateDataGrid(IAnimationElement element)
+        //{
+        //    if (element == null)
+        //    {
+        //        dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding());
+        //        return;
+        //    }
+        //    Visibility colorsGridVisibility = Visibility.Collapsed;
+        //    switch (element.Type)
+        //    {
+        //        case Library.Enumerations.AnimationType.Movement:
+        //            dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVResourcesCVS.View"));
+        //            break;
+        //        case Library.Enumerations.AnimationType.FX:
+        //            dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXResourcesCVS.View"));
+        //            colorsGridVisibility = Visibility.Visible;
+        //            break;
+        //        case Library.Enumerations.AnimationType.Sound:
+        //            dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundResourcesCVS.View"));
+        //            break;
+        //    }
+        //    colorsGrid.Visibility = colorsGridVisibility;
+        //}
 
         private void viewModel_SelectionChanged(object sender, EventArgs e)
         {
-            this.UpdateDataGrid(sender as IAnimationElement);
+            //this.UpdateDataGrid(sender as IAnimationElement);
         }
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)
@@ -182,7 +182,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (txtBox != null && this.viewModel.SelectedAnimationElement is PauseElement)
                     this.viewModel.EnterAnimationElementEditModeCommand.Execute(txtBox);
             }
-            this.UpdateDataGrid(modelToSelect);
+            //this.UpdateDataGrid(modelToSelect);
         }
 
         private TextBox FindTextBoxInTemplate(TreeViewItem item)

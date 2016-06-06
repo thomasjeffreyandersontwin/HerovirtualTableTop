@@ -9,7 +9,7 @@ using System.Windows.Data;
 
 namespace Module.HeroVirtualTabletop.Library.Converters
 {
-    public class IdentityTypeConverter : IValueConverter
+    public class StringComparerToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

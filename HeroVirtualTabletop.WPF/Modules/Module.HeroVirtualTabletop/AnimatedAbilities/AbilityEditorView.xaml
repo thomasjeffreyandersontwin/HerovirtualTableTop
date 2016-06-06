@@ -21,6 +21,7 @@
             <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:BooleanToVisibilityInvertConverter x:Key="BooleanToVisibilityInvertConverter"/>
+            <localconverters:StringComparerToVisibilityConverter x:Key="resourcesTypeConverter"></localconverters:StringComparerToVisibilityConverter>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -112,7 +113,18 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
-                <CheckBox Name="chkBoxPlayWithNext" IsChecked="{Binding PlayWithNext}" Content="Play W/ Next" Foreground="White"  HorizontalAlignment="Left" />
+                <CheckBox Name="chkBoxPlayWithNext" IsEnabled="{Binding CanPlayWithNext}" IsChecked="{Binding SelectedAnimationElement.PlayWithNext}" Content="Play W/ Next" HorizontalAlignment="Left">
+                    <CheckBox.Style>
+                        <Style TargetType="CheckBox">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Foreground" Value="Gray"></Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </CheckBox.Style>
+                </CheckBox>
                 <CheckBox Name="chkBoxPlayOnTargeted" IsChecked="{Binding CurrentAbility.PlayOnTargeted}" Content="Play On Targeted" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
             </StackPanel>
             <!--<ComboBox Grid.Column="1" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>-->
@@ -193,72 +205,149 @@
                 <RowDefinition />
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <DataGrid x:Name="dataGridAnimationResource" Grid.Row="0"
-                  MaxWidth="400" 
-                  Background="Transparent" RowBackground="Transparent" Margin="5"
-                  SelectionUnit="FullRow" AutoGenerateColumns="False"
-                  SelectionMode="Single"
-                  SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  >
-                <i:Interaction.Behaviors>
-                    <behaviors:ScrollIntoViewForDataGrid />
-                </i:Interaction.Behaviors>
-            <DataGrid.Resources>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Foreground" Value="White"></Setter>
-                </Style>
-            </DataGrid.Resources>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-            <Grid x:Name="colorsGrid" Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition></ColumnDefinition>
-                <ColumnDefinition></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.Resources>
-                <Style TargetType="WrapPanel">
-                    <Setter Property="HorizontalAlignment" Value="Center"></Setter>
-                </Style>
-                <Style TargetType="Label">
-                    <Setter Property="Foreground" Value="White"></Setter>
-                    <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
-                </Style>
-                <Style TargetType="xctk:ColorPicker">
-                    <Setter Property="Margin" Value="5"></Setter>
-                    <Setter Property="ColorMode" Value="ColorCanvas"></Setter>
-                </Style>
-            </Grid.Resources>
-            <WrapPanel Grid.Column="0" Grid.Row="0">
-                <Label>Color 1:</Label>
-                <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Colors[0], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
-            </WrapPanel>
-            <WrapPanel Grid.Column="1" Grid.Row="0">
-                <Label>Color 2:</Label>
-                <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Colors[1], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
-            </WrapPanel>
-            <WrapPanel Grid.Column="0" Grid.Row="1">
-                <Label>Color 3:</Label>
-                <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Colors[2], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
-            </WrapPanel>
-            <WrapPanel Grid.Column="1" Grid.Row="1">
-                <Label>Color 4:</Label>
-                <xctk:ColorPicker Width="50"
-                    SelectedColor="{Binding SelectedAnimationElement.Colors[3], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
-            </WrapPanel>
-        </Grid>
+            <Grid x:Name="resourcesGrid" Grid.Row="0">
+                <DataGrid x:Name="dataGridMOVResources"
+                          MaxWidth="400" 
+                          Background="Transparent" RowBackground="Transparent" Margin="5"
+                          Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Movement, FallbackValue=Collapsed}"
+                          ItemsSource="{Binding MOVResourcesCVS.View}"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False"
+                          SelectionMode="Single"
+                          SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          IsSynchronizedWithCurrentItem="True"
+                      >
+                        <i:Interaction.Behaviors>
+                            <behaviors:ScrollIntoViewForDataGrid />
+                        </i:Interaction.Behaviors>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <DataGrid x:Name="dataGridFXResources"
+                          MaxWidth="400" 
+                          Background="Transparent" RowBackground="Transparent" Margin="5"
+                          Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=FX, FallbackValue=Collapsed}"
+                          ItemsSource="{Binding FXResourcesCVS.View}"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False"
+                          SelectionMode="Single"
+                          SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          IsSynchronizedWithCurrentItem="True"
+                      >
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForDataGrid />
+                    </i:Interaction.Behaviors>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <DataGrid x:Name="dataGridSoundResources"
+                          MaxWidth="400" 
+                          Background="Transparent" RowBackground="Transparent" Margin="5"
+                          Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Sound, FallbackValue=Collapsed}"
+                          ItemsSource="{Binding SoundResourcesCVS.View}"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False"
+                          SelectionMode="Single"
+                          SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          IsSynchronizedWithCurrentItem="True"
+                      >
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForDataGrid />
+                    </i:Interaction.Behaviors>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <DataGrid x:Name="dataGridAbilityReferences"
+                          MaxWidth="400" 
+                          Background="Transparent" RowBackground="Transparent" Margin="5"
+                          Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Reference, FallbackValue=Collapsed}"
+                          ItemsSource="{Binding ReferenceAbilitiesCVS.View}"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False"
+                          SelectionMode="Single"
+                          SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          IsSynchronizedWithCurrentItem="True"
+                      >
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForDataGrid />
+                    </i:Interaction.Behaviors>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Reference.DisplayName}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+            <Grid x:Name="colorsGrid" Grid.Row="1" 
+                  Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=FX, FallbackValue=Collapsed}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition></ColumnDefinition>
+                    <ColumnDefinition></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.Resources>
+                    <Style TargetType="WrapPanel">
+                        <Setter Property="HorizontalAlignment" Value="Center"></Setter>
+                    </Style>
+                    <Style TargetType="Label">
+                        <Setter Property="Foreground" Value="White"></Setter>
+                        <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+                    </Style>
+                    <Style TargetType="xctk:ColorPicker">
+                        <Setter Property="Margin" Value="5"></Setter>
+                        <Setter Property="ColorMode" Value="ColorCanvas"></Setter>
+                    </Style>
+                </Grid.Resources>
+                <WrapPanel Grid.Column="0" Grid.Row="0">
+                    <Label>Color 1:</Label>
+                    <xctk:ColorPicker Width="50"
+                        SelectedColor="{Binding SelectedAnimationElement.Colors[0], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                </WrapPanel>
+                <WrapPanel Grid.Column="1" Grid.Row="0">
+                    <Label>Color 2:</Label>
+                    <xctk:ColorPicker Width="50"
+                        SelectedColor="{Binding SelectedAnimationElement.Colors[1], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                </WrapPanel>
+                <WrapPanel Grid.Column="0" Grid.Row="1">
+                    <Label>Color 3:</Label>
+                    <xctk:ColorPicker Width="50"
+                        SelectedColor="{Binding SelectedAnimationElement.Colors[2], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                </WrapPanel>
+                <WrapPanel Grid.Column="1" Grid.Row="1">
+                    <Label>Color 4:</Label>
+                    <xctk:ColorPicker Width="50"
+                        SelectedColor="{Binding SelectedAnimationElement.Colors[3], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
+                </WrapPanel>
+            </Grid>
         </Grid>
         <Grid.InputBindings>
             <!--<KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>-->

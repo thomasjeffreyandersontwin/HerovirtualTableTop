@@ -22,7 +22,7 @@
                     <x:Type TypeName="enumerations:IdentityType"/>
                 </ObjectDataProvider.MethodParameters>
             </ObjectDataProvider>
-            <convertes:IdentityTypeConverter x:Key="identityTypeConverter"></convertes:IdentityTypeConverter>
+            <convertes:StringComparerToVisibilityConverter x:Key="identityTypeConverter"></convertes:StringComparerToVisibilityConverter>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>

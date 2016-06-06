@@ -23,7 +23,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Value = value;
         }
 
+        public AnimationResource(AnimatedAbility reference) : this()
+        {
+            this.Reference = reference;
+        }
+
         public AnimationResource(string value, string name, params string[] tags) : this(value)
+        {
+            this.Name = name;
+            this.tags.AddRange(tags);
+        }
+
+        public AnimationResource(AnimatedAbility reference, string name, params string[] tags) : this(reference)
         {
             this.Name = name;
             this.tags.AddRange(tags);
@@ -57,6 +68,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private AnimatedAbility reference;
+        public AnimatedAbility Reference
+        {
+            get
+            {
+                return reference;
+            }
+            set
+            {
+                reference = value;
+                OnPropertyChanged("Reference");
+            }
+        }
+
         [JsonProperty(PropertyName = "Tags")]
         private ObservableCollection<string> tags;
         [JsonIgnore]
@@ -75,12 +100,53 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         
         public static implicit operator string(AnimationResource s)
         {
-            return s == null ? string.Empty : s.Value.ToString();
+            return s == null ? string.Empty : ( s.Value != null ? s.Value.ToString() : s.Reference.ToString());
+        }
+
+        public static implicit operator AnimatedAbility(AnimationResource s)
+        {
+            return s == null ? null : (s.Reference != null ? s.Reference : null);
         }
 
         public static implicit operator AnimationResource(string s)
         {
             return new AnimationResource(s);
+        }
+
+        public static implicit operator AnimationResource(AnimatedAbility s)
+        {
+            return new AnimationResource(s);
+        }
+
+        #endregion
+
+        #region Equality Comparer and Operator Overloading
+        public static bool operator ==(AnimationResource a, AnimationResource b)
+        {
+            if (ReferenceEquals(a, b))
+            {
+                return true;
+            }
+            if ((object)a == null || (object)b == null)
+            {
+                return false;
+            }
+            return a.Value == b.Value && a.Reference == b.Reference && a.Name == b.Name;
+        }
+
+        public static bool operator !=(AnimationResource a, AnimationResource b)
+        {
+            return !(a == b);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return this == (AnimationResource)obj;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         #endregion
