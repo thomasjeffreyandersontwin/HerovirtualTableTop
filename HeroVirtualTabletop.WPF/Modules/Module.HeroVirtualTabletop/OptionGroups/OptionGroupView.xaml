@@ -20,6 +20,7 @@
             <ContextMenu x:Key="optionListBoxMenu">
                 <MenuItem Header="Set as Default" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SetDefaultOptionCommand}"></MenuItem>
                 <MenuItem Header="Edit" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditOptionCommand}"></MenuItem>
+                <MenuItem Header="Play" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlayOptionCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>

@@ -26,10 +26,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         Character Owner { get; set; }
         int Order { get; set; }
         AnimationType Type { get; set; }
-        string Resource { get; set; }
-        string TagLine { get; }
-
+        AnimationResource Resource { get; set; }
+        
         string Play(bool persistent = false);
+        void Stop();
     }
 
     public class AnimationElement : NotifyPropertyChanged, IAnimationElement
@@ -37,15 +37,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private AnimationElement() { }
 
-        public AnimationElement(string name, bool persistent = false, int order = 1, Character owner = null, params string[] tags)
+        public AnimationElement(string name, bool persistent = false, int order = 1, Character owner = null)
         {
             this.Name = name;
             this.Order = order;
             this.Owner = owner;
             this.Persistent = persistent;
-            this.tags = new ObservableCollection<string>(tags);
-            Tags = new ReadOnlyObservableCollection<string>(this.tags);
-            this.ResourceCollection = new ObservableCollection<AnimationResource>();
         }
 
         private string name;
@@ -148,20 +145,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Persistent");
             }
         }
-
-        private ObservableCollection<string> tags;
-        public ReadOnlyObservableCollection<string> Tags { get; private set; }
-
-        public string TagLine
-        {
-            get
-            {
-                return string.Join(", ", tags);
-            }
-        }
-
-        private string resource;
-        public string Resource
+        
+        //private AnimationResource resource;
+        public AnimationResource Resource
         {
             get
             {
@@ -173,7 +159,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //resource = value;
                 SetResource(value);
                 OnPropertyChanged("Resource");
-        }
+            }
         }
 
         public virtual string Play(bool persistent = false)
@@ -181,29 +167,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return "Playing " + this.Order + " for " + this.Owner.Name;
         }
 
-        protected virtual string GetResource()
+        public virtual void Stop() { }
+
+        protected virtual AnimationResource GetResource()
         {
             return string.Empty;
         }
 
-        protected virtual void SetResource(string value)
+        protected virtual void SetResource(AnimationResource value)
         {
             
         }
 
-        private ObservableCollection<AnimationResource> resourceCollection;
-        public ObservableCollection<AnimationResource> ResourceCollection
-        {
-            get
-            {
-                return resourceCollection;
-            }
-            set
-            {
-                resourceCollection = value;
-                OnPropertyChanged("ResourceCollection");
-            }
-        }
     }
 
     public class PauseElement : AnimationElement
@@ -238,12 +213,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return string.Empty;
         }
 
-        protected override string GetResource()
+        protected override AnimationResource GetResource()
         {
             return Time.ToString();
         }
 
-        protected override void SetResource(string value)
+        protected override void SetResource(AnimationResource value)
         {
             int x;
             if (int.TryParse(value, out x))
@@ -256,15 +231,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private SoundElement() : base(string.Empty) { }
 
-        public SoundElement(string name, string soundFile, bool persistent = false, int order = 1, Character owner = null, params string[] tags)
-            : base(name, persistent, order, owner, tags)
+        public SoundElement(string name, AnimationResource soundFile, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
         {
             this.SoundFile = soundFile;
             this.Type = AnimationType.Sound;
         }
 
-        private string soundFile;
-        public string SoundFile
+        private AnimationResource soundFile;
+        public AnimationResource SoundFile
         {
             get
             {
@@ -293,15 +268,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private NAudio.Vorbis.VorbisWaveReader soundReader;
         private NAudio.Wave.WaveOut waveOut;
+        private Task audioPlaying;
 
         public override string Play(bool persistent = false)
         {
-            if (Active)
-            {
-                waveOut.Stop();
-                Active = false;
-                return string.Empty;
-            }
+            Stop();
             soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
             waveOut = new NAudio.Wave.WaveOut();
             float dist = 0;
@@ -317,16 +288,29 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 waveOut.Init(soundReader);
             }
-            waveOut.Play();
+            audioPlaying = Task.Run(() =>
+            {
+                waveOut.Play();
+            });
             return base.Play(this.Persistent || persistent);
         }
 
-        protected override string GetResource()
+        public override void Stop()
+        {
+            if (Active)
+            {
+                audioPlaying.Dispose();
+                waveOut.Stop();
+                Active = false;
+            }
+        }
+
+        protected override AnimationResource GetResource()
         {
             return SoundFile;
         }
 
-        protected override void SetResource(string value)
+        protected override void SetResource(AnimationResource value)
         {
             SoundFile = value;
         }
@@ -337,14 +321,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private MOVElement() : base(string.Empty) { }
 
-        public MOVElement(string name, string MOVResource, bool persistent = false, int order = 1, Character owner = null, params string[] tags)
-            : base(name, persistent, order, owner, tags)
+        public MOVElement(string name, AnimationResource MOVResource, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
         {
             this.MOVResource = MOVResource;
             this.Type = AnimationType.Movement;
         }
 
-        private string movResource;
+        private AnimationResource movResource;
         public string MOVResource
         {
             get
@@ -365,12 +349,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return keyBindsGenerator.CompleteEvent();
         }
 
-        protected override string GetResource()
+        protected override AnimationResource GetResource()
         {
             return MOVResource;
     }
 
-        protected override void SetResource(string value)
+        protected override void SetResource(AnimationResource value)
         {
             MOVResource = value;
         }
@@ -381,9 +365,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private FXEffectElement() : base(string.Empty) { }
 
-        public FXEffectElement(string name, string effect, bool persistent = false, bool playWithNext = false,
-            int order = 1, Character owner = null, params string[] tags)
-            : base(name, persistent, order, owner, tags)
+        public FXEffectElement(string name, AnimationResource effect, bool persistent = false, bool playWithNext = false,
+            int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
         {
             this.Effect = effect;
             this.Type = AnimationType.FX;
@@ -406,8 +390,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
         
-        private string effect;
-        public string Effect
+        private AnimationResource effect;
+        public AnimationResource Effect
         {
             get
             {
@@ -528,10 +512,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string outputStart = output.Substring(0, colorStart - 1);
             string outputEnd = output.Substring(colorEnd);
             string outputColors =
-                string.Format("Color1 {0}, {1}, {2}\n" +
-                    "\tColor2 {3}, {4}, {5}\n" +
-                    "\tColor3 {6}, {7}, {8}\n" +
-                    "\tColor4 {9}, {10}, {11}\n",
+                string.Format("\tColor1 {0}, {1}, {2}" + Environment.NewLine +
+                    "\tColor2 {3}, {4}, {5}" + Environment.NewLine +
+                    "\tColor3 {6}, {7}, {8}" + Environment.NewLine +
+                    "\tColor4 {9}, {10}, {11}" + Environment.NewLine,
                     Colors[0].R, Colors[0].G, Colors[0].B,
                     Colors[1].R, Colors[1].G, Colors[1].B,
                     Colors[2].R, Colors[2].G, Colors[2].B,
@@ -541,12 +525,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             File.AppendAllText(newFile, output);
         }
 
-        protected override string GetResource()
+        protected override AnimationResource GetResource()
         {
             return Effect;
         }
 
-        protected override void SetResource(string value)
+        protected override void SetResource(AnimationResource value)
         {
             Effect = value;
         }

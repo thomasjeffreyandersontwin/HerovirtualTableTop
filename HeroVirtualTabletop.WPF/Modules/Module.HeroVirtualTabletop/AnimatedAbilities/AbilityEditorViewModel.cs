@@ -106,15 +106,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             set
             {
-                //if (editedAbility != null)
-                //{
-                //    editedAbility.PropertyChanged -= EditedIdentity_PropertyChanged;
-                //}
                 currentAbility = value;
-                //if (editedAbility != null)
-                //{
-                //    editedAbility.PropertyChanged += EditedIdentity_PropertyChanged;
-                //}
                 OnPropertyChanged("CurrentAbility");
             }
         }
@@ -141,14 +133,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             set
             {
+                if (selectedAnimationElement != null)
+                    (selectedAnimationElement as AnimationElement).PropertyChanged -= SelectedAnimationElement_PropertyChanged;
+                if (value != null)
+                    (value as AnimationElement).PropertyChanged += SelectedAnimationElement_PropertyChanged;
                 selectedAnimationElement = value;
                 OnPropertyChanged("SelectedAnimationElement");
                 OnSelectionChanged(value, null);
-                //if(value != null && this.SelectedResourceAnimationElement != null)
-                //{
-                //    this.SelectedResourceAnimationElement.Resource = this.SelectedAnimationElement.Resource;
-                //}
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private void SelectedAnimationElement_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Resource")
+            {
+                (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName((sender as AnimationElement).Resource);
+                SaveAbility(null);
+                DemoAnimation(null);
             }
         }
 
@@ -260,39 +262,39 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private ObservableCollection<MOVElement> movElements;
-        public ReadOnlyObservableCollection<MOVElement> MOVElements { get; private set; }
+        private ObservableCollection<AnimationResource> movResources;
+        public ReadOnlyObservableCollection<AnimationResource> MOVResources { get; private set; }
 
-        private CollectionViewSource movElementsCVS;
-        public CollectionViewSource MOVElementsCVS
+        private CollectionViewSource movResourcesCVS;
+        public CollectionViewSource MOVResourcesCVS
         {
             get
             {
-                return movElementsCVS;
+                return movResourcesCVS;
             }
         }
 
-        private ObservableCollection<FXEffectElement> fxElements;
-        public ReadOnlyObservableCollection<FXEffectElement> FXElements { get; private set; }
+        private ObservableCollection<AnimationResource> fxResources;
+        public ReadOnlyObservableCollection<AnimationResource> FXResources { get; private set; }
 
-        private CollectionViewSource fxElementsCVS;
-        public CollectionViewSource FXElementsCVS
+        private CollectionViewSource fxResourcesCVS;
+        public CollectionViewSource FXResourcesCVS
         {
             get
             {
-                return fxElementsCVS;
+                return fxResourcesCVS;
             }
         }
 
-        private ObservableCollection<SoundElement> soundElements;
-        public ReadOnlyObservableCollection<SoundElement> SoundElements { get; private set; }
+        private ObservableCollection<AnimationResource> soundResources;
+        public ReadOnlyObservableCollection<AnimationResource> SoundResources { get; private set; }
 
-        private CollectionViewSource soundElementsCVS;
-        public CollectionViewSource SoundElementsCVS
+        private CollectionViewSource soundResourcesCVS;
+        public CollectionViewSource SoundResourcesCVS
         {
             get
             {
-                return soundElementsCVS;
+                return soundResourcesCVS;
             }
         }
 
@@ -310,13 +312,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     switch (SelectedAnimationElement.Type)
                     {
                         case AnimationType.Movement:
-                            movElementsCVS.View.Refresh();
+                            movResourcesCVS.View.Refresh();
                             break;
                         case AnimationType.FX:
-                            fxElementsCVS.View.Refresh();
+                            fxResourcesCVS.View.Refresh();
                             break;
                         case AnimationType.Sound:
-                            soundElementsCVS.View.Refresh();
+                            soundResourcesCVS.View.Refresh();
                             break;
                     }
                 OnPropertyChanged("Filter");
@@ -692,12 +694,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void LoadResources()
         {
-            movElements = new ObservableCollection<MOVElement>();
-            MOVElements = new ReadOnlyObservableCollection<MOVElement>(movElements);
-            fxElements = new ObservableCollection<FXEffectElement>();
-            FXElements = new ReadOnlyObservableCollection<FXEffectElement>(fxElements);
-            soundElements = new ObservableCollection<SoundElement>();
-            SoundElements = new ReadOnlyObservableCollection<SoundElement>(soundElements);
+            movResources = new ObservableCollection<AnimationResource>();
+            MOVResources = new ReadOnlyObservableCollection<AnimationResource>(movResources);
+            fxResources = new ObservableCollection<AnimationResource>();
+            FXResources = new ReadOnlyObservableCollection<AnimationResource>(fxResources);
+            soundResources = new ObservableCollection<AnimationResource>();
+            SoundResources = new ReadOnlyObservableCollection<AnimationResource>(soundResources);
 
             Assembly assembly = Assembly.GetExecutingAssembly();
 
@@ -708,7 +710,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     string resLine = Sr.ReadLine();
                     string[] resArray = resLine.Split(';');
-                    movElements.Add(new MOVElement(Path.GetFileNameWithoutExtension(resArray[1]), resArray[1], tags: resArray[0]));
+                    movResources.Add(new AnimationResource(resArray[1], GetDisplayNameFromResourceName(resArray[1]), tags: resArray[0]));
                 }
             }
 
@@ -719,36 +721,38 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     string resLine = Sr.ReadLine();
                     string[] resArray = resLine.Split(';');
-                    fxElements.Add(new FXEffectElement(resArray[1], resArray[2], tags: resArray[0]));
+                    fxResources.Add(new AnimationResource(resArray[2], resArray[1], tags: resArray[0]));
                 }
             }
 
-            //var soundFiles = Directory.EnumerateFiles
-            //            (Path.Combine(
-            //                Settings.Default.CityOfHeroesGameDirectory,
-            //                Constants.GAME_SOUND_FOLDERNAME),
-            //            "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
+            var soundFiles = Directory.EnumerateFiles
+                        (Path.Combine(
+                            Settings.Default.CityOfHeroesGameDirectory,
+                            Constants.GAME_SOUND_FOLDERNAME),
+                        "*.ogg", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
 
-            //foreach (string file in soundFiles)
-            //{
-            //    string name = Path.GetFileNameWithoutExtension(file);
-            //    string[] tags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
-            //        Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
-            //    tags = tags.Take(tags.Count() - 1).ToArray(); //remove the actual file name
-            //    soundElements.Add(new SoundElement(name, file, tags: tags));
-            //}
+            foreach (string file in soundFiles)
+            {
+                string name = Path.GetFileNameWithoutExtension(file);
+                string[] tmpTags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
+                    Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
+                string[] tags = new string[tmpTags.Length];
+                tags[0] = "sound";
+                Array.Copy(tmpTags, 0, tags, 1, tmpTags.Length - 1); // add sound tag and remove the actual file name
+                soundResources.Add(new AnimationResource(file, name, tags));
+            }
 
-            movElementsCVS = new CollectionViewSource();
-            movElementsCVS.Source = MOVElements;
-            MOVElementsCVS.View.Filter += ResourcesCVS_Filter;
+            movResourcesCVS = new CollectionViewSource();
+            movResourcesCVS.Source = MOVResources;
+            MOVResourcesCVS.View.Filter += ResourcesCVS_Filter;
 
-            fxElementsCVS = new CollectionViewSource();
-            fxElementsCVS.Source = FXElements;
-            fxElementsCVS.View.Filter += ResourcesCVS_Filter;
+            fxResourcesCVS = new CollectionViewSource();
+            fxResourcesCVS.Source = FXResources;
+            fxResourcesCVS.View.Filter += ResourcesCVS_Filter;
 
-            //soundElementsCVS = new CollectionViewSource();
-            //soundElementsCVS.Source = SoundElements;
-            //soundElementsCVS.View.Filter += ResourcesCVS_Filter;
+            soundResourcesCVS = new CollectionViewSource();
+            soundResourcesCVS.Source = SoundResources;
+            soundResourcesCVS.View.Filter += ResourcesCVS_Filter;
         }
 
         private void LoadResourcesNew()
@@ -763,12 +767,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return true;
             }
 
-            IAnimationElement animationItem = item as IAnimationElement;
-            if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationItem.Resource)
+            AnimationResource animationRes = item as AnimationResource;
+            if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationRes)
             {
                 return true;
             }
-            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationItem.TagLine);
+            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine);
         }
 
         #endregion
@@ -872,12 +876,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void SpawnAndTargetCharacter()
         {
             if ((this.Owner as CrowdMemberModel).RosterCrowd == null)
-            {
+        {
                 eventAggregator.GetEvent<AddMemberToRosterEvent>().Publish(new Tuple<CrowdMemberModel, CrowdModel>(this.Owner as CrowdMemberModel, null));
             }
             if (!this.Owner.HasBeenSpawned)
-                this.Owner.Spawn(false);
-            this.Owner.Target(false); 
+            {
+                Crowds.CrowdMemberModel member = this.Owner as Crowds.CrowdMemberModel;
+                if (member.RosterCrowd == null)
+                    this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(new Tuple<Crowds.CrowdMemberModel, Crowds.CrowdModel>(member, member.RosterCrowd as Crowds.CrowdModel));
+                member.Spawn(false);
+            }
+            this.Owner.Target(false);
         }
         #endregion
 

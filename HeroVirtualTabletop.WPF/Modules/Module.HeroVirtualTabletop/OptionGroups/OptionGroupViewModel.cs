@@ -58,6 +58,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 SetSelectedOption(value);
                 OnPropertyChanged("SelectedOption");
+                this.PlayOptionCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -94,7 +95,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             private set { owner = value; }
         }
 
-
         #endregion
 
         #region Commands
@@ -105,6 +105,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> SetDefaultOptionCommand { get; private set; }
 
         public DelegateCommand<object> EditOptionCommand { get; private set; }
+
+        public DelegateCommand<object> PlayOptionCommand { get; private set; }
 
         public ICommand SetActiveOptionCommand { get; private set; }
         
@@ -149,8 +151,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
             this.SetDefaultOptionCommand = new DelegateCommand<object>(this.SetDefaultOption);
             this.EditOptionCommand = new DelegateCommand<object>(this.EditOption);
+            this.PlayOptionCommand = new DelegateCommand<object>(this.PlayOption, this.CanPlayOption);
         }
-
+        
         #endregion
 
         #region Methods
@@ -247,6 +250,22 @@ save:
             {
                 selectedOption = value;
             }
+            if (typeof(T) == typeof(AnimatedAbility))
+            {
+                (selectedOption as AnimatedAbility).Play();
+            }
+        }
+
+
+        private bool CanPlayOption(object arg)
+        {
+            return (selectedOption is AnimatedAbility);
+        }
+
+        private void PlayOption(object state)
+        {
+            AnimatedAbility ability = selectedOption as AnimatedAbility;
+            ability?.Play();
         }
 
         private void AddIdentity(object state)
