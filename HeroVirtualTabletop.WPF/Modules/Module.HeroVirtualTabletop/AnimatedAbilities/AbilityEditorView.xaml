@@ -10,6 +10,7 @@
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              mc:Ignorable="d" >
     <UserControl.Resources>
         <ResourceDictionary>
@@ -192,37 +193,22 @@
                   Background="Transparent" RowBackground="Transparent" Margin="5"
                   SelectionUnit="FullRow" AutoGenerateColumns="False"
                   SelectionMode="Single"
-                  SelectedValue="{Binding SelectedResourceAnimationElement, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                  >
-            <DataGrid.Resources>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Foreground" Value="White"></Setter>
-                </Style>
-            </DataGrid.Resources>
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Resource" Binding="{Binding Resource}"></DataGridTextColumn>
-            </DataGrid.Columns>
-        </DataGrid>
-            <!--<DataGrid x:Name="dataGridAnimationResourceNew" Grid.Row="0"
-                  MaxWidth="400" 
-                  Background="Transparent" RowBackground="Transparent" Margin="5"
-                  SelectionUnit="FullRow" AutoGenerateColumns="True"
-                  SelectionMode="Single"
-                  ItemsSource="{Binding SelectedAnimationElement.ResourceCollection}"
                   SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                   >
+                <i:Interaction.Behaviors>
+                    <behaviors:ScrollIntoViewForDataGrid />
+                </i:Interaction.Behaviors>
                 <DataGrid.Resources>
                     <Style TargetType="DataGridCell">
                         <Setter Property="Foreground" Value="White"></Setter>
                     </Style>
                 </DataGrid.Resources>
-                --><!--<DataGrid.Columns>
+                <DataGrid.Columns>
                     <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Resource" Binding="{Binding Resource}"></DataGridTextColumn>
-                </DataGrid.Columns>--><!--
-            </DataGrid>-->
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
             <Grid x:Name="colorsGrid" Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition></ColumnDefinition>
@@ -244,6 +230,7 @@
                 </Style>
                 <Style TargetType="xctk:ColorPicker">
                     <Setter Property="Margin" Value="5"></Setter>
+                    <Setter Property="ColorMode" Value="ColorCanvas"></Setter>
                 </Style>
             </Grid.Resources>
             <WrapPanel Grid.Column="0" Grid.Row="0">

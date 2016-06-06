@@ -50,14 +50,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             switch (element.Type)
             {
                 case Library.Enumerations.AnimationType.Movement:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVElementsCVS.View"));
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("MOVResourcesCVS.View"));
                     break;
                 case Library.Enumerations.AnimationType.FX:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXElementsCVS.View"));
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("FXResourcesCVS.View"));
                     colorsGridVisibility = Visibility.Visible;
                     break;
                 case Library.Enumerations.AnimationType.Sound:
-                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundElementsCVS.View"));
+                    dataGridAnimationResource.SetBinding(DataGrid.ItemsSourceProperty, new Binding("SoundResourcesCVS.View"));
                     break;
             }
             colorsGrid.Visibility = colorsGridVisibility;

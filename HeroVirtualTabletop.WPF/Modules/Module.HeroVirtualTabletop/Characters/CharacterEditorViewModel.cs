@@ -184,7 +184,7 @@ namespace Module.HeroVirtualTabletop.Characters
             //Check if is in roster, if not add to it
             if ((EditedCharacter as CrowdMemberModel).RosterCrowd == null)
             {
-                eventAggregator.GetEvent<AddMemberToRosterEvent>().Publish(new Tuple<CrowdMemberModel, CrowdModel>(EditedCharacter as CrowdMemberModel, null));
+                eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(new Tuple<CrowdMemberModel, CrowdModel>(EditedCharacter as CrowdMemberModel, null));
             }
             EditedCharacter.Spawn();
             Commands_RaiseCanExecuteChanged();
