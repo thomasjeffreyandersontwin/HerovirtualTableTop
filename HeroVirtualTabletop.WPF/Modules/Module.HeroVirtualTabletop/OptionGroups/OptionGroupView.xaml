@@ -92,7 +92,7 @@
                         </DataTemplate>
                     </ListBox.ItemTemplate>
                 </local:OptionListBox>
-                <Border>
+                <Border Visibility="{Binding AddOrRemoveIsVisible}">
                     <Border.Resources>
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="Width" Value="Auto"/>

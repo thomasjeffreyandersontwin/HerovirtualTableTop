@@ -64,6 +64,20 @@ namespace Module.HeroVirtualTabletop.Roster
                 Commands_RaiseCanExecuteChanged();
             }
         }
+
+        private ICrowdMemberModel activeCharacter;
+        public ICrowdMemberModel ActiveCharacter
+        {
+            get
+            {
+                return activeCharacter;
+            }
+            set
+            {
+                activeCharacter = value;
+                OnPropertyChanged("ActiveCharacter");
+            }
+        }
         
         #endregion
 
@@ -78,6 +92,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
         public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
         public DelegateCommand<object> EditCharacterCommand { get; private set; }
+        public DelegateCommand<object> ActivateCharacterCommand { get; private set; }
 
         #endregion
 
@@ -111,6 +126,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
             this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
+            this.ActivateCharacterCommand = new DelegateCommand<object>(this.ActivateCharacter);
         }
 
         #endregion
@@ -321,6 +337,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.ToggleTargeted();
             }
+            this.ActivateCharacterCommand.Execute(obj);
         }
 
         #endregion
@@ -338,6 +355,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.TargetAndFollow();
             }
+            this.ActivateCharacterCommand.Execute(obj);
         }
 
         public void TargetOrFollow()
@@ -438,6 +456,20 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             CrowdMemberModel c = this.SelectedParticipants[0] as CrowdMemberModel;
             this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(c, null));
+        }
+
+        #endregion
+
+        #region Activate Character
+
+        private bool CanActivateCharacter(object state)
+        {
+            return CanToggleTargeted(state);
+        }
+
+        private void ActivateCharacter(object state)
+        {
+            this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
         }
 
         #endregion
