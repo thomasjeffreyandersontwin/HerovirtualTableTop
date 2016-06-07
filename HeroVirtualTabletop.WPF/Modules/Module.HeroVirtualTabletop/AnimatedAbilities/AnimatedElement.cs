@@ -335,7 +335,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private AnimationResource movResource;
         [JsonIgnore]
-        public string MOVResource
+        public AnimationResource MOVResource
         {
             get
             {

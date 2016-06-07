@@ -141,7 +141,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override bool Equals(object obj)
         {
-            return this == (AnimationResource)obj;
+            bool areEqual = false;
+            if(obj is AnimationResource)
+                areEqual = this == (AnimationResource)obj;
+            return areEqual;
         }
 
         public override int GetHashCode()

@@ -252,7 +252,7 @@ save:
             }
             if (typeof(T) == typeof(AnimatedAbility))
             {
-                (selectedOption as AnimatedAbility).Play();
+                PlayOption(null);
             }
         }
 
@@ -265,7 +265,40 @@ save:
         private void PlayOption(object state)
         {
             AnimatedAbility ability = selectedOption as AnimatedAbility;
-            ability?.Play();
+            if (ability != null)
+                DemoAnimatedAbility(ability);
+        }
+
+        private void DemoAnimatedAbility(AnimatedAbility ability)
+        {
+            Character currentTarget = null;
+            if (!ability.PlayOnTargeted)
+            {
+                this.SpawnAndTargetOwnerCharacter();
+            }
+            else
+            {
+                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+                currentTarget = rostExpVM.GetCurrentTarget() as Character;
+                if (currentTarget == null)
+                {
+                    this.SpawnAndTargetOwnerCharacter();
+                    currentTarget = this.Owner;
+                }
+            }
+            ability.Play(Target: currentTarget);
+        }
+
+        private void SpawnAndTargetOwnerCharacter()
+        {
+            if (!this.Owner.HasBeenSpawned)
+            {
+                Crowds.CrowdMemberModel member = this.Owner as Crowds.CrowdMemberModel;
+                if (member.RosterCrowd == null)
+                    this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(new Tuple<Crowds.CrowdMemberModel, Crowds.CrowdModel>(member, member.RosterCrowd as Crowds.CrowdModel));
+                member.Spawn(false);
+            }
+            this.Owner.Target(false);
         }
 
         private void AddIdentity(object state)

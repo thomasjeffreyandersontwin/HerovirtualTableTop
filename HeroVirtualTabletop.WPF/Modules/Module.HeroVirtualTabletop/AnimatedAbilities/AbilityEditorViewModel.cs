@@ -903,29 +903,38 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void DemoAnimatedAbility(object state)
         {
-            Character currentTarget = null;
-            if (!this.CurrentAbility.PlayOnTargeted)
-            {
-                this.SpawnAndTargetCharacter();
-            }
-            else
-            {
-                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
-                currentTarget = rostExpVM.GetCurrentTarget() as Character;
-            }
+            Character currentTarget = GetCurrentTarget();
             this.CurrentAbility.Play(Target: currentTarget);
         }
 
         private void DemoAnimation(object state)
         {
-            if (!this.CurrentAbility.PlayOnTargeted)
-            {
-                this.SpawnAndTargetCharacter();
-            }
-            this.SelectedAnimationElement.Play();
+            Character currentTarget = GetCurrentTarget();
+            this.SelectedAnimationElement.Play(Target: currentTarget);
         }
 
-        private void SpawnAndTargetCharacter()
+        private Character GetCurrentTarget()
+        {
+            Character currentTarget = null;
+            if (!this.CurrentAbility.PlayOnTargeted)
+            {
+                this.SpawnAndTargetOwnerCharacter();
+                currentTarget = this.Owner;
+            }
+            else
+            {
+                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+                currentTarget = rostExpVM.GetCurrentTarget() as Character;
+                if(currentTarget == null)
+                {
+                    this.SpawnAndTargetOwnerCharacter();
+                    currentTarget = this.Owner;
+                }
+            }
+            return currentTarget;
+        }
+
+        private void SpawnAndTargetOwnerCharacter()
         {
             if (!this.Owner.HasBeenSpawned)
             {
