@@ -105,9 +105,9 @@
             <StackPanel.Resources>
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
             </StackPanel.Resources>
-            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCommand}"/>
-            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCommand}"/>
-            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteCommand}"/>
+            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneAnimationCommand}"/>
+            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutAnimationCommand}"/>
+            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteAnimationCommand}"/>
             <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove" Command="{Binding RemoveAnimationCommand}"/>
             <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation" Command="{Binding DemoAnimationCommand}"/>
         </StackPanel>
@@ -200,6 +200,9 @@
                     </Grid>
                 </DataTemplate>
             </TreeView.Resources>
+            <TreeView.InputBindings>
+                <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>
+            </TreeView.InputBindings>
             <behaviors:CommandBehaviorCollection.Behaviors>
                 <behaviors:BehaviorBinding Event="SelectedItemChanged" Command="{Binding UpdateSelectedAnimationCommand}" CommandParameter="{Binding ElementName=treeViewAnimations}"/>
             </behaviors:CommandBehaviorCollection.Behaviors>
@@ -354,7 +357,6 @@
             </Grid>
         </Grid>
         <Grid.InputBindings>
-            <!--<KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.UpdateSelectedAnimationCommand}"/>-->
             <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
         </Grid.InputBindings>
     </Grid>

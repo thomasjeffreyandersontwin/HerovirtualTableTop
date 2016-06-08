@@ -110,6 +110,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 currentAbility = value;
                 OnPropertyChanged("CurrentAbility");
+                this.CloneAnimationCommand.RaiseCanExecuteChanged();
             }
         }
         private bool isShowingAblityEditor;
@@ -144,6 +145,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("CanPlayWithNext");
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
+                this.CloneAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -374,6 +376,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> CancelAnimationElementEditModeCommand { get; private set; }
         public DelegateCommand<object> DemoAnimatedAbilityCommand { get; private set; }
         public DelegateCommand<object> DemoAnimationCommand { get; private set; }
+        public DelegateCommand<object> CloneAnimationCommand { get; private set; }
+        public DelegateCommand<object> CutAnimationCommand { get; private set; }
+        public DelegateCommand<object> LinkAnimationCommand { get; private set; }
+        public DelegateCommand<object> PasteAnimationCommand { get; private set; }
 
         #endregion
 
@@ -388,6 +394,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             LoadResources();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.SelectedResourceAnimationElement = new AnimationElement("");
+            // Unselect everything at the beginning
+            this.SelectedAnimationElement = null;
+            this.SelectedAnimationParent = null;
+            this.IsSequenceAbilitySelected = false;
+            this.CurrentSequenceElement = null;
         }
         
         #endregion
@@ -404,12 +415,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
             this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement);
             this.RemoveAnimationCommand = new DelegateCommand<object>(this.RemoveAnimation, this.CanRemoveAnimation);
-            UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
+            this.UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
             this.SubmitAnimationElementRenameCommand = new DelegateCommand<object>(this.SubmitAnimationElementRename);
             this.EnterAnimationElementEditModeCommand = new DelegateCommand<object>(this.EnterAnimationElementEditMode, this.CanEnterAnimationElementEditMode);
             this.CancelAnimationElementEditModeCommand = new DelegateCommand<object>(this.CancelAnimationElementEditMode);
             this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(this.DemoAnimatedAbility);
             this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation);
+            this.CloneAnimationCommand = new DelegateCommand<object>(this.CloneAnimation, this.CanCloneAnimation);
+            this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
         }
 
         #endregion
@@ -447,6 +460,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.SelectedAnimationElement = null;
                 this.SelectedAnimationParent = null;
+                this.IsSequenceAbilitySelected = false;
+                this.CurrentSequenceElement = null;
                 OnAnimationAdded(null, null);
             }
         }
@@ -598,8 +613,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             AnimationType animationType = (AnimationType)state;
             AnimationElement animationElement = this.GetAnimationElement(animationType);
+            this.AddAnimationElement(animationElement);
+            OnAnimationAdded(animationElement, null);
+            this.SaveAbility(null);
+        }
+
+        private void AddAnimationElement(AnimationElement animationElement)
+        {
             int order = GetAppropriateOrderForAnimationElement();
-            if(!this.IsSequenceAbilitySelected)
+            if (!this.IsSequenceAbilitySelected)
                 this.CurrentAbility.AddAnimationElement(animationElement, order);
             else
             {
@@ -608,8 +630,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 else
                     (this.SelectedAnimationParent as SequenceElement).AddAnimationElement(animationElement, order);
             }
-            OnAnimationAdded(animationElement, null);
-            this.SaveAbility(null);
+            this.CloneAnimationCommand.RaiseCanExecuteChanged();
         }
 
         private AnimationElement GetAnimationElement(AnimationType abilityType)
@@ -621,32 +642,32 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 case AnimationType.Movement:
                     animationElement = new MOVElement("", "");
-                    fullName = GetAppropriateAnimationName("Mov Element", flattenedList);
+                    fullName = GetAppropriateAnimationName(AnimationType.Movement, flattenedList);
                     animationElement.Name = fullName;
                     animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.FX:
                     animationElement = new FXEffectElement("", "");
-                    fullName = GetAppropriateAnimationName("FX Element", flattenedList);
+                    fullName = GetAppropriateAnimationName(AnimationType.FX, flattenedList);
                     animationElement.Name = fullName;
                     animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.Sound:
                     animationElement = new SoundElement("", "");
-                    fullName = GetAppropriateAnimationName("Sound Element", flattenedList);
+                    fullName = GetAppropriateAnimationName(AnimationType.Sound, flattenedList);
                     animationElement.Name = fullName;
                     animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.Sequence:
                     animationElement = new SequenceElement("");
-                    fullName = GetAppropriateAnimationName("Seq Element", flattenedList);
+                    fullName = GetAppropriateAnimationName(AnimationType.Sequence, flattenedList);
                     animationElement.Name = fullName;
                     (animationElement as SequenceElement).SequenceType = AnimationSequenceType.And;
                     animationElement.DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
                     break;
                 case AnimationType.Pause:
                     animationElement = new PauseElement("", 1);
-                    fullName = GetAppropriateAnimationName("Pause Element", flattenedList);
+                    fullName = GetAppropriateAnimationName(AnimationType.Pause, flattenedList);
                     animationElement.Name = fullName;
                     animationElement.DisplayName = "Pause " + (animationElement as PauseElement).Time.ToString();
                     break;
@@ -687,8 +708,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return order;
         }
-        private string GetAppropriateAnimationName(string name, List<IAnimationElement> collection)
+        private string GetAppropriateAnimationName(AnimationType animationType, List<IAnimationElement> collection)
         {
+            string name = "";
+            switch(animationType)
+            {
+                case AnimationType.Movement:
+                    name = "Mov Element";
+                    break;
+                case AnimationType.FX:
+                    name = "FX Element";
+                    break;
+                case AnimationType.Pause:
+                    name = "Pause Element";
+                    break;
+                case AnimationType.Sequence:
+                    name = "Seq Element";
+                    break;
+                case AnimationType.Sound:
+                    name = "Sound Element";
+                    break;
+            }
+            
             string suffix = " 1";
             string rootName = name;
             int i = 1;
@@ -725,6 +766,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        #region Load Resources
         private void LoadResources()
         {
             movResources = new ObservableCollection<AnimationResource>();
@@ -816,7 +858,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || caseReferences;
         }
-        
+
+        #endregion
+
         #region Save Sequence
         private void SaveSequence(object state)
         {
@@ -945,6 +989,75 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             this.Owner.Target(false);
         }
+        #endregion
+
+        #region Clone Animation
+
+        private bool CanCloneAnimation(object state)
+        {
+            return this.SelectedAnimationElement != null || (this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0);
+        }
+        private void CloneAnimation(object state)
+        {
+            if (this.SelectedAnimationElement != null)
+                Helper.GlobalClipboardObject = this.SelectedAnimationElement; // any animation element
+            else
+                Helper.GlobalClipboardObject = this.CurrentAbility; // Sequence element
+            Helper.GlobalClipboardAction = ClipboardAction.Clone;
+            this.PasteAnimationCommand.RaiseCanExecuteChanged();
+        }
+        #endregion
+
+        #region Cut Animation
+
+        #endregion
+
+        #region Link Animation
+
+        #endregion
+
+        #region Paste Animation
+        public bool CanPasteAnimation(object state)
+        {
+            bool canPaste = false;
+            switch (Helper.GlobalClipboardAction)
+            {
+                case ClipboardAction.Clone:
+                    canPaste = Helper.GlobalClipboardObject != null;
+                    break;
+            }
+            return canPaste;
+        }
+        public void PasteAnimation(object state)
+        {
+            bool saveNeeded = true;
+            // Lock animation Tree from updating
+            this.LockModelAndMemberUpdate(true);
+            List<IAnimationElement> flattenedList = GetFlattenedAnimationList(CurrentAbility.AnimationElements.ToList());
+            switch (Helper.GlobalClipboardAction)
+            {
+                case ClipboardAction.Clone:
+                    {
+                        IAnimationElement animationElement = (Helper.GlobalClipboardObject as AnimationElement).Clone() as IAnimationElement;
+                        animationElement.Name = GetAppropriateAnimationName(animationElement.Type, flattenedList);
+                        if(animationElement is SequenceElement && string.IsNullOrEmpty((animationElement as AnimationElement).DisplayName))
+                            (animationElement as AnimationElement).DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
+                        this.AddAnimationElement(animationElement as AnimationElement);
+                        OnAnimationAdded(animationElement, null);
+                        this.SaveAbility(null);
+                        break;
+                    }
+            }
+            //if (saveNeeded)
+            //    this.SaveAbility(null);
+            if (SelectedAnimationElement != null)
+            {
+                OnExpansionUpdateNeeded(this.SelectedAnimationElement, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Paste });
+            }
+            // UnLock character crowd Tree from updating
+            this.LockModelAndMemberUpdate(false);
+        }
+
         #endregion
 
         #endregion
