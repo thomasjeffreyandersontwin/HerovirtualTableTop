@@ -336,10 +336,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             SoundFile = value;
         }
+
+        ~SoundElement()
+        {
+            waveOut.Dispose();
+        }
         public override AnimationElement GetNewAnimationElement()
         {
             return new SoundElement(this.Name, this.SoundFile, this.Persistent);
-        }
+    }
     }
 
     public class MOVElement : AnimationElement
@@ -391,7 +396,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override AnimationElement GetNewAnimationElement()
         {
             return new MOVElement(this.Name, this.MOVResource, this.Persistent);
-        }
+    }
     }
 
     public class FXEffectElement : AnimationElement
@@ -593,7 +598,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             clonedElement.Type = this.Type;
             clonedElement.Colors = this.Colors.DeepClone() as ObservableCollection<Color>;
             return clonedElement;
-        }
+    }
     }
     
     public class SequenceElement : AnimationElement

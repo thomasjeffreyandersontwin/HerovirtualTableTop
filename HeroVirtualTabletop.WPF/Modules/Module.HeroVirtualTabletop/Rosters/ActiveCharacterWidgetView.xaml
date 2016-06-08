@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="Module.HeroVirtualTabletop.Roster.ActiveCharacterWidgetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Module.HeroVirtualTabletop.Roster"
+             xmlns:optiongroups="clr-namespace:Module.HeroVirtualTabletop.OptionGroups"
+             mc:Ignorable="d">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    <Grid>
+        <GroupBox Header="{Binding ActiveCharacter.Name}" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition></RowDefinition>
+                    <RowDefinition></RowDefinition>
+                </Grid.RowDefinitions>
+                <optiongroups:OptionGroupView x:Name="Identities" DataContext="{Binding Path=IdentitiesViewModel}" Grid.Row="0">
+                </optiongroups:OptionGroupView>
+                <optiongroups:OptionGroupView x:Name="Abilitities" DataContext="{Binding Path=AnimatedAbilitiesViewModel}" Grid.Row="1">
+                </optiongroups:OptionGroupView>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</UserControl>

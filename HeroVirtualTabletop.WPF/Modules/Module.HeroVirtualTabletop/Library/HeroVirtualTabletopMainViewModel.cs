@@ -3,19 +3,24 @@ using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Properties;
+using Module.HeroVirtualTabletop.Roster;
 using Module.Shared;
 using Module.Shared.Messages;
 using Prism.Events;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Resources;
 
@@ -63,9 +68,11 @@ namespace Module.HeroVirtualTabletop.Library
             new Camera().Render();
 
             LoadMainView();
+
+            this.eventAggregator.GetEvent<CharacterActivationEvent>().Subscribe(this.LoadActiveCharacterWidget);
             
         }
-        
+
         #endregion
 
         #region Methods
@@ -78,6 +85,23 @@ namespace Module.HeroVirtualTabletop.Library
             style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
             CharacterCrowdMainViewModel characterCrowdMainViewModel = this.Container.Resolve<CharacterCrowdMainViewModel>();
             PopupService.ShowDialog("CharacterCrowdMainView", characterCrowdMainViewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+        }
+        
+        private void LoadActiveCharacterWidget(Character character)
+        {
+            if (character != null && PopupService.IsOpen("ActiveCharacterWidgetView") == false)
+            {
+                System.Windows.Style style = Helper.GetCustomWindowStyle();
+                double minwidth = 80;
+                style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
+                ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
+                PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+                this.eventAggregator.GetEvent<CharacterActivationEvent>().Publish(character);
+            }
+            else if (character == null && PopupService.IsOpen("ActiveCharacterWidgetView"))
+            {
+                PopupService.CloseDialog("ActiveCharacterWidgetView");
+            }
         }
         
         private void LaunchGame()

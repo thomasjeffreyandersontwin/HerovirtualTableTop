@@ -829,9 +829,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             soundResourcesCVS.Source = SoundResources;
             soundResourcesCVS.View.Filter += ResourcesCVS_Filter;
 
-            charExpVM = this.Container.Resolve<CharacterExplorerViewModel>();
-            referenceAbilitiesCVS = new CollectionViewSource();
-            //The following doesn't work cause getAbilities tries to access AllCharactersCrowd before LoadCrowdCollectionhas been called
+            //charExpVM = this.Container.Resolve<CharacterExplorerViewModel>();
+            //referenceAbilitiesCVS = new CollectionViewSource();
+            ////The following doesn't work cause getAbilities tries to access AllCharactersCrowd before LoadCrowdCollectionhas been called
             //referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(charExpVM.GetAbilitiesCollection().Select((x) =>
             //{
             //    return new AnimationResource(x);

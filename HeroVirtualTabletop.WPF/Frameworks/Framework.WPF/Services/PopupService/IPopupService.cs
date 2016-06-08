@@ -17,5 +17,6 @@ namespace Framework.WPF.Services.PopupService
         void ShowDialog(string key, BaseViewModel viewModel, string title, Dictionary<string, object> ctrlPropertiesToSet,
             Dictionary<string, object> windowPropertiesToSet, bool isModal, Action<CancelEventArgs> winClosing = null, System.Windows.Media.SolidColorBrush background = null, System.Windows.Style customStyle = null);
         void CloseDialog(string key);
+        bool IsOpen(string key);
     }
 }

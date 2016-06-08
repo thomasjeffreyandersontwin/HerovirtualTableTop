@@ -160,6 +160,7 @@
     </Compile>
     <Compile Include="Identities\IdentityEditorViewModel.cs" />
     <Compile Include="Library\Converters\AnimationTypeToAnimationIconTextConverter.cs" />
+    <Compile Include="Library\Converters\characterComparer.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
@@ -197,6 +198,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Rosters\ActiveCharacterWidgetView.xaml.cs">
+      <DependentUpon>ActiveCharacterWidgetView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Rosters\ActiveCharacterWidgetViewModel.cs" />
     <Compile Include="Rosters\RosterExplorerViewModel.cs" />
     <Compile Include="Crowds\CharacterExplorerView.xaml.cs">
       <DependentUpon>CharacterExplorerView.xaml</DependentUpon>
@@ -278,6 +283,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Library\HeroVirtualTabletopModuleView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Rosters\ActiveCharacterWidgetView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
