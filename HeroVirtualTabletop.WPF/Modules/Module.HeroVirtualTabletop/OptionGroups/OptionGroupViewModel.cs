@@ -294,6 +294,7 @@ save:
             if (!ability.PlayOnTargeted)
             {
                 this.SpawnAndTargetOwnerCharacter();
+                currentTarget = this.Owner;
             }
             else
             {

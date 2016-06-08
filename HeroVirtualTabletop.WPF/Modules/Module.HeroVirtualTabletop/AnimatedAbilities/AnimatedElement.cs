@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using System.Windows.Media;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Identities;
+using Framework.WPF.Extensions;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -200,7 +201,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             
         }
+        public virtual AnimationElement Clone()
+        {
+            AnimationElement clonedElement = GetNewAnimationElement();
+            clonedElement.DisplayName = this.DisplayName;
+            //clonedElement.Resource = this.Resource;
+            clonedElement.Type = this.Type;
+            return clonedElement;
+        }
 
+        public virtual AnimationElement GetNewAnimationElement()
+        {
+            return new AnimationElement(this.Name, this.Persistent);
+        }
     }
 
     public class PauseElement : AnimationElement
@@ -247,6 +260,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (int.TryParse(value, out x))
                 Time = x;
         }
+        public override AnimationElement GetNewAnimationElement()
+        {
+            return new PauseElement(this.Name, this.Time, this.Persistent);
+        }
     }
 
     public class SoundElement : AnimationElement
@@ -274,8 +291,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 soundFile = value;
                 OnPropertyChanged("SoundFile");
             }
-        }
-        
+            }
+
         private NAudio.Vorbis.VorbisWaveReader soundReader;
         private NAudio.Wave.WaveOut waveOut;
         private Task audioPlaying;
@@ -303,7 +320,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 waveOut.Play();
             });
-            return base.Play(this.Persistent || persistent);
+            return "";//base.Play(this.Persistent || persistent);
         }
 
         public override string Stop(Character Target = null)
@@ -332,6 +349,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             waveOut.Dispose();
         }
+        public override AnimationElement GetNewAnimationElement()
+        {
+            return new SoundElement(this.Name, this.SoundFile, this.Persistent);
+    }
     }
 
     public class MOVElement : AnimationElement
@@ -395,6 +416,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             MOVResource = value;
         }
+
+        public override AnimationElement GetNewAnimationElement()
+        {
+            return new MOVElement(this.Name, this.MOVResource, this.Persistent);
+    }
     }
 
     public class FXEffectElement : AnimationElement
@@ -635,6 +661,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Effect = value;
         }
+
+        public override AnimationElement Clone()
+        {
+            FXEffectElement clonedElement = new FXEffectElement(this.Name, this.Resource, this.Persistent, this.PlayWithNext);
+            clonedElement.DisplayName = this.DisplayName;
+            clonedElement.Type = this.Type;
+            clonedElement.Colors = this.Colors.DeepClone() as ObservableCollection<Color>;
+            return clonedElement;
+    }
     }
     
     public class SequenceElement : AnimationElement
@@ -740,6 +775,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 item.Stop(Target);
             }
             return base.Stop(Target);
+        }
+
+        public override AnimationElement Clone()
+        {
+            SequenceElement seqClone = new SequenceElement(this.Name, this.SequenceType, this.Persistent);
+            seqClone.DisplayName = this.DisplayName;
+            foreach(var element in this.AnimationElements)
+            {
+                var clonedElement = (element as AnimationElement).Clone() as AnimationElement;
+                seqClone.AddAnimationElement(clonedElement);
+            }
+            seqClone.animationElements = new HashedObservableCollection<IAnimationElement, string>(seqClone.AnimationElements, x => x.Name, x => x.Order);
+            seqClone.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(seqClone.animationElements);
+            return seqClone;
         }
     }
 

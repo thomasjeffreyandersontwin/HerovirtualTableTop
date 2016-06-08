@@ -14,11 +14,26 @@ using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.OptionGroups;
 using System.Reflection;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
     public class Helper
     {
+        #region Global Clipboard
+        public static object GlobalClipboardObject
+        {
+            get;
+            set;
+        }
+
+        public static ClipboardAction GlobalClipboardAction
+        {
+            get;
+            set;
+        }
+        #endregion
+
         #region Resource Dictionary and Style related
         public static System.Windows.Style GetCustomStyle(string styleName)
         {
