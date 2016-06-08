@@ -27,9 +27,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         int Order { get; set; }
         AnimationType Type { get; set; }
         AnimationResource Resource { get; set; }
+        bool IsActive { get; }
         
         string Play(bool persistent = false, Character Target = null);
-        void Stop();
+        string Stop(Character Target = null);
     }
 
     public class AnimationElement : NotifyPropertyChanged, IAnimationElement
@@ -103,6 +104,22 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Type");
             }
         }
+        
+        private bool isActive;
+        [JsonIgnore]
+        public bool IsActive
+        {
+            get
+            {
+                return isActive;
+            }
+            protected set
+            {
+                isActive = value;
+                OnPropertyChanged("IsActive");
+            }
+        }
+
         private string displayName;
         public virtual string DisplayName
         {
@@ -168,7 +185,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return "Playing " + this.Order + " for " + target.Name;
         }
 
-        public virtual void Stop() { }
+        public virtual string Stop(Character Target = null)
+        {
+            Character target = Target ?? this.Owner;
+            return "Stopped " + this.Order + " for " + target.Name;
+        }
 
         protected virtual AnimationResource GetResource()
         {
@@ -254,22 +275,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("SoundFile");
             }
         }
-
-        private bool active;
-        [JsonIgnore]
-        public bool Active
-        {
-            get
-            {
-                return active;
-            }
-            private set
-            {
-                active = value;
-                OnPropertyChanged("Active");
-            }
-        }
-
+        
         private NAudio.Vorbis.VorbisWaveReader soundReader;
         private NAudio.Wave.WaveOut waveOut;
         private Task audioPlaying;
@@ -287,7 +293,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 LoopWaveStream loop = new LoopWaveStream(soundReader);
                 waveOut.Init(loop);
-                Active = true;
+                IsActive = true;
             }
             else
             {
@@ -300,14 +306,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return base.Play(this.Persistent || persistent);
         }
 
-        public override void Stop()
+        public override string Stop(Character Target = null)
         {
-            if (Active)
+            if (IsActive)
             {
                 audioPlaying.Dispose();
                 waveOut.Stop();
-                Active = false;
+                IsActive = false;
+                return base.Stop();
             }
+            return string.Empty;
         }
 
         protected override AnimationResource GetResource()
@@ -355,11 +363,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = true, Character Target = null)
         {
+            Stop();
             Character target = Target ?? this.Owner;
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             target.Target(false);
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            IsActive = true;
             return keyBindsGenerator.CompleteEvent();
+        }
+
+        public override string Stop(Character Target = null)
+        {
+            if (IsActive)
+            {
+                Character target = Target ?? this.Owner;
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                target.Target(false);
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "nop");
+                IsActive = false;
+                return keyBindsGenerator.CompleteEvent() + base.Stop();
+            }
+            return string.Empty;
         }
 
         protected override AnimationResource GetResource()
@@ -431,6 +455,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("PlayWithNext");
             }
         }
+
         [JsonIgnore]
         public string CostumeText
         {
@@ -454,6 +479,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
+            Stop();
             Character target = Target ?? this.Owner;
             string keybind = string.Empty;
             string name = target.Name;
@@ -472,6 +498,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 File.Delete(newFile);
             }
+
             if (File.Exists(origFile))
             {
                 insertFXIntoCharacterCostumeFile(origFile, newFile);
@@ -486,11 +513,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (Persistent || persistent)
             {
                 archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
+                IsActive = true;
             }
             return keybind;
         }
 
-        private void archiveOriginalCostumeFileAndSwapWithModifiedFile(string name, string newFile)
+        public override string Stop(Character Target = null)
+        {
+            Character target = Target ?? this.Owner;
+            if (IsActive)
+            {
+                string keybinds = reloadOriginalCostumeFile(target.Name);
+                IsActive = false;
+                return keybinds + base.Stop();
+            } else
+            {
+                return target.ActiveIdentity.Render() + base.Stop();
+            }
+        }
+
+        private void archiveOriginalCostumeFile(string name)
         {
             string origFile = Path.Combine(
                 Settings.Default.CityOfHeroesGameDirectory,
@@ -500,12 +542,41 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 Settings.Default.CityOfHeroesGameDirectory,
                 Constants.GAME_COSTUMES_FOLDERNAME,
                 name + "_original" + Constants.GAME_COSTUMES_EXT);
-            if (File.Exists(archFile))
+            if (!File.Exists(archFile))
             {
                 File.Copy(origFile, archFile, true);
             }
-            File.Copy(newFile, origFile, true);
+        }
 
+        private void archiveOriginalCostumeFileAndSwapWithModifiedFile(string name, string newFile)
+        {
+            string origFile = Path.Combine(
+                Settings.Default.CityOfHeroesGameDirectory,
+                Constants.GAME_COSTUMES_FOLDERNAME,
+                name + Constants.GAME_COSTUMES_EXT);
+
+            archiveOriginalCostumeFile(name);
+            File.Copy(newFile, origFile, true);
+        }
+
+        private string reloadOriginalCostumeFile(string name)
+        {
+            string archFile = Path.Combine(
+                Settings.Default.CityOfHeroesGameDirectory,
+                Constants.GAME_COSTUMES_FOLDERNAME,
+                name + "_original" + Constants.GAME_COSTUMES_EXT);
+            string origFile = Path.Combine(
+                Settings.Default.CityOfHeroesGameDirectory,
+                Constants.GAME_COSTUMES_FOLDERNAME,
+                name + Constants.GAME_COSTUMES_EXT);
+            if (File.Exists(archFile))
+            {
+                File.Copy(archFile, origFile, true);
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, name);
+                return keyBindsGenerator.CompleteEvent();
+            }
+            return null;
         }
 
         private string ParseFXName(string effect)
@@ -661,6 +732,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return AnimationElements[chosen].Play(this.Persistent || persistent, Target);
             }
         }
+
+        public override string Stop(Character Target = null)
+        {
+            foreach (IAnimationElement item in AnimationElements)
+            {
+                item.Stop(Target);
+            }
+            return base.Stop(Target);
+        }
     }
 
     public class ReferenceAbility : AnimationElement
@@ -689,6 +769,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override string Play(bool persistent = false, Character Target = null)
         {
             return this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+        }
+
+        public override string Stop(Character Target = null)
+        {
+            return this.Reference.Stop(Target ?? this.Owner);
         }
 
         protected override AnimationResource GetResource()

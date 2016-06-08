@@ -59,6 +59,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 SetSelectedOption(value);
                 OnPropertyChanged("SelectedOption");
                 this.PlayOptionCommand.RaiseCanExecuteChanged();
+                this.StopOptionCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -121,9 +122,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> EditOptionCommand { get; private set; }
 
         public DelegateCommand<object> PlayOptionCommand { get; private set; }
+        public DelegateCommand<object> StopOptionCommand { get; private set; }
 
         public ICommand SetActiveOptionCommand { get; private set; }
-        
+
         #endregion
 
         #region Constructor
@@ -166,6 +168,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.SetDefaultOptionCommand = new DelegateCommand<object>(this.SetDefaultOption);
             this.EditOptionCommand = new DelegateCommand<object>(this.EditOption);
             this.PlayOptionCommand = new DelegateCommand<object>(this.PlayOption, this.CanPlayOption);
+            this.StopOptionCommand = new DelegateCommand<object>(this.StopOption, this.CanStopOption);
         }
         
         #endregion
@@ -258,6 +261,8 @@ save:
         {
             if (typeof(T) == typeof(Identity))
             {
+                if (!this.Owner.HasBeenSpawned)
+                    this.SpawnAndTargetOwnerCharacter();
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
             else
@@ -280,10 +285,10 @@ save:
         {
             AnimatedAbility ability = selectedOption as AnimatedAbility;
             if (ability != null)
-                DemoAnimatedAbility(ability);
+                PlayAnimatedAbility(ability);
         }
 
-        private void DemoAnimatedAbility(AnimatedAbility ability)
+        private void PlayAnimatedAbility(AnimatedAbility ability)
         {
             Character currentTarget = null;
             if (!ability.PlayOnTargeted)
@@ -301,6 +306,38 @@ save:
                 }
             }
             ability.Play(Target: currentTarget);
+        }
+
+        private bool CanStopOption(object arg)
+        {
+            return CanPlayOption(arg);// && (selectedOption as AnimatedAbility).IsActive;
+        }
+
+        private void StopOption(object state)
+        {
+            AnimatedAbility ability = selectedOption as AnimatedAbility;
+            if (ability != null)
+                StopAnimatedAbility(ability);
+        }
+
+        private void StopAnimatedAbility(AnimatedAbility ability)
+        {
+            Character currentTarget = null;
+            if (!ability.PlayOnTargeted)
+            {
+                this.SpawnAndTargetOwnerCharacter();
+            }
+            else
+            {
+                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+                currentTarget = rostExpVM.GetCurrentTarget() as Character;
+                if (currentTarget == null)
+                {
+                    this.SpawnAndTargetOwnerCharacter();
+                    currentTarget = this.Owner;
+                }
+            }
+            ability.Stop(Target: currentTarget);
         }
 
         private void SpawnAndTargetOwnerCharacter()
