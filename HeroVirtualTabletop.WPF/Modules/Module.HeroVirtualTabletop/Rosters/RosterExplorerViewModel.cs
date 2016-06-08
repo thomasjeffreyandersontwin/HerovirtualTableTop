@@ -337,7 +337,6 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.ToggleTargeted();
             }
-            this.ActivateCharacterCommand.Execute(obj);
         }
 
         #endregion
@@ -355,7 +354,6 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.TargetAndFollow();
             }
-            this.ActivateCharacterCommand.Execute(obj);
         }
 
         public void TargetOrFollow()
@@ -470,6 +468,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ActivateCharacter(object state)
         {
             this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
+            this.eventAggregator.GetEvent<CharacterActivationEvent>().Publish(this.ActiveCharacter as Character);
         }
 
         #endregion

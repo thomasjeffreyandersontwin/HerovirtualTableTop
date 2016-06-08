@@ -8,11 +8,17 @@
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
+             xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              mc:Ignorable="d" >
     <UserControl.Resources>
         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
             <localconverters:CrowdNameConverter x:Key="CrowdNameConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter"></converters:BooleanToVisibilityConverter>
+            <localconverters:characterComparer x:Key="characterComparer"></localconverters:characterComparer>
             <CollectionViewSource 
                 x:Key="ParticipantsView" 
                 Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
@@ -24,6 +30,7 @@
             </CollectionViewSource>
             <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext}"/>
             <ContextMenu x:Key="RosterExplorerMenu">
+                <MenuItem Header="Activate Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateCharacterCommand}"></MenuItem>
                 <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
                 <MenuItem Header="Save Position" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SavePositionCommand}"></MenuItem>
                 <MenuItem Header="Place" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlaceCommand}"></MenuItem>
@@ -100,7 +107,34 @@
             </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" Text="{Binding Name}" />
+                    <Grid ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" HorizontalAlignment="Stretch">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition ></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                        <Label Grid.Column="1" Foreground="Green"
+                               FontFamily="{StaticResource ResourceKey=FontFamily_FontAwesome}"
+                               FontSize="26" Content="&#xf00c;" VerticalAlignment="Center"
+                               >
+                            <Label.Style>
+                                <Style TargetType="Label">
+                                    <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Value="true">
+                                            <DataTrigger.Binding>
+                                                <MultiBinding Converter="{StaticResource ResourceKey=characterComparer}">
+                                                    <Binding></Binding>
+                                                    <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}" Path="DataContext.ActiveCharacter"></Binding>
+                                                </MultiBinding>
+                                            </DataTrigger.Binding>
+                                            <Setter Property="Visibility" Value="Visible"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Label.Style>
+                        </Label>
+                    </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </library:MultiSelectListBox>

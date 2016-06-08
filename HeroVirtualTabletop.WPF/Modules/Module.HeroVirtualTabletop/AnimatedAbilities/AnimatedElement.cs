@@ -319,6 +319,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             SoundFile = value;
         }
+
+        ~SoundElement()
+        {
+            waveOut.Dispose();
+        }
     }
 
     public class MOVElement : AnimationElement

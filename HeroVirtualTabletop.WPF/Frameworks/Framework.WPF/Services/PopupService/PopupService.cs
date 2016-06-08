@@ -255,5 +255,12 @@ namespace Framework.WPF.Services.PopupService
 
             win.Close();
         }
+
+        public bool IsOpen(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException("key");
+            return openedPopups.ContainsKey(key);
+        }
     }
 }

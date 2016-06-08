@@ -95,6 +95,20 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             private set { owner = value; }
         }
 
+        private Visibility addOrRemoveIsVisible = Visibility.Visible;
+        public Visibility AddOrRemoveIsVisible
+        {
+            get
+            {
+                return addOrRemoveIsVisible;
+            }
+            set
+            {
+                addOrRemoveIsVisible = value;
+                OnPropertyChanged("AddOrRemoveIsVisible");
+            }
+        }
+
         #endregion
 
         #region Commands

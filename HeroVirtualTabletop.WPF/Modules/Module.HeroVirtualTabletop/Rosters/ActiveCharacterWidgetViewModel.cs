@@ -4,6 +4,7 @@ using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Prism.Events;
 using System;
@@ -20,7 +21,6 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Private Fields
 
         private EventAggregator eventAggregator;
-        private RosterExplorerViewModel rosterExpVM;
         private OptionGroupViewModel<Identity> identitiesViewModel;
         private OptionGroupViewModel<AnimatedAbility> animatedAbilitiesViewModel;
 
@@ -94,8 +94,7 @@ namespace Module.HeroVirtualTabletop.Roster
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
-            this.rosterExpVM = this.Container.Resolve<RosterExplorerViewModel>();
-            this.rosterExpVM.PropertyChanged += RosterExpVM_PropertyChanged;
+            this.eventAggregator.GetEvent<CharacterActivationEvent>().Subscribe(this.LoadCharacter);
             InitializeCommands();
         }
 
@@ -112,34 +111,21 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Private Methods
         
-        private void RosterExpVM_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "ActiveCharacter")
-            {
-                LoadCharacter(rosterExpVM.ActiveCharacter as Character);
-            }
-        }
-
         private void LoadCharacter(Character character)
         {
             this.ActiveCharacter = character;
             if (character != null)
             {
-                this.Visibility = Visibility.Visible;
                 this.IdentitiesViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
                     new ParameterOverride("optionGroup", character.AvailableIdentities),
-                    new ParameterOverride("owner", character),
-                    new ParameterOverride("editable", false)
+                    new ParameterOverride("owner", character)
                     );
                 this.AnimatedAbilitiesViewModel = this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
                     new ParameterOverride("optionGroup", character.AnimatedAbilities),
-                    new ParameterOverride("owner", character),
-                    new ParameterOverride("editable", false)
+                    new ParameterOverride("owner", character)
                     );
-            }
-            else
-            {
-                this.Visibility = Visibility.Collapsed;
+                this.IdentitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
+                this.AnimatedAbilitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
             }
         }
         
