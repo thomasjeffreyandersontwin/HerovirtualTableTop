@@ -94,7 +94,7 @@ namespace Module.HeroVirtualTabletop.Roster
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
-            this.eventAggregator.GetEvent<CharacterActivationEvent>().Subscribe(this.LoadCharacter);
+            this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadCharacter);
             InitializeCommands();
         }
 

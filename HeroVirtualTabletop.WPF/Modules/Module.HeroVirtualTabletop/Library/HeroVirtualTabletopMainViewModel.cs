@@ -69,7 +69,7 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadMainView();
 
-            this.eventAggregator.GetEvent<CharacterActivationEvent>().Subscribe(this.LoadActiveCharacterWidget);
+            this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
             
         }
 
@@ -96,7 +96,7 @@ namespace Module.HeroVirtualTabletop.Library
                 style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
                 ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
                 PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
-                this.eventAggregator.GetEvent<CharacterActivationEvent>().Publish(character);
+                this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(character);
             }
             else if (character == null && PopupService.IsOpen("ActiveCharacterWidgetView"))
             {

@@ -188,10 +188,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         public string OriginalName { get; set; }
         public bool IsUpdatingCharacter { get; set; }
 
-        public ObservableCollection<AnimatedAbilities.AnimatedAbility> GetAbilitiesCollection()
-        {
-            return new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }));
-        }
         #endregion
 
         #region Commands
@@ -225,7 +221,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             InitializeCommands();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
-            //LoadCrowdCollection(Application.Current.MainWindow);
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
         }
 
         #endregion
@@ -1217,6 +1213,15 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void EditCharacter(object state)
         {
             this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(this.SelectedCrowdMemberModel, this.AllCharactersCrowd.CrowdMemberCollection));
+        }
+
+        #endregion
+
+        #region Retrieve Ability Collection
+        private void GetAbilityCollection(object state)
+        {
+            var abilityCollection = new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }));
+            this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
         }
 
         #endregion

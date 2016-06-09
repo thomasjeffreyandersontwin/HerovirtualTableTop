@@ -468,7 +468,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ActivateCharacter(object state)
         {
             this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
-            this.eventAggregator.GetEvent<CharacterActivationEvent>().Publish(this.ActiveCharacter as Character);
+            this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(this.ActiveCharacter as Character);
         }
 
         #endregion

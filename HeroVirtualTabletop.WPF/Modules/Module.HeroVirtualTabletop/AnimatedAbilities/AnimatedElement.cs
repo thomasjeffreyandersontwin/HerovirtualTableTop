@@ -838,6 +838,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.Reference = reference;
             this.Type = AnimationType.Reference;
+            this.ReferenceType = ReferenceType.Link;
+        }
+
+        private ReferenceType referenceType;
+        public ReferenceType ReferenceType
+        {
+            get
+            {
+                return referenceType;
+            }
+            set
+            {
+                referenceType = value;
+                OnPropertyChanged("ReferenceType");
+            }
         }
 
         private AnimatedAbility reference;
@@ -856,12 +871,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            return this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+            if(this.Reference != null)
+                return this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+            return string.Empty;
         }
 
         public override string Stop(Character Target = null)
         {
-            return this.Reference.Stop(Target ?? this.Owner);
+            if(this.Reference != null)
+                return this.Reference.Stop(Target ?? this.Owner);
+            return string.Empty;
         }
 
         protected override AnimationResource GetResource()

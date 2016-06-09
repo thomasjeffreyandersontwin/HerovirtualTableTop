@@ -11,7 +11,7 @@
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
-             mc:Ignorable="d" >
+             mc:Ignorable="d" behaviors:CommandBehavior.Event="Loaded" behaviors:CommandBehavior.Command="{Binding LoadResourcesCommand}" behaviors:CommandBehavior.CommandParameter="{Binding RelativeSource={RelativeSource Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -96,7 +96,7 @@
             <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Movement" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
             <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
             <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
-            <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" />
+            <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Reference}"/>
             <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
             <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
             <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
@@ -112,11 +112,16 @@
             <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation" Command="{Binding DemoAnimationCommand}"/>
         </StackPanel>
         <Grid Grid.Row="2" Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition/>
+                <ColumnDefinition />
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center">
+            <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Grid.RowSpan="2">
                 <CheckBox Name="chkBoxPlayWithNext" IsEnabled="{Binding CanPlayWithNext}" IsChecked="{Binding SelectedAnimationElement.PlayWithNext}" Content="Play W/ Next" HorizontalAlignment="Left">
                     <CheckBox.Style>
                         <Style TargetType="CheckBox">
@@ -132,8 +137,10 @@
                 <CheckBox Name="chkBoxPlayOnTargeted" IsChecked="{Binding CurrentAbility.PlayOnTargeted}" Content="Play On Targeted" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
             </StackPanel>
             <!--<ComboBox Grid.Column="1" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>-->
-            <TextBox Grid.Column="1" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5" 
+            <TextBox Grid.Column="1" Grid.RowSpan="2" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5" 
                      Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <RadioButton Grid.Row="0" Grid.Column="2" Content="Link" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Link}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding UpdateReferenceTypeCommand}" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            <RadioButton Grid.Row="1" Grid.Column="2" Content="Copy" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Copy}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding UpdateReferenceTypeCommand}" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>
         <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
                   PreviewMouseDown="OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="400"
@@ -305,7 +312,7 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Reference.DisplayName}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Reference.Name}"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

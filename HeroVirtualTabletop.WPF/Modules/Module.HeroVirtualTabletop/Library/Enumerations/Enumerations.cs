@@ -38,4 +38,9 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Sequence,
         Pause
     }
+    public enum ReferenceType
+    {
+        Link,
+        Copy
+    }
 }
