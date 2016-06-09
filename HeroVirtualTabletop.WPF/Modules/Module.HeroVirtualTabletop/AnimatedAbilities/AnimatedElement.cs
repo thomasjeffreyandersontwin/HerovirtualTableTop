@@ -34,7 +34,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         string Stop(Character Target = null);
     }
 
-    public class AnimationElement : NotifyPropertyChanged, IAnimationElement
+    public class AnimationElement : NotifyPropertyChanged, IAnimationElement, IDisposable
     {
         [JsonConstructor]
         private AnimationElement() { }
@@ -201,6 +201,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             
         }
+
         public virtual AnimationElement Clone()
         {
             AnimationElement clonedElement = GetNewAnimationElement();
@@ -214,6 +215,42 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             return new AnimationElement(this.Name, this.Persistent);
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false; // To detect redundant calls
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    // TODO: dispose managed state (managed objects).
+                    Stop();
+                }
+
+                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
+                // TODO: set large fields to null.
+
+                disposedValue = true;
+            }
+        }
+
+        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
+        // ~AnimationElement() {
+        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+        //   Dispose(false);
+        // }
+
+        // This code added to correctly implement the disposable pattern.
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
+            Dispose(true);
+            // TODO: uncomment the following line if the finalizer is overridden above.
+            // GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 
     public class PauseElement : AnimationElement
@@ -294,6 +331,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
 
         private NAudio.Vorbis.VorbisWaveReader soundReader;
+        private LoopWaveStream loop;
         private NAudio.Wave.WaveOut waveOut;
         private Task audioPlaying;
 
@@ -304,11 +342,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             waveOut = new NAudio.Wave.WaveOut();
             float dist = 0;
             Character target = Target ?? this.Owner;
-            //target.Position.IsWithin(0, Camera.Position, out dist);
+            target.Position.IsWithin(0, Camera.Position, out dist);
             waveOut.Volume = 1.0f; //Determine based on dist
             if (this.Persistent || persistent)
             {
-                LoopWaveStream loop = new LoopWaveStream(soundReader);
+                loop = new LoopWaveStream(soundReader);
                 waveOut.Init(loop);
                 IsActive = true;
             }
@@ -327,8 +365,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             if (IsActive)
             {
-                audioPlaying.Dispose();
                 waveOut.Stop();
+                waveOut.Dispose();
                 IsActive = false;
                 return base.Stop();
             }
@@ -344,15 +382,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             SoundFile = value;
         }
-
-        ~SoundElement()
-        {
-            waveOut.Dispose();
-        }
+        
         public override AnimationElement GetNewAnimationElement()
         {
             return new SoundElement(this.Name, this.SoundFile, this.Persistent);
-    }
+        }
+        
     }
 
     public class MOVElement : AnimationElement
@@ -750,6 +785,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
+            Stop();
+            if (this.Persistent || persistent)
+                IsActive = true;
             if (SequenceType == AnimationSequenceType.And)
             {
                 animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
@@ -774,6 +812,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 item.Stop(Target);
             }
+            IsActive = false;
             return base.Stop(Target);
         }
 

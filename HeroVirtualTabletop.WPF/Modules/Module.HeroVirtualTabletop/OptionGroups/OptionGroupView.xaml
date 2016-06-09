@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Module.HeroVirtualTabletop.OptionGroups"
+             xmlns:ability="clr-namespace:Module.HeroVirtualTabletop.AnimatedAbilities"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
@@ -42,7 +43,7 @@
                         </ItemsPanelTemplate>
                     </ListBox.ItemsPanel>
                     <ListBox.ItemTemplate>
-                        <DataTemplate >
+                        <DataTemplate>
                             <Grid Name="optGrid" 
                             ContextMenu="{StaticResource optionListBoxMenu}">
                                 <Ellipse Width="60" Height="60" StrokeThickness="2" Stroke="#FF3377FF"/>
@@ -80,6 +81,12 @@
                                                     </DataTrigger.Binding>
                                                     <Setter Property="Visibility" Value="Visible"></Setter>
                                                 </DataTrigger>
+                                                <DataTrigger Value="True">
+                                                    <DataTrigger.Binding>
+                                                        <Binding RelativeSource="{RelativeSource Self}" Path="DataContext.IsActive"></Binding>
+                                                    </DataTrigger.Binding>
+                                                    <Setter Property="Visibility" Value="Visible"></Setter>
+                                                </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Ellipse.Style>
@@ -88,6 +95,18 @@
                                     <TextBlock.InputBindings>
                                         <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EditOptionCommand}" MouseAction="LeftDoubleClick"/>
                                     </TextBlock.InputBindings>
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Value="True">
+                                                    <DataTrigger.Binding>
+                                                        <Binding RelativeSource="{RelativeSource Self}" Path="DataContext.IsActive"></Binding>
+                                                    </DataTrigger.Binding>
+                                                    <Setter Property="FontWeight" Value="Bold"></Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
                                 </TextBlock>
                             </Grid>
                         </DataTemplate>
