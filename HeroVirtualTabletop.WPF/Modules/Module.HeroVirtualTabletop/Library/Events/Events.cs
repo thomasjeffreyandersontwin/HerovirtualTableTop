@@ -21,4 +21,5 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class ActivateCharacterEvent : PubSubEvent<Character> { };
     public class NeedAbilityCollectionRetrievalEvent : PubSubEvent<object> { };
     public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbilities.AnimatedAbility>> { };
+    public class StopAllActiveAbilities : PubSubEvent<object> { };
 }

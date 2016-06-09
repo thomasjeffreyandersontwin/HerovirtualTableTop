@@ -96,5 +96,7 @@ namespace ApplicationShell
             Container.RegisterType<IPopupService, PopupService>(new ContainerControlledLifetimeManager());
             Container.RegisterType<IMessageBoxService, MessageBoxService>(new ContainerControlledLifetimeManager(), new InjectionConstructor(icon));
         }
+
+
     }
 }
