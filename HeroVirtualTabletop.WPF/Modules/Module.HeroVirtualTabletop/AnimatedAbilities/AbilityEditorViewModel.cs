@@ -240,6 +240,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private bool isReferenceAbilitySelected;
+        public bool IsReferenceAbilitySelected
+        {
+            get
+            {
+                return isReferenceAbilitySelected;
+            }
+            set
+            {
+                isReferenceAbilitySelected = value;
+                OnPropertyChanged("IsReferenceAbilitySelected");
+            }
+        }
+
+        private ReferenceAbility currentReferenceElement;
+        public ReferenceAbility CurrentReferenceElement
+        {
+            get
+            {
+                return currentReferenceElement;
+            }
+            set
+            {
+                currentReferenceElement = value;
+                OnPropertyChanged("CurrentReferenceElement");
+            }
+        }
+
         private IAnimationElement selectedAnimationElementRoot;
         public IAnimationElement SelectedAnimationElementRoot 
         { 
@@ -335,6 +363,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         case AnimationType.Sound:
                             soundResourcesCVS.View.Refresh();
                             break;
+                        case AnimationType.Reference:
+                            referenceAbilitiesCVS.View.Refresh();
+                            break;
                     }
                 OnPropertyChanged("Filter");
             }
@@ -362,7 +393,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Commands
 
+        
         public DelegateCommand<object> CloseEditorCommand { get; private set; }
+        public DelegateCommand<object> LoadResourcesCommand { get; private set; }
         public DelegateCommand<object> EnterAbilityEditModeCommand { get; private set; }
         public DelegateCommand<object> SubmitAbilityRenameCommand { get; private set; }
         public DelegateCommand<object> CancelAbilityEditModeCommand { get; private set; }
@@ -380,6 +413,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> CutAnimationCommand { get; private set; }
         public DelegateCommand<object> LinkAnimationCommand { get; private set; }
         public DelegateCommand<object> PasteAnimationCommand { get; private set; }
+        public DelegateCommand<object> UpdateReferenceTypeCommand { get; private set; }
 
         #endregion
 
@@ -391,14 +425,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             InitializeCommands();
-            LoadResources();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
+            this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             this.SelectedResourceAnimationElement = new AnimationElement("");
             // Unselect everything at the beginning
             this.SelectedAnimationElement = null;
             this.SelectedAnimationParent = null;
             this.IsSequenceAbilitySelected = false;
+            this.IsReferenceAbilitySelected = false;
             this.CurrentSequenceElement = null;
+            this.CurrentReferenceElement = null;
         }
         
         #endregion
@@ -408,6 +444,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void InitializeCommands()
         {
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
+            this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
             this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility);
             this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence);
@@ -423,6 +460,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation);
             this.CloneAnimationCommand = new DelegateCommand<object>(this.CloneAnimation, this.CanCloneAnimation);
             this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
+            this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType);
         }
 
         #endregion
@@ -444,13 +482,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.SelectedAnimationElement = selectedAnimationElement as IAnimationElement;
                         this.SelectedAnimationParent = parentAnimationElement;
                         this.SetCurrentSequenceAnimation();
+                        this.SetCurrentReferenceAbility();
                     }
                     else if(selectedAnimationElement == null && (this.CurrentAbility == null || this.CurrentAbility.AnimationElements.Count == 0))
                     {
                         this.SelectedAnimationElement = null;
                         this.SelectedAnimationParent = null;
                         this.IsSequenceAbilitySelected = false;
+                        this.IsReferenceAbilitySelected = false;
                         this.CurrentSequenceElement = null;
+                        this.CurrentReferenceElement = null;
                     }
                 }
                 else
@@ -461,7 +502,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.SelectedAnimationElement = null;
                 this.SelectedAnimationParent = null;
                 this.IsSequenceAbilitySelected = false;
+                this.IsReferenceAbilitySelected = false;
                 this.CurrentSequenceElement = null;
+                this.CurrentReferenceElement = null;
                 OnAnimationAdded(null, null);
             }
         }
@@ -499,6 +542,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.IsSequenceAbilitySelected = false;
                 this.CurrentSequenceElement = null;
+            }
+        }
+
+        private void SetCurrentReferenceAbility()
+        {
+            if (this.SelectedAnimationElement is ReferenceAbility)
+            {
+                this.CurrentReferenceElement = this.SelectedAnimationElement as ReferenceAbility;
+                this.IsReferenceAbilitySelected = true;
+            }
+            else
+            {
+                this.CurrentReferenceElement = null;
+                this.IsReferenceAbilitySelected = false;
             }
         }
         #endregion
@@ -671,6 +728,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     animationElement.Name = fullName;
                     animationElement.DisplayName = "Pause " + (animationElement as PauseElement).Time.ToString();
                     break;
+                case AnimationType.Reference:
+                    animationElement = new ReferenceAbility("", null);
+                    fullName = GetAppropriateAnimationName(AnimationType.Reference, flattenedList);
+                    animationElement.Name = fullName;
+                    animationElement.DisplayName = fullName;
+                    break;
             }
 
             return animationElement;
@@ -728,6 +791,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 case AnimationType.Sound:
                     name = "Sound Element";
                     break;
+                case AnimationType.Reference:
+                    name = "Ref Element";
+                    break;
             }
             
             string suffix = " 1";
@@ -767,7 +833,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Load Resources
-        private void LoadResources()
+        private void LoadResources(object state)
         {
             movResources = new ObservableCollection<AnimationResource>();
             MOVResources = new ReadOnlyObservableCollection<AnimationResource>(movResources);
@@ -775,6 +841,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             FXResources = new ReadOnlyObservableCollection<AnimationResource>(fxResources);
             soundResources = new ObservableCollection<AnimationResource>();
             SoundResources = new ReadOnlyObservableCollection<AnimationResource>(soundResources);
+
 
             Assembly assembly = Assembly.GetExecutingAssembly();
 
@@ -820,24 +887,45 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             movResourcesCVS = new CollectionViewSource();
             movResourcesCVS.Source = MOVResources;
             MOVResourcesCVS.View.Filter += ResourcesCVS_Filter;
+            OnPropertyChanged("MOVResourcesCVS");
 
             fxResourcesCVS = new CollectionViewSource();
             fxResourcesCVS.Source = FXResources;
             fxResourcesCVS.View.Filter += ResourcesCVS_Filter;
+            OnPropertyChanged("FXResourcesCVS");
 
             soundResourcesCVS = new CollectionViewSource();
             soundResourcesCVS.Source = SoundResources;
             soundResourcesCVS.View.Filter += ResourcesCVS_Filter;
+            OnPropertyChanged("SoundResourcesCVS");
+            // publish a event to retrieve reference resources
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            
+        }
+
+        private void LoadReferenceResource(ObservableCollection<AnimatedAbility> abilityCollection)
+        {
+            ////referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(charExpVM.GetAbilitiesCollection().Select((x) =>
+            //{
+            //    return new AnimationResource(x);
+            //}));
+            referenceAbilitiesCVS = new CollectionViewSource();
+            referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }));
+            referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
+            OnPropertyChanged("ReferenceAbilitiesCVS");
         }
 
         private bool ResourcesCVS_Filter(object item)
         {
+            AnimationResource animationRes = item as AnimationResource;
+            if (animationRes.Reference == this.CurrentAbility)
+                return false;
             if (string.IsNullOrWhiteSpace(Filter))
             {
                 return true;
             }
 
-            AnimationResource animationRes = item as AnimationResource;
+            
             if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationRes)
             {
                 return true;
@@ -1047,6 +1135,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             // UnLock character crowd Tree from updating
             this.LockModelAndMemberUpdate(false);
+        }
+
+        #endregion
+
+        #region Reference Ability
+        private void UpdateReferenceType(object state)
+        {
+
         }
 
         #endregion

@@ -188,10 +188,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         public string OriginalName { get; set; }
         public bool IsUpdatingCharacter { get; set; }
 
-        public ObservableCollection<AnimatedAbilities.AnimatedAbility> GetAbilitiesCollection()
-        {
-            return new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }));
-        }
         #endregion
 
         #region Commands
@@ -227,8 +223,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
             this.eventAggregator.GetEvent<StopAllActiveAbilities>().Subscribe(this.StopAllActiveAbilities);
             //LoadCrowdCollection(Application.Current.MainWindow);
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
         }
-        
+
         #endregion
 
         #region Initialization
@@ -1222,6 +1219,15 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #endregion
 
+        #region Retrieve Ability Collection
+        private void GetAbilityCollection(object state)
+        {
+            var abilityCollection = new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }));
+            this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
+        }
+
+        #endregion
+
         #region Utility Methods
         private void EliminateDuplicateName(ICrowdMemberModel model)
         {
@@ -1289,11 +1295,11 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void StopAllActiveAbilities(object obj)
         {
-            AnimatedAbilities.AnimatedAbility[] actives = GetAbilitiesCollection().Where((ab) => { return ab.IsActive; }).ToArray();
-            for (int i = 0; i < actives.Count(); i++)
-            {
-                actives[i].Stop();
-            }
+            //AnimatedAbilities.AnimatedAbility[] actives = GetAbilityCollection(null).Where((ab) => { return ab.IsActive; }).ToArray();
+            //for (int i = 0; i < actives.Count(); i++)
+            //{
+            //    actives[i].Stop();
+            //}
         }
 
         #endregion
