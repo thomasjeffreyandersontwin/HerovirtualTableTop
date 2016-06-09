@@ -225,9 +225,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             InitializeCommands();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
+            this.eventAggregator.GetEvent<StopAllActiveAbilities>().Subscribe(this.StopAllActiveAbilities);
             //LoadCrowdCollection(Application.Current.MainWindow);
         }
-
+        
         #endregion
 
         #region Initialization
@@ -1283,6 +1284,16 @@ namespace Module.HeroVirtualTabletop.Crowds
                     isNested = true;
             }
             return isNested;
+        }
+
+
+        private void StopAllActiveAbilities(object obj)
+        {
+            AnimatedAbilities.AnimatedAbility[] actives = GetAbilitiesCollection().Where((ab) => { return ab.IsActive; }).ToArray();
+            for (int i = 0; i < actives.Count(); i++)
+            {
+                actives[i].Stop();
+            }
         }
 
         #endregion

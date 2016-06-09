@@ -19,4 +19,5 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class CheckRosterConsistencyEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { };
     public class CreateCrowdFromModelsEvent : PubSubEvent<CrowdModel> { };
     public class CharacterActivationEvent : PubSubEvent<Character> { };
+    public class StopAllActiveAbilities : PubSubEvent<object> { };
 }

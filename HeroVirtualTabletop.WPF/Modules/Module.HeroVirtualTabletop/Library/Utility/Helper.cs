@@ -231,18 +231,27 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             Window win = null;
             string winName = "";
             
-            DependencyObject dObj = element as DependencyObject;
-            while (win == null)
+            if (element is Window)
             {
-                FrameworkElement elem = dObj as FrameworkElement;
-                dObj = elem.Parent;
-                if(dObj is Window)
+                win = element as Window;
+                winName = win.Name;
+            }
+            else
+            {
+                DependencyObject dObj = element as DependencyObject;
+                while (win == null)
                 {
-                    win = dObj as Window;
-                    winName = win.Name;
-                    break;
+                    FrameworkElement elem = dObj as FrameworkElement;
+                    dObj = elem.Parent;
+                    if (dObj is Window)
+                    {
+                        win = dObj as Window;
+                        winName = win.Name;
+                        break;
+                    }
                 }
             }
+                        
             return winName;
         }
 

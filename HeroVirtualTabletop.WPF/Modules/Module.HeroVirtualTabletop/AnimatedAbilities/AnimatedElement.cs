@@ -34,7 +34,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         string Stop(Character Target = null);
     }
 
-    public class AnimationElement : NotifyPropertyChanged, IAnimationElement, IDisposable
+    public class AnimationElement : NotifyPropertyChanged, IAnimationElement
     {
         [JsonConstructor]
         private AnimationElement() { }
@@ -216,41 +216,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return new AnimationElement(this.Name, this.Persistent);
         }
 
-        #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    // TODO: dispose managed state (managed objects).
-                    Stop();
-                }
-
-                // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-                // TODO: set large fields to null.
-
-                disposedValue = true;
-            }
-        }
-
-        // TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-        // ~AnimationElement() {
-        //   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-        //   Dispose(false);
-        // }
-
-        // This code added to correctly implement the disposable pattern.
-        public void Dispose()
-        {
-            // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-            Dispose(true);
-            // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
-        }
-        #endregion
     }
 
     public class PauseElement : AnimationElement
@@ -366,11 +331,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (IsActive)
             {
                 waveOut.Stop();
-                waveOut.Dispose();
                 IsActive = false;
-                return base.Stop();
             }
-            return string.Empty;
+
+            if (soundReader != null) soundReader.Close();
+            if (loop != null) loop.Close();
+            if (audioPlaying != null) audioPlaying.Dispose();
+            if (waveOut != null) waveOut.Dispose();
+            
+            return base.Stop();
         }
 
         protected override AnimationResource GetResource()
@@ -587,10 +556,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string keybinds = reloadOriginalCostumeFile(target.Name);
                 IsActive = false;
                 return keybinds + base.Stop();
-            } else
-            {
-                return target.ActiveIdentity.Render() + base.Stop();
             }
+            return string.Empty;
         }
 
         private void archiveOriginalCostumeFile(string name)
@@ -808,10 +775,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Stop(Character Target = null)
         {
-            foreach (IAnimationElement item in AnimationElements)
-            {
-                item.Stop(Target);
-            }
+            if (IsActive)
+                foreach (IAnimationElement item in AnimationElements)
+                {
+                    item.Stop(Target);
+                }
             IsActive = false;
             return base.Stop(Target);
         }
@@ -853,6 +821,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Reference"); 
             }
         }
+        
 
         public override string Play(bool persistent = false, Character Target = null)
         {

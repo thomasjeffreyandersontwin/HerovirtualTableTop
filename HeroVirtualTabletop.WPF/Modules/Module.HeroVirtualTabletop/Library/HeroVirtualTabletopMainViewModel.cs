@@ -15,6 +15,7 @@ using Module.Shared.Messages;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
@@ -84,7 +85,12 @@ namespace Module.HeroVirtualTabletop.Library
             style.Setters.Add(new Setter(Window.MinHeightProperty, minheight));
             style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
             CharacterCrowdMainViewModel characterCrowdMainViewModel = this.Container.Resolve<CharacterCrowdMainViewModel>();
-            PopupService.ShowDialog("CharacterCrowdMainView", characterCrowdMainViewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+            PopupService.ShowDialog("CharacterCrowdMainView", characterCrowdMainViewModel, "", false, ReleaseAllSoundResource, new SolidColorBrush(Colors.Transparent), style);
+        }
+
+        private void ReleaseAllSoundResource(CancelEventArgs e)
+        {
+            this.eventAggregator.GetEvent<StopAllActiveAbilities>().Publish(null);
         }
         
         private void LoadActiveCharacterWidget(Character character)
