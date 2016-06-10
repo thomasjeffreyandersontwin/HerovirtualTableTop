@@ -224,6 +224,9 @@ namespace Module.HeroVirtualTabletop.Characters
 
             set
             {
+                //Deactivate all active persistent abilities on Identity Change
+                AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
+                //Deactive any effect activated as a result of former Identity loading
                 if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
                     activeIdentity.AnimationOnLoad.Stop();
                 if (value != null && !availableIdentities.ContainsKey(value.Name))
