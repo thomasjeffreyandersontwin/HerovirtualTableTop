@@ -776,11 +776,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override string Stop(Character Target = null)
         {
             if (IsActive)
-                foreach (IAnimationElement item in AnimationElements)
-                {
-                    item.Stop(Target);
-                }
-            IsActive = false;
+                IsActive = false;
+            foreach (IAnimationElement item in AnimationElements)
+            {
+                item.Stop(Target);
+            }
             return base.Stop(Target);
         }
 
@@ -840,13 +840,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            if(this.Reference != null)
+            if (this.Reference != null)
+            {
+                if (this.Persistent || persistent || this.Reference.Persistent)
+                    IsActive = true;
                 return this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+            }
             return string.Empty;
         }
 
         public override string Stop(Character Target = null)
         {
+            if (IsActive)
+                IsActive = false;
             if(this.Reference != null)
                 return this.Reference.Stop(Target ?? this.Owner);
             return string.Empty;

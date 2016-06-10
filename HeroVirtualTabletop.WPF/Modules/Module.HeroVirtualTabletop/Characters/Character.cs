@@ -224,6 +224,8 @@ namespace Module.HeroVirtualTabletop.Characters
 
             set
             {
+                if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
+                    activeIdentity.AnimationOnLoad.Stop();
                 if (value != null && !availableIdentities.ContainsKey(value.Name))
                 {
                     availableIdentities.Add(value);
@@ -232,7 +234,11 @@ namespace Module.HeroVirtualTabletop.Characters
                 {
                     activeIdentity = availableIdentities[value.Name];
                     if (HasBeenSpawned)
+                    {
+                        Target(false);
                         activeIdentity.Render();
+                    }
+                        
                 }
                 else
                 {

@@ -97,33 +97,19 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
-        //private bool isDefault;
-        //public bool IsDefault
-        //{
-        //    get
-        //    {
-        //        return isDefault;
-        //    }
-        //    set
-        //    {
-        //        isDefault = value;
-        //        OnPropertyChanged("IsDefault");
-        //    }
-        //}
-
-        //private bool isActive;
-        //public bool IsActive
-        //{
-        //    get
-        //    {
-        //        return isActive;
-        //    }
-        //    set
-        //    {
-        //        isActive = value;
-        //        OnPropertyChanged("IsActive");
-        //    }
-        //}
+        private AnimatedAbilities.AnimatedAbility animationOnLoad;
+        public AnimatedAbilities.AnimatedAbility AnimationOnLoad
+        {
+            get
+            {
+                return animationOnLoad;
+            }
+            set
+            {
+                animationOnLoad = value;
+                OnPropertyChanged("AnimationOnLoad");
+            }
+        }
 
         /// <param name="surface">Represents the name of the model or the costume to load</param>
         /// <param name="type">The type of the identity, it can be either a Model or a Costume</param>
@@ -140,6 +126,8 @@ namespace Module.HeroVirtualTabletop.Identities
 
         public string Render(bool completeEvent = true)
         {
+            if (completeEvent)
+                AnimationOnLoad?.Play();
             string keybind = string.Empty;
             switch (Type)
             {
@@ -160,7 +148,6 @@ namespace Module.HeroVirtualTabletop.Identities
             }
             return keybind;
         }
-
-        //TODO AnimationOnLoad
+        
     }
 }

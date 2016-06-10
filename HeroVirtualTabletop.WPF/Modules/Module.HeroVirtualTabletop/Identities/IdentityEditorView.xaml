@@ -10,7 +10,8 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              mc:Ignorable="d"
-             Visibility="{Binding Visibility}">
+             Visibility="{Binding Visibility}"
+             behaviors:CommandBehavior.Event="Loaded" behaviors:CommandBehavior.Command="{Binding LoadAbilitiesCommand}" behaviors:CommandBehavior.CommandParameter="{Binding RelativeSource={RelativeSource Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -28,7 +29,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
@@ -117,5 +119,31 @@
                 </ListBox.Resources>
             </ListBox>
         </Grid>
+        <StackPanel Grid.Row="2" Margin="5">
+            <Label Foreground="White">Animation On Load:</Label>
+            <ListBox x:Name="listBoxAnimations"
+                Width="300"
+                SelectionMode="Single"
+                ItemsSource="{Binding AbilitiesCVS.View}"
+                SelectedValue="{Binding Path=EditedIdentity.AnimationOnLoad, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
+                DisplayMemberPath="Name"
+                IsSynchronizedWithCurrentItem="True">
+                <ListBox.Style>
+                    <Style TargetType="{x:Type ListBox}">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="TextElement.Foreground" Value="White"/>
+                    </Style>
+                </ListBox.Style>
+                <i:Interaction.Behaviors>
+                    <behaviors:ScrollIntoViewForListBox />
+                </i:Interaction.Behaviors>
+                <ListBox.Resources>
+                    <Style TargetType="{x:Type ListBoxItem}">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="TextElement.Foreground" Value="White"/>
+                    </Style>
+                </ListBox.Resources>
+            </ListBox>
+        </StackPanel>
     </Grid>
 </UserControl>

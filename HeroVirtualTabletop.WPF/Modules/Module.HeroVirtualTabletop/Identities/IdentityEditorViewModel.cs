@@ -16,6 +16,7 @@ using Microsoft.Practices.Prism.Commands;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Framework.WPF.Services.MessageBoxService;
 using Module.Shared.Messages;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
@@ -33,6 +34,7 @@ namespace Module.HeroVirtualTabletop.Identities
         private ObservableCollection<string> costumes;
         private CollectionViewSource modelsCVS;
         private CollectionViewSource costumesCVS;
+        private CollectionViewSource abilitiesCVS;
 
         #endregion
 
@@ -142,6 +144,14 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
+        public CollectionViewSource AbilitiesCVS
+        {
+            get
+            {
+                return abilitiesCVS;
+            }
+        }
+
         public bool IsDefault
         {
             get
@@ -183,10 +193,11 @@ namespace Module.HeroVirtualTabletop.Identities
         #region Commands
 
         public DelegateCommand<object> CloseEditorCommand { get; private set; }
+        public DelegateCommand<object> LoadAbilitiesCommand { get; private set; }
         public DelegateCommand<object> EnterEditModeCommand { get; private set; }
         public DelegateCommand<object> SubmitIdentityRenameCommand { get; private set; }
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
-
+        
         #endregion
 
         #region Constructor
@@ -200,6 +211,7 @@ namespace Module.HeroVirtualTabletop.Identities
             CreateModelsViewSource();
             CreateCostumesViewSource();
             eventAggregator.GetEvent<EditIdentityEvent>().Subscribe(this.LoadIdentity);
+            eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.CreateAbilitiesViewSource);
         }
         
         #endregion
@@ -212,6 +224,10 @@ namespace Module.HeroVirtualTabletop.Identities
             this.SubmitIdentityRenameCommand = new DelegateCommand<object>(this.SubmitIdentityRename);
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
+            this.LoadAbilitiesCommand = new DelegateCommand<object>((obj) =>
+            {
+                eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            });
         }
         
         #endregion
@@ -225,6 +241,7 @@ namespace Module.HeroVirtualTabletop.Identities
             this.Owner = data.Item2;
             this.Owner.AvailableIdentities.CollectionChanged += AvailableIdentities_CollectionChanged;
             this.Visibility = Visibility.Visible;
+            this.LoadAbilitiesCommand.Execute(null);
         }
 
         private void UnloadIdentity(object state = null)
@@ -312,6 +329,30 @@ namespace Module.HeroVirtualTabletop.Identities
             costumesCVS.View.Filter += stringsCVS_Filter;
         }
 
+
+        private void CreateAbilitiesViewSource(ObservableCollection<AnimatedAbility> abilities)
+        {
+            abilitiesCVS = new CollectionViewSource();
+            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner; }));
+            abilitiesCVS.View.Filter += abilitiesCVS_Filter;
+            OnPropertyChanged("AbilitiesCVS");
+        }
+
+        private bool abilitiesCVS_Filter(object item)
+        {
+            if (string.IsNullOrWhiteSpace(Filter))
+            {
+                return true;
+            }
+
+            string strItem = (item as AnimatedAbility).Name;
+            if (EditedIdentity != null && EditedIdentity.AnimationOnLoad == item as AnimatedAbility)
+            {
+                return true;
+            }
+            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(strItem);
+        }
+
         private bool stringsCVS_Filter(object item)
         {
             if (string.IsNullOrWhiteSpace(Filter))
@@ -329,16 +370,18 @@ namespace Module.HeroVirtualTabletop.Identities
 
         private void EditedIdentity_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == "Surface")
+            if (e.PropertyName == "Surface" || e.PropertyName == "AnimationOnLoad")
             {
                 if (Owner.HasBeenSpawned)
                 {
                     if (Owner.ActiveIdentity == EditedIdentity)
                     {
+                        Owner.Target(false);
                         Owner.ActiveIdentity.Render();
                     }
                 }
             }
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 
         #endregion
