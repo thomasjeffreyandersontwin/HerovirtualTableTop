@@ -143,6 +143,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 selectedAnimationElement = value;
                 OnPropertyChanged("SelectedAnimationElement");
                 OnPropertyChanged("CanPlayWithNext");
+                Filter = string.Empty;
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
                 this.CloneAnimationCommand.RaiseCanExecuteChanged();
@@ -156,29 +157,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName((sender as AnimationElement).Resource);
                 SaveAbility(null);
                 DemoAnimation(null);
-            }
-        }
-
-        private IAnimationElement selectedResourceAnimationElement;
-        public IAnimationElement SelectedResourceAnimationElement
-        {
-            get
-            {
-                return selectedResourceAnimationElement;
-            }
-            set
-            {
-                selectedResourceAnimationElement = value;
-                string resourceName = selectedResourceAnimationElement.Resource;
-                if(this.SelectedAnimationElement != null)
-                {
-                    SelectedAnimationElement.Resource = resourceName;
-                    DemoAnimation(null);
-                    (SelectedAnimationElement as AnimationElement).DisplayName = this.GetDisplayNameFromResourceName(resourceName);
-                    this.SaveAbility(null);
-                }
-                Filter = string.Empty;
-                OnPropertyChanged("SelectedResourceAnimationElement");
             }
         }
 
@@ -427,7 +405,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
-            this.SelectedResourceAnimationElement = new AnimationElement("");
+            //this.SelectedResourceAnimationElement = new AnimationElement("");
             // Unselect everything at the beginning
             this.SelectedAnimationElement = null;
             this.SelectedAnimationParent = null;
@@ -920,6 +898,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimationResource animationRes = item as AnimationResource;
             if (animationRes.Reference == this.CurrentAbility)
                 return false;
+            if (animationRes.Reference != null)
+            {
+                AnimatedAbility reference = animationRes.Reference;
+                //Check if the referenced ability contains the parent ability
+                if (reference.AnimationElements.Contains(this.CurrentAbility))
+                    return false;
+                //Check if inside the referenced ability there's any reference to the current ability
+                if (reference.AnimationElements.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                    return false;
+            }
             if (string.IsNullOrWhiteSpace(Filter))
             {
                 return true;

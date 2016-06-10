@@ -100,7 +100,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         
         public static implicit operator string(AnimationResource s)
         {
-            return s == null ? string.Empty : ( s.Value != null ? s.Value.ToString() : s.Reference.ToString());
+            return s == null ? string.Empty : ( s.Value != null ? s.Value.ToString() : s.Reference.Name);
         }
 
         public static implicit operator AnimatedAbility(AnimationResource s)

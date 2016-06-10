@@ -1295,11 +1295,16 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void StopAllActiveAbilities(object obj)
         {
-            //AnimatedAbilities.AnimatedAbility[] actives = GetAbilityCollection(null).Where((ab) => { return ab.IsActive; }).ToArray();
-            //for (int i = 0; i < actives.Count(); i++)
-            //{
-            //    actives[i].Stop();
-            //}
+            AnimatedAbilities.AnimatedAbility[] actives = 
+                new ObservableCollection<AnimatedAbilities.AnimatedAbility>(
+                    this.AllCharactersCrowd.CrowdMemberCollection.SelectMany(
+                        (character) => { return (character as CrowdMemberModel).AnimatedAbilities; })
+                        ).Where(
+                            (ab) => { return ab.IsActive; }).ToArray();
+            for (int i = 0; i < actives.Count(); i++)
+            {
+                actives[i].Stop();
+            }
         }
 
         #endregion
