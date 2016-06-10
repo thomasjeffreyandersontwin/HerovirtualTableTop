@@ -29,8 +29,8 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition />
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
             <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
@@ -125,9 +125,8 @@
                 Width="300"
                 SelectionMode="Single"
                 ItemsSource="{Binding AbilitiesCVS.View}"
-                SelectedValue="{Binding Path=EditedIdentity.AnimationOnLoad, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                DisplayMemberPath="Name"
-                IsSynchronizedWithCurrentItem="True">
+                SelectedItem="{Binding Path=EditedIdentity.AnimationOnLoad, Mode=TwoWay}"
+                DisplayMemberPath="Name">
                 <ListBox.Style>
                     <Style TargetType="{x:Type ListBox}">
                         <Setter Property="Background" Value="Transparent"/>

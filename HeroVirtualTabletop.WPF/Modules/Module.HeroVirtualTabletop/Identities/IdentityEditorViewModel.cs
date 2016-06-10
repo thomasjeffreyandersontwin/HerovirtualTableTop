@@ -236,9 +236,10 @@ namespace Module.HeroVirtualTabletop.Identities
 
         private void LoadIdentity(Tuple<Identity, Character> data)
         {
+            UnloadIdentity();
             Filter = null;
-            this.EditedIdentity = data.Item1;
             this.Owner = data.Item2;
+            this.EditedIdentity = data.Item1;
             this.Owner.AvailableIdentities.CollectionChanged += AvailableIdentities_CollectionChanged;
             this.Visibility = Visibility.Visible;
             this.LoadAbilitiesCommand.Execute(null);
@@ -247,7 +248,8 @@ namespace Module.HeroVirtualTabletop.Identities
         private void UnloadIdentity(object state = null)
         {
             this.EditedIdentity = null;
-            this.Owner.AvailableIdentities.CollectionChanged -= AvailableIdentities_CollectionChanged;
+            if (Owner != null)
+                this.Owner.AvailableIdentities.CollectionChanged -= AvailableIdentities_CollectionChanged;
             this.Owner = null;
             this.Visibility = Visibility.Collapsed;
         }
@@ -335,6 +337,10 @@ namespace Module.HeroVirtualTabletop.Identities
             abilitiesCVS = new CollectionViewSource();
             abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner; }));
             abilitiesCVS.View.Filter += abilitiesCVS_Filter;
+            AnimatedAbility moveTo = null;
+            if (EditedIdentity != null)
+                moveTo = EditedIdentity.AnimationOnLoad;
+            abilitiesCVS.View.MoveCurrentTo(moveTo);
             OnPropertyChanged("AbilitiesCVS");
         }
 
