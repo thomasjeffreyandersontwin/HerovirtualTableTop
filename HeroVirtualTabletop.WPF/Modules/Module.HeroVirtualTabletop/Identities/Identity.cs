@@ -127,7 +127,10 @@ namespace Module.HeroVirtualTabletop.Identities
         public string Render(bool completeEvent = true)
         {
             if (completeEvent)
-                AnimationOnLoad?.Play();
+            {
+                if(AnimationOnLoad != null)
+                    AnimationOnLoad.Play();
+            }
             string keybind = string.Empty;
             switch (Type)
             {

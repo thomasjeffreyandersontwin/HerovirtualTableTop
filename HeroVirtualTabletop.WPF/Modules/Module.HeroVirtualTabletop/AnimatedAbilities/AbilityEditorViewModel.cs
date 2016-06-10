@@ -229,6 +229,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 isReferenceAbilitySelected = value;
                 OnPropertyChanged("IsReferenceAbilitySelected");
+                this.CloneAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -529,6 +530,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.CurrentReferenceElement = this.SelectedAnimationElement as ReferenceAbility;
                 this.IsReferenceAbilitySelected = true;
+                //this.LoadReferenceResource();
             }
             else
             {
@@ -711,6 +713,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     fullName = GetAppropriateAnimationName(AnimationType.Reference, flattenedList);
                     animationElement.Name = fullName;
                     animationElement.DisplayName = fullName;
+                    //this.LoadReferenceResource();
                     break;
             }
 
@@ -806,6 +809,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void SaveAbility(object state)
         {
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
+            //this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
         }
 
         #endregion
@@ -878,15 +882,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             OnPropertyChanged("SoundResourcesCVS");
             // publish a event to retrieve reference resources
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
-            
         }
 
         private void LoadReferenceResource(ObservableCollection<AnimatedAbility> abilityCollection)
         {
-            ////referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(charExpVM.GetAbilitiesCollection().Select((x) =>
-            //{
-            //    return new AnimationResource(x);
-            //}));
             referenceAbilitiesCVS = new CollectionViewSource();
             referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }));
             referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
@@ -951,7 +950,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.LockModelAndMemberUpdate(true);
             if(this.SelectedAnimationParent != null)
             {
-                // Will need to add more logic during remove animation from sequence story
                 this.DeleteAnimationElementFromParentElementByName(this.SelectedAnimationParent, this.SelectedAnimationElement.Name);
             }
             else
@@ -1062,7 +1060,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanCloneAnimation(object state)
         {
-            return this.SelectedAnimationElement != null || (this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0);
+            return (this.SelectedAnimationElement != null  && !this.IsReferenceAbilitySelected|| (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0));
         }
         private void CloneAnimation(object state)
         {
@@ -1130,7 +1128,31 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Reference Ability
         private void UpdateReferenceType(object state)
         {
-
+            if(this.CurrentReferenceElement != null)
+            {
+                if(this.CurrentReferenceElement.ReferenceType == ReferenceType.Copy)
+                {
+                    this.LockModelAndMemberUpdate(true);
+                    List<IAnimationElement> flattenedList = GetFlattenedAnimationList(CurrentAbility.AnimationElements.ToList());
+                    SequenceElement sequenceElement = (this.CurrentReferenceElement.Reference).Clone() as SequenceElement;
+                    int order = this.CurrentReferenceElement.Order;
+                    sequenceElement.Name = GetAppropriateAnimationName(sequenceElement.Type, flattenedList);
+                    if (sequenceElement is SequenceElement && string.IsNullOrEmpty((sequenceElement as AnimationElement).DisplayName))
+                        (sequenceElement as AnimationElement).DisplayName = "Sequence: " + (sequenceElement as SequenceElement).SequenceType.ToString();
+                    this.RemoveAnimation(null);
+                    if (this.SelectedAnimationElement is SequenceElement)
+                        (this.SelectedAnimationElement as SequenceElement).AddAnimationElement(sequenceElement, order);
+                    else if (this.SelectedAnimationParent is SequenceElement)
+                        (this.SelectedAnimationParent as SequenceElement).AddAnimationElement(sequenceElement, order);
+                    else
+                        this.CurrentAbility.AddAnimationElement(sequenceElement, order);
+                    OnAnimationAdded(sequenceElement, null);
+                    this.SaveAbility(null);
+                    this.CurrentReferenceElement = null;
+                    this.IsReferenceAbilitySelected = false;
+                    this.LockModelAndMemberUpdate(false);
+                }
+            }
         }
 
         #endregion

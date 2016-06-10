@@ -189,7 +189,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public virtual string Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
-            return "Stopped " + this.Order + " for " + target.Name;
+            //return "Stopped " + this.Order + " for " + target.Name;
+            return "";
         }
 
         protected virtual AnimationResource GetResource()
@@ -302,7 +303,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            Stop();
+            Stop(Target);
             soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
             waveOut = new NAudio.Wave.WaveOut();
             float dist = 0;
@@ -339,7 +340,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (audioPlaying != null) audioPlaying.Dispose();
             if (waveOut != null) waveOut.Dispose();
             
-            return base.Stop();
+            return base.Stop(Target);
         }
 
         protected override AnimationResource GetResource()
@@ -388,7 +389,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = true, Character Target = null)
         {
-            Stop();
+            Stop(Target);
             Character target = Target ?? this.Owner;
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             target.Target(false);
@@ -509,7 +510,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            Stop();
+            Stop(Target);
             Character target = Target ?? this.Owner;
             string keybind = string.Empty;
             string name = target.Name;
@@ -752,7 +753,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            Stop();
+            Stop(Target);
             if (this.Persistent || persistent)
                 IsActive = true;
             if (SequenceType == AnimationSequenceType.And)
@@ -860,12 +861,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         protected override AnimationResource GetResource()
         {
-            return new AnimationResource(this.reference);
+            return new AnimationResource(this.reference, this.reference != null ? this.reference.Name : "");
         }
 
         protected override void SetResource(AnimationResource value)
         {
             this.Reference = value;
+        }
+        public override AnimationElement Clone()
+        {
+            ReferenceAbility clonedAbility = new ReferenceAbility(this.Name, this.Reference, this.Persistent, this.Order, this.Owner);
+            clonedAbility.DisplayName = this.DisplayName;
+            clonedAbility.PlayOnTargeted = this.PlayOnTargeted;
+            clonedAbility.ReferenceType = ReferenceType.Link;
+            clonedAbility.Type = AnimationType.Reference;
+            return clonedAbility;
         }
     }
 
