@@ -1105,10 +1105,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         #endregion
 
-        #region Link Animation
-
-        #endregion
-
         #region Paste Animation
         public bool CanPasteAnimation(object state)
         {

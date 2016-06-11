@@ -608,6 +608,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void GetOrCreateAllCharactersCrowd()
         {
+            if (this.CrowdCollection == null)
+                this.LoadCrowdCollection(null);
             allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
             if (allCharactersCrowd == null)
             {
