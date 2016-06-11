@@ -52,12 +52,12 @@ namespace Framework.WPF.Services.PopupService
             return registeredPopups.Remove(key);
         }
 
-        public void ShowDialog(string key, BaseViewModel viewModel, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.CenterLeft)
+        public void ShowDialog(string key, BaseViewModel viewModel, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.Ignore)
         {
             this.ShowDialog(key, viewModel, null, isModal, winClosing, background, customStyle, location, customLocation);
         }
 
-        public void ShowDialog(string key, BaseViewModel viewModel, string title, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.CenterLeft)
+        public void ShowDialog(string key, BaseViewModel viewModel, string title, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.Ignore)
         {
             this.ShowDialog(key, viewModel, title, null, null, isModal, winClosing, background, customStyle, location, customLocation);
         }
@@ -65,7 +65,7 @@ namespace Framework.WPF.Services.PopupService
         public void ShowDialog(string key, BaseViewModel viewModel, string title,
             Dictionary<string, object> ctrlPropertiesToSet,
             Dictionary<string, object> windowPropertiesToSet, bool isModal = true,
-            Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.CenterLeft)
+            Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.Ignore)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException("key");
@@ -155,6 +155,8 @@ namespace Framework.WPF.Services.PopupService
                             case WindowLocation.BottomRight:
                                 win.Left = desktopWorkingArea.Right - win.Width;
                                 win.Top = desktopWorkingArea.Bottom - win.Height;
+                                break;
+                            case WindowLocation.Ignore:
                                 break;
                         }
                     };
