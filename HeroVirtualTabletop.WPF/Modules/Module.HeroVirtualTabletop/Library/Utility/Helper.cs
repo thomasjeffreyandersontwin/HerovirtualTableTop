@@ -27,6 +27,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             set;
         }
 
+        public static object GlobalClipboardObjectParent
+        {
+            get;
+            set;
+        }
+
         public static ClipboardAction GlobalClipboardAction
         {
             get;

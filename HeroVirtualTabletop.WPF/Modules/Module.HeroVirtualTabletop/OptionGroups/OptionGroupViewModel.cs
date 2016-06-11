@@ -180,15 +180,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             if (typeof(T) == typeof(Identity))
             {
                 AddIdentity(state);
-                goto save;
             }
-            if (typeof(T) == typeof(AnimatedAbility))
+            else if (typeof(T) == typeof(AnimatedAbility))
             {
                 AddAbility(state);
-                goto save;
             }
-save:
-            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
         }
         
         private void RemoveOption(object state)
@@ -202,6 +200,7 @@ save:
                 optionGroup.Remove(SelectedOption);
             }
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
         }
         
         private T GetDefaultOption()
