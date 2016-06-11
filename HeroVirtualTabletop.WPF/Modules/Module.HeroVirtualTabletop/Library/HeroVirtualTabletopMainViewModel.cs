@@ -1,5 +1,6 @@
 ﻿using AutoItX3Lib;
 using Framework.WPF.Library;
+using Framework.WPF.Library.Enumerations;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
@@ -101,7 +102,7 @@ namespace Module.HeroVirtualTabletop.Library
                 double minwidth = 80;
                 style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
                 ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
-                PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+                PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style, WindowStartupLocation.Manual, WindowLocation.BottomRight);
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(character);
             }
             else if (character == null && PopupService.IsOpen("ActiveCharacterWidgetView"))

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Framework.WPF.Library.Enumerations;
 
 namespace Framework.WPF.Services.PopupService
 {
@@ -51,20 +52,20 @@ namespace Framework.WPF.Services.PopupService
             return registeredPopups.Remove(key);
         }
 
-        public void ShowDialog(string key, BaseViewModel viewModel, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null)
+        public void ShowDialog(string key, BaseViewModel viewModel, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.CenterLeft)
         {
-            this.ShowDialog(key, viewModel, null, isModal, winClosing, background, customStyle);
+            this.ShowDialog(key, viewModel, null, isModal, winClosing, background, customStyle, location, customLocation);
         }
 
-        public void ShowDialog(string key, BaseViewModel viewModel, string title, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null)
+        public void ShowDialog(string key, BaseViewModel viewModel, string title, bool isModal = true, Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.CenterLeft)
         {
-            this.ShowDialog(key, viewModel, title, null, null, isModal, winClosing, background, customStyle);
+            this.ShowDialog(key, viewModel, title, null, null, isModal, winClosing, background, customStyle, location, customLocation);
         }
 
         public void ShowDialog(string key, BaseViewModel viewModel, string title,
             Dictionary<string, object> ctrlPropertiesToSet,
             Dictionary<string, object> windowPropertiesToSet, bool isModal = true,
-            Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null)
+            Action<CancelEventArgs> winClosing = null, SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.CenterLeft)
         {
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException("key");
@@ -139,7 +140,25 @@ namespace Framework.WPF.Services.PopupService
                 layoutGrid.Children.Add(ctrl);
                 adornerDecorator.Child = layoutGrid;
                 win.Content = adornerDecorator;
-                win.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                win.WindowStartupLocation = location;
+                if (location == WindowStartupLocation.Manual)
+                {
+                    win.Loaded += (sender, e) =>
+                    {
+                        var desktopWorkingArea = System.Windows.SystemParameters.WorkArea;
+                        switch (customLocation)
+                        {
+                            case WindowLocation.CenterLeft:
+                                win.Left = 0;
+                                win.Top = (desktopWorkingArea.Height - win.Height) / 2;
+                                break;
+                            case WindowLocation.BottomRight:
+                                win.Left = desktopWorkingArea.Right - win.Width;
+                                win.Top = desktopWorkingArea.Bottom - win.Height;
+                                break;
+                        }
+                    };
+                }
 
                 // Adjust popup window's sizing properties with the user control
                 //if (double.IsNaN(ctrl.Width) || double.IsNaN(ctrl.Height))
@@ -227,7 +246,7 @@ namespace Framework.WPF.Services.PopupService
                 win.Show();
             }
         }
-
+        
         void win_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             IBusyService busyService = container.Resolve<IBusyService>();

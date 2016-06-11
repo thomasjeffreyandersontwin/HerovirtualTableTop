@@ -145,5 +145,20 @@ namespace Module.HeroVirtualTabletop.Characters
             typeof(ICommand), typeof(CharacterManagementMenuControl),
             new PropertyMetadata(null));
 
+        public ICommand ActivateCharacterCommand
+        {
+            get
+            {
+                return (ICommand)GetValue(ActivateCharacterCommandProperty);
+            }
+            set { SetValue(ActivateCharacterCommandProperty, value); }
+        }
+
+        public static readonly DependencyProperty
+            ActivateCharacterCommandProperty =
+            DependencyProperty.Register("ActivateCharacterCommand",
+            typeof(ICommand), typeof(CharacterManagementMenuControl),
+            new PropertyMetadata(null));
+
     }
 }

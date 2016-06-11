@@ -25,6 +25,7 @@
             <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera" Command="{Binding MoveTargetToCameraCommand}"/>
             <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera" Command="{Binding ToggleManeuverWithCameraCommand}" />
             <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop" Command="{Binding ClearFromDesktopCommand}" />
+            <Button x:Name="btActivate" Content="&#xf00c;" ToolTip="Activate Character" Command="{Binding ActivateCharacterCommand}" />
         </WrapPanel>
     </Grid>
 </UserControl>
