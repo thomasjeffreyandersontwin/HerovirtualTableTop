@@ -425,7 +425,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override AnimationElement GetNewAnimationElement()
         {
             return new MOVElement(this.Name, this.MOVResource, this.Persistent);
-    }
+        }
     }
 
     public class FXEffectElement : AnimationElement
