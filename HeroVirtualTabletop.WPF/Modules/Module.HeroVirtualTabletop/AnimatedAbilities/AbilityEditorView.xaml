@@ -310,8 +310,8 @@
                         </Style>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Reference.Name}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
