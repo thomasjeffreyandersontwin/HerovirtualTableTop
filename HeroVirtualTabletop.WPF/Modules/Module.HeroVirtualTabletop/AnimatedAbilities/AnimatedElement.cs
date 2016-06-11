@@ -406,7 +406,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 target.Target(false);
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "nop");
                 IsActive = false;
-                return keyBindsGenerator.CompleteEvent() + base.Stop();
+                return keyBindsGenerator.CompleteEvent() + base.Stop(target);
             }
             return string.Empty;
         }
