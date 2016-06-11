@@ -111,6 +111,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 currentAbility = value;
                 OnPropertyChanged("CurrentAbility");
                 this.CloneAnimationCommand.RaiseCanExecuteChanged();
+                this.PasteAnimationCommand.RaiseCanExecuteChanged();
             }
         }
         private bool isShowingAblityEditor;
@@ -147,6 +148,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
                 this.CloneAnimationCommand.RaiseCanExecuteChanged();
+                this.CutAnimationCommand.RaiseCanExecuteChanged();
+                this.PasteAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -229,7 +232,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 isReferenceAbilitySelected = value;
                 OnPropertyChanged("IsReferenceAbilitySelected");
-                this.CloneAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -406,7 +408,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
-            //this.SelectedResourceAnimationElement = new AnimationElement("");
             // Unselect everything at the beginning
             this.SelectedAnimationElement = null;
             this.SelectedAnimationParent = null;
@@ -438,6 +439,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(this.DemoAnimatedAbility);
             this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation);
             this.CloneAnimationCommand = new DelegateCommand<object>(this.CloneAnimation, this.CanCloneAnimation);
+            this.CutAnimationCommand = new DelegateCommand<object>(this.CutAnimation, this.CanCutAnimation);
             this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
             this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType);
         }
@@ -900,12 +902,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (animationRes.Reference != null)
             {
                 AnimatedAbility reference = animationRes.Reference;
-                //Check if the referenced ability contains the parent ability
-                if (reference.AnimationElements.Contains(this.CurrentAbility))
-                    return false;
-                //Check if inside the referenced ability there's any reference to the current ability
-                if (reference.AnimationElements.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
-                    return false;
+                if (reference != null && reference.AnimationElements != null && reference.AnimationElements.Count > 0)
+                {
+                    if (reference.AnimationElements.Contains(this.CurrentAbility))
+                        return false;
+                    List<IAnimationElement> elementList = this.GetFlattenedAnimationList(reference.AnimationElements.ToList());
+                    if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                        return false;
+                }
+                ////Check if the referenced ability contains the parent ability
+                //if (reference.AnimationElements.Contains(this.CurrentAbility))
+                //    return false;
+                ////Check if inside the referenced ability there's any reference to the current ability
+                //if (reference.AnimationElements.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                //    return false;
             }
             if (string.IsNullOrWhiteSpace(Filter))
             {
@@ -1060,7 +1070,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanCloneAnimation(object state)
         {
-            return (this.SelectedAnimationElement != null  && !this.IsReferenceAbilitySelected|| (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0));
+            return (this.SelectedAnimationElement != null  || (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0));
         }
         private void CloneAnimation(object state)
         {
@@ -1074,7 +1084,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Cut Animation
-
+        public bool CanCutAnimation(object state)
+        {
+            return (this.SelectedAnimationElement != null);
+        }
+        public void CutAnimation(object state)
+        {
+            if (this.SelectedAnimationParent != null)
+            {
+                Helper.GlobalClipboardObject = this.SelectedAnimationElement;
+                Helper.GlobalClipboardObjectParent = this.SelectedAnimationParent;
+            }
+            else
+            {
+                Helper.GlobalClipboardObject = this.SelectedAnimationElement;
+                Helper.GlobalClipboardObjectParent = this.CurrentAbility;
+            }
+            Helper.GlobalClipboardAction = ClipboardAction.Cut;
+            this.PasteAnimationCommand.RaiseCanExecuteChanged();
+        }
         #endregion
 
         #region Link Animation
@@ -1088,14 +1116,76 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             switch (Helper.GlobalClipboardAction)
             {
                 case ClipboardAction.Clone:
-                    canPaste = Helper.GlobalClipboardObject != null;
+                    if (Helper.GlobalClipboardObject != null)
+                    {
+                        if (Helper.GlobalClipboardObject is SequenceElement)
+                        {
+                            SequenceElement seqElement = Helper.GlobalClipboardObject as SequenceElement;
+                            List<IAnimationElement> elementList = this.GetFlattenedAnimationList(seqElement.AnimationElements.ToList());
+                            if (!(elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; })))
+                                canPaste = true;
+                        }
+                        else if (Helper.GlobalClipboardObject is ReferenceAbility)
+                        {
+                            ReferenceAbility refAbility = Helper.GlobalClipboardObject as ReferenceAbility;
+                            if (refAbility.Reference == this.CurrentAbility)
+                                canPaste = false;
+                            else if (refAbility.Reference != null && refAbility.Reference.AnimationElements != null && refAbility.Reference.AnimationElements.Count > 0)
+                            {
+                                bool refexists = false;
+                                if (refAbility.Reference.AnimationElements.Contains(this.CurrentAbility))
+                                    refexists = true;
+                                List<IAnimationElement> elementList = this.GetFlattenedAnimationList(refAbility.Reference.AnimationElements.ToList());
+                                if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                                    refexists = true;
+                                if (!refexists)
+                                    canPaste = true;
+                            }
+                            else
+                                canPaste = true;
+                        }
+                        else
+                            canPaste = true;
+                    }
+                    break;
+                case ClipboardAction.Cut:
+                    if (Helper.GlobalClipboardObject != null && Helper.GlobalClipboardObjectParent != null)
+                    {
+                        if (Helper.GlobalClipboardObject is SequenceElement)
+                        {
+                            SequenceElement seqElement = Helper.GlobalClipboardObject as SequenceElement;
+                            List<IAnimationElement> elementList = this.GetFlattenedAnimationList(seqElement.AnimationElements.ToList());
+                            if (!(elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; })))
+                                canPaste = true;
+                        }
+                        else if (Helper.GlobalClipboardObject is ReferenceAbility)
+                        {
+                            ReferenceAbility refAbility = Helper.GlobalClipboardObject as ReferenceAbility;
+                            if (refAbility.Reference == this.CurrentAbility)
+                                canPaste = false;
+                            else if (refAbility.Reference != null && refAbility.Reference.AnimationElements != null && refAbility.Reference.AnimationElements.Count > 0)
+                            {
+                                bool refexists = false;
+                                if (refAbility.Reference.AnimationElements.Contains(this.CurrentAbility))
+                                    refexists = true;
+                                List<IAnimationElement> elementList = this.GetFlattenedAnimationList(refAbility.Reference.AnimationElements.ToList());
+                                if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                                    refexists = true;
+                                if (!refexists)
+                                    canPaste = true;
+                            }
+                            else
+                                canPaste = true;
+                        }
+                        else
+                            canPaste = true;
+                    }
                     break;
             }
             return canPaste;
         }
         public void PasteAnimation(object state)
         {
-            bool saveNeeded = true;
             // Lock animation Tree from updating
             this.LockModelAndMemberUpdate(true);
             List<IAnimationElement> flattenedList = GetFlattenedAnimationList(CurrentAbility.AnimationElements.ToList());
@@ -1112,15 +1202,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.SaveAbility(null);
                         break;
                     }
+                case ClipboardAction.Cut:
+                    {
+                        SequenceElement parentSequenceElement = Helper.GlobalClipboardObjectParent as SequenceElement;
+                        IAnimationElement animationElement = Helper.GlobalClipboardObject as IAnimationElement;
+                        parentSequenceElement.RemoveAnimationElement(animationElement);
+                        animationElement.Name = GetAppropriateAnimationName(animationElement.Type, flattenedList);
+                        if (animationElement is SequenceElement && string.IsNullOrEmpty((animationElement as AnimationElement).DisplayName))
+                            (animationElement as AnimationElement).DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
+                        this.AddAnimationElement(animationElement as AnimationElement);
+                        OnAnimationAdded(animationElement, null);
+                        this.SaveAbility(null);
+                        break;
+                    }
             }
-            //if (saveNeeded)
-            //    this.SaveAbility(null);
             if (SelectedAnimationElement != null)
             {
                 OnExpansionUpdateNeeded(this.SelectedAnimationElement, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Paste });
             }
             // UnLock character crowd Tree from updating
             this.LockModelAndMemberUpdate(false);
+            Helper.GlobalClipboardObject = null;
+            Helper.GlobalClipboardObjectParent = null;
         }
 
         #endregion

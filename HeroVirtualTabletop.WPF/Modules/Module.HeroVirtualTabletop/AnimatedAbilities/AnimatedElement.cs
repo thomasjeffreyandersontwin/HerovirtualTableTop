@@ -731,9 +731,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.lastOrder++;
             element.Owner = this.Owner;
             if (order == 0)
-            element.Order = this.LastOrder;
+                element.Order = this.LastOrder;
             else
+            {
+                foreach (var elem in this.AnimationElements.Where(a => a.Order >= order))
+                    elem.Order += 1;
                 element.Order = order;
+            }
             this.animationElements.Add(element);
             this.animationElements.Sort();
         }
