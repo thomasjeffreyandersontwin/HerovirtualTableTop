@@ -407,7 +407,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 target.Target(false);
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "nop");
                 IsActive = false;
-                return keyBindsGenerator.CompleteEvent() + base.Stop();
+                return keyBindsGenerator.CompleteEvent() + base.Stop(target);
             }
             return string.Empty;
         }
@@ -757,7 +757,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            Stop(Target);
+            Stop(Target ?? this.Owner);
             if (this.Persistent || persistent)
                 IsActive = true;
             if (SequenceType == AnimationSequenceType.And)
@@ -766,7 +766,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string retVal = string.Empty;
                 foreach (IAnimationElement item in AnimationElements)
                 {
-                    retVal += item.Play(this.Persistent || persistent, Target);
+                    retVal += item.Play(this.Persistent || persistent, Target ?? this.Owner);
                 }
                 return retVal;
             }
@@ -774,19 +774,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                return AnimationElements[chosen].Play(this.Persistent || persistent, Target);
+                return AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
             }
         }
 
         public override string Stop(Character Target = null)
         {
+            Character target = Target ?? this.Owner;
             if (IsActive)
                 IsActive = false;
             foreach (IAnimationElement item in AnimationElements)
             {
-                item.Stop(Target);
+                item.Stop(target);
             }
-            return base.Stop(Target);
+            return base.Stop(target);
         }
 
         public override AnimationElement Clone()

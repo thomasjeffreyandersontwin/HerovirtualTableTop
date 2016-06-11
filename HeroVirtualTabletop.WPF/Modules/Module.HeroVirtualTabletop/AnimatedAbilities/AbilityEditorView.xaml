@@ -300,7 +300,6 @@
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
                           SelectionMode="Single"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          IsSynchronizedWithCurrentItem="True"
                       >
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollIntoViewForDataGrid />

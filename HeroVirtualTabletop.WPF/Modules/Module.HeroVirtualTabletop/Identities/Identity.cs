@@ -97,7 +97,7 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
-        private AnimatedAbilities.AnimatedAbility animationOnLoad;
+        private AnimatedAbilities.AnimatedAbility animationOnLoad = null;
         public AnimatedAbilities.AnimatedAbility AnimationOnLoad
         {
             get

@@ -230,7 +230,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
                     activeIdentity.AnimationOnLoad.Stop();
                 if (value != null && !availableIdentities.ContainsKey(value.Name))
-                {
+                {   
                     availableIdentities.Add(value);
                 }
                 if (value != null)
