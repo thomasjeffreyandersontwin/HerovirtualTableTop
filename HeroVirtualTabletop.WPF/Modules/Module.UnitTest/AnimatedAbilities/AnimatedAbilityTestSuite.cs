@@ -20,7 +20,7 @@ namespace Module.UnitTest.AnimatedAbilities
         {
             abilityEditorViewModel = new AbilityEditorViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
             character = new CrowdMemberModel("Spyder");
-            this.abilityEditorViewModel.CurrentAbility = new AnimatedAbility("Ability");
+            //this.abilityEditorViewModel.CurrentAbility = new AnimatedAbility("Ability");
             this.abilityEditorViewModel.Owner = character;
 
             this.abilityEditorViewModel.AnimationAdded += (delegate(object state, EventArgs e) 

@@ -608,12 +608,13 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void GetOrCreateAllCharactersCrowd()
         {
-            if (this.CrowdCollection == null)
-                this.LoadCrowdCollection(null);
-            allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
-            if (allCharactersCrowd == null)
+            if (this.CrowdCollection != null)
             {
-                CreateAllCharactersCrowd();
+                allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+                if (allCharactersCrowd == null)
+                {
+                    CreateAllCharactersCrowd();
+                }
             }
         }
 
@@ -1297,14 +1298,17 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void StopAllActiveAbilities(object obj)
         {
-            AnimatedAbilities.AnimatedAbility[] actives = 
-                new ObservableCollection<AnimatedAbilities.AnimatedAbility>(
-                    this.AllCharactersCrowd.CrowdMemberCollection.SelectMany(
-                        (character) => { return (character as CrowdMemberModel).AnimatedAbilities; })
-                        ).ToArray();
-            for (int i = 0; i < actives.Count(); i++)
+            if (this.AllCharactersCrowd != null && this.AllCharactersCrowd.CrowdMemberCollection != null && this.AllCharactersCrowd.CrowdMemberCollection.Count > 0)
             {
-                actives[i].Stop();
+                AnimatedAbilities.AnimatedAbility[] actives =
+                        new ObservableCollection<AnimatedAbilities.AnimatedAbility>(
+                            this.AllCharactersCrowd.CrowdMemberCollection.SelectMany(
+                                (character) => { return (character as CrowdMemberModel).AnimatedAbilities; })
+                                ).ToArray();
+                for (int i = 0; i < actives.Count(); i++)
+                {
+                    actives[i].Stop();
+                } 
             }
         }
 
