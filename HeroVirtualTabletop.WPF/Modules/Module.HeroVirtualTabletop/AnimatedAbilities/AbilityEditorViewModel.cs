@@ -160,6 +160,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName((sender as AnimationElement).Resource);
                 SaveAbility(null);
                 DemoAnimation(null);
+                this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
             }
         }
 
