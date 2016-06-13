@@ -98,6 +98,8 @@ namespace Module.HeroVirtualTabletop.Identities
                 filter = value;
                 ModelsCVS.View.Refresh();
                 CostumesCVS.View.Refresh();
+                if(AbilitiesCVS != null)
+                 AbilitiesCVS.View.Refresh();
                 OnPropertyChanged("Filter");
             }
         }

@@ -246,6 +246,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 currentReferenceElement = value;
                 OnPropertyChanged("CurrentReferenceElement");
+                this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -441,7 +442,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CloneAnimationCommand = new DelegateCommand<object>(this.CloneAnimation, this.CanCloneAnimation);
             this.CutAnimationCommand = new DelegateCommand<object>(this.CutAnimation, this.CanCutAnimation);
             this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
-            this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType);
+            this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType, this.CanUpdateReferenceType);
         }
 
         #endregion
@@ -1225,6 +1226,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Reference Ability
+        private bool CanUpdateReferenceType(object state)
+        {
+            return this.CurrentReferenceElement != null && this.CurrentReferenceElement.Reference != null;
+        }
+
         private void UpdateReferenceType(object state)
         {
             if(this.CurrentReferenceElement != null)
