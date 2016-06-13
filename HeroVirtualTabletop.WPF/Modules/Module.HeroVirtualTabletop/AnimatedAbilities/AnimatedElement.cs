@@ -689,7 +689,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Initialize();
             this.SequenceType = seqType;
             this.Type = AnimationType.Sequence;
-            this.lastOrder = 0;
         }
 
         private void Initialize()
@@ -716,22 +715,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private HashedObservableCollection<IAnimationElement, string> animationElements;
         [JsonIgnore]
         public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; private set; }
-
-        private int lastOrder;
+        
         public int LastOrder
         {
             get
             {
-                return lastOrder;
+                if (animationElements.Count > 0)
+                    return animationElements.Select(x => x.Order).Max();
+                else
+                    return 0;
             }
         }
 
         public void AddAnimationElement(IAnimationElement element, int order = 0)
         {
-            this.lastOrder++;
             element.Owner = this.Owner;
             if (order == 0)
-                element.Order = this.LastOrder;
+                element.Order = this.LastOrder + 1;
             else
             {
                 foreach (var elem in this.AnimationElements.Where(a => a.Order >= order))

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -15,14 +16,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private AnimatedAbility() : base(string.Empty) { }
 
-        public AnimatedAbility(string name, string activateOnKey = null, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
+        public AnimatedAbility(string name, Keys activateOnKey = Keys.None, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
             : base(name, seqType, persistent, order, owner)
         {
             this.ActivateOnKey = activateOnKey;
         }
 
-        private string activateOnKey;
-        public string ActivateOnKey
+        private Keys activateOnKey;
+        public Keys ActivateOnKey
         {
             get
             {

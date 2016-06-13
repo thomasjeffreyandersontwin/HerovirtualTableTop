@@ -81,6 +81,7 @@
                 MoveTargetToCameraCommand="{Binding MoveTargetToCameraCommand}"
                 ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
+                ActivateCharacterCommand="{Binding ActivateCharacterCommand}"
                 ></characters:CharacterManagementMenuControl>
         <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White"

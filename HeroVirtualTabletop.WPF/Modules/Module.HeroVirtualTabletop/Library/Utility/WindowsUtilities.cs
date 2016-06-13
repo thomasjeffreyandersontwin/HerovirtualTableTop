@@ -16,7 +16,13 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static extern int SetForegroundWindow(IntPtr hWnd);
 
         [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [DllImport("user32.dll")]
         public static extern int SetActiveWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetActiveWindow();
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

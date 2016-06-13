@@ -729,28 +729,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 if(this.SelectedAnimationElement == null)
                 {
-                    order = this.CurrentAbility.AnimationElements.Count + 1;
+                    order = this.CurrentAbility.LastOrder + 1;
                 }
                 else if(this.SelectedAnimationElement is SequenceElement)
                 {
-                    order = (this.SelectedAnimationElement as SequenceElement).AnimationElements.Count + 1;
+                    order = (this.SelectedAnimationElement as SequenceElement).LastOrder + 1;
                 }
                 else
                 {
-                    int prevOrder = this.SelectedAnimationElement.Order;
-                    order = prevOrder + 1;
-                    foreach (var element in this.CurrentAbility.AnimationElements.Where(e => e.Order > prevOrder))
-                        element.Order += 1;
+                    order = this.SelectedAnimationElement.Order + 1;
+                    //order = prevOrder + 1;
+                    //foreach (var element in this.CurrentAbility.AnimationElements.Where(e => e.Order > prevOrder))
+                    //    element.Order += 1;
                 }
             }
             else
             {
                 if(this.SelectedAnimationParent is SequenceElement)
                 {
-                    int prevOrder = this.SelectedAnimationElement.Order;
-                    order = prevOrder + 1;
-                    foreach (var element in (this.SelectedAnimationParent as SequenceElement).AnimationElements.Where(e => e.Order > prevOrder))
-                        element.Order += 1;
+                    order = this.SelectedAnimationElement.Order + 1;
+                    //order = prevOrder + 1;
+                    //foreach (var element in (this.SelectedAnimationParent as SequenceElement).AnimationElements.Where(e => e.Order > prevOrder))
+                    //    element.Order += 1;
                 }
             }
             return order;

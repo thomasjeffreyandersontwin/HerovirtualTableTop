@@ -124,6 +124,7 @@
     <Compile Include="Binding\BindingProxy.cs" />
     <Compile Include="Library\CustomAttribute.cs" />
     <Compile Include="Library\CustomExceptions.cs" />
+    <Compile Include="Library\Enumerations\Enumerations.cs" />
     <Compile Include="Library\HashedObservableCollection.cs" />
     <Compile Include="Library\MultiSelectListBox.cs" />
     <Compile Include="Library\NotifyPropertyChanged.cs" />

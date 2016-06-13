@@ -11,6 +11,8 @@
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
+             xmlns:system="clr-namespace:System;assembly=mscorlib"
+             xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
              mc:Ignorable="d" behaviors:CommandBehavior.Event="Loaded" behaviors:CommandBehavior.Command="{Binding LoadResourcesCommand}" behaviors:CommandBehavior.CommandParameter="{Binding RelativeSource={RelativeSource Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
@@ -22,6 +24,12 @@
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
             <converters:BooleanToVisibilityInvertConverter x:Key="BooleanToVisibilityInvertConverter"/>
             <localconverters:StringComparerToVisibilityConverter x:Key="resourcesTypeConverter"></localconverters:StringComparerToVisibilityConverter>
+            <ObjectDataProvider x:Key="Keys" MethodName="GetValues"
+                            ObjectType="{x:Type system:Enum}">
+                <ObjectDataProvider.MethodParameters>
+                    <x:Type TypeName="forms:Keys"/>
+                </ObjectDataProvider.MethodParameters>
+            </ObjectDataProvider>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
@@ -74,6 +82,10 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
+                <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
+                          Name="cbBoxActivateOnKey" ItemsSource="{Binding Source={StaticResource Keys}}"
+                          SelectedValue="{Binding Path=CurrentAbility.ActivateOnKey}">
+                </ComboBox>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
                 <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
@@ -310,8 +322,8 @@
                         </Style>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Reference.Name}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
