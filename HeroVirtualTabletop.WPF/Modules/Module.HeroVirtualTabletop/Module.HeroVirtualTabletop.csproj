@@ -165,6 +165,7 @@
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
+    <Compile Include="Library\Utility\KeyBoardHook.cs" />
     <Compile Include="Library\Utility\LoopWaveStream.cs" />
     <Compile Include="OptionGroups\OptionGroupView.xaml.cs">
       <DependentUpon>OptionGroupView.xaml</DependentUpon>

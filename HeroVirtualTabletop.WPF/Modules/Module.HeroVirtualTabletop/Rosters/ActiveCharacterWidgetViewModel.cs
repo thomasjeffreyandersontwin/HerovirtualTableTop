@@ -5,14 +5,19 @@ using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
+using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -23,6 +28,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private EventAggregator eventAggregator;
         private OptionGroupViewModel<Identity> identitiesViewModel;
         private OptionGroupViewModel<AnimatedAbility> animatedAbilitiesViewModel;
+        private IntPtr hookID;
 
         #endregion
 
@@ -113,6 +119,7 @@ namespace Module.HeroVirtualTabletop.Roster
         
         private void LoadCharacter(Character character)
         {
+            this.UnloadCharacter();
             this.ActiveCharacter = character;
             if (character != null)
             {
@@ -126,9 +133,44 @@ namespace Module.HeroVirtualTabletop.Roster
                     );
                 this.IdentitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
                 this.AnimatedAbilitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
+
+                //Setting hooks for PlayAbilityByKey
+                hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
             }
         }
         
+        private void UnloadCharacter()
+        {
+            if (ActiveCharacter != null)
+                KeyBoardHook.UnsetHook(hookID);
+            ActiveCharacter = null;
+        }
+                
+        private IntPtr PlayAbilityByKeyProc(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                Keys vkCode = (Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN)
+                    && Keyboard.IsKeyDown(Key.LeftAlt))
+                {
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || foregroundWindow == Process.GetCurrentProcess().MainWindowHandle)
+                    {
+                        if (ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
+                        {
+                            ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode).Play();
+                        }
+                    }
+                    WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
         #endregion
     }
 }
