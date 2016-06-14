@@ -167,6 +167,7 @@
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="Library\Utility\KeyBoardHook.cs" />
     <Compile Include="Library\Utility\LoopWaveStream.cs" />
+    <Compile Include="Movements\Movement.cs" />
     <Compile Include="OptionGroups\OptionGroupView.xaml.cs">
       <DependentUpon>OptionGroupView.xaml</DependentUpon>
     </Compile>
@@ -239,9 +240,7 @@
       <Name>Module.Shared</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Movements\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Page Include="AnimatedAbilities\AbilityEditorView.xaml">
       <SubType>Designer</SubType>

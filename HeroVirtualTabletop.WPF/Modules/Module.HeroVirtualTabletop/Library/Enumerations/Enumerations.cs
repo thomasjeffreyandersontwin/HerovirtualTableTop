@@ -43,4 +43,23 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Link,
         Copy
     }
+
+    public enum AttackEffectOption
+    {
+        Stunned,
+        Unconcious,
+        Dying,
+        Dead
+    }
+    public enum KnockBackOption
+    {
+        KnockDown,
+        KnockBack
+    }
+
+    public enum AttackResultOption
+    {
+        Hit,
+        Miss
+    }
 }

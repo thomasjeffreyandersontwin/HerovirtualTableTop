@@ -99,6 +99,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Owner");
             }
         }
+
+        private Attack currentAttackAbility;
+        public Attack CurrentAttackAbility
+        {
+            get
+            {
+                return currentAttackAbility;
+            }
+            set
+            {
+                currentAttackAbility = value;
+                OnPropertyChanged("CurrentAttackAbility");
+            }
+        }
         private AnimatedAbility currentAbility;
         public AnimatedAbility CurrentAbility
         {
@@ -371,6 +385,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return canPlayWithNext;
             }
         }
+
+        private bool isAttackSelected;
+        public bool IsAttackSelected
+        {
+            get
+            {
+                return isAttackSelected;
+            }
+            set
+            {
+                isAttackSelected = value;
+                OnPropertyChanged("IsAttackSelected");
+            }
+        }
+
+        private bool isDefenseSelected;
+        public bool IsDefenseSelected
+        {
+            get
+            {
+                return isDefenseSelected;
+            }
+            set
+            {
+                isDefenseSelected = value;
+                OnPropertyChanged("IsDefenseSelected");
+            }
+        }
         
         #endregion
 
@@ -397,6 +439,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> LinkAnimationCommand { get; private set; }
         public DelegateCommand<object> PasteAnimationCommand { get; private set; }
         public DelegateCommand<object> UpdateReferenceTypeCommand { get; private set; }
+        public DelegateCommand<object> ConfigureAttackAnimationCommand { get; private set; }
 
         #endregion
 
@@ -548,12 +591,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void LoadAnimatedAbility(Tuple<AnimatedAbility, Character> tuple)
         {
             this.IsShowingAbilityEditor = true;
-            this.CurrentAbility = tuple.Item1 as AnimatedAbility;
+            this.CurrentAttackAbility = tuple.Item1 as Attack;
+            this.CurrentAbility = this.CurrentAttackAbility as AnimatedAbility;
             this.Owner = tuple.Item2 as Character;
         }
         private void UnloadAbility(object state = null)
         {
-            this.CurrentAbility = null;
+            this.CurrentAttackAbility = null;
             //this.Owner.AvailableIdentities.CollectionChanged -= AvailableIdentities_CollectionChanged;
             this.Owner = null;
             this.IsShowingAbilityEditor = false;
@@ -564,13 +608,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Rename
         private void EnterAbilityEditMode(object state)
         {
-            this.OriginalName = CurrentAbility.Name;
+            this.OriginalName = CurrentAttackAbility.Name;
             OnEditModeEnter(state, null);
         }
 
         private void CancelAbilityEditMode(object state)
         {
-            CurrentAbility.Name = this.OriginalName;
+            CurrentAttackAbility.Name = this.OriginalName;
             OnEditModeLeave(state, null);
         }
 
@@ -605,7 +649,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OriginalName = null;
                 return;
             }
-            CurrentAbility.Name = updatedName;
+            CurrentAttackAbility.Name = updatedName;
             Owner.AnimatedAbilities.UpdateKey(OriginalName, updatedName);
             OriginalName = null;
         }
@@ -1259,6 +1303,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     this.LockModelAndMemberUpdate(false);
                 }
             }
+        }
+
+        #endregion
+
+        #region Attack/Defend Animations
+
+        public bool CanConfigureAttackAnimation(object state)
+        {
+            return this.CurrentAbility.AnimationElements.Count == 0;
+        }
+
+        public void ConfigureAttackAnimation(object state)
+        {
+            
         }
 
         #endregion
