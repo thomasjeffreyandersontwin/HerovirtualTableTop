@@ -24,6 +24,13 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         [DllImport("user32.dll")]
         public static extern IntPtr GetActiveWindow();
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        // When you don't want the ProcessId, use this overload and pass IntPtr.Zero for the second parameter
+        [DllImport("user32.dll")]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, IntPtr ProcessId);
+
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
