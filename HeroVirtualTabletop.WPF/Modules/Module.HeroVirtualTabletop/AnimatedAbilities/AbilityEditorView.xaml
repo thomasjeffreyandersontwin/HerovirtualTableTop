@@ -54,13 +54,13 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0" Grid.Row="0" VerticalAlignment="Center" Margin="5,0,0,0">
-                <TextBox x:Name="textBlockName" Text="{Binding Path=CurrentAbility.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                <TextBox x:Name="textBlockName" Text="{Binding Path=CurrentAttackAnimationElement.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
                     <TextBox.InputBindings>
                         <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
                         <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
                     </TextBox.InputBindings>
                 </TextBox>
-                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=CurrentAbility.Name, UpdateSourceTrigger=Explicit}">
+                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=CurrentAttackAnimationElement.Name, UpdateSourceTrigger=Explicit}">
                     <behaviors:CommandBehaviorCollection.Behaviors>
                         <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAbilityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                     </behaviors:CommandBehaviorCollection.Behaviors>
@@ -93,10 +93,40 @@
                 <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             </Grid>
             <StackPanel Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <CheckBox Name="chkBoxIsAttack" IsChecked="{Binding IsAttack}" Content="Attack" Foreground="White" Margin="5" VerticalAlignment="Top"/>
+                <CheckBox Name="chkBoxIsAttack" IsChecked="{Binding CurrentAttackAnimationElement.IsAttack}" Content="Attack" Command="{Binding ConfigureAttackAnimationCommand}" Foreground="White" Margin="5" VerticalAlignment="Top"/>
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack" Margin="2" Style="{StaticResource IconButton}"/>
-                    <Button x:Name="btnDefense" Grid.Column="1" Content="&#xf132;" ToolTip="Defense" Margin="2" Style="{StaticResource IconButton}"/>
+                    <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="Attack">
+                        <Button.Style >
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsAttackSelected}" Value="True">
+                                        <Setter Property="BorderBrush" Value="Red"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                     </DataTrigger>
+                                    <DataTrigger  Binding="{Binding Path=IsDefenseSelected}" Value="False">
+                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button x:Name="btnDefense" Grid.Column="1" Content="&#xf132;" ToolTip="Defense" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="Defense">
+                        <Button.Style >
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=IsAttackSelected}" Value="True">
+                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                    </DataTrigger>
+                                    <DataTrigger  Binding="{Binding Path=IsDefenseSelected}" Value="False">
+                                        <Setter Property="BorderBrush" Value="Red"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                 </StackPanel>
             </StackPanel>
             

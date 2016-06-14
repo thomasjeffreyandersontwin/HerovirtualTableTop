@@ -381,7 +381,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         
         private AnimatedAbility GetNewAbility()
         {
-            return new AnimatedAbility(optionGroup.NewValidOptionName("Ability"), owner: this.Owner);
+            return new Attack(optionGroup.NewValidOptionName("Ability"), owner: this.Owner);
         }
 
         private void EditOption(object obj)
@@ -393,7 +393,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else if (typeof(T) == typeof(AnimatedAbility))
             {
-                AnimatedAbility ability = (AnimatedAbility)Convert.ChangeType(SelectedOption, typeof(AnimatedAbility));
+                Attack ability = (Attack)Convert.ChangeType(SelectedOption, typeof(Attack));
                 eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(ability, Owner));
             }
         }
