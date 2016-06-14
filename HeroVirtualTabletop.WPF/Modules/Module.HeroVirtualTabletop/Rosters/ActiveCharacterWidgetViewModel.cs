@@ -157,8 +157,10 @@ namespace Module.HeroVirtualTabletop.Roster
                     && Keyboard.IsKeyDown(Key.LeftAlt))
                 {
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || foregroundWindow == Process.GetCurrentProcess().MainWindowHandle)
+                        || Process.GetCurrentProcess().Id == wndProcId)
                     {
                         if (ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
                         {

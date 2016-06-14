@@ -307,9 +307,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
             waveOut = new NAudio.Wave.WaveOut();
             float dist = 0;
+            float volume = 1.0f;
             Character target = Target ?? this.Owner;
             target.Position.IsWithin(0, Camera.Position, out dist);
-            waveOut.Volume = 1.0f; //Determine based on dist
+            if (dist > 100)
+                volume = 0;
+            else
+                volume = (100 - dist) / 100;
+            waveOut.Volume = volume; 
             if (this.Persistent || persistent)
             {
                 loop = new LoopWaveStream(soundReader);
