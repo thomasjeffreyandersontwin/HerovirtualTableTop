@@ -101,7 +101,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.OnHitAnimation = new AnimatedAbility(this.Name + " - DefenderHit", Keys.None, AnimationSequenceType.And, false, 1, this.Owner);
         }
 
-        private AnimatedAbility attackAnimation;
+        //private AnimatedAbility attackAnimation;
         public AnimatedAbility AttackAnimation 
         {
             get
