@@ -111,6 +111,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 currentAttackAbility = value;
                 OnPropertyChanged("CurrentAttackAbility");
+                this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
             }
         }
         private AnimatedAbility currentAbility;
@@ -400,17 +401,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private bool isDefenseSelected;
-        public bool IsDefenseSelected
+        private bool isHitSelected;
+        public bool IsHitSelected
         {
             get
             {
-                return isDefenseSelected;
+                return isHitSelected;
             }
             set
             {
-                isDefenseSelected = value;
-                OnPropertyChanged("IsDefenseSelected");
+                isHitSelected = value;
+                OnPropertyChanged("IsHitSelected");
             }
         }
         
@@ -487,6 +488,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CutAnimationCommand = new DelegateCommand<object>(this.CutAnimation, this.CanCutAnimation);
             this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
             this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType, this.CanUpdateReferenceType);
+            this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(this.ConfigureAttackAnimation, this.CanConfigureAttackAnimation);
         }
 
         #endregion
@@ -594,6 +596,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CurrentAttackAbility = tuple.Item1 as Attack;
             this.CurrentAbility = this.CurrentAttackAbility as AnimatedAbility;
             this.Owner = tuple.Item2 as Character;
+            if(this.CurrentAttackAbility.IsAttack)
+            {
+                this.IsAttackSelected = true;
+                this.IsHitSelected = false;
+            }
         }
         private void UnloadAbility(object state = null)
         {
@@ -1101,14 +1108,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void SpawnAndTargetOwnerCharacter()
         {
-            if (!this.Owner.HasBeenSpawned)
+            if (this.Owner != null) // Will be null if the editor isn't loaded yet
             {
-                Crowds.CrowdMemberModel member = this.Owner as Crowds.CrowdMemberModel;
-                if (member.RosterCrowd == null)
-                    this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(new Tuple<Crowds.CrowdMemberModel, Crowds.CrowdModel>(member, member.RosterCrowd as Crowds.CrowdModel));
-                member.Spawn(false);
+                if (!this.Owner.HasBeenSpawned)
+                {
+                    Crowds.CrowdMemberModel member = this.Owner as Crowds.CrowdMemberModel;
+                    if (member.RosterCrowd == null)
+                        this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(new Tuple<Crowds.CrowdMemberModel, Crowds.CrowdModel>(member, member.RosterCrowd as Crowds.CrowdModel));
+                    member.Spawn(false);
+                }
+                this.Owner.Target(false); 
             }
-            this.Owner.Target(false);
         }
         #endregion
 
@@ -1309,14 +1319,46 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Attack/Defend Animations
 
-        public bool CanConfigureAttackAnimation(object state)
+        private bool CanConfigureAttackAnimation(object state)
         {
-            return this.CurrentAbility.AnimationElements.Count == 0;
+            bool canConfigureAttack = false;
+            if (state == null)
+                canConfigureAttack = true;
+            else
+                canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack;
+
+            return canConfigureAttack;
         }
 
-        public void ConfigureAttackAnimation(object state)
+        private void ConfigureAttackAnimation(object state)
         {
-            
+            if(state == null)
+            {
+                if(this.CurrentAttackAbility.IsAttack)
+                {
+                    this.IsAttackSelected = true;
+                }
+                else
+                {
+                    this.IsAttackSelected = false;
+                }
+                this.IsHitSelected = false;
+                this.CurrentAbility = this.CurrentAttackAbility;
+                this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+                this.SaveAbility(null);
+            }
+            else if(state.ToString() == "Attack")
+            {
+                this.IsAttackSelected = true;
+                this.IsHitSelected = false;
+                this.CurrentAbility = this.CurrentAttackAbility;
+            }
+            else if(state.ToString() == "OnHit")
+            {
+                this.IsAttackSelected = false;
+                this.IsHitSelected = true;
+                this.CurrentAbility = this.CurrentAttackAbility.OnHitAnimation;
+            }
         }
 
         #endregion

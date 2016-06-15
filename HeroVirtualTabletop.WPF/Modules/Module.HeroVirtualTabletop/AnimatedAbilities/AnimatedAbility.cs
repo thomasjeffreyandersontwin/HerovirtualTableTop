@@ -98,7 +98,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public Attack(string name, Keys activateOnKey = Keys.None, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
             : base(name, activateOnKey, seqType, persistent, order, owner)
         {
-            this.DefenderHitAnimation = new AnimatedAbility(this.Name + " - DefenderHit", Keys.None, AnimationSequenceType.And, false, 1, this.Owner);
+            this.OnHitAnimation = new AnimatedAbility(this.Name + " - DefenderHit", Keys.None, AnimationSequenceType.And, false, 1, this.Owner);
         }
 
         private AnimatedAbility attackAnimation;
@@ -110,17 +110,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private AnimatedAbility defenderHitAnimation;
-        public AnimatedAbility DefenderHitAnimation 
+        private AnimatedAbility onHitAnimation;
+        public AnimatedAbility OnHitAnimation 
         {
             get
             {
-                return defenderHitAnimation;
+                return onHitAnimation;
             }
             set
             {
-                defenderHitAnimation = value;
-                OnPropertyChanged("DefenderHitAnimation");
+                onHitAnimation = value;
+                OnPropertyChanged("OnHitAnimation");
             }
         }
 
