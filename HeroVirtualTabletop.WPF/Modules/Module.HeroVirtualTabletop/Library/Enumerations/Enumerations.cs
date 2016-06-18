@@ -46,6 +46,7 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
 
     public enum AttackEffectOption
     {
+        None,
         Stunned,
         Unconcious,
         Dying,
@@ -61,5 +62,12 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
     {
         Hit,
         Miss
+    }
+
+    public enum AttackMode
+    {
+        None,
+        Attack,
+        Defend
     }
 }

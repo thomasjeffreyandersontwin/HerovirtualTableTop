@@ -136,6 +136,9 @@
       <DependentUpon>AbilityEditorView.xaml</DependentUpon>
     </Compile>
     <Compile Include="AnimatedAbilities\AbilityEditorViewModel.cs" />
+    <Compile Include="AnimatedAbilities\ActiveAttackView.xaml.cs">
+      <DependentUpon>ActiveAttackView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="AnimatedAbilities\AnimatedAbility.cs" />
     <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="AnimatedAbilities\AnimationResource.cs" />
@@ -160,6 +163,7 @@
     </Compile>
     <Compile Include="Identities\IdentityEditorViewModel.cs" />
     <Compile Include="Library\Converters\AnimationTypeToAnimationIconTextConverter.cs" />
+    <Compile Include="Library\Converters\AttackActionConverters.cs" />
     <Compile Include="Library\Converters\characterComparer.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
@@ -246,6 +250,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="AnimatedAbilities\ActiveAttackView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Characters\CharacterEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -308,7 +316,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />
+    <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />
     <None Include="Resources\Models.txt" />
   </ItemGroup>
   <ItemGroup>

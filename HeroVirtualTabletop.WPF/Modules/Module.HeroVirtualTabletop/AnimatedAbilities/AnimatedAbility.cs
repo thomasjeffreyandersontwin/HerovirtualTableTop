@@ -2,6 +2,7 @@
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
+using Module.Shared.Events;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -93,6 +94,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class Attack : AnimatedAbility
     {
+        #region Events
+
+        public event EventHandler AttackInitiated;
+        public void OnAttackInitiated(object sender, CustomEventArgs<Attack> e)
+        {
+            if (AttackInitiated != null)
+                AttackInitiated(sender, e);
+        }
+
+        #endregion
+
         [JsonConstructor]
         private Attack() : base(string.Empty) { }
         public Attack(string name, Keys activateOnKey = Keys.None, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
@@ -138,14 +150,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public void AnimateAttack()
+        public string AnimateAttack(bool persistent = false, Character target = null)
         {
+            var character = target ?? this.Owner;
+            Stop(character);
+            if (this.Persistent || persistent)
+                IsActive = true;
+            // Change the costume to Complementary color - Chris to do
+            
+            // FIRE AN EVENT TO UPDATE ROSTER AND DECIDE ABOUT TARGET
+            OnAttackInitiated(character, new CustomEventArgs<Attack> { Value = this });
+            // Wait for target updated event to fire the abilities
+            // If hit is selected play AnimateHit
+            // If miss is selected play AnimateMiss
 
+            return null;
         }
 
-        public void AnimateDefense()
+        public string AnimateOnHit()
         {
-
+            return null;
         }
 
         public void AnimateHit()
@@ -161,6 +185,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public void AnimateKnockBack()
         {
 
+        }
+        public override string Play(bool persistent = false, Character target = null)
+        {
+            if (this.IsAttack)
+                return this.AnimateAttack(persistent, target);
+            else
+                return base.Play(persistent, target);
         }
     }
 
@@ -182,6 +213,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public void AnimateAttackEffects()
         {
 
+        }
+    }
+
+    public class AttackOption
+    {
+        public AttackMode AttackMode
+        {
+            get;
+            set;
+        }
+        public AttackEffectOption AttackEffectOption
+        {
+            get;
+            set;
         }
     }
 }

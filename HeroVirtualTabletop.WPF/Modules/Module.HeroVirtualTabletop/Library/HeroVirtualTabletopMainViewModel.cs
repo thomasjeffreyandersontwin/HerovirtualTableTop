@@ -91,7 +91,7 @@ namespace Module.HeroVirtualTabletop.Library
 
         private void ReleaseAllSoundResource(CancelEventArgs e)
         {
-            this.eventAggregator.GetEvent<StopAllActiveAbilities>().Publish(null);
+            this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Publish(null);
         }
         
         private void LoadActiveCharacterWidget(Character character)

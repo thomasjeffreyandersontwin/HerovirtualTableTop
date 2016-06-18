@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         void GetCrowdCollection(Action<List<CrowdModel>> GetCrowdCollectionCompleted);
         void SaveCrowdCollection(Action SaveCrowdCollectionCompleted, List<CrowdModel> crowdCollection);
+        List<CrowdModel> LoadDefaultCrowdMembers();
     }
 
     public class CrowdRepository : ICrowdRepository
@@ -134,6 +136,29 @@ namespace Module.HeroVirtualTabletop.Crowds
                 File.Copy(crowdRepositoryPath, backupFilePath, true);
             }
 
+        }
+
+        public List<CrowdModel> LoadDefaultCrowdMembers()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            List<CrowdModel> crowdCollection = new List<CrowdModel>();
+            string resName = "Module.HeroVirtualTabletop.Resources.DefaultCharactersWithAbilities.data";
+            JsonSerializer serializer = new JsonSerializer();
+            using (StreamReader sr = new StreamReader(assembly.GetManifestResourceStream(resName)))
+            {
+                using (JsonReader reader = new JsonTextReader(sr))
+                {
+
+                    serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
+                    serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    serializer.Formatting = Formatting.Indented;
+                    serializer.TypeNameHandling = TypeNameHandling.Objects;
+
+                    crowdCollection = serializer.Deserialize<List<CrowdModel>>(reader);
+                }
+            }
+
+            return crowdCollection;
         }
     }
 }
