@@ -31,6 +31,14 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
                 this.gameMemory = new MemorySharp(processes[0]);
         }
 
+        public uint TargetPointer
+        {
+            get
+            {
+                return targetPointer;
+            }
+        }
+
         public bool IsReal
         {
             get

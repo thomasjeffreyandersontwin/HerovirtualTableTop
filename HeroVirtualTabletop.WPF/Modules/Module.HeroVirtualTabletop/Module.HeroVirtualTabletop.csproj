@@ -168,6 +168,8 @@
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Events\Events.cs" />
+    <Compile Include="Library\Sevices\ITargetObserver.cs" />
+    <Compile Include="Library\Sevices\TargetObserver.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="Library\Utility\KeyBoardHook.cs" />
     <Compile Include="Library\Utility\LoopWaveStream.cs" />
