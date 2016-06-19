@@ -162,6 +162,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
 
         }
+        
     }
 
     public class AreaEffectAttack : Attack

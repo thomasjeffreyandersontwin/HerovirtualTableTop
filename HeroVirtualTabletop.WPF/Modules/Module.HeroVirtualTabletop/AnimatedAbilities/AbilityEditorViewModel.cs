@@ -915,9 +915,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string name = Path.GetFileNameWithoutExtension(file);
                 string[] tmpTags = file.Substring(Settings.Default.CityOfHeroesGameDirectory.Length +
                     Constants.GAME_SOUND_FOLDERNAME.Length + 2).Split('\\');
-                string[] tags = new string[tmpTags.Length];
-                tags[0] = "sound";
-                Array.Copy(tmpTags, 0, tags, 1, tmpTags.Length - 1); // add sound tag and remove the actual file name
+                string[] tags = new string[1];
+                //tags[0] = "sound";
+                //Array.Copy(tmpTags, 0, tags, 1, tmpTags.Length - 1); // add sound tag and remove the actual file name
+                
+                string sound = tmpTags[tmpTags.Length - 1];
+
+                string tag = tmpTags.Length >= 2 ? tmpTags[tmpTags.Length - 2] : "Sound";
+                tag = tag[0].ToString().ToUpper() + tag.Substring(1);
+
+                Regex re = new Regex(@"_{1}");
+                if (!re.IsMatch(sound, 1))
+                    re = new Regex(@"[A-Z,0-9,\-]{1}");
+                string tmp;
+                if (re.IsMatch(sound, 1))
+                {
+                    tmp = sound.Substring(0, re.Match(sound, 1).Index);
+                    tmp = tmp[0].ToString().ToUpper() + tmp.Substring(1);
+                    tag += tmp;
+                }
+
+                tags[0] = tag;
                 soundResources.Add(new AnimationResource(file, name, tags));
             }
 

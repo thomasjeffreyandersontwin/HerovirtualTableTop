@@ -134,6 +134,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.IdentitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
                 this.AnimatedAbilitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
 
+                character.Activate();
+
                 //Setting hooks for PlayAbilityByKey
                 hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
             }
@@ -142,7 +144,11 @@ namespace Module.HeroVirtualTabletop.Roster
         private void UnloadCharacter()
         {
             if (ActiveCharacter != null)
+            {
+                ActiveCharacter.Deactivate();
                 KeyBoardHook.UnsetHook(hookID);
+            }
+                
             ActiveCharacter = null;
         }
                 

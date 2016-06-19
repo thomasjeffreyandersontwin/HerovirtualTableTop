@@ -462,7 +462,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private bool CanActivateCharacter(object state)
         {
-            return CanToggleTargeted(state);
+            return CanToggleTargeted(state) && (SelectedParticipants[0] as Character).HasBeenSpawned;
         }
 
         private void ActivateCharacter(object state)

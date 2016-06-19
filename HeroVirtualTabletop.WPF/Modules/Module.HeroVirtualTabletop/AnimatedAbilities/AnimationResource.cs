@@ -94,6 +94,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return tags != null ? string.Join(", ", tags) : "";
             }
+            set
+            {
+                tags = new ObservableCollection<string>(value.Split(',').Select((s) => { return s.Trim(); }));
+                OnPropertyChanged("TagLine");
+            }
         }
 
         #region String behaviour

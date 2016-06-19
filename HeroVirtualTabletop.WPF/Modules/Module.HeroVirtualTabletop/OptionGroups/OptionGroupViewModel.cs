@@ -124,6 +124,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> PlayOptionCommand { get; private set; }
         public DelegateCommand<object> StopOptionCommand { get; private set; }
 
+        public DelegateCommand<object> TogglePlayOptionCommand { get; private set; }
+
         public ICommand SetActiveOptionCommand { get; private set; }
 
         #endregion
@@ -169,6 +171,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.EditOptionCommand = new DelegateCommand<object>(this.EditOption);
             this.PlayOptionCommand = new DelegateCommand<object>(this.PlayOption, this.CanPlayOption);
             this.StopOptionCommand = new DelegateCommand<object>(this.StopOption, this.CanStopOption);
+            this.TogglePlayOptionCommand = new DelegateCommand<object>(this.TogglePlayOption);
         }
         
         #endregion
@@ -266,12 +269,18 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else
             {
+                if (selectedOption != null && selectedOption is AnimatedAbility)
+                {
+                    AnimatedAbility ability = selectedOption as AnimatedAbility;
+                    if (ability.IsActive && !ability.Persistent)
+                        ability.Stop();
+                }
                 selectedOption = value;
             }
-            if (typeof(T) == typeof(AnimatedAbility))
-            {
-                PlayOption(null);
-            }
+            //if (typeof(T) == typeof(AnimatedAbility))
+            //{
+            //    PlayOption(null);
+            //}
         }
 
 
@@ -338,6 +347,23 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
             }
             ability.Stop(Target: currentTarget);
+        }
+        
+        private void TogglePlayOption(object obj)
+        {
+            SelectedOption = (T)obj;
+            if (typeof(T) == typeof(AnimatedAbility))
+            {
+                AnimatedAbility ability = obj as AnimatedAbility;
+                if (!ability.IsActive)
+                {
+                    PlayOption(obj);
+                }
+                else
+                {
+                    StopOption(obj);
+                }
+            }
         }
 
         private void SpawnAndTargetOwnerCharacter()

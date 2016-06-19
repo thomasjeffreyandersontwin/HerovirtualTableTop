@@ -91,8 +91,9 @@
                                         </Style>
                                     </Ellipse.Style>
                                 </Ellipse>
-                                <TextBlock Text="{Binding Path=Name}" Width="60" VerticalAlignment="Center" TextAlignment="Center" Foreground="White">
+                                <TextBlock Name="optTextBlock" Text="{Binding Path=Name}" Width="60" VerticalAlignment="Center" TextAlignment="Center" Foreground="White">
                                     <TextBlock.InputBindings>
+                                        <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.TogglePlayOptionCommand}" CommandParameter="{Binding ElementName=optTextBlock, Path=DataContext}" MouseAction="LeftClick"/>
                                         <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EditOptionCommand}" MouseAction="LeftDoubleClick"/>
                                     </TextBlock.InputBindings>
                                     <TextBlock.Style>
