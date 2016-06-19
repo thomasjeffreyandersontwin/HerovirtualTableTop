@@ -139,6 +139,7 @@
     <Compile Include="AnimatedAbilities\ActiveAttackView.xaml.cs">
       <DependentUpon>ActiveAttackView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="AnimatedAbilities\ActiveAttackViewModel.cs" />
     <Compile Include="AnimatedAbilities\AnimatedAbility.cs" />
     <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="AnimatedAbilities\AnimationResource.cs" />
@@ -163,7 +164,7 @@
     </Compile>
     <Compile Include="Identities\IdentityEditorViewModel.cs" />
     <Compile Include="Library\Converters\AnimationTypeToAnimationIconTextConverter.cs" />
-    <Compile Include="Library\Converters\AttackActionConverters.cs" />
+    <Compile Include="Library\Converters\AttackConverters.cs" />
     <Compile Include="Library\Converters\characterComparer.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />

@@ -17,22 +17,22 @@ namespace Module.HeroVirtualTabletop.Library.Converters
          fa-bolt [&#xf0e7;] - attack
          fa-bullseye [&#xf140;] - defend
     */
-    public class AttackOptionToAnimationIconTextConverter : IValueConverter
+    public class ActiveAttackToAnimationIconTextConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             string iconText = null;
-            AttackOption attackOption = value as AttackOption;
-            if(attackOption != null)
+            ActiveAttackConfiguration activeAttack = value as ActiveAttackConfiguration;
+            if(activeAttack != null)
             {
-                switch(attackOption.AttackMode)
+                switch(activeAttack.AttackMode)
                 {
                     case Enumerations.AttackMode.Attack:
                         iconText = "\uf0e7";
                         break;
                     case Enumerations.AttackMode.Defend:
                         {
-                            switch(attackOption.AttackEffectOption)
+                            switch(activeAttack.AttackEffectOption)
                             {
                                 case Enumerations.AttackEffectOption.None:
                                     iconText = "\uf140";
@@ -62,15 +62,15 @@ namespace Module.HeroVirtualTabletop.Library.Converters
         }
     }
 
-    public class AttackOptionToVisibilityConverter : IValueConverter
+    public class ActiveAttackToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             Visibility visibility = Visibility.Collapsed;
-            AttackOption attackOption = value as AttackOption;
-            if(attackOption != null)
+            ActiveAttackConfiguration activeAttack = value as ActiveAttackConfiguration;
+            if(activeAttack != null)
             {
-                if (attackOption.AttackMode != Enumerations.AttackMode.None)
+                if (activeAttack.AttackMode != Enumerations.AttackMode.None)
                     visibility = Visibility.Visible;
             }
             return visibility;

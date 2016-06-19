@@ -369,7 +369,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.containerWindowName = Helper.GetContainerWindowName(state);
             if(!crowdCollectionLoaded)
             {
-                //this.BusyService.ShowBusy(new string[] { containerWindowName });
+                this.BusyService.ShowBusy(new string[] { containerWindowName });
                 this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
             }
         }
@@ -388,7 +388,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                };
             Application.Current.Dispatcher.BeginInvoke(d);
             
-            //this.BusyService.HideBusy();
+            this.BusyService.HideBusy();
             this.crowdCollectionLoaded = true;
         }
 

@@ -19,8 +19,8 @@
             <localconverters:CrowdNameConverter x:Key="CrowdNameConverter"/>
             <converters:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter"/>
             <localconverters:characterComparer x:Key="characterComparer"/>
-            <localconverters:AttackOptionToAnimationIconTextConverter x:Key="AttackOptionToAnimationIconTextConverter"/>
-            <localconverters:AttackOptionToVisibilityConverter x:Key="AttackOptionToVisibilityConverter"/>
+            <localconverters:ActiveAttackToAnimationIconTextConverter x:Key="ActiveAttackToAnimationIconTextConverter"/>
+            <localconverters:ActiveAttackToVisibilityConverter x:Key="ActiveAttackToVisibilityConverter"/>
             <CollectionViewSource 
                 x:Key="ParticipantsView" 
                 Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
@@ -138,7 +138,7 @@
                                 </Style>
                             </Label.Style>
                         </Label>
-                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding AttackOption, Converter={StaticResource AttackOptionToVisibilityConverter}}" Text="{Binding AttackOption, Converter={StaticResource AttackOptionToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration, Converter={StaticResource ActiveAttackToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration, Converter={StaticResource ActiveAttackToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock.InputBindings>
                                 <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStatusCommand}" MouseAction="LeftClick"/>
                             </TextBlock.InputBindings>

@@ -20,9 +20,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     /// </summary>
     public partial class ActiveAttackView : UserControl
     {
-        public ActiveAttackView()
+        private ActiveAttackViewModel viewModel;
+        public ActiveAttackView(ActiveAttackViewModel viewModel)
         {
             InitializeComponent();
+            this.viewModel = viewModel;
+            this.DataContext = this.viewModel;
         }
     }
 }

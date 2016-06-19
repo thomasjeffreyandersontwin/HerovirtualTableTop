@@ -28,6 +28,9 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class AttackCompletedEvent : PubSubEvent<Tuple<Character, Attack>> { };
     public class AttackTargetSelectedEvent : PubSubEvent<Tuple<Character, Attack>> { };
     public class ResetCharacterStateEvent : PubSubEvent<Character> { };
-    public class TargetUpdatedEvent : PubSubEvent<Character> { };
+    public class AttackTargetUpdatedEvent : PubSubEvent<Tuple<Character, Attack>> { };
+    public class ConfigureActiveAttackEvent : PubSubEvent<Tuple<Character, Attack>> { };
+    public class SetActiveAttackEvent : PubSubEvent<Tuple<Character, ActiveAttackConfiguration, Attack>> { }
+    public class CloseActiveAttackEvent : PubSubEvent<object> { }
     #endregion
 }

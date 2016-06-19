@@ -140,6 +140,7 @@ namespace Framework.WPF.Services.PopupService
                 layoutGrid.Children.Add(ctrl);
                 adornerDecorator.Child = layoutGrid;
                 win.Content = adornerDecorator;
+
                 win.WindowStartupLocation = location;
                 if (location == WindowStartupLocation.Manual)
                 {
@@ -157,6 +158,10 @@ namespace Framework.WPF.Services.PopupService
                                 win.Top = desktopWorkingArea.Bottom - win.Height;
                                 break;
                             case WindowLocation.Ignore:
+                                break;
+                            case WindowLocation.MouseCursor:
+                                win.Left = System.Windows.Forms.Control.MousePosition.X;
+                                win.Top = System.Windows.Forms.Control.MousePosition.Y;
                                 break;
                         }
                     };

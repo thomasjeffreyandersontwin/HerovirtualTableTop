@@ -19,19 +19,45 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
+            <converters:EnumToBooleanConverter x:Key="EnumToBooleanConverter"/>
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:BooleanToVisibilityInvertConverter x:Key="BooleanToVisibilityInvertConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
-        <RadioButton Grid.Row="0" Grid.Column="0" Content="Hit" IsChecked="{Binding Path=ActiveAttack.IsHit}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-        <RadioButton Grid.Row="0" Grid.Column="1" Content="Miss" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-    </Grid>
+    <GroupBox Header="Active Attack" Foreground="White" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+        <GroupBox.Content>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
+            
+                <RadioButton Grid.Column="0" Content="Hit" IsChecked="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}" GroupName="AttackResultGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                <RadioButton Grid.Column="1" Content="Miss" IsChecked="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Miss}" GroupName="AttackResultGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="0">
+                    <CheckBox IsChecked="{Binding IsStunnedSelected}" Content="Stunned" Foreground="White"  HorizontalAlignment="Left" Style="{StaticResource CheckBoxDefault}" IsEnabled="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}"/>
+                    <CheckBox IsChecked="{Binding IsUnconciousSelected}" Content="Unconcious" Foreground="White"  HorizontalAlignment="Left" Style="{StaticResource CheckBoxDefault}" IsEnabled="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}"/>
+                    <CheckBox IsChecked="{Binding IsDyingSelected}" Content="Dying" Foreground="White"  HorizontalAlignment="Left" Style="{StaticResource CheckBoxDefault}" IsEnabled="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}"/>
+                    <CheckBox IsChecked="{Binding IsDeadSelected}" Content="Dead" Foreground="White"  HorizontalAlignment="Left" Style="{StaticResource CheckBoxDefault}" IsEnabled="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}"/>
+                </StackPanel>
+                <StackPanel Grid.Row="1" Grid.Column="1">
+                    <RadioButton Content="Knockback" IsChecked="{Binding Path=SelectedActiveAttackConfiguration.KnockBackOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=KnockBack}" IsEnabled="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}" GroupName="KnockBackGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                    <RadioButton Content="Knocked Down" IsChecked="{Binding Path=SelectedActiveAttackConfiguration.KnockBackOption, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=KnockDown}" IsEnabled="{Binding Path=SelectedActiveAttackConfiguration.AttackResult, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Hit}" GroupName="KnockBackGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White"/>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="2">
+                    <Button x:Name="btnOk" BorderBrush="#FF1144FF" Background="Transparent" Foreground="White" Width="30" Margin="2" Content="OK" Command="{Binding SetActiveAttackCommand}"/>
+                    <Button x:Name="btnCancel" BorderBrush="#FF1144FF" Background="Transparent" Foreground="White" Width="40" Margin="2"  Content="Cancel" Command="{Binding CancelActiveAttackCommand}"/>
+                </StackPanel>
+            </Grid>
+        </GroupBox.Content>
+        
+    </GroupBox>
+    
 </UserControl>

@@ -16,6 +16,7 @@ namespace Framework.WPF.Library.Enumerations
         CenterLeft,
         CenterRight,
         CenterTop,
-        CenterBottom
+        CenterBottom,
+        MouseCursor
     }
 }
