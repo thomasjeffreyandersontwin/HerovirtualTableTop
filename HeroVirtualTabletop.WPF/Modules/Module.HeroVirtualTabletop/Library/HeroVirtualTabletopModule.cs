@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop
 {
@@ -62,6 +63,7 @@ namespace Module.HeroVirtualTabletop
             IPopupService popupService = this.container.Resolve<IPopupService>();
             popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
             popupService.Register("ActiveCharacterWidgetView", typeof(ActiveCharacterWidgetView));
+            popupService.Register("ActiveAttackView", typeof(ActiveAttackView));
 
             this.regionManager.RegisterViewWithRegion(RegionNames.Instance.HeroVirtualTabletopRegion, typeof(HeroVirtualTabletopMainView));
         }
@@ -81,6 +83,8 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<CharacterEditorView, CharacterEditorView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<CharacterEditorViewModel, CharacterEditorViewModel>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AbilityEditorView, AbilityEditorView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AbilityEditorViewModel, AbilityEditorViewModel>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<CharacterCrowdMainView, CharacterCrowdMainView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<CharacterCrowdMainViewModel, CharacterCrowdMainViewModel>(new ContainerControlledLifetimeManager());
@@ -95,6 +99,8 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<ActiveCharacterWidgetView, ActiveCharacterWidgetView>();
             this.container.RegisterType<ActiveCharacterWidgetViewModel, ActiveCharacterWidgetViewModel>();
+            this.container.RegisterType<ActiveAttackView, ActiveAttackView>();
+            this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>();
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
         }

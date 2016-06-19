@@ -51,11 +51,25 @@ namespace Module.Shared
         #endregion
 
         #region Character Explorer
+        public const string DEFAULT_CHARACTER_NAME = "DEFAULT";
+        public const string COMBAT_EFFECTS_CHARACTER_NAME = "COMBAT EFFECTS";
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
         #endregion
 
         #region Roster Explorer
         public const string NO_CROWD_CROWD_NAME = "No Crowd";
+        #endregion
+
+        #region Default Abilities and Animations
+
+        public const string STANDUP_ABILITY_NAME = "Standup Ability";
+        public const string ONHIT_ABITIY_NAME = "OnHit Ability";
+        public const string DODGE_ABILITY_NAME = "Dodge Ability";
+        public const string STUNNED_ABITIY_NAME = "Stunned Ability";
+        public const string UNCONCIOUS_ABITIY_NAME = "Unconcious Ability";
+        public const string DYING_ABILITY_NAME = "Dying Ability";
+        public const string DEATH_ABITIY_NAME = "Death Ability";
+
         #endregion
     }
 }

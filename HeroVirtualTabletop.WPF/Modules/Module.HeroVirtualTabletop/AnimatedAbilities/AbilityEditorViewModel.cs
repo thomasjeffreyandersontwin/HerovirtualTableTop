@@ -455,17 +455,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             // Unselect everything at the beginning
+            this.InitializeAnimationElementSelections();
+        }
+        
+        #endregion
+
+        #region Initialization
+
+        private void InitializeAnimationElementSelections()
+        {
             this.SelectedAnimationElement = null;
             this.SelectedAnimationParent = null;
             this.IsSequenceAbilitySelected = false;
             this.IsReferenceAbilitySelected = false;
             this.CurrentSequenceElement = null;
             this.CurrentReferenceElement = null;
+            this.CurrentAbility = null;
+            this.CurrentAttackAbility = null;
+            this.Owner = null;
         }
-        
-        #endregion
-
-        #region Initialization
 
         private void InitializeCommands()
         {
@@ -592,6 +600,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Load Animated Ability
         private void LoadAnimatedAbility(Tuple<AnimatedAbility, Character> tuple)
         {
+            this.InitializeAnimationElementSelections();
             this.IsShowingAbilityEditor = true;
             this.CurrentAttackAbility = tuple.Item1 as Attack;
             this.CurrentAbility = this.CurrentAttackAbility as AnimatedAbility;

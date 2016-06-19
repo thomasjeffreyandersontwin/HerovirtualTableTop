@@ -4,8 +4,10 @@ using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.Shared;
@@ -28,6 +30,10 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private IMessageBoxService messageBoxService;
         private EventAggregator eventAggregator;
+
+        private bool isPlayingAttack = false;
+        private Attack currentAttack = null;
+        private Character attackingCharacter = null;
         #endregion
 
         #region Events
@@ -93,6 +99,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
         public DelegateCommand<object> EditCharacterCommand { get; private set; }
         public DelegateCommand<object> ActivateCharacterCommand { get; private set; }
+        public DelegateCommand<object> ResetCharacterStateCommand { get; private set; }
 
         #endregion
 
@@ -107,6 +114,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipants);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(DeleteParticipant);
             this.eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Subscribe(CheckRosterConsistency);
+            this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(InitiateRosterCharacterAttack);
+            this.eventAggregator.GetEvent<SetActiveAttackEvent>().Subscribe(this.LaunchActiveAttack);
             InitializeCommands();
 
         }
@@ -127,6 +136,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
             this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
             this.ActivateCharacterCommand = new DelegateCommand<object>(this.ActivateCharacter);
+            this.ResetCharacterStateCommand = new DelegateCommand<object>(this.ResetCharacterState);
         }
 
         #endregion
@@ -361,13 +371,17 @@ namespace Module.HeroVirtualTabletop.Roster
 
             if (this.CanToggleTargeted(null))
             {
-                foreach (CrowdMemberModel member in SelectedParticipants)
+                CrowdMemberModel member = SelectedParticipants[0] as CrowdMemberModel;
+                if (member.IsTargeted)
+                    member.TargetAndFollow();
+                else
+                    member.ToggleTargeted();
+
+                if(this.isPlayingAttack)
                 {
-                    if (member.IsTargeted)
-                        member.TargetAndFollow();
-                    else
-                        member.ToggleTargeted();
-                }
+                    if(member.Name != this.attackingCharacter.Name)
+                        this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Character, Attack>(member as Character, this.currentAttack));
+                } 
             }
         }
         public void TargetAndFollow()
@@ -469,6 +483,58 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(this.ActiveCharacter as Character);
+        }
+
+        #endregion
+
+        #region Attack Animations
+
+        private void InitiateRosterCharacterAttack(Tuple<Character, Attack> attackInitiatedEventTuple)
+        {
+            Character attackingCharacter = attackInitiatedEventTuple.Item1;
+            Attack attack = attackInitiatedEventTuple.Item2;
+            CrowdMemberModel rosterCharacter = this.Participants.FirstOrDefault(p => p.Name == attackingCharacter.Name) as CrowdMemberModel;
+            if (rosterCharacter != null && attack != null)
+            {
+                this.isPlayingAttack = true;
+                this.currentAttack = attack;
+                this.attackingCharacter = attackingCharacter;
+                // Update character properties - icons in roster should show
+                ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
+                rosterCharacter.ActiveAttackConfiguration = activeAttack;
+            }
+        }
+
+        private void LaunchActiveAttack(Tuple<Character, ActiveAttackConfiguration, Attack> tuple)
+        {
+            Attack attack = tuple.Item3;
+            Character targetCharacter = tuple.Item1;
+            ActiveAttackConfiguration attackConfig = tuple.Item2;
+            CrowdMemberModel rosterCharacter = this.Participants.FirstOrDefault(p => p.Name == targetCharacter.Name) as CrowdMemberModel;
+            if(attackConfig.AttackResult == AttackResultOption.Hit)
+            {
+                ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.Defend, AttackEffectOption = attackConfig.AttackEffectOption };
+                targetCharacter.ActiveAttackConfiguration = activeAttack;
+            }
+            attack.AnimateAttackSequence(attackingCharacter, targetCharacter, attackConfig);
+            this.CompleteAttack(null);
+        }
+
+        private void CompleteAttack(object state)
+        {
+            this.isPlayingAttack = false;
+            this.currentAttack = null;
+            this.attackingCharacter = null;
+        }
+
+        private void ResetCharacterState(object state)
+        {
+            if(this.SelectedParticipants != null && this.SelectedParticipants.Count ==1)
+            {
+                Character rosterCharacter = this.SelectedParticipants[0] as Character;
+                rosterCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
+                // Write other necessary commands to restore character to normal state in the game
+            }
         }
 
         #endregion

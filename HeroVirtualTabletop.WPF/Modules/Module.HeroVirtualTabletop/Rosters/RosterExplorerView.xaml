@@ -17,8 +17,10 @@
                 <ResourceDictionary Source="/Module.Shared;Component/Resources/ResourceDictionary/GeneralResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <localconverters:CrowdNameConverter x:Key="CrowdNameConverter"/>
-            <converters:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter"></converters:BooleanToVisibilityConverter>
-            <localconverters:characterComparer x:Key="characterComparer"></localconverters:characterComparer>
+            <converters:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter"/>
+            <localconverters:characterComparer x:Key="characterComparer"/>
+            <localconverters:ActiveAttackToAnimationIconTextConverter x:Key="ActiveAttackToAnimationIconTextConverter"/>
+            <localconverters:ActiveAttackToVisibilityConverter x:Key="ActiveAttackToVisibilityConverter"/>
             <CollectionViewSource 
                 x:Key="ParticipantsView" 
                 Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
@@ -112,6 +114,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition ></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                         <Label Grid.Column="1" Foreground="Green"
@@ -135,6 +138,11 @@
                                 </Style>
                             </Label.Style>
                         </Label>
+                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration, Converter={StaticResource ActiveAttackToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration, Converter={StaticResource ActiveAttackToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStatusCommand}" MouseAction="LeftClick"/>
+                            </TextBlock.InputBindings>
+                        </TextBlock>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

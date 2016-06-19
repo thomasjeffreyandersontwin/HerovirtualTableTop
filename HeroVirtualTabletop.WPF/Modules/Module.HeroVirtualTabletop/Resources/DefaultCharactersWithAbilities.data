@@ -1,0 +1,2632 @@
+[
+  {
+    "$id": "1",
+    "$type": "Module.HeroVirtualTabletop.Crowds.CrowdModel, Module.HeroVirtualTabletop",
+    "Name": "Default Characters",
+    "Order": -1,
+    "CrowdMemberCollection": [
+      {
+        "$id": "2",
+        "$type": "Module.HeroVirtualTabletop.Crowds.CrowdMemberModel, Module.HeroVirtualTabletop",
+        "Name": "COMBAT EFFECTS",
+        "Order": 0,
+        "RosterCrowd": {
+          "$ref": "1"
+        },
+        "SavedPosition": null,
+        "Position": {
+          "$id": "3",
+          "$type": "Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position, Module.HeroVirtualTabletop",
+          "X": 137.5,
+          "Y": 0.2510662,
+          "Z": -112.0,
+          "IsReal": true
+        },
+        "AvailableIdentities": [
+          {
+            "$id": "4",
+            "$type": "Module.HeroVirtualTabletop.Identities.Identity, Module.HeroVirtualTabletop",
+            "Name": "Base",
+            "Surface": "Model_Statesman",
+            "Type": 0,
+            "AnimationOnLoad": null
+          }
+        ],
+        "DefaultIdentity": {
+          "$ref": "4"
+        },
+        "ActiveIdentity": {
+          "$ref": "4"
+        },
+        "AnimatedAbilities": [
+          {
+            "$id": "5",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "6",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.ReferenceAbility, Module.HeroVirtualTabletop",
+                "Type": 3,
+                "DisplayName": "Dying",
+                "ReferenceType": 0,
+                "Reference": {
+                  "$id": "7",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+                  "AnimationElements": [
+                    {
+                      "$id": "8",
+                      "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                      "Name": "Mov Element 1",
+                      "Order": 1,
+                      "Owner": {
+                        "$ref": "2"
+                      },
+                      "Type": 0,
+                      "DisplayName": "DEFAULT_DEATH",
+                      "PlayOnTargeted": false,
+                      "Persistent": false,
+                      "Resource": {
+                        "$id": "9",
+                        "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                        "Tags": [
+                          "Combat"
+                        ],
+                        "Name": "DEFAULT_DEATH",
+                        "Value": "DEFAULT_DEATH",
+                        "Reference": null
+                      }
+                    },
+                    {
+                      "$id": "10",
+                      "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                      "Name": "Mov Element 2",
+                      "Order": 2,
+                      "Owner": {
+                        "$ref": "2"
+                      },
+                      "Type": 0,
+                      "DisplayName": "IMPACT_DEATH",
+                      "PlayOnTargeted": false,
+                      "Persistent": false,
+                      "Resource": {
+                        "$id": "11",
+                        "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                        "Tags": [
+                          "Combat"
+                        ],
+                        "Name": "IMPACT_DEATH",
+                        "Value": "IMPACT_DEATH",
+                        "Reference": null
+                      }
+                    }
+                  ],
+                  "AttackAnimation": {
+                    "$ref": "7"
+                  },
+                  "OnHitAnimation": {
+                    "$id": "12",
+                    "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+                    "AnimationElements": [],
+                    "ActivateOnKey": 0,
+                    "IsAttack": false,
+                    "SequenceType": 0,
+                    "LastOrder": 0,
+                    "Name": "Ability - DefenderHit",
+                    "Order": 1,
+                    "Owner": {
+                      "$ref": "2"
+                    },
+                    "Type": 4,
+                    "DisplayName": null,
+                    "PlayOnTargeted": false,
+                    "Persistent": false,
+                    "Resource": {
+                      "$id": "13",
+                      "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                      "Tags": [],
+                      "Name": null,
+                      "Value": "",
+                      "Reference": null
+                    }
+                  },
+                  "AttackEffect": null,
+                  "ActivateOnKey": 0,
+                  "IsAttack": false,
+                  "SequenceType": 1,
+                  "LastOrder": 2,
+                  "Name": "Dying",
+                  "Order": 1,
+                  "Owner": {
+                    "$ref": "2"
+                  },
+                  "Type": 4,
+                  "DisplayName": null,
+                  "PlayOnTargeted": false,
+                  "Persistent": false,
+                  "Resource": {
+                    "$id": "14",
+                    "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                    "Tags": [],
+                    "Name": null,
+                    "Value": "",
+                    "Reference": null
+                  }
+                },
+                "Name": "Ref Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "15",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [],
+                  "Name": "Dying",
+                  "Value": null,
+                  "Reference": {
+                    "$ref": "7"
+                  }
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "5"
+            },
+            "OnHitAnimation": {
+              "$id": "16",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "17",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Dead",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "18",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "19",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "20",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "Slab",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "21",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "Slab",
+                  "Value": "Slab",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "22",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 2",
+                "Order": 2,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "DEAD_GUARD_1",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "23",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "DEAD_GUARD_1",
+                  "Value": "DEAD_GUARD_1",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "24",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 3",
+                "Order": 3,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "DEAD_GUARD_2",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "25",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "DEAD_GUARD_2",
+                  "Value": "DEAD_GUARD_2",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "26",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 4",
+                "Order": 4,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "DEAD_GUARD_3",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "27",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "DEAD_GUARD_3",
+                  "Value": "DEAD_GUARD_3",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "28",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 5",
+                "Order": 5,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "DEAD_GUARD_4",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "29",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "DEAD_GUARD_4",
+                  "Value": "DEAD_GUARD_4",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "30",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 6",
+                "Order": 6,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "DEAD_GUARD_5",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "31",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "DEAD_GUARD_5",
+                  "Value": "DEAD_GUARD_5",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "19"
+            },
+            "OnHitAnimation": {
+              "$id": "32",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "33",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 1,
+            "LastOrder": 6,
+            "Name": "Dead on the Floor",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "34",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "35",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "36",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "RAGDOLL_BELLY",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "37",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "RAGDOLL_BELLY",
+                  "Value": "RAGDOLL_BELLY",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "35"
+            },
+            "OnHitAnimation": {
+              "$id": "38",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "39",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Dump",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "40",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$ref": "7"
+          },
+          {
+            "$id": "41",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "42",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "JUMPJETPACK_DAMAGE",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "43",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "SuperStrength"
+                  ],
+                  "Name": "JUMPJETPACK_DAMAGE",
+                  "Value": "JUMPJETPACK_DAMAGE",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "44",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 2",
+                "Order": 2,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "HITQUICK",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "45",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTH"
+                  ],
+                  "Name": "HITQUICK",
+                  "Value": "HITQUICK",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "46",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 3",
+                "Order": 3,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "HITQUICK",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "45"
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "41"
+            },
+            "OnHitAnimation": {
+              "$id": "47",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "48",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 1,
+            "LastOrder": 3,
+            "Name": "Hit",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "49",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "50",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "51",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "P_GETPUSHED",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "52",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Tech"
+                  ],
+                  "Name": "P_GETPUSHED",
+                  "Value": "P_GETPUSHED",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "50"
+            },
+            "OnHitAnimation": {
+              "$id": "53",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "54",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Move Through Hit",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "55",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "56",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "57",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "BARF",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "58",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "BARF",
+                  "Value": "BARF",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "59",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 2",
+                "Order": 2,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "BODY_COLLAPSE_IN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "60",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "BODY_COLLAPSE_IN",
+                  "Value": "BODY_COLLAPSE_IN",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "61",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 3",
+                "Order": 3,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "62",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "STUN",
+                  "Value": "STUN",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "63",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 4",
+                "Order": 4,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "64",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 5",
+                "Order": 5,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "65",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 6",
+                "Order": 6,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "66",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 7",
+                "Order": 7,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "67",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 8",
+                "Order": 8,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "68",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 9",
+                "Order": 9,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "69",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 10",
+                "Order": 10,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              },
+              {
+                "$id": "70",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 11",
+                "Order": 11,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "STUN",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$ref": "62"
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "56"
+            },
+            "OnHitAnimation": {
+              "$id": "71",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "72",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 1,
+            "LastOrder": 11,
+            "Name": "Stunned",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "73",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "74",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "75",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "AIR_DEATH",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "76",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Knockback"
+                  ],
+                  "Name": "AIR_DEATH",
+                  "Value": "AIR_DEATH",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "74"
+            },
+            "OnHitAnimation": {
+              "$id": "77",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "78",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Throw Hit",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "79",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "80",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "81",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "2"
+                },
+                "Type": 0,
+                "DisplayName": "EMOTE_COLLAPSE_PRE",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "82",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "COMBAT"
+                  ],
+                  "Name": "EMOTE_COLLAPSE_PRE",
+                  "Value": "EMOTE_COLLAPSE_PRE",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "80"
+            },
+            "OnHitAnimation": {
+              "$id": "83",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "2"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "84",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 1,
+            "LastOrder": 1,
+            "Name": "Unconcious",
+            "Order": 1,
+            "Owner": {
+              "$ref": "2"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "85",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          }
+        ]
+      },
+      {
+        "$id": "86",
+        "$type": "Module.HeroVirtualTabletop.Crowds.CrowdMemberModel, Module.HeroVirtualTabletop",
+        "Name": "DEFAULT",
+        "Order": 0,
+        "RosterCrowd": {
+          "$ref": "1"
+        },
+        "SavedPosition": null,
+        "Position": {
+          "$id": "87",
+          "$type": "Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position, Module.HeroVirtualTabletop",
+          "X": 137.5,
+          "Y": 0.2510662,
+          "Z": -112.0,
+          "IsReal": true
+        },
+        "AvailableIdentities": [
+          {
+            "$id": "88",
+            "$type": "Module.HeroVirtualTabletop.Identities.Identity, Module.HeroVirtualTabletop",
+            "Name": "Base",
+            "Surface": "Model_Statesman",
+            "Type": 0,
+            "AnimationOnLoad": null
+          }
+        ],
+        "DefaultIdentity": {
+          "$ref": "88"
+        },
+        "ActiveIdentity": {
+          "$ref": "88"
+        },
+        "AnimatedAbilities": [
+          {
+            "$id": "89",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "90",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "HIT_BOOST_D",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "91",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "HIT_BOOST_D",
+                  "Value": "HIT_BOOST_D",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "89"
+            },
+            "OnHitAnimation": {
+              "$id": "92",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "93",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Recovery",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "94",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "95",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "96",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "DRAW_GUNSLINGER",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "97",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "WeaponsPistol"
+                  ],
+                  "Name": "DRAW_GUNSLINGER",
+                  "Value": "DRAW_GUNSLINGER",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "95"
+            },
+            "OnHitAnimation": {
+              "$id": "98",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "99",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Draw Weapon",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "100",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "101",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "102",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "C_DODGE_L",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "103",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "SuperReflexes"
+                  ],
+                  "Name": "C_DODGE_L",
+                  "Value": "C_DODGE_L",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "101"
+            },
+            "OnHitAnimation": {
+              "$id": "104",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "105",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Dodge",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "106",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "107",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "108",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "A_SUPERPUNCH_R",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "109",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTH"
+                  ],
+                  "Name": "A_SUPERPUNCH_R",
+                  "Value": "A_SUPERPUNCH_R",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "107"
+            },
+            "OnHitAnimation": {
+              "$id": "110",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "111",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Strike",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "112",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "113",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "114",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "A_CRUSHING_UPPERCUT",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "115",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTHCrushing"
+                  ],
+                  "Name": "A_CRUSHING_UPPERCUT",
+                  "Value": "A_CRUSHING_UPPERCUT",
+                  "Reference": null
+                }
+              },
+              {
+                "$id": "116",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 2",
+                "Order": 2,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "CRUSHING_BLOW_FAST",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "117",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTHCrushing"
+                  ],
+                  "Name": "CRUSHING_BLOW_FAST",
+                  "Value": "CRUSHING_BLOW_FAST",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "113"
+            },
+            "OnHitAnimation": {
+              "$id": "118",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "119",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 1,
+            "LastOrder": 2,
+            "Name": "HayMaker",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "120",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "121",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "122",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "DUALWIELD_KNEEL",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "123",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "WeaponsDual"
+                  ],
+                  "Name": "DUALWIELD_KNEEL",
+                  "Value": "DUALWIELD_KNEEL",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "121"
+            },
+            "OnHitAnimation": {
+              "$id": "124",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "125",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Prone",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "126",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "127",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [],
+            "AttackAnimation": {
+              "$ref": "127"
+            },
+            "OnHitAnimation": {
+              "$id": "128",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "129",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 0,
+            "Name": "Move By",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "130",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "131",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [],
+            "AttackAnimation": {
+              "$ref": "131"
+            },
+            "OnHitAnimation": {
+              "$id": "132",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "133",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 0,
+            "Name": "Move Through",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "134",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "135",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [],
+            "AttackAnimation": {
+              "$ref": "135"
+            },
+            "OnHitAnimation": {
+              "$id": "136",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "137",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 0,
+            "Name": "Grab",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "138",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "139",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "140",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "AXE_CHOP",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "141",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "WeaponsHTHAxe"
+                  ],
+                  "Name": "AXE_CHOP",
+                  "Value": "AXE_CHOP",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "139"
+            },
+            "OnHitAnimation": {
+              "$id": "142",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "143",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Disarm",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "144",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "145",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "146",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "W_THROWBRAWL",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "147",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "RangeThrow"
+                  ],
+                  "Name": "W_THROWBRAWL",
+                  "Value": "W_THROWBRAWL",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "145"
+            },
+            "OnHitAnimation": {
+              "$id": "148",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "149",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Throw",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "150",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "151",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "152",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "BLOCK_R",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "153",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTH"
+                  ],
+                  "Name": "BLOCK_R",
+                  "Value": "BLOCK_R",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "151"
+            },
+            "OnHitAnimation": {
+              "$id": "154",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "155",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Block",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "156",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "157",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "158",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "SHIELD_KNEEL",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "159",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "WeaponsShield"
+                  ],
+                  "Name": "SHIELD_KNEEL",
+                  "Value": "SHIELD_KNEEL",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "157"
+            },
+            "OnHitAnimation": {
+              "$id": "160",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "161",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Set",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "162",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "163",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "164",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "Rapid",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "165",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "RangeTwoHandedBurst"
+                  ],
+                  "Name": "Rapid",
+                  "Value": "Rapid",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "163"
+            },
+            "OnHitAnimation": {
+              "$id": "166",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "167",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Rapid Fire",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "168",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "169",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "170",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "DEFENSIVE_SWEEP_FAST",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "171",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTH"
+                  ],
+                  "Name": "DEFENSIVE_SWEEP_FAST",
+                  "Value": "DEFENSIVE_SWEEP_FAST",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "169"
+            },
+            "OnHitAnimation": {
+              "$id": "172",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability (1) - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "173",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Sweep",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "174",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "175",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "176",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "HOP2",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "177",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "SuperLeap"
+                  ],
+                  "Name": "HOP2",
+                  "Value": "HOP2",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "175"
+            },
+            "OnHitAnimation": {
+              "$id": "178",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "179",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Jump",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "180",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "181",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "182",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "GETUP_BACK",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "183",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "Combat"
+                  ],
+                  "Name": "GETUP_BACK",
+                  "Value": "GETUP_BACK",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "181"
+            },
+            "OnHitAnimation": {
+              "$id": "184",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "185",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Stand Up",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "186",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "187",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "188",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "C_DODGE_L",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "189",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "SuperReflexes"
+                  ],
+                  "Name": "C_DODGE_L",
+                  "Value": "C_DODGE_L",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "187"
+            },
+            "OnHitAnimation": {
+              "$id": "190",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "191",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Miss",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "192",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          },
+          {
+            "$id": "193",
+            "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.Attack, Module.HeroVirtualTabletop",
+            "AnimationElements": [
+              {
+                "$id": "194",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.MOVElement, Module.HeroVirtualTabletop",
+                "Name": "Mov Element 1",
+                "Order": 1,
+                "Owner": {
+                  "$ref": "86"
+                },
+                "Type": 0,
+                "DisplayName": "C_SPINNING_STRIKE_HIT",
+                "PlayOnTargeted": false,
+                "Persistent": false,
+                "Resource": {
+                  "$id": "195",
+                  "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                  "Tags": [
+                    "HTHCombat"
+                  ],
+                  "Name": "C_SPINNING_STRIKE_HIT",
+                  "Value": "C_SPINNING_STRIKE_HIT",
+                  "Reference": null
+                }
+              }
+            ],
+            "AttackAnimation": {
+              "$ref": "193"
+            },
+            "OnHitAnimation": {
+              "$id": "196",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop",
+              "AnimationElements": [],
+              "ActivateOnKey": 0,
+              "IsAttack": false,
+              "SequenceType": 0,
+              "LastOrder": 0,
+              "Name": "Ability - DefenderHit",
+              "Order": 1,
+              "Owner": {
+                "$ref": "86"
+              },
+              "Type": 4,
+              "DisplayName": null,
+              "PlayOnTargeted": false,
+              "Persistent": false,
+              "Resource": {
+                "$id": "197",
+                "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+                "Tags": [],
+                "Name": null,
+                "Value": "",
+                "Reference": null
+              }
+            },
+            "AttackEffect": null,
+            "ActivateOnKey": 0,
+            "IsAttack": false,
+            "SequenceType": 0,
+            "LastOrder": 1,
+            "Name": "Hit",
+            "Order": 1,
+            "Owner": {
+              "$ref": "86"
+            },
+            "Type": 4,
+            "DisplayName": null,
+            "PlayOnTargeted": false,
+            "Persistent": false,
+            "Resource": {
+              "$id": "198",
+              "$type": "Module.HeroVirtualTabletop.AnimatedAbilities.AnimationResource, Module.HeroVirtualTabletop",
+              "Tags": [],
+              "Name": null,
+              "Value": "",
+              "Reference": null
+            }
+          }
+        ]
+      }
+    ],
+    "SavedPositions": {
+      "$id": "199",
+      "$type": "System.Collections.Generic.Dictionary`2[[System.String, mscorlib],[Module.HeroVirtualTabletop.Library.ProcessCommunicator.IMemoryElementPosition, Module.HeroVirtualTabletop]], mscorlib"
+    }
+  }
+]

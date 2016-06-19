@@ -40,6 +40,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             availableIdentities = new OptionGroup<Identity>();
             animatedAbilities = new OptionGroup<AnimatedAbility>();
+            this.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
         }
 
         public Character(string name): this()
@@ -119,6 +120,21 @@ namespace Module.HeroVirtualTabletop.Characters
                 name = value;
                 SetActiveIdentity();
                 OnPropertyChanged("Name");
+            }
+        }
+
+        private ActiveAttackConfiguration activeAttackConfig;
+        [JsonIgnore]
+        public ActiveAttackConfiguration ActiveAttackConfiguration
+        {
+            get
+            {
+                return activeAttackConfig;
+            }
+            set
+            {
+                activeAttackConfig = value;
+                OnPropertyChanged("ActiveAttackConfiguration");
             }
         }
 

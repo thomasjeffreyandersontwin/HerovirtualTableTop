@@ -9,10 +9,12 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared.Events;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -139,7 +141,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.Owner = owner;
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
+            InitializeAttackEventHandlers();
             InitializeCommands();
+            this.eventAggregator.GetEvent<AttackTargetSelectedEvent>().Subscribe(Ability_AttackTargetSelected);
         }
 
         private void Owner_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -402,10 +406,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         
         private void AddAbility(object state)
         {
-            (optionGroup as OptionGroup<AnimatedAbility>).Add(GetNewAbility());
+            Attack attack = GetNewAttackAbility();
+            (optionGroup as OptionGroup<AnimatedAbility>).Add(attack);
+
+            InitializeAttackEventHandlers(attack);
         }
         
-        private AnimatedAbility GetNewAbility()
+        private Attack GetNewAttackAbility()
         {
             return new Attack(optionGroup.NewValidOptionName("Ability"), owner: this.Owner);
         }
@@ -419,9 +426,47 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else if (typeof(T) == typeof(AnimatedAbility))
             {
-                Attack ability = (Attack)Convert.ChangeType(SelectedOption, typeof(Attack));
-                eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(ability, Owner));
+                Attack attack = (Attack)Convert.ChangeType(SelectedOption, typeof(Attack));
+                InitializeAttackEventHandlers(attack);
+                eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(attack, Owner));
             }
+        }
+
+        private void InitializeAttackEventHandlers(Attack attack)
+        {
+            attack.AttackInitiated -= this.Ability_AttackInitiated;
+            attack.AttackInitiated += Ability_AttackInitiated;
+        }
+
+        private void InitializeAttackEventHandlers()
+        {
+            if (typeof(T) == typeof(AnimatedAbility))
+            {
+                foreach(var option in this.OptionGroup)
+                {
+                    Attack attack = (Attack)Convert.ChangeType(option, typeof(Attack));
+                    InitializeAttackEventHandlers(attack);
+                }
+            }
+        }
+
+        private void Ability_AttackInitiated(object sender, EventArgs e)
+        {
+            Character targetCharacter = sender as Character;
+            CustomEventArgs<Attack> customEventArgs = e as CustomEventArgs<Attack>;
+            if(targetCharacter != null && customEventArgs != null)
+            {
+                // Change mouse pointer to bulls eye
+                Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
+                Mouse.OverrideCursor = cursor;
+                // Inform Roster to update attacker
+                this.eventAggregator.GetEvent<AttackInitiatedEvent>().Publish(new Tuple<Character, Attack>(targetCharacter, customEventArgs.Value));
+            }
+        }
+
+        private void Ability_AttackTargetSelected(Tuple<Character, Attack> targetSelectedEventTuple)
+        {
+
         }
 
         #endregion

@@ -4,6 +4,7 @@ using Framework.WPF.Library.Enumerations;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
@@ -23,6 +24,7 @@ using System.IO.Compression;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Resources;
 
@@ -72,7 +74,8 @@ namespace Module.HeroVirtualTabletop.Library
             LoadMainView();
 
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
-            
+            this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.LoadActiveAttackWidget);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttackWidget);
         }
 
         #endregion
@@ -91,7 +94,7 @@ namespace Module.HeroVirtualTabletop.Library
 
         private void ReleaseAllSoundResource(CancelEventArgs e)
         {
-            this.eventAggregator.GetEvent<StopAllActiveAbilities>().Publish(null);
+            this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Publish(null);
         }
         
         private void LoadActiveCharacterWidget(Character character)
@@ -112,6 +115,28 @@ namespace Module.HeroVirtualTabletop.Library
             {
                 PopupService.CloseDialog("ActiveCharacterWidgetView");
             }
+        }
+
+        private void LoadActiveAttackWidget(Tuple<Character, Attack> tuple)
+        {
+            if (tuple.Item1 != null && tuple.Item2 != null && PopupService.IsOpen("ActiveAttackView") == false)
+            {
+                System.Windows.Style style = Helper.GetCustomWindowStyle();
+                ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
+                var position = System.Windows.Forms.Cursor.Position;
+                Mouse.OverrideCursor = Cursors.Arrow;
+                PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+                this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Publish(tuple);
+            }
+            else if ((tuple.Item1 == null || tuple.Item2 == null) && PopupService.IsOpen("ActiveAttackView"))
+            {
+                PopupService.CloseDialog("ActiveAttackView");
+            }
+        }
+
+        private void CloseActiveAttackWidget(object state)
+        {
+            PopupService.CloseDialog("ActiveAttackView");
         }
         
         private void LaunchGame()

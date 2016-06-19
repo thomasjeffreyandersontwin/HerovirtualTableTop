@@ -498,6 +498,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("PlayWithNext");
             }
         }
+        [JsonIgnore]
+        public AttackDirection AttackDirection
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
         public string CostumeText
@@ -546,8 +552,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 insertFXIntoCharacterCostumeFile(origFile, newFile);
                 string fxCostume = Path.Combine(name, string.Format("{0}_{1}", name, FXName));
+                string fireCoOrdinates = null;
+                if(this.AttackDirection != null)
+                {
+                    fireCoOrdinates = string.Format("x:{0} y:{1} z:{2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
+                }
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume);
+                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
                 if (PlayWithNext == false)
                 {
                     keybind = keyBindsGenerator.CompleteEvent();

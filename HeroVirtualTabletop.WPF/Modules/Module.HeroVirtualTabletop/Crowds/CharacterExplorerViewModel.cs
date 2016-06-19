@@ -22,6 +22,8 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Module.Shared.Events;
 using System.Windows;
+using System.IO;
+using System.Reflection;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -221,7 +223,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             InitializeCommands();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
-            this.eventAggregator.GetEvent<StopAllActiveAbilities>().Subscribe(this.StopAllActiveAbilities);
+            this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Subscribe(this.StopAllActiveAbilities);
             //LoadCrowdCollection(Application.Current.MainWindow);
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
         }
@@ -380,6 +382,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             Action d =
                delegate ()
                {
+                   this.AddDefaultCharactersWithDefaultAbilities();
                    var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
                    eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
                };
@@ -389,6 +392,32 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.crowdCollectionLoaded = true;
         }
 
+        private void AddDefaultCharactersWithDefaultAbilities()
+        {
+            var defaultCharacter = this.AllCharactersCrowd.CrowdMemberCollection.FirstOrDefault(m=>m.Name == Constants.DEFAULT_CHARACTER_NAME);
+            var combatEffectsCharacter = this.AllCharactersCrowd.CrowdMemberCollection.FirstOrDefault(m => m.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME);
+            if(defaultCharacter == null || combatEffectsCharacter == null)
+            {
+                var defaultCrowdCollection = this.crowdRepository.LoadDefaultCrowdMembers();
+                if (defaultCharacter == null)
+                {
+                    defaultCharacter = defaultCrowdCollection[0].CrowdMemberCollection.FirstOrDefault(cm => cm.Name == Constants.DEFAULT_CHARACTER_NAME);
+                    if (defaultCharacter != null)
+                    {
+                        this.AddCharacterToAllCharactersCrowd(defaultCharacter as Character);
+                    }
+                }
+                if (combatEffectsCharacter == null)
+                {
+                    combatEffectsCharacter = defaultCrowdCollection[0].CrowdMemberCollection.FirstOrDefault(cm => cm.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME);
+                    if (defaultCharacter != null)
+                    {
+                        this.AddCharacterToAllCharactersCrowd(combatEffectsCharacter as Character);
+                    }
+                }
+            }
+            
+        }
 
         #endregion
 
