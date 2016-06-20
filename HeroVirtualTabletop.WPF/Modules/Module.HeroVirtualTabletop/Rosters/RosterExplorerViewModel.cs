@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared;
 using Prism.Events;
 using System;
@@ -500,8 +501,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.currentAttack = attack;
                 this.attackingCharacter = attackingCharacter;
                 // Update character properties - icons in roster should show
-                ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
-                rosterCharacter.ActiveAttackConfiguration = activeAttack;
+                rosterCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
             }
         }
 
@@ -511,16 +511,22 @@ namespace Module.HeroVirtualTabletop.Roster
             Character targetCharacter = tuple.Item1;
             ActiveAttackConfiguration attackConfig = tuple.Item2;
             CrowdMemberModel rosterCharacter = this.Participants.FirstOrDefault(p => p.Name == targetCharacter.Name) as CrowdMemberModel;
+            attack.AnimateAttackSequence(attackingCharacter, targetCharacter, attackConfig);
+            // Update AttackConfig to update icons based on attack effect
             if(attackConfig.AttackResult == AttackResultOption.Hit)
             {
                 ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.Defend, AttackEffectOption = attackConfig.AttackEffectOption };
                 targetCharacter.ActiveAttackConfiguration = activeAttack;
             }
-            attack.AnimateAttackSequence(attackingCharacter, targetCharacter, attackConfig);
-            this.CompleteAttack(null);
+            // Update Mouse cursor
+            Mouse.OverrideCursor = Cursors.Arrow;
+            // Hide attack icon from attacking character
+            if(this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
+                this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
+            this.ResetAttack();
         }
 
-        private void CompleteAttack(object state)
+        private void ResetAttack()
         {
             this.isPlayingAttack = false;
             this.currentAttack = null;
@@ -529,11 +535,26 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ResetCharacterState(object state)
         {
-            if(this.SelectedParticipants != null && this.SelectedParticipants.Count ==1)
+            if(state != null && this.Participants != null)
             {
-                Character rosterCharacter = this.SelectedParticipants[0] as Character;
-                rosterCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
-                // Write other necessary commands to restore character to normal state in the game
+                string charName = state.ToString();
+                Character defendingCharacter = this.Participants.FirstOrDefault(p => p.Name == charName) as Character;
+                if (defendingCharacter != null && defendingCharacter.ActiveAttackConfiguration != null)
+                {
+                    // Make him stand up 
+                    if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+                    {
+                        var globalStandUpAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.STANDUP_ABILITY_NAME);
+                        if (globalStandUpAbility != null && globalStandUpAbility.AnimationElements != null && globalStandUpAbility.AnimationElements.Count > 0)
+                        {
+                            globalStandUpAbility.Play(false, defendingCharacter);
+                        }
+                    } 
+                    // Update icons in Roster
+                    defendingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
+                    defendingCharacter.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
+                    //defendingCharacter.ActiveAttackConfiguration = null;
+                }
             }
         }
 

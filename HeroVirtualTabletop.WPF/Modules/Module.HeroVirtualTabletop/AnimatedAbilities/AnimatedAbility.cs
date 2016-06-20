@@ -1,8 +1,10 @@
 ﻿using Framework.WPF.Library;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
+using Module.Shared;
 using Module.Shared.Events;
 using Newtonsoft.Json;
 using System;
@@ -148,20 +150,66 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Stop(character);
             if (this.Persistent || persistent)
                 IsActive = true;
-            // Change the costume to Complementary color - Chris to do
+            // Change the costume to Complementary color - CHRIS to do
             
-            // FIRE AN EVENT TO UPDATE ROSTER AND DECIDE ABOUT TARGET
+            // Fire event to update Roster and select target
             OnAttackInitiated(character, new CustomEventArgs<Attack> { Value = this });
 
             return null;
         }
 
-        public string AnimateHit(ActiveAttackConfiguration attackConfiguration, Character target = null)
+        public string AnimateHit(ActiveAttackConfiguration attackConfiguration, Character target)
         {
+            // Play the attack's on hit ability if there exists one
+            if(this.OnHitAnimation != null && this.OnHitAnimation.AnimationElements != null && this.OnHitAnimation.AnimationElements.Count >0)
+            {
+                this.OnHitAnimation.Play(false, target);
+            }
+            else // Or play the default hit ability
+            {
+                if(Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+                {
+                    var globalHitAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.HIT_ABITIY_NAME);
+                    if(globalHitAbility != null && globalHitAbility.AnimationElements != null && globalHitAbility.AnimationElements.Count > 0)
+                    {
+                        globalHitAbility.Play(false, target);
+                    }
+                }
+            }
+            // TODO: Animate Knockback
+            this.AnimateKnockBack(attackConfiguration, target);
+            // Now play most severe of effects
+            this.AnimateAttackEffects(attackConfiguration, target);
             return null;
         }
-
-        public void AnimateAttack(AttackDirection direction, Character attacker = null)
+        public string AnimateAttackEffects(ActiveAttackConfiguration attackConfiguration, Character target)
+        {
+            if (Helper.GlobalCombatAbilities != null && Helper.GlobalCombatAbilities.Count > 0)
+            {
+                switch (attackConfiguration.AttackEffectOption)
+                {
+                    case AttackEffectOption.Dead:
+                        var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
+                        globalDeadAbility.Play(false, target);
+                        break;
+                    case AttackEffectOption.Dying:
+                        var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
+                        globalDyingAbility.Play(false, target);
+                        break;
+                    case AttackEffectOption.Unconcious:
+                        var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
+                        globalUnconciousAbility.Play(false, target);
+                        break;
+                    case AttackEffectOption.Stunned:
+                        var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
+                        globalStunnedAbility.Play(false, target);
+                        break;
+                }
+            }
+            
+            return null;
+        }
+        public void AnimateAttack(AttackDirection direction, Character attacker)
         {
             foreach(var animation in this.AnimationElements)
             {
@@ -171,7 +219,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
             base.Play(false, attacker); // TODISCUSS: Can an attack actually be persistent and should we allow playing it as persistent?
-            // Restore FX direction as attack is complete
+            // Restet FX direction
             foreach (var animation in this.AnimationElements)
             {
                 if (animation is FXEffectElement)
@@ -182,12 +230,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public void AnimateMiss(ActiveAttackConfiguration attackConfiguration, Character target = null)
+        public void AnimateMiss(ActiveAttackConfiguration attackConfiguration, Character target)
         {
-
+            // Just play the default miss ability on the defender
+            if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+            {
+                var globalMissAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.MISS_ABITIY_NAME);
+                if (globalMissAbility != null && globalMissAbility.AnimationElements != null && globalMissAbility.AnimationElements.Count > 0)
+                {
+                    globalMissAbility.Play(false, target);
+                }
+            }
         }
 
-        public void AnimateKnockBack(ActiveAttackConfiguration attackConfiguration, Character target = null)
+        public void AnimateKnockBack(ActiveAttackConfiguration attackConfiguration, Character target)
         {
 
         }

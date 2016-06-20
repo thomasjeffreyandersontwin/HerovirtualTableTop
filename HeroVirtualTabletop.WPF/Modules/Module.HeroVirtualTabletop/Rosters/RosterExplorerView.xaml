@@ -19,8 +19,9 @@
             <localconverters:CrowdNameConverter x:Key="CrowdNameConverter"/>
             <converters:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter"/>
             <localconverters:characterComparer x:Key="characterComparer"/>
-            <localconverters:ActiveAttackToAnimationIconTextConverter x:Key="ActiveAttackToAnimationIconTextConverter"/>
-            <localconverters:ActiveAttackToVisibilityConverter x:Key="ActiveAttackToVisibilityConverter"/>
+            <localconverters:ActiveAttackEffectToAnimationIconTextConverter x:Key="ActiveAttackEffectToAnimationIconTextConverter"/>
+            <localconverters:ActiveAttackModeToVisibilityConverter x:Key="ActiveAttackModeToVisibilityConverter"/>
+            <localconverters:ActiveAttackModeToAnimationIconTextConverter x:Key="ActiveAttackModeToAnimationIconTextConverter"/>
             <CollectionViewSource 
                 x:Key="ParticipantsView" 
                 Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
@@ -115,8 +116,9 @@
                             <ColumnDefinition ></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                        <TextBlock Name="txtBlockCharacterName" Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                         <Label Grid.Column="1" Foreground="Green"
                                FontFamily="{StaticResource ResourceKey=FontFamily_FontAwesome}"
                                FontSize="26" Content="&#xf00c;" VerticalAlignment="Center"
@@ -138,9 +140,14 @@
                                 </Style>
                             </Label.Style>
                         </Label>
-                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration, Converter={StaticResource ActiveAttackToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration, Converter={StaticResource ActiveAttackToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock.InputBindings>
+                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!--<TextBlock.InputBindings>
                                 <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStatusCommand}" MouseAction="LeftClick"/>
+                            </TextBlock.InputBindings>-->
+                        </TextBlock>
+                        <TextBlock Grid.Column="3" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                             </TextBlock.InputBindings>
                         </TextBlock>
                     </Grid>
