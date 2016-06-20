@@ -126,11 +126,6 @@ namespace Module.HeroVirtualTabletop.Identities
 
         public string Render(bool completeEvent = true)
         {
-            if (completeEvent)
-            {
-                if(AnimationOnLoad != null)
-                    AnimationOnLoad.Play();
-            }
             string keybind = string.Empty;
             switch (Type)
             {
@@ -148,6 +143,8 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
+                if (AnimationOnLoad != null)
+                    AnimationOnLoad.Play();
             }
             return keybind;
         }

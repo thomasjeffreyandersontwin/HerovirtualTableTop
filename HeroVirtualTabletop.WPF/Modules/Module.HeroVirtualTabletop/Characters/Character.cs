@@ -15,6 +15,9 @@ using Module.Shared.Enumerations;
 using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using System.Text.RegularExpressions;
+using System.Windows.Media;
+using Framework.WPF.Extensions;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -506,6 +509,103 @@ namespace Module.HeroVirtualTabletop.Characters
                 animatedAbilities = value;
                 OnPropertyChanged("AnimatedAbilities");
             }
+        }
+
+        public void Activate()
+        {
+            if (HasBeenSpawned && this.ActiveIdentity.Type == IdentityType.Costume)
+            {
+                Target(false);
+                string name = this.Name;
+                string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
+                string file = name + Constants.GAME_COSTUMES_EXT;
+                string origFile = Path.Combine(location, file);
+                //Archive original file
+                string archFile = Path.Combine(
+                Settings.Default.CityOfHeroesGameDirectory,
+                Constants.GAME_COSTUMES_FOLDERNAME,
+                name + "_original" + Constants.GAME_COSTUMES_EXT);
+                if (!File.Exists(archFile))
+                {
+                    File.Copy(origFile, archFile, true);
+                }
+
+                string newFolder = Path.Combine(location, name);
+                string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, "active", Constants.GAME_COSTUMES_EXT));
+                if (!Directory.Exists(newFolder))
+                {
+                    Directory.CreateDirectory(newFolder);
+                }
+                if (File.Exists(newFile))
+                {
+                    File.Delete(newFile);
+                }
+
+                if (File.Exists(origFile))
+                {
+                    invertColorIntoCharacterCostumeFile(origFile, newFile);
+                    string activeCostume = Path.Combine(name, string.Format("{0}_{1}", name, "active"));
+                    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, activeCostume);
+                    keybind = keyBindsGenerator.CompleteEvent();
+                }
+            }
+        }
+
+        public void Deactivate()
+        {
+            string archFile = Path.Combine(
+                Settings.Default.CityOfHeroesGameDirectory,
+                Constants.GAME_COSTUMES_FOLDERNAME,
+                Name + "_original" + Constants.GAME_COSTUMES_EXT);
+            string origFile = Path.Combine(
+                Settings.Default.CityOfHeroesGameDirectory,
+                Constants.GAME_COSTUMES_FOLDERNAME,
+                Name + Constants.GAME_COSTUMES_EXT);
+            if (File.Exists(archFile))
+            {
+                Target(false);
+                File.Copy(archFile, origFile, true);
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Name);
+                keyBindsGenerator.CompleteEvent();
+            }
+        }
+
+        private void invertColorIntoCharacterCostumeFile(string origFile, string newFile)
+        {
+            string fileStr = File.ReadAllText(origFile);
+            string color2 = @"Color2\s+(?<Red>[\d]{1,3}),\s+(?<Green>[\d]{1,3}),\s+(?<Blue>[\d]{1,3})";
+            Regex re = new Regex(color2);
+
+            List<Color> colorsFound = new List<Color>();
+            Dictionary<Color,Color> contrastColors = new Dictionary<Color, Color>();
+
+            foreach (Match match in re.Matches(fileStr))
+            {
+                ColorExtensions.RGB rgb = new ColorExtensions.RGB()
+                {
+                    R = double.Parse(match.Groups["Red"].Value),
+                    G = double.Parse(match.Groups["Green"].Value),
+                    B = double.Parse(match.Groups["Blue"].Value)
+                };
+                Color color = Color.FromRgb((byte)rgb.R, (byte)rgb.G, (byte)rgb.B);
+                if (!colorsFound.Contains(color))
+                {
+                    colorsFound.Add(color);
+                    Color contrast = color.GetContrast();
+                    contrastColors.Add(color, contrast);
+                }
+            }
+
+            foreach (Color c in colorsFound)
+            {
+                string pattern = string.Format(@"Color2\s+({0}),\s+({1}),\s+({2})", c.R, c.G, c.B);
+                re = new Regex(pattern);
+                fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", contrastColors[c].R, contrastColors[c].G, contrastColors[c].B));
+            }
+
+            File.AppendAllText(newFile, fileStr);
         }
     }
 }

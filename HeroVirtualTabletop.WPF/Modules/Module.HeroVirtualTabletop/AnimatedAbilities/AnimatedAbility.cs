@@ -279,6 +279,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
                 return base.Play(persistent, target);
         }
+        
     }
 
     public class AreaEffectAttack : Attack

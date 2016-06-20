@@ -247,6 +247,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             int x = 0;
             foreach (string model in SelectedModels)
             {
+                if (tmpCrowd.CrowdMemberCollection.Any(m => m.Name == model))
+                    continue;
                 CrowdMemberModel tmpChar = charExpVM.GetNewCharacter(model, model, IdentityType.Model) as CrowdMemberModel;
                 tmpCrowd.Add(tmpChar);
                 tmpChar.Spawn();
@@ -256,14 +258,14 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void SaveCrowd(object obj)
         {
-            for (int i = 0; i < tmpCrowd.CrowdMemberCollection.Count; i++)
+            ICrowdMemberModel[] tmp = tmpCrowd.CrowdMemberCollection.ToArray();
+            foreach (CrowdMemberModel model in tmp)
             {
-                CrowdMemberModel model = tmpCrowd.CrowdMemberCollection[i] as CrowdMemberModel;
                 model.Name = GetValidMemberName();
                 EditedCrowd.Add(model);
                 charExpVM.AllCharactersCrowd.Add(model);
             }
-            ClearFromDesktop(null);
+            //ClearFromDesktop(null);
         }
 
         private string GetValidMemberName()

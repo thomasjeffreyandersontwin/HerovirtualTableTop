@@ -108,7 +108,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         
         private bool isActive;
         [JsonIgnore]
-        public bool IsActive
+        public virtual bool IsActive
         {
             get
             {
@@ -248,7 +248,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
+            IsActive = true;
             System.Threading.Thread.Sleep(Time*1000);
+            IsActive = false;
             return string.Empty;
         }
 
@@ -303,12 +305,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Play(bool persistent = false, Character Target = null)
         {
-            Stop(Target);
+            Character target = Target ?? this.Owner;
+            Stop(target);
+            if (((string)SoundFile) == null || !File.Exists(SoundFile))
+            {
+                return string.Empty;
+            }
             soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
             waveOut = new NAudio.Wave.WaveOut();
             float dist = 0;
             float volume = 1.0f;
-            Character target = Target ?? this.Owner;
             target.Position.IsWithin(0, Camera.Position, out dist);
             if (dist > 100)
                 volume = 0;
@@ -335,9 +341,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override string Stop(Character Target = null)
         {
+            Character target = Target ?? this.Owner;
+            if (waveOut != null) waveOut.Stop();
             if (IsActive)
             {
-                waveOut.Stop();
                 IsActive = false;
             }
 
@@ -346,7 +353,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (audioPlaying != null) audioPlaying.Dispose();
             if (waveOut != null) waveOut.Dispose();
             
-            return base.Stop(Target);
+            return base.Stop(target);
         }
 
         protected override AnimationResource GetResource()
@@ -557,11 +564,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     keybind = keyBindsGenerator.CompleteEvent();
                 }
+                IsActive = true;
             }
             if (Persistent || persistent)
             {
                 archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
-                IsActive = true;
             }
             return keybind;
         }
@@ -618,11 +625,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (File.Exists(archFile))
             {
                 File.Copy(archFile, origFile, true);
-                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, name);
-                return keyBindsGenerator.CompleteEvent();
             }
-            return null;
+            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, name);
+            return keyBindsGenerator.CompleteEvent();
         }
 
         private string ParseFXName(string effect)
@@ -772,38 +778,48 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             RemoveAnimationElement(element);
         }
 
+        public override bool IsActive
+        {
+            get
+            {
+                return AnimationElements.Any(x => x.IsActive);
+            }
+        }
+
         public override string Play(bool persistent = false, Character Target = null)
         {
             Stop(Target ?? this.Owner);
-            if (this.Persistent || persistent)
-                IsActive = true;
+            //if (this.Persistent || persistent)
+            //    IsActive = true;
+            string retVal = string.Empty;
             if (SequenceType == AnimationSequenceType.And)
             {
                 animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
-                string retVal = string.Empty;
                 foreach (IAnimationElement item in AnimationElements)
                 {
                     retVal += item.Play(this.Persistent || persistent, Target ?? this.Owner);
                 }
-                return retVal;
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                return AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
+                retVal = AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
             }
+            OnPropertyChanged("IsActive");
+            return retVal;
         }
 
         public override string Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
-            if (IsActive)
-                IsActive = false;
-            foreach (IAnimationElement item in AnimationElements)
+            //if (IsActive)
+            //    IsActive = false;
+            foreach (IAnimationElement item in AnimationElements.Where( x => x.IsActive))
             {
                 item.Stop(target);
             }
+            OnPropertyChanged("IsActive");
             return base.Stop(target);
         }
 
@@ -860,25 +876,32 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
         
+        public override bool IsActive
+        {
+            get
+            {
+                return Reference != null ? Reference.IsActive : false;
+            }
+        }
 
         public override string Play(bool persistent = false, Character Target = null)
         {
+            string retVal = string.Empty;
             if (this.Reference != null)
             {
-                if (this.Persistent || persistent || this.Reference.Persistent)
-                    IsActive = true;
-                return this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+                retVal = this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
             }
-            return string.Empty;
+            OnPropertyChanged("IsActive");
+            return retVal;
         }
 
         public override string Stop(Character Target = null)
         {
-            if (IsActive)
-                IsActive = false;
-            if(this.Reference != null)
-                return this.Reference.Stop(Target ?? this.Owner);
-            return string.Empty;
+            string retVal = string.Empty;
+            if (this.Reference != null)
+                retVal = this.Reference.Stop(Target ?? this.Owner);
+            OnPropertyChanged("IsActive");
+            return retVal;
         }
 
         protected override AnimationResource GetResource()
