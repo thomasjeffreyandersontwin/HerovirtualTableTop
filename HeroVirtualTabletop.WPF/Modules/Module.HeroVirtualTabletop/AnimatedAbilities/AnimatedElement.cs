@@ -325,10 +325,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 waveOut.Init(soundReader);
             }
-            audioPlaying = Task.Run(() =>
-            {
-                waveOut.Play();
-            });
+            //audioPlaying = Task.Run(() =>
+            //{
+            //    waveOut.Play();
+            //});
+            waveOut.Play();
             return "";//base.Play(this.Persistent || persistent);
         }
 

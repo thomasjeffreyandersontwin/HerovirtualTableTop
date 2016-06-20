@@ -163,6 +163,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Unconcious;
             else
                 this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
+
+            // Change mouse pointer to back to bulls eye
+            Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
+            Mouse.OverrideCursor = cursor;
+
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<Character, ActiveAttackConfiguration, Attack>(this.character, this.SelectedActiveAttackConfiguration, this.attack));
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
         }

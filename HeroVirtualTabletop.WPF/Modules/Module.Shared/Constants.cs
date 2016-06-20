@@ -62,13 +62,14 @@ namespace Module.Shared
 
         #region Default Abilities and Animations
 
-        public const string STANDUP_ABILITY_NAME = "Standup Ability";
-        public const string ONHIT_ABITIY_NAME = "OnHit Ability";
-        public const string DODGE_ABILITY_NAME = "Dodge Ability";
-        public const string STUNNED_ABITIY_NAME = "Stunned Ability";
-        public const string UNCONCIOUS_ABITIY_NAME = "Unconcious Ability";
-        public const string DYING_ABILITY_NAME = "Dying Ability";
-        public const string DEATH_ABITIY_NAME = "Death Ability";
+        public const string STANDUP_ABILITY_NAME = "Stand Up";
+        public const string HIT_ABITIY_NAME = "Hit";
+        public const string DODGE_ABILITY_NAME = "Dodge";
+        public const string STUNNED_ABITIY_NAME = "Stunned";
+        public const string UNCONCIOUS_ABITIY_NAME = "Unconcious";
+        public const string DYING_ABILITY_NAME = "Dying";
+        public const string DEAD_ABITIY_NAME = "Dead";
+        public const string MISS_ABITIY_NAME = "Miss";
 
         #endregion
     }

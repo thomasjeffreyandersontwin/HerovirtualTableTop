@@ -38,6 +38,17 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             get;
             set;
         }
+
+        public static List<AnimatedAbility> GlobalDefaultAbilities
+        {
+            get;
+            set;
+        }
+        public static List<AnimatedAbility> GlobalCombatAbilities
+        {
+            get;
+            set;
+        }
         #endregion
 
         #region Resource Dictionary and Style related
