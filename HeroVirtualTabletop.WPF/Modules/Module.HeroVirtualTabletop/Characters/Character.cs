@@ -543,13 +543,28 @@ namespace Module.HeroVirtualTabletop.Characters
 
                 if (File.Exists(origFile))
                 {
-                    invertColorIntoCharacterCostumeFile(origFile, newFile);
+                    //Use complementary colors
+                    //invertColorIntoCharacterCostumeFile(origFile, newFile);
+
+                    //Use Bright Red #FF0033
+                    changeColorIntoCharacterCostumeFile(origFile, newFile, new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
+
                     string activeCostume = Path.Combine(name, string.Format("{0}_{1}", name, "active"));
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                     keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, activeCostume);
                     keybind = keyBindsGenerator.CompleteEvent();
                 }
             }
+        }
+
+        private void changeColorIntoCharacterCostumeFile(string origFile, string newFile, ColorExtensions.RGB color)
+        {
+            string fileStr = File.ReadAllText(origFile);
+            string color2 = @"Color2\s+([\d]{1,3}),\s+([\d]{1,3}),\s+([\d]{1,3})";
+            Regex re = new Regex(color2);
+            fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", color.R, color.G, color.B));
+
+            File.AppendAllText(newFile, fileStr);
         }
 
         public void Deactivate()
