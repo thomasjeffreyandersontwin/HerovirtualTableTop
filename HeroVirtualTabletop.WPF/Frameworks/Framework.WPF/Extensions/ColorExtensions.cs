@@ -14,6 +14,11 @@ namespace Framework.WPF.Extensions
             public double R;
             public double G;
             public double B;
+
+            public override string ToString()
+            {
+                return string.Format("R{0}_G{1}_B{2}", R, G, B);
+            }
         }
         public struct HSB
         {

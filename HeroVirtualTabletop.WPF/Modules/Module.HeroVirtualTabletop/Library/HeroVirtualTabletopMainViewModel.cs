@@ -124,7 +124,7 @@ namespace Module.HeroVirtualTabletop.Library
                 System.Windows.Style style = Helper.GetCustomWindowStyle();
                 ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
                 var position = System.Windows.Forms.Cursor.Position;
-                Mouse.OverrideCursor = Cursors.Arrow;
+                Mouse.OverrideCursor = Cursors.Arrow; 
                 PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
                 this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Publish(tuple);
             }

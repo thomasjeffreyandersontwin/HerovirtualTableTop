@@ -151,7 +151,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (this.Persistent || persistent)
                 IsActive = true;
             // Change the costume to Complementary color - CHRIS to do
-            
+            character.Activate();
             // Fire event to update Roster and select target
             OnAttackInitiated(character, new CustomEventArgs<Attack> { Value = this });
 
@@ -225,9 +225,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (animation is FXEffectElement)
                 {
                     (animation as FXEffectElement).AttackDirection = null;
-                    // TODO: Restore Secondary colors for costume of the attacker - Chris
                 }
             }
+            // TODO: Restore Secondary colors for costume of the attacker - Chris
+            attacker.Deactivate();
         }
 
         public void AnimateMiss(ActiveAttackConfiguration attackConfiguration, Character target)

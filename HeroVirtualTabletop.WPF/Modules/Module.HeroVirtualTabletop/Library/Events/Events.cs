@@ -22,6 +22,8 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class NeedAbilityCollectionRetrievalEvent : PubSubEvent<object> { };
     public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbilities.AnimatedAbility>> { };
     public class StopAllActiveAbilitiesEvent : PubSubEvent<object> { };
+    public class ListenForTargetChanged : PubSubEvent<object> { };
+    public class StopListeningForTargetChanged : PubSubEvent<object> { };
 
     #region Attack Events
     public class AttackInitiatedEvent : PubSubEvent<Tuple<Character, Attack>> { };

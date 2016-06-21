@@ -516,51 +516,18 @@ namespace Module.HeroVirtualTabletop.Characters
             if (HasBeenSpawned && this.ActiveIdentity.Type == IdentityType.Costume)
             {
                 Target(false);
-                string name = this.Name;
-                string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
-                string file = name + Constants.GAME_COSTUMES_EXT;
-                string origFile = Path.Combine(location, file);
-                //Archive original file
-                string archFile = Path.Combine(
-                Settings.Default.CityOfHeroesGameDirectory,
-                Constants.GAME_COSTUMES_FOLDERNAME,
-                name + "_original" + Constants.GAME_COSTUMES_EXT);
-                if (!File.Exists(archFile))
-                {
-                    File.Copy(origFile, archFile, true);
-                }
-
-                string newFolder = Path.Combine(location, name);
-                string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, "active", Constants.GAME_COSTUMES_EXT));
-                if (!Directory.Exists(newFolder))
-                {
-                    Directory.CreateDirectory(newFolder);
-                }
-                if (File.Exists(newFile))
-                {
-                    File.Delete(newFile);
-                }
-
-                if (File.Exists(origFile))
-                {
-                    //Use complementary colors
-                    //invertColorIntoCharacterCostumeFile(origFile, newFile);
-
-                    //Use Bright Red #FF0033
-                    changeColorIntoCharacterCostumeFile(origFile, newFile, new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
-
-                    string activeCostume = Path.Combine(name, string.Format("{0}_{1}", name, "active"));
-                    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, activeCostume);
-                    keybind = keyBindsGenerator.CompleteEvent();
-                }
+                ChangeCostumeColor(new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
             }
         }
 
-        private void changeColorIntoCharacterCostumeFile(string origFile, string newFile, ColorExtensions.RGB color)
+        private void changeColorIntoCharacterCostumeFile(string origFile, string newFile, ColorExtensions.RGB color, int colorNumber = 2)
         {
+            if (colorNumber < 1 || colorNumber > 4)
+            {
+                return;
+            }
             string fileStr = File.ReadAllText(origFile);
-            string color2 = @"Color2\s+([\d]{1,3}),\s+([\d]{1,3}),\s+([\d]{1,3})";
+            string color2 = "Color" + colorNumber + @"\s+([\d]{1,3}),\s+([\d]{1,3}),\s+([\d]{1,3})";
             Regex re = new Regex(color2);
             fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", color.R, color.G, color.B));
 
@@ -569,28 +536,78 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void Deactivate()
         {
+
+            if (this.ActiveIdentity.Type != IdentityType.Costume)
+                return;
+
             string archFile = Path.Combine(
                 Settings.Default.CityOfHeroesGameDirectory,
                 Constants.GAME_COSTUMES_FOLDERNAME,
-                Name + "_original" + Constants.GAME_COSTUMES_EXT);
+                ActiveIdentity.Surface + "_original" + Constants.GAME_COSTUMES_EXT);
             string origFile = Path.Combine(
                 Settings.Default.CityOfHeroesGameDirectory,
                 Constants.GAME_COSTUMES_FOLDERNAME,
-                Name + Constants.GAME_COSTUMES_EXT);
+                ActiveIdentity.Surface + Constants.GAME_COSTUMES_EXT);
             if (File.Exists(archFile))
             {
                 Target(false);
                 File.Copy(archFile, origFile, true);
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Name);
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, ActiveIdentity.Surface);
                 keyBindsGenerator.CompleteEvent();
             }
         }
 
-        private void invertColorIntoCharacterCostumeFile(string origFile, string newFile)
+        public void ChangeCostumeColor(ColorExtensions.RGB color, int colorNumber = 2)
         {
+            if (this.ActiveIdentity.Type != IdentityType.Costume)
+                return;
+
+            string name = ActiveIdentity.Surface;
+            string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
+            string file = name + Constants.GAME_COSTUMES_EXT;
+            string origFile = Path.Combine(location, file);
+
+            //Archive original file
+            string archFile = Path.Combine(
+            Settings.Default.CityOfHeroesGameDirectory,
+            Constants.GAME_COSTUMES_FOLDERNAME,
+            this.ActiveIdentity.Surface + "_original" + Constants.GAME_COSTUMES_EXT);
+            if (!File.Exists(archFile))
+            {
+                File.Copy(origFile, archFile, true);
+            }
+
+            string newFolder = Path.Combine(location, name);
+            string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, color, Constants.GAME_COSTUMES_EXT));
+            if (!Directory.Exists(newFolder))
+            {
+                Directory.CreateDirectory(newFolder);
+            }
+            if (File.Exists(newFile))
+            {
+                File.Delete(newFile);
+            }
+
+            if (File.Exists(origFile))
+            {
+                changeColorIntoCharacterCostumeFile(origFile, newFile, color, colorNumber);
+                string coloredCostume = Path.Combine(name, string.Format("{0}_{1}", name, color));
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                Target(false);
+                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, coloredCostume);
+                keybind = keyBindsGenerator.CompleteEvent();
+            }
+        }
+
+        private void invertColorIntoCharacterCostumeFile(string origFile, string newFile, int colorNumber = 2)
+        {
+            if (colorNumber < 1 || colorNumber > 4)
+            {
+                return;
+            }
             string fileStr = File.ReadAllText(origFile);
-            string color2 = @"Color2\s+(?<Red>[\d]{1,3}),\s+(?<Green>[\d]{1,3}),\s+(?<Blue>[\d]{1,3})";
+            string color2 = "Color" + colorNumber + @"\s+(?<Red>[\d]{1,3}),\s+(?<Green>[\d]{1,3}),\s+(?<Blue>[\d]{1,3})";
             Regex re = new Regex(color2);
 
             List<Color> colorsFound = new List<Color>();
@@ -615,7 +632,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
             foreach (Color c in colorsFound)
             {
-                string pattern = string.Format(@"Color2\s+({0}),\s+({1}),\s+({2})", c.R, c.G, c.B);
+                string pattern = string.Format("Color" + colorNumber + @"\s+({0}),\s+({1}),\s+({2})", c.R, c.G, c.B);
                 re = new Regex(pattern);
                 fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", contrastColors[c].R, contrastColors[c].G, contrastColors[c].B));
             }

@@ -15,6 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Library.Sevices;
 
 namespace Module.HeroVirtualTabletop
 {
@@ -103,6 +104,8 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>();
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
+
+            this.container.RegisterType<ITargetObserver, TargetObserver>(new ContainerControlledLifetimeManager());
         }
 
         #endregion BaseModule Members

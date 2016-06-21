@@ -376,6 +376,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void LoadCrowdCollectionCallback(List<CrowdModel> crowdList)
         {
+            this.eventAggregator.GetEvent<StopListeningForTargetChanged>().Publish(null);
             this.CrowdCollection = new HashedObservableCollection<CrowdModel, string>(crowdList,
                 (CrowdModel c) => { return c.Name; }, (CrowdModel c) => { return c.Order; }, (CrowdModel c) => { return c.Name; }
                 );
@@ -389,6 +390,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             Application.Current.Dispatcher.BeginInvoke(d);
             
             this.BusyService.HideBusy();
+            this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
             this.crowdCollectionLoaded = true;
         }
 
