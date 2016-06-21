@@ -531,6 +531,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Stop(Target);
             Character target = Target ?? this.Owner;
+            target.Target(false);
             string keybind = string.Empty;
             string name = target.Name;
             string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);

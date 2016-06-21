@@ -227,8 +227,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (animation as FXEffectElement).AttackDirection = null;
                 }
             }
-            // TODO: Restore Secondary colors for costume of the attacker - Chris
-            attacker.Deactivate();
+            //System.Threading.Thread.Sleep(2000); // Wait for attacker to finish moves before deactivating
+            
         }
 
         public void AnimateMiss(ActiveAttackConfiguration attackConfiguration, Character target)
@@ -261,17 +261,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
             {
                 Random rand = new Random();
-                int randomOffset = rand.Next(4, 10);
-                direction.AttackDirectionX = defendingCharacter.Position.X + randomOffset;
-                direction.AttackDirectionY = defendingCharacter.Position.Y + 6.0d + randomOffset; // Might need to modify in future, not sure how tall these guys can grow to
-                direction.AttackDirectionZ = defendingCharacter.Position.Z + randomOffset;
+                int randomOffset = rand.Next(2, 7);
+                int multiplyOffset = rand.Next(11, 20);
+                int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
+                direction.AttackDirectionX = defendingCharacter.Position.X + randomOffset * multiplyFactorX;
+                multiplyOffset = rand.Next(11, 20);
+                int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
+                direction.AttackDirectionY = defendingCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
+                multiplyOffset = rand.Next(11, 20);
+                int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
+                direction.AttackDirectionZ = defendingCharacter.Position.Z + randomOffset * multiplyFactorZ;
             }
             
             AnimateAttack(direction, attackingCharacter);
+            
             if (attackConfiguration.AttackResult == AttackResultOption.Hit)
                 AnimateHit(attackConfiguration, defendingCharacter);
             else
                 AnimateMiss(attackConfiguration, defendingCharacter);
+
+            // TODO: Restore Secondary colors for costume of the attacker - Chris
+            attackingCharacter.Deactivate();
         }
         public override string Play(bool persistent = false, Character target = null)
         {
@@ -280,7 +290,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
                 return base.Play(persistent, target);
         }
-        
     }
 
     public class AreaEffectAttack : Attack
