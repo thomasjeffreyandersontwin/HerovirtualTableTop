@@ -145,42 +145,48 @@ namespace Module.HeroVirtualTabletop.Library
             if (!directoryExists)
                 SetGameDirectory();
 
-            Process[] Processes = Process.GetProcessesByName(Constants.GAME_PROCESSNAME);
-            if (Processes.Length == 0)
-            {
-                string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_ICON_EXE_FILENAME);
-                if (File.Exists(filePath))
-                {
-                    Process.Start(filePath, "-r");
-                    // Need to automate the following process
-                    var x = MessageBox.Show("Please wait for COH to initialize and close this message");
-                }
-            }
+            //Process[] Processes = Process.GetProcessesByName(Constants.GAME_PROCESSNAME);
+            //if (Processes.Length == 0)
+            //{
+            //    string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_ICON_EXE_FILENAME);
+            //    if (File.Exists(filePath))
+            //    {
+            //        Process.Start(filePath, "-r");
+            //        // Need to automate the following process
+            //        var x = MessageBox.Show("Please wait for COH to initialize and close this message");
+            //    }
+            //}
+            
+            IconInteractionUtility.RunCOHAndLoadDLL();
+            // Need to automate the following process
+            var x = MessageBox.Show("Please wait for COH to initialize and close this message");
             LoadRequiredKeybinds();
+
         }
 
         private void LoadRequiredKeybinds()
         {
             CheckRequiredKeybindsFileExists();
-            IntPtr hWnd = WindowsUtilities.FindWindow("CrypticWindow", null);
+            IconInteractionUtility.ExecuteCmd("/bind_load_file required_keybinds.txt");
+            //IntPtr hWnd = WindowsUtilities.FindWindow("CrypticWindow", null);
 
-            if (IntPtr.Zero == hWnd) //Game is not running
-            {
-                return;
-            }
-            WindowsUtilities.SetForegroundWindow(hWnd);
-            WindowsUtilities.SetActiveWindow(hWnd);
-            WindowsUtilities.ShowWindow(hWnd, 3); // 3 = SW_SHOWMAXIMIZED
+            //if (IntPtr.Zero == hWnd) //Game is not running
+            //{
+            //    return;
+            //}
+            //WindowsUtilities.SetForegroundWindow(hWnd);
+            //WindowsUtilities.SetActiveWindow(hWnd);
+            //WindowsUtilities.ShowWindow(hWnd, 3); // 3 = SW_SHOWMAXIMIZED
 
-            System.Threading.Thread.Sleep(250);
+            //System.Threading.Thread.Sleep(250);
 
-            AutoItX3 input = new AutoItX3();
+            //AutoItX3 input = new AutoItX3();
 
-            input.Send("{ENTER}");
-            System.Threading.Thread.Sleep(250);
-            input.Send("/bind_load_file required_keybinds.txt");
-            System.Threading.Thread.Sleep(250);
-            input.Send("{ENTER}");
+            //input.Send("{ENTER}");
+            //System.Threading.Thread.Sleep(250);
+            //input.Send("/bind_load_file required_keybinds.txt");
+            //System.Threading.Thread.Sleep(250);
+            //input.Send("{ENTER}");
         }
 
         private bool CheckGameDirectory()

@@ -1,13 +1,18 @@
-﻿using System;
+﻿using Module.Shared;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
-    public class IconInteractionUtility
+    public static class IconInteractionUtility
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate bool InitGame(IntPtr hWnd);
@@ -20,16 +25,23 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ExecuteCommand([MarshalAs(UnmanagedType.LPStr)]string commandline);
+        
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate int SetCOHPath([MarshalAs(UnmanagedType.LPStr)]string path);
 
-        private IntPtr dllHandle;
-        private InitGame initGame;
-        private CloseGame closeGame;
-        private SetUserHWND setUserHWnd;
-        private ExecuteCommand executeCmd;
+        private static IntPtr dllHandle;
+        private static InitGame initGame;
+        private static CloseGame closeGame;
+        private static SetUserHWND setUserHWnd;
+        private static ExecuteCommand executeCmd;
+        private static SetCOHPath setCOHPath;
 
-        public IconInteractionUtility()
+        static IconInteractionUtility()
         {
-            dllHandle = WindowsUtilities.LoadLibrary("HookCostume.dll");
+            string outPutDirectory = Application.ExecutablePath;
+            outPutDirectory = outPutDirectory.Substring(0, outPutDirectory.IndexOf("Shell"));
+            string iconPath = Path.Combine(outPutDirectory, @"Modules\Module.HeroVirtualTabletop\Resources\");
+            dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(iconPath, "HookCostume.dll"));
             if (dllHandle != null)
             {
                 IntPtr initGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "InitGame");
@@ -55,20 +67,23 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     executeCmd = (ExecuteCommand)(Marshal.GetDelegateForFunctionPointer(executeCmdAddress, typeof(ExecuteCommand)));
                 }
+                
             }
         }
 
-        public void RunCOHAndLoadDLL()
+        public static void RunCOHAndLoadDLL()
         {
             initGame(IntPtr.Zero);
+            setUserHWnd(IntPtr.Zero);
+            MessageBox.Show("Please wait for COH to initialize and close this message");
         }
 
-        public void CloseCOH()
+        public static void CloseCOH()
         {
             closeGame(IntPtr.Zero);
         }
 
-        public void ExecuteCmd(string command)
+        public static void ExecuteCmd(string command)
         {
             executeCmd(command);
         }
