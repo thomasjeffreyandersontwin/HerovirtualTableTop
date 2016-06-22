@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Module.HeroVirtualTabletop.Library.Sevices;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared;
 using Prism.Events;
@@ -20,8 +21,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -30,11 +33,14 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Private Fields
 
         private IMessageBoxService messageBoxService;
+        private ITargetObserver targetObserver;
         private EventAggregator eventAggregator;
 
         private bool isPlayingAttack = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
+        private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
+
         #endregion
 
         #region Events
@@ -67,11 +73,12 @@ namespace Module.HeroVirtualTabletop.Roster
             set
             {
                 selectedParticipants = value;
+                synchSelectionWithGame();
                 OnPropertyChanged("SelectedParticipants");
                 Commands_RaiseCanExecuteChanged();
             }
         }
-
+        
         private ICrowdMemberModel activeCharacter;
         public ICrowdMemberModel ActiveCharacter
         {
@@ -106,19 +113,31 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Constructor
 
-        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator)
+        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.targetObserver = targetObserver;
 
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipants);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(DeleteParticipant);
             this.eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Subscribe(CheckRosterConsistency);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(InitiateRosterCharacterAttack);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Subscribe(this.LaunchActiveAttack);
-            InitializeCommands();
 
+            this.eventAggregator.GetEvent<ListenForTargetChanged>().Subscribe((obj) =>
+            {
+                this.targetObserver.TargetChanged += TargetObserver_TargetChanged;
+            });
+            this.eventAggregator.GetEvent<StopListeningForTargetChanged>().Subscribe((obj) =>
+            {
+                this.targetObserver.TargetChanged -= TargetObserver_TargetChanged;
+            });
+
+
+            InitializeCommands();
+            
         }
 
         #endregion
@@ -174,6 +193,50 @@ namespace Module.HeroVirtualTabletop.Roster
                 return (x as CrowdMemberModel).Label == target.Label; });
         }
 
+        private void synchSelectionWithGame()
+        {
+            List<CrowdMemberModel> unselected = oldSelection.Except(SelectedParticipants.Cast<CrowdMemberModel>()).ToList();
+            unselected.ForEach(
+                (member) =>
+                {
+                    if (!member.HasBeenSpawned)
+                        return;
+                    member.Deactivate();
+                    oldSelection.Remove(member);
+                });
+            List<CrowdMemberModel> selected = SelectedParticipants.Cast<CrowdMemberModel>().Except(oldSelection).ToList();
+            selected.ForEach(
+                (member) =>
+                {
+                    if (!member.HasBeenSpawned)
+                        return;
+                    member.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                    oldSelection.Add(member);
+                });
+        }
+        
+        private void TargetObserver_TargetChanged(object sender, EventArgs e)
+        {
+
+            uint currentTargetPointer = targetObserver.CurrentTargetPointer;
+            CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
+                (p) =>
+                {
+                    Character c = p as Character;
+                    return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
+                }).FirstOrDefault();
+            if (currentTarget == null)
+                return;
+            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
+            {
+                Dispatcher.Invoke(() => { SelectedParticipants.Clear(); });
+            }
+            if (!SelectedParticipants.Contains(currentTarget))
+            {
+                Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); });
+            }
+        }
+
         #region Add Participants
         private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
         {
@@ -187,6 +250,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void CheckIfCharacterExistsInGame(CrowdMemberModel crowdMember)
         {
+            this.eventAggregator.GetEvent<StopListeningForTargetChanged>().Publish(null);
             MemoryElement oldTargeted = new MemoryElement();
             crowdMember.Target();
             MemoryElement currentTargeted = new MemoryElement();
@@ -199,6 +263,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 oldTargeted.Target();
             }
             catch { }
+            this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
         }
         #endregion
 
@@ -498,11 +563,30 @@ namespace Module.HeroVirtualTabletop.Roster
             if (rosterCharacter != null && attack != null)
             {
                 this.isPlayingAttack = true;
+                targetObserver.TargetChanged += AttackTargetUpdated;
                 this.currentAttack = attack;
                 this.attackingCharacter = attackingCharacter;
                 // Update character properties - icons in roster should show
                 rosterCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
             }
+        }
+
+        private void AttackTargetUpdated(object sender, EventArgs e)
+        {
+            uint currentTargetPointer = targetObserver.CurrentTargetPointer;
+            CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
+                (p) =>
+                {
+                    Character c = p as Character;
+                    return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
+                }).FirstOrDefault();
+            if (currentTarget == null) //Target has been changed to something not in roster
+                return;
+            Action action = delegate ()
+            {
+                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Character, Attack>(currentTarget as Character, this.currentAttack));
+            };
+            Application.Current.Dispatcher.BeginInvoke(action);
         }
 
         private void LaunchActiveAttack(Tuple<Character, ActiveAttackConfiguration, Attack> tuple)
@@ -529,6 +613,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ResetAttack()
         {
             this.isPlayingAttack = false;
+            targetObserver.TargetChanged -= AttackTargetUpdated;
             this.currentAttack = null;
             this.attackingCharacter = null;
         }

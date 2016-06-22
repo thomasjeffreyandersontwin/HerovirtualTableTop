@@ -1,17 +1,28 @@
-﻿using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+﻿using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Prism.Events;
 using System;
 using System.ComponentModel;
 using System.Threading;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Characters;
 
 namespace Module.HeroVirtualTabletop.Library.Sevices
 {
     public class TargetObserver : ITargetObserver
     {
+        private IUnityContainer container;
+        private EventAggregator eventAggregator;
         private BackgroundWorker bgWorker;
+        private Character currentAttacker;
+        private Attack currentAttack;
 
-        public TargetObserver()
+        public TargetObserver(IUnityContainer container, EventAggregator eventAggregator)
         {
-            currentTarget = new MemoryInstance().TargetPointer;
+            this.container = container;
+            this.eventAggregator = eventAggregator;
+            currentTargetPointer = new MemoryInstance().TargetPointer;
             bgWorker = new BackgroundWorker();
             bgWorker.WorkerReportsProgress = false;
             bgWorker.DoWork += listenForTargetChanged;
@@ -27,13 +38,13 @@ namespace Module.HeroVirtualTabletop.Library.Sevices
         private void listenForTargetChanged(object sender, DoWorkEventArgs e)
         {
             uint actualTarget = new MemoryInstance().TargetPointer;
-            while (actualTarget == currentTarget)
+            while (actualTarget == currentTargetPointer)
             {
                 Thread.Sleep(500);
                 actualTarget = new MemoryInstance().TargetPointer;
             }
-            currentTarget = actualTarget;
-            OnTargetChanged(currentTarget, new EventArgs());
+            currentTargetPointer = actualTarget;
+            OnTargetChanged(currentTargetPointer, new EventArgs());
         }
 
         public event EventHandler TargetChanged;
@@ -44,12 +55,12 @@ namespace Module.HeroVirtualTabletop.Library.Sevices
                 TargetChanged(sender, e);
         }
 
-        private uint currentTarget;
-        public uint CurrentTarget
+        private uint currentTargetPointer;
+        public uint CurrentTargetPointer
         {
             get
             {
-                return currentTarget;
+                return currentTargetPointer;
             }
         }
     }

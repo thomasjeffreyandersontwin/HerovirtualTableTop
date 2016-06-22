@@ -8,6 +8,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 {
     public interface IMemoryInstance
     {
+        uint Pointer { get; }
         bool IsReal { get; }
 
         void InitFromCurrentTarget();

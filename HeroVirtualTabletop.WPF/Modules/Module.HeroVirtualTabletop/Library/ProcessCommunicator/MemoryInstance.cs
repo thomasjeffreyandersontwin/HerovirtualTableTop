@@ -24,6 +24,14 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
                 InitFromCurrentTarget();
         }
 
+        public uint Pointer
+        {
+            get
+            {
+                return targetPointer;
+            }
+        }
+
         private void InitializeGameInMemory()
         {
             Process[] processes = Process.GetProcessesByName(Constants.GAME_PROCESSNAME);

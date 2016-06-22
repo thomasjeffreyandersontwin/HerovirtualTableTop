@@ -9,6 +9,6 @@ namespace Module.HeroVirtualTabletop.Library.Sevices
     public interface ITargetObserver
     {
         event EventHandler TargetChanged;
-        uint CurrentTarget { get; }
+        uint CurrentTargetPointer { get; }
     }
 }

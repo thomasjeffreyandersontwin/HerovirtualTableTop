@@ -149,8 +149,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SelectedActiveAttackConfiguration = new ActiveAttackConfiguration();
             SelectedActiveAttackConfiguration.AttackMode = AttackMode.Defend;
             SelectedActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
-            SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
+            SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
             SelectedActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
+            this.IsStunnedSelected = true;
         }
 
         private void SetActiveAttack(object state)
