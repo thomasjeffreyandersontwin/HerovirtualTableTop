@@ -135,8 +135,6 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             AppDomain.CurrentDomain.ProcessExit += UnsetHooks;
         }
-        
-        private const int WH_KEYBOARD_LL = 13;
 
         private static Dictionary<IntPtr, LowLevelKeyboardProc> hookedProcs = new Dictionary<IntPtr, LowLevelKeyboardProc>();
 
@@ -154,7 +152,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             using (Process curProcess = Process.GetCurrentProcess())
             using (ProcessModule curModule = curProcess.MainModule)
             {
-                IntPtr hookID = SetWindowsHookEx(WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+                IntPtr hookID = SetWindowsHookEx((int)HookType.WH_KEYBOARD_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
                 hookedProcIDs.Add(hookID);
                 hookedProcs.Add(hookID, proc);
                 return hookID;
@@ -178,5 +176,72 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 UnhookWindowsHookEx(hookID);
             }
         }
+    }
+
+    public static class MouseHook
+    {
+        #region Imports
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelMouseProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        #endregion
+
+        static MouseHook()
+        {
+            AppDomain.CurrentDomain.ProcessExit += UnsetHooks;
+        }
+        
+        private static Dictionary<IntPtr, LowLevelMouseProc> hookedProcs = new Dictionary<IntPtr, LowLevelMouseProc>();
+
+        private static List<IntPtr> hookedProcIDs = new List<IntPtr>();
+
+        public delegate IntPtr LowLevelMouseProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        /// <summary>
+        /// This function lets hook a function with LowLevelMouseProc signature to Windows key processing queue.
+        /// </summary>
+        /// <param name="proc">The function to be executed. Must end with "return CallNextHookEx(hookID, nCode, wParam, lParam);" to let the processing continue correctly.</param>
+        /// <returns>Return the hook identifier assigned in Windows hooks queue</returns>
+        public static IntPtr SetHook(LowLevelMouseProc proc)
+        {
+            using (Process curProcess = Process.GetCurrentProcess())
+            using (ProcessModule curModule = curProcess.MainModule)
+            {
+                IntPtr hookID = SetWindowsHookEx((int)HookType.WH_MOUSE_LL, proc, GetModuleHandle(curModule.ModuleName), 0);
+                hookedProcIDs.Add(hookID);
+                hookedProcs.Add(hookID, proc);
+                return hookID;
+            }
+        }
+
+        public static void UnsetHook(IntPtr hookID)
+        {
+            if (hookedProcIDs.Contains(hookID))
+            {
+                UnhookWindowsHookEx(hookID);
+                hookedProcIDs.Remove(hookID);
+                hookedProcs.Remove(hookID);
+            }
+        }
+
+        private static void UnsetHooks(object sender, EventArgs e)
+        {
+            foreach (IntPtr hookID in hookedProcIDs)
+            {
+                UnhookWindowsHookEx(hookID);
+            }
+        }
+
     }
 }
