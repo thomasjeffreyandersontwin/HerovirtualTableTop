@@ -884,13 +884,20 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void SaveCrowdCollection(object o = null)
         {
-            this.BusyService.ShowBusy(new string[] { containerWindowName});
+            //this.BusyService.ShowBusy(new string[] { containerWindowName});
             this.crowdRepository.SaveCrowdCollection(this.SaveCrowdCollectionCallback, this.CrowdCollection.ToList());
         }
 
         private void SaveCrowdCollectionCallback()
         {
-            this.BusyService.HideBusy();
+            
+            Action d =
+               delegate()
+               {
+                   //this.BusyService.HideBusy();
+                   this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Publish(null);
+               };
+            Application.Current.Dispatcher.BeginInvoke(d);
         }
 
         #endregion

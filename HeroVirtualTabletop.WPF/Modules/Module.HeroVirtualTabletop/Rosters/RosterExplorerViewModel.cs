@@ -229,11 +229,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 return;
             if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
             {
-                Dispatcher.Invoke(() => { SelectedParticipants.Clear(); });
+                Dispatcher.Invoke(() => { if(SelectedParticipants != null)SelectedParticipants.Clear(); });
             }
             if (!SelectedParticipants.Contains(currentTarget))
             {
-                Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); });
+                Dispatcher.Invoke(() => { if (SelectedParticipants != null)SelectedParticipants.Add(currentTarget); });
             }
         }
 
