@@ -13,6 +13,18 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 
         private float x, y, z = 0;
 
+        public float[,] RotMatrix
+        {
+            get
+            {
+                return new float[3, 3] {
+                    { GetAttributeAsFloat(56), GetAttributeAsFloat(60), GetAttributeAsFloat(64)},
+                    { GetAttributeAsFloat(68), GetAttributeAsFloat(72), GetAttributeAsFloat(76)},
+                    { GetAttributeAsFloat(80), GetAttributeAsFloat(84), GetAttributeAsFloat(88)}
+                };
+            }
+        } 
+
         public float X
         {
             get

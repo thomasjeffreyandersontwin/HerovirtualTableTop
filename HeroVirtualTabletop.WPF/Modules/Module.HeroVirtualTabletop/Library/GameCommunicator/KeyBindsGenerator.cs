@@ -151,8 +151,8 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             generatedKeybinds.Add(lastKeyBindGenerated);
             string GeneratedKeybindText = KeyBindsGenerator.generatedKeybindText;
             KeyBindsGenerator.generatedKeybindText = "";
-            //return string.Format("\"{0}\"", GeneratedKeybindText);
-            return GeneratedKeybindText;
+            return string.Format("\"{0}\"", GeneratedKeybindText);
+            //return GeneratedKeybindText;
         }
 
         public string CompleteEvent()
@@ -160,13 +160,13 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             string command = string.Empty;
             string generatedKeyBindText = string.Empty;
 
-            command = PopEvents();
+            //command = PopEvents();
 
-            generatedKeyBindText = triggerKey + " " + command;
+            //generatedKeyBindText = triggerKey + " " + command;
 
-            IconInteractionUtility.ExecuteCmd(command);
+            //IconInteractionUtility.ExecuteCmd(command);
 
-            /***
+            
             try
             {
                 File.Delete(bindFile);
@@ -213,7 +213,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             Utility.WindowsUtilities.SetForegroundWindow(HVThWnd);
             Utility.WindowsUtilities.SetActiveWindow(HVThWnd);
-            ***/
+            
             return command;
         }
     }
