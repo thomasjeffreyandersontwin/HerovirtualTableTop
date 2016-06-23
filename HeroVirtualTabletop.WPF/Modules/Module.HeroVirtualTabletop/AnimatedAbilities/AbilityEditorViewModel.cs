@@ -1137,7 +1137,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void DemoAnimation(object state)
         {
             Character currentTarget = GetCurrentTarget();
-            this.SelectedAnimationElement.Play(Target: currentTarget);
+            if(this.SelectedAnimationElement != null)
+                this.SelectedAnimationElement.Play(Target: currentTarget);
         }
 
         private Character GetCurrentTarget()
