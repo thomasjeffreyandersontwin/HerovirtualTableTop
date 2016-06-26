@@ -51,7 +51,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 isAttack = value;
+                if (!value)
+                    this.IsAreaEffect = false;
                 OnPropertyChanged("IsAttack");
+            }
+        }
+
+        private bool isAreaEffect;
+        public bool IsAreaEffect
+        {
+            get
+            {
+                return isAreaEffect;
+            }
+            set
+            {
+                isAreaEffect = value;
+                OnPropertyChanged("IsAreaEffect");
             }
         }
     }
@@ -258,26 +274,35 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 direction.AttackDirectionY = defendingCharacter.Position.Y + 4.0d;// Aim at the Chest :p
                 direction.AttackDirectionZ = defendingCharacter.Position.Z;
             }
-            else
+            else 
             {
-                Random rand = new Random();
-                int randomOffset = rand.Next(2, 7);
-                int multiplyOffset = rand.Next(11, 20);
-                int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
-                direction.AttackDirectionX = defendingCharacter.Position.X + randomOffset * multiplyFactorX;
-                multiplyOffset = rand.Next(11, 20);
-                int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
-                direction.AttackDirectionY = defendingCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
-                multiplyOffset = rand.Next(11, 20);
-                int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
-                direction.AttackDirectionZ = defendingCharacter.Position.Z + randomOffset * multiplyFactorZ;
+                if(defendingCharacter == null && attackConfiguration.AttackEffectOption == AttackEffectOption.None)
+                {
+                    direction.AttackDirectionX = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.X;
+                    direction.AttackDirectionY = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Y;
+                    direction.AttackDirectionZ = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Z;
+                }
+                else
+                {
+                    Random rand = new Random();
+                    int randomOffset = rand.Next(2, 7);
+                    int multiplyOffset = rand.Next(11, 20);
+                    int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
+                    direction.AttackDirectionX = defendingCharacter.Position.X + randomOffset * multiplyFactorX;
+                    multiplyOffset = rand.Next(11, 20);
+                    int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
+                    direction.AttackDirectionY = defendingCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
+                    multiplyOffset = rand.Next(11, 20);
+                    int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
+                    direction.AttackDirectionZ = defendingCharacter.Position.Z + randomOffset * multiplyFactorZ;
+                }
             }
             
             AnimateAttack(direction, attackingCharacter);
             
             if (attackConfiguration.AttackResult == AttackResultOption.Hit)
                 AnimateHit(attackConfiguration, defendingCharacter);
-            else
+            else if(attackConfiguration.AttackResult == AttackResultOption.Miss && defendingCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
                 AnimateMiss(attackConfiguration, defendingCharacter);
 
             // TODO: Restore Secondary colors for costume of the attacker - Chris

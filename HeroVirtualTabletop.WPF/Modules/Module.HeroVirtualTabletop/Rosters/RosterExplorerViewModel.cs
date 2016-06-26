@@ -227,7 +227,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }).FirstOrDefault();
             if (currentTarget == null)
                 return;
-            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
+            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; }))) // sometimes i get exception here in this line
             {
                 Dispatcher.Invoke(() => { if(SelectedParticipants != null)SelectedParticipants.Clear(); });
             }
@@ -580,8 +580,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     Character c = p as Character;
                     return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                 }).FirstOrDefault();
-            if (currentTarget == null) //Target has been changed to something not in roster
-                return;
+            //if (currentTarget == null) //Target has been changed to something not in roster
+            //    return;
             Action action = delegate ()
             {
                 this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Character, Attack>(currentTarget as Character, this.currentAttack));
@@ -594,7 +594,6 @@ namespace Module.HeroVirtualTabletop.Roster
             Attack attack = tuple.Item3;
             Character targetCharacter = tuple.Item1;
             ActiveAttackConfiguration attackConfig = tuple.Item2;
-            CrowdMemberModel rosterCharacter = this.Participants.FirstOrDefault(p => p.Name == targetCharacter.Name) as CrowdMemberModel;
             attack.AnimateAttackSequence(attackingCharacter, targetCharacter, attackConfig);
             // Update AttackConfig to update icons based on attack effect
             if(attackConfig.AttackResult == AttackResultOption.Hit)

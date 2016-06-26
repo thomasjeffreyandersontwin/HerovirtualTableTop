@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,33 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
         public Position(bool initFromCurrentTarget = true, uint targetPointer = 0) : base(initFromCurrentTarget, targetPointer) { }
 
         private float x, y, z = 0;
+        [JsonIgnore]
+        public float[,] RotMatrix
+        {
+            get
+            {
+                return new float[3, 3]
+                {
+                    {GetAttributeAsFloat(56), GetAttributeAsFloat(60), GetAttributeAsFloat(64)},
+                    {GetAttributeAsFloat(68), GetAttributeAsFloat(72), GetAttributeAsFloat(76)},
+                    {GetAttributeAsFloat(80), GetAttributeAsFloat(84), GetAttributeAsFloat(88)}
+                };
+            }
+        }
+        [JsonIgnore]
+        public Vector3 TargetInFacingDirection
+        {
+            get
+            {
+                Vector3 facingDirection = new Vector3(RotMatrix[2, 0], RotMatrix[2, 1], RotMatrix[2, 2]);
+                Vector3 currentPos = new Vector3(X, Y, Z);
+                // Calculate a point fairly distant along the facing direction
+                var px = currentPos.X + facingDirection.X * 10000;
+                var py = currentPos.Y + facingDirection.Y * 10000;
+                var pz = currentPos.Z + facingDirection.Z * 10000;
+                return new Vector3(px, py, pz);
+            }
+        }
 
         public float X
         {
