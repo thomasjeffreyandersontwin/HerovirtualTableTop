@@ -171,6 +171,7 @@
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Sevices\ITargetObserver.cs" />
     <Compile Include="Library\Sevices\TargetObserver.cs" />
+    <Compile Include="Library\Utility\DllInjector.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="Library\Utility\IconInteractionUtility.cs" />
     <Compile Include="Library\Utility\KeyBoardHook.cs" />
@@ -320,6 +321,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <None Include="Resources\HookCostume.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />
     <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />

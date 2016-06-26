@@ -172,12 +172,21 @@ namespace Module.HeroVirtualTabletop.Library
                     var x = MessageBox.Show("Please wait for COH to initialize and close this message");
                 }
             }
+
+            //IconInteractionUtility.RunCOHAndLoadDLL();
+            //// Need to automate the following process
+            //var x = MessageBox.Show("Please wait for COH to initialize and close this message");
+
             LoadRequiredKeybinds();
+
         }
 
         private void LoadRequiredKeybinds()
         {
             CheckRequiredKeybindsFileExists();
+
+            //IconInteractionUtility.ExecuteCmd("/bind_load_file required_keybinds.txt");
+
             IntPtr hWnd = WindowsUtilities.FindWindow("CrypticWindow", null);
 
             if (IntPtr.Zero == hWnd) //Game is not running

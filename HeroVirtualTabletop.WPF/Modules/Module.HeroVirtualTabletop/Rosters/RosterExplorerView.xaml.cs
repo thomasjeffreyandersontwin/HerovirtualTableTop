@@ -37,6 +37,9 @@ namespace Module.HeroVirtualTabletop.Roster
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
 
+            this.RosterViewListBox.SelectAll();
+            this.RosterViewListBox.UnselectAll();
+
             clickTimer.Interval = 50;
             clickTimer.Tick +=
                 new EventHandler(clickTimer_Tick);

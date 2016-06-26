@@ -18,9 +18,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -40,6 +44,16 @@ namespace Module.HeroVirtualTabletop.Roster
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
         private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
+
+        private IntPtr hookID;
+
+        private int clickCount;
+        private bool isDoubleClick = false;
+        private bool isTripleClick = false;
+        private bool isQuadrupleClick = false;
+        private int milliseconds = 0;
+        private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime * 2;
+        private Timer clickTimer = new Timer();
 
         #endregion
 
@@ -63,7 +77,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 OnPropertyChanged("Participants");
             }
         }
-        private IList selectedParticipants;
+        private IList selectedParticipants = new ArrayList();
         public IList SelectedParticipants
         {
             get
@@ -135,9 +149,64 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.targetObserver.TargetChanged -= TargetObserver_TargetChanged;
             });
 
-
             InitializeCommands();
+            clickCount = 0;
+            clickTimer.AutoReset = true;
+            clickTimer.Interval = 50;
+            clickTimer.Elapsed +=
+                new ElapsedEventHandler(clickTimer_Elapsed);
+            hookID = MouseHook.SetHook(clickCharacterInDesktop);
+
+        }
+
+        IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
+                {
+                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        //Handle clicks
+                        clickCount += 1;
+                        switch (clickCount)
+                        {
+                            case 1: Task.Run(()=> clickTimer.Start()); break;
+                            case 2: isDoubleClick = true; break;
+                            case 3: isTripleClick = true; break;
+                            case 4: isQuadrupleClick = true; break;
+                        }
+                    }
+                }
+            }
+            return MouseHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
+        void clickTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            milliseconds += 50;
+
+            if (milliseconds >= maxClickTime)
+            {
+                clickTimer.Stop();
+
+                if (isQuadrupleClick)
+                {
+                    ToggleManueverWithCamera();
+                }
+                else if (isTripleClick)
+                {
+                    TargetAndFollow();
+                }
+                else if (isDoubleClick)
+                {
+                    TargetAndFollow();
+                }
             
+                clickCount = 0;
+                isDoubleClick = isTripleClick = isQuadrupleClick = false;
+                milliseconds = 0;
+            }
         }
 
         #endregion
@@ -217,7 +286,11 @@ namespace Module.HeroVirtualTabletop.Roster
         
         private void TargetObserver_TargetChanged(object sender, EventArgs e)
         {
-
+            Dispatcher.Invoke(() =>
+            {
+                if (SelectedParticipants == null)
+                    SelectedParticipants = new ObservableCollection<object>() as IList;
+            });
             uint currentTargetPointer = targetObserver.CurrentTargetPointer;
             CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
                 (p) =>
@@ -233,7 +306,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             if (!SelectedParticipants.Contains(currentTarget))
             {
-                Dispatcher.Invoke(() => { if (SelectedParticipants != null)SelectedParticipants.Add(currentTarget); });
+                Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); OnPropertyChanged("SelectedParticipants"); });
             }
         }
 
