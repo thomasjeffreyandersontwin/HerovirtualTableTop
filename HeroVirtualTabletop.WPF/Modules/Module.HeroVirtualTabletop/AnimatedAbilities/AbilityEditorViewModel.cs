@@ -968,9 +968,37 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void LoadReferenceResource(ObservableCollection<AnimatedAbility> abilityCollection)
         {
-            referenceAbilitiesCVS = new CollectionViewSource();
-            referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }));
-            referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
+            if (referenceAbilitiesCVS == null)
+            {
+                referenceAbilitiesCVS = new CollectionViewSource();
+                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }));
+                referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter; 
+            }
+            else
+            {
+                var updatedAbilityResources = abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); });
+                var currentAbilityResources = referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>;
+                var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null);
+                if(addedResources.Count() > 0)
+                {
+                    foreach(var addedResource in addedResources)
+                    {
+                        (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).Add(addedResource);
+                    }
+                }
+                else
+                {
+                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => a.Name == ca.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null));
+                    if (deletedResources.Count() > 0)
+                    {
+                        foreach (var deletedResource in deletedResources)
+                        {
+                            var resourceToDelete = (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).First(ar=>ar.Name == deletedResource.Name && ar.Reference.Owner.Name == deletedResource.Reference.Owner.Name);
+                            (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).Remove(resourceToDelete);
+                        }
+                    }
+                }
+            }
             OnPropertyChanged("ReferenceAbilitiesCVS");
         }
 
@@ -1109,7 +1137,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void DemoAnimation(object state)
         {
             Character currentTarget = GetCurrentTarget();
-            this.SelectedAnimationElement.Play(Target: currentTarget);
+            if(this.SelectedAnimationElement != null)
+                this.SelectedAnimationElement.Play(Target: currentTarget);
         }
 
         private Character GetCurrentTarget()

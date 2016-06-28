@@ -193,7 +193,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 AddAbility(state);
             }
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
-            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Subscribe(this.SaveOptionGroupCompletedCallback);
         }
         
         private void RemoveOption(object state)
@@ -207,7 +207,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 optionGroup.Remove(SelectedOption);
             }
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Subscribe(this.SaveOptionGroupCompletedCallback);
+        }
+
+        private void SaveOptionGroupCompletedCallback(object state)
+        {
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Unsubscribe(this.SaveOptionGroupCompletedCallback);
         }
         
         private T GetDefaultOption()

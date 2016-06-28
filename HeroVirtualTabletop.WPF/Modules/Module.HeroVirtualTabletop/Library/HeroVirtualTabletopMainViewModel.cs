@@ -8,6 +8,7 @@ using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Properties;
@@ -74,7 +75,7 @@ namespace Module.HeroVirtualTabletop.Library
             LoadMainView();
 
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
-            this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.LoadActiveAttackWidget);
+            this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.ConfigureAttack);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttackWidget);
         }
 
@@ -117,6 +118,21 @@ namespace Module.HeroVirtualTabletop.Library
             }
         }
 
+        private void ConfigureAttack(Tuple<Character, Attack> tuple)
+        {
+            Character character = tuple.Item1;
+            if(character != null)
+            {
+                this.LoadActiveAttackWidget(tuple);
+            }
+            else // blank target
+            {
+                ActiveAttackConfiguration config = new ActiveAttackConfiguration();
+                config.AttackMode = AttackMode.None;
+                config.AttackResult = AttackResultOption.Miss;
+                this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<Character, ActiveAttackConfiguration, Attack>(tuple.Item1, config, tuple.Item2));
+            }
+        }
         private void LoadActiveAttackWidget(Tuple<Character, Attack> tuple)
         {
             if (tuple.Item1 != null && tuple.Item2 != null && PopupService.IsOpen("ActiveAttackView") == false)

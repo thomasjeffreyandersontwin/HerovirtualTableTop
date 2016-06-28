@@ -60,9 +60,9 @@ namespace Module.HeroVirtualTabletop.Library.Converters
                 case Enumerations.AttackMode.Attack:
                     iconText = "\uf0e7";
                     break;
-                //case Enumerations.AttackMode.Defend:
-                //    iconText = "\uf140";
-                //    break;
+                case Enumerations.AttackMode.Defend:
+                    iconText = "\uf140";
+                    break;
             }
             return iconText;
         }

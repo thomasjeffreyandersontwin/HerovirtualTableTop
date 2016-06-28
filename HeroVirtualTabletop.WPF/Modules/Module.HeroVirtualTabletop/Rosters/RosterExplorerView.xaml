@@ -111,7 +111,7 @@
             </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}" HorizontalAlignment="Stretch">
+                    <Grid ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}"  HorizontalAlignment="Stretch">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition ></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -141,9 +141,6 @@
                             </Label.Style>
                         </Label>
                         <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <!--<TextBlock.InputBindings>
-                                <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStatusCommand}" MouseAction="LeftClick"/>
-                            </TextBlock.InputBindings>-->
                         </TextBlock>
                         <TextBlock Grid.Column="3" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock.InputBindings>

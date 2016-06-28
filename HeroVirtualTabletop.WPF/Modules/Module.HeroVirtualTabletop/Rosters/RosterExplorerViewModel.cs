@@ -41,6 +41,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private EventAggregator eventAggregator;
 
         private bool isPlayingAttack = false;
+        private bool isPlayingAreaEffect = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
         private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
@@ -148,7 +149,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 this.targetObserver.TargetChanged -= TargetObserver_TargetChanged;
             });
-            
+
             InitializeCommands();
             clickCount = 0;
             clickTimer.AutoReset = true;
@@ -156,7 +157,7 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer.Elapsed +=
                 new ElapsedEventHandler(clickTimer_Elapsed);
             hookID = MouseHook.SetHook(clickCharacterInDesktop);
-            
+
         }
 
         IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
@@ -202,7 +203,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     TargetAndFollow();
                 }
-
+            
                 clickCount = 0;
                 isDoubleClick = isTripleClick = isQuadrupleClick = false;
                 milliseconds = 0;
@@ -270,7 +271,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (!member.HasBeenSpawned)
                         return;
-                    member.Deactivate();
+                    if(!(this.isPlayingAttack && this.attackingCharacter != null && this.attackingCharacter.Name == member.Name))
+                        member.Deactivate();
                     oldSelection.Remove(member);
                 });
             List<CrowdMemberModel> selected = SelectedParticipants.Cast<CrowdMemberModel>().Except(oldSelection).ToList();
@@ -279,34 +281,43 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (!member.HasBeenSpawned)
                         return;
-                    member.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                    if (!(this.isPlayingAttack && this.attackingCharacter != null && this.attackingCharacter.Name == member.Name)) // Don't make the attacking character blue
+                        member.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                     oldSelection.Add(member);
                 });
         }
         
         private void TargetObserver_TargetChanged(object sender, EventArgs e)
         {
-            Dispatcher.Invoke(() =>
+            // sometimes i get exception here in this method's dispatcher calls during application closing. we need to handle this
+            try
             {
-                if (SelectedParticipants == null)
-                    SelectedParticipants = new ObservableCollection<object>() as IList;
-            });
-            uint currentTargetPointer = targetObserver.CurrentTargetPointer;
-            CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
-                (p) =>
+                Dispatcher.Invoke(() =>
+                    {
+                        if (SelectedParticipants == null)
+                            SelectedParticipants = new ObservableCollection<object>() as IList;
+                    });
+                uint currentTargetPointer = targetObserver.CurrentTargetPointer;
+                CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
+                    (p) =>
+                    {
+                        Character c = p as Character;
+                        return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
+                    }).FirstOrDefault();
+                if (currentTarget == null)
+                    return;
+                if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
                 {
-                    Character c = p as Character;
-                    return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
-                }).FirstOrDefault();
-            if (currentTarget == null)
-                return;
-            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
-            {
-                Dispatcher.Invoke(() => { SelectedParticipants.Clear(); });
+                    Dispatcher.Invoke(() => { if (SelectedParticipants != null)SelectedParticipants.Clear(); });
+                }
+                if (!SelectedParticipants.Contains(currentTarget))
+                {
+                    Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); OnPropertyChanged("SelectedParticipants"); });
+                }
             }
-            if (!SelectedParticipants.Contains(currentTarget))
+            catch (TaskCanceledException ex)
             {
-                Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); OnPropertyChanged("SelectedParticipants"); });
+                
             }
         }
 
@@ -636,6 +647,8 @@ namespace Module.HeroVirtualTabletop.Roster
             if (rosterCharacter != null && attack != null)
             {
                 this.isPlayingAttack = true;
+                if (attack.IsAreaEffect)
+                    this.isPlayingAreaEffect = true;
                 targetObserver.TargetChanged += AttackTargetUpdated;
                 this.currentAttack = attack;
                 this.attackingCharacter = attackingCharacter;
@@ -667,12 +680,11 @@ namespace Module.HeroVirtualTabletop.Roster
             Attack attack = tuple.Item3;
             Character targetCharacter = tuple.Item1;
             ActiveAttackConfiguration attackConfig = tuple.Item2;
-            CrowdMemberModel rosterCharacter = this.Participants.FirstOrDefault(p => p.Name == targetCharacter.Name) as CrowdMemberModel;
             attack.AnimateAttackSequence(attackingCharacter, targetCharacter, attackConfig);
             // Update AttackConfig to update icons based on attack effect
             if(attackConfig.AttackResult == AttackResultOption.Hit)
             {
-                ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.Defend, AttackEffectOption = attackConfig.AttackEffectOption };
+                ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = attackConfig.AttackEffectOption };
                 targetCharacter.ActiveAttackConfiguration = activeAttack;
             }
             // Update Mouse cursor
@@ -686,6 +698,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ResetAttack()
         {
             this.isPlayingAttack = false;
+            this.isPlayingAreaEffect = false;
             targetObserver.TargetChanged -= AttackTargetUpdated;
             this.currentAttack = null;
             this.attackingCharacter = null;

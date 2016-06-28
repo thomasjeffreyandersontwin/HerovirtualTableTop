@@ -82,10 +82,7 @@
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
-                <ComboBox Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2"
-                          Name="cbBoxActivateOnKey" ItemsSource="{Binding Source={StaticResource Keys}}"
-                          SelectedValue="{Binding Path=CurrentAbility.ActivateOnKey}">
-                </ComboBox>
+                <CheckBox Grid.Row="0" Grid.Column="1" Name="chkBoxAreaEffect" IsChecked="{Binding CurrentAbility.IsAreaEffect}" IsEnabled="{Binding CurrentAttackAbility.IsAttack}" Content="Area Effect" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
                 <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
                 <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
@@ -127,18 +124,34 @@
             </StackPanel>
             
             </Grid>
-        <StackPanel Orientation="Horizontal" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
-            <StackPanel.Resources>
-                <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
-            </StackPanel.Resources>
-            <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Movement" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
-            <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
-            <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
-            <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Reference}"/>
-            <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
-            <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
-            <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
-        </StackPanel>
+        <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Grid.ColumnSpan="2">
+                <StackPanel.Resources>
+                    <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
+                </StackPanel.Resources>
+                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Movement" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
+                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
+                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
+                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Reference}"/>
+                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
+                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
+                <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
+            </StackPanel>
+            <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" Foreground="White" VerticalAlignment="Center"/>
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="2"
+                          Name="cbBoxActivateOnKey" ItemsSource="{Binding Source={StaticResource Keys}}"
+                          SelectedValue="{Binding Path=CurrentAbility.ActivateOnKey}">
+            </ComboBox>
+        </Grid>
+        
         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" >
             <StackPanel.Resources>
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
