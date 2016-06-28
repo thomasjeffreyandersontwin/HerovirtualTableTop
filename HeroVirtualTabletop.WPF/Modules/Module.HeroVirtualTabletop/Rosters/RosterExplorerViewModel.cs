@@ -196,7 +196,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else if (isTripleClick)
                 {
-                    ActivateCharacter(null);
+                    TargetAndFollow();
                 }
                 else if (isDoubleClick)
                 {
