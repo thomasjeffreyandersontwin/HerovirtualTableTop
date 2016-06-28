@@ -32,7 +32,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         AnimationResource Resource { get; set; }
         bool IsActive { get; }
         
-        string Play(bool persistent = false, Character Target = null);
+        string Play(bool persistent = false, Character Target = null, bool forcePlay = false);
         string Stop(Character Target = null);
     }
 
@@ -196,7 +196,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public virtual string Play(bool persistent = false, Character Target = null)
+        public virtual string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Character target = Target ?? this.Owner;
             return "Playing " + this.Order + " for " + target.Name;
@@ -262,7 +262,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = false, Character Target = null)
+        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             IsActive = true;
             System.Threading.Thread.Sleep(Time*1000);
@@ -320,7 +320,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private Task audioPlaying;
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
 
-        public override string Play(bool persistent = false, Character Target = null)
+        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Character target = Target ?? this.Owner;
             Stop(target);
@@ -426,7 +426,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = true, Character Target = null)
+        public override string Play(bool persistent = true, Character Target = null, bool forcePlay = false)
         {
             Stop(Target);
             Character target = Target ?? this.Owner;
@@ -434,7 +434,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             target.Target(false);
             string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
             IsActive = true;
-            if (PlayWithNext == false)
+            if (PlayWithNext == false || forcePlay)
                 keybind = keyBindsGenerator.CompleteEvent();
             return keybind;
         }
@@ -543,7 +543,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-        public override string Play(bool persistent = false, Character Target = null)
+        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Stop(Target);
             Character target = Target ?? this.Owner;
@@ -579,7 +579,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                     keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
-                    if (PlayWithNext == false)
+                    if (PlayWithNext == false || forcePlay)
                     {
                         keybind = keyBindsGenerator.CompleteEvent();
                     }
@@ -820,7 +820,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = false, Character Target = null)
+        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Stop(Target ?? this.Owner);
             //if (this.Persistent || persistent)
@@ -918,7 +918,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = false, Character Target = null)
+        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             string retVal = string.Empty;
             if (this.Reference != null)
