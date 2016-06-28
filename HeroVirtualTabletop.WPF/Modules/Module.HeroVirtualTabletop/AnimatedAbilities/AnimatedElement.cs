@@ -28,6 +28,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         Character Owner { get; set; }
         int Order { get; set; }
         AnimationType Type { get; set; }
+        bool PlayWithNext { get; set; }
         AnimationResource Resource { get; set; }
         bool IsActive { get; }
         
@@ -107,6 +108,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
         
+        private bool playWithNext;
+        public bool PlayWithNext
+        {
+            get
+            {
+                return playWithNext;
+            }
+            set
+            {
+                playWithNext = value;
+                OnPropertyChanged("PlayWithNext");
+            }
+        }
+
         private bool isActive;
         [JsonIgnore]
         public virtual bool IsActive
@@ -389,7 +404,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private MOVElement() : base(string.Empty) { }
 
-        public MOVElement(string name, AnimationResource MOVResource, bool persistent = false, int order = 1, Character owner = null)
+        public MOVElement(string name, AnimationResource MOVResource, bool persistent = false, bool playWithNext = false, int order = 1, Character owner = null)
             : base(name, persistent, order, owner)
         {
             this.MOVResource = MOVResource;
@@ -417,9 +432,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character target = Target ?? this.Owner;
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             target.Target(false);
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
             IsActive = true;
-            return keyBindsGenerator.CompleteEvent();
+            if (PlayWithNext == false)
+                keybind = keyBindsGenerator.CompleteEvent();
+            return keybind;
         }
 
         public override string Stop(Character Target = null)
@@ -497,19 +514,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
         
-        private bool playWithNext;
-        public bool PlayWithNext
-        {
-            get
-            {
-                return playWithNext;
-            }
-            set
-            {
-                playWithNext = value;
-                OnPropertyChanged("PlayWithNext");
-            }
-        }
         [JsonIgnore]
         public AttackDirection AttackDirection
         {
