@@ -18,6 +18,7 @@ using System.Windows.Media;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Identities;
 using Framework.WPF.Extensions;
+using System.Threading;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -302,6 +303,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private LoopWaveStream loop;
         private NAudio.Wave.WaveOut waveOut;
         private Task audioPlaying;
+        private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
 
         public override string Play(bool persistent = false, Character Target = null)
         {
@@ -311,31 +313,40 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return string.Empty;
             }
-            soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
-            waveOut = new NAudio.Wave.WaveOut();
-            float dist = 0;
-            float volume = 1.0f;
-            target.Position.IsWithin(0, Camera.Position, out dist);
-            if (dist > 100)
-                volume = 0;
-            else
-                volume = (100 - dist) / 100;
-            waveOut.Volume = volume; 
-            if (this.Persistent || persistent)
+            fileLock.EnterReadLock();// Not sure this locking is needed
+            try
             {
-                loop = new LoopWaveStream(soundReader);
-                waveOut.Init(loop);
-                IsActive = true;
+                soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
+                waveOut = new NAudio.Wave.WaveOut();
+                float dist = 0;
+                float volume = 1.0f;
+                target.Position.IsWithin(0, Camera.Position, out dist);
+                if (dist > 100)
+                    volume = 0;
+                else
+                    volume = (100 - dist) / 100;
+                waveOut.Volume = volume;
+                if (this.Persistent || persistent)
+                {
+                    loop = new LoopWaveStream(soundReader);
+                    waveOut.Init(loop);
+                    IsActive = true;
+                }
+                else
+                {
+                    waveOut.Init(soundReader);
+                }
+                //audioPlaying = Task.Run(() =>
+                //{
+                //    waveOut.Play();
+                //});
+                waveOut.Play();
             }
-            else
+            finally
             {
-                waveOut.Init(soundReader);
+                fileLock.ExitReadLock();
             }
-            //audioPlaying = Task.Run(() =>
-            //{
-            //    waveOut.Play();
-            //});
-            waveOut.Play();
+            
             return "";//base.Play(this.Persistent || persistent);
         }
 
@@ -527,6 +538,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
         public override string Play(bool persistent = false, Character Target = null)
         {
             Stop(Target);
@@ -540,37 +552,45 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string newFolder = Path.Combine(location, name);
             string FXName = ParseFXName(Effect);
             string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, FXName, Constants.GAME_COSTUMES_EXT));
-
-            if (!Directory.Exists(newFolder))
+            fileLock.EnterWriteLock();
+            try
             {
-                Directory.CreateDirectory(newFolder);
-            }
-            if (File.Exists(newFile))
-            {
-                File.Delete(newFile);
-            }
-
-            if (File.Exists(origFile))
-            {
-                insertFXIntoCharacterCostumeFile(origFile, newFile);
-                string fxCostume = Path.Combine(name, string.Format("{0}_{1}", name, FXName));
-                string fireCoOrdinates = null;
-                if(this.AttackDirection != null)
+                if (!Directory.Exists(newFolder))
                 {
-                    fireCoOrdinates = string.Format("x:{0} y:{1} z:{2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
+                    Directory.CreateDirectory(newFolder);
                 }
-                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
-                if (PlayWithNext == false)
+                if (File.Exists(newFile))
                 {
-                    keybind = keyBindsGenerator.CompleteEvent();
+                    File.Delete(newFile);
                 }
-                IsActive = true;
+
+                if (File.Exists(origFile))
+                {
+                    insertFXIntoCharacterCostumeFile(origFile, newFile);
+                    string fxCostume = Path.Combine(name, string.Format("{0}_{1}", name, FXName));
+                    string fireCoOrdinates = null;
+                    if (this.AttackDirection != null)
+                    {
+                        fireCoOrdinates = string.Format("x:{0} y:{1} z:{2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
+                    }
+                    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
+                    if (PlayWithNext == false)
+                    {
+                        keybind = keyBindsGenerator.CompleteEvent();
+                    }
+                    IsActive = true;
+                }
+                if (Persistent || persistent)
+                {
+                    archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
+                }
             }
-            if (Persistent || persistent)
+            finally
             {
-                archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
+                fileLock.ExitWriteLock();
             }
+            
             return keybind;
         }
 
@@ -579,7 +599,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character target = Target ?? this.Owner;
             if (IsActive)
             {
-                string keybinds = reloadOriginalCostumeFile(target.Name);
+                string keybinds = "";
+                fileLock.EnterWriteLock();
+                try
+                {
+                    keybinds = reloadOriginalCostumeFile(target.Name);
+                }
+                finally
+                {
+                    fileLock.ExitWriteLock();
+                }
                 IsActive = false;
                 return keybinds + base.Stop();
             }

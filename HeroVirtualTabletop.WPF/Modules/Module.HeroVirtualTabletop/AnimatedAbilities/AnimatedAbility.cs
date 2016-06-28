@@ -265,6 +265,56 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
+        public void AnimateAttackSequence(Character attackingCharacter, Dictionary<Character, ActiveAttackConfiguration> targetCharactersDictionary)
+        {
+            AttackDirection direction = new AttackDirection();
+            if(targetCharactersDictionary == null || targetCharactersDictionary.Count == 0)
+            {
+                direction.AttackDirectionX = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.X;
+                direction.AttackDirectionY = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Y;
+                direction.AttackDirectionZ = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Z;
+            }
+            else
+            {
+                var centerTargetCharacterEntry = targetCharactersDictionary.Where(tcd => tcd.Key != null && tcd.Value.IsCenterTarget == true).FirstOrDefault();
+                Character centerTargetCharacter = centerTargetCharacterEntry.Key;
+                if (centerTargetCharacterEntry.Value.AttackResult == AttackResultOption.Hit)
+                {
+                    direction.AttackDirectionX = centerTargetCharacter.Position.X;
+                    direction.AttackDirectionY = centerTargetCharacter.Position.Y + 4.0d;
+                    direction.AttackDirectionZ = centerTargetCharacter.Position.Z;
+                }
+                else
+                {
+                    Random rand = new Random();
+                    int randomOffset = rand.Next(2, 7);
+                    int multiplyOffset = rand.Next(11, 20);
+                    int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
+                    direction.AttackDirectionX = centerTargetCharacter.Position.X + randomOffset * multiplyFactorX;
+                    multiplyOffset = rand.Next(11, 20);
+                    int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
+                    direction.AttackDirectionY = centerTargetCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
+                    multiplyOffset = rand.Next(11, 20);
+                    int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
+                    direction.AttackDirectionZ = centerTargetCharacter.Position.Z + randomOffset * multiplyFactorZ;
+                }
+            }
+            AnimateAttack(direction, attackingCharacter);
+            if(targetCharactersDictionary != null && targetCharactersDictionary.Count >0)
+            {
+                Parallel.ForEach(targetCharactersDictionary, (currentDictionaryEntry) =>
+                {
+                    Character targetCharacter = currentDictionaryEntry.Key;
+                    ActiveAttackConfiguration attackConfiguration = currentDictionaryEntry.Value;
+                    if (attackConfiguration.AttackResult == AttackResultOption.Hit)
+                        AnimateHit(attackConfiguration, targetCharacter);
+                    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
+                        AnimateMiss(attackConfiguration, targetCharacter);
+                });
+            }
+            attackingCharacter.Deactivate();
+        }
+
         public void AnimateAttackSequence(Character attackingCharacter, Character defendingCharacter, ActiveAttackConfiguration attackConfiguration)
         {
             AttackDirection direction = new AttackDirection();
@@ -285,12 +335,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 else
                 {
                     Random rand = new Random();
-                    int randomOffset = rand.Next(2, 7);
+                    int randomOffset = rand.Next(1, 3);
                     int multiplyOffset = rand.Next(11, 20);
                     int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
                     direction.AttackDirectionX = defendingCharacter.Position.X + randomOffset * multiplyFactorX;
                     multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
+                    int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : 0;
                     direction.AttackDirectionY = defendingCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
                     multiplyOffset = rand.Next(11, 20);
                     int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
@@ -305,7 +355,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else if(attackConfiguration.AttackResult == AttackResultOption.Miss && defendingCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
                 AnimateMiss(attackConfiguration, defendingCharacter);
 
-            // TODO: Restore Secondary colors for costume of the attacker - Chris
+            // Restore Secondary colors for costume of the attacker
             attackingCharacter.Deactivate();
         }
         public override string Play(bool persistent = false, Character target = null)
@@ -339,6 +389,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     }
     public class ActiveAttackConfiguration : NotifyPropertyChanged
     {
+        private bool isCenterTarget;
+        public bool IsCenterTarget
+        {
+            get
+            {
+                return isCenterTarget;
+            }
+            set
+            {
+                isCenterTarget = value;
+                OnPropertyChanged("IsCenterTarget");
+            }
+        }
         private AttackMode attackMode;
         public AttackMode AttackMode // None/Attack/Defend
         {
