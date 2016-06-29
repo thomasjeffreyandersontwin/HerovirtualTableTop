@@ -575,7 +575,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     string fireCoOrdinates = null;
                     if (this.AttackDirection != null)
                     {
-                        fireCoOrdinates = string.Format("x:{0} y:{1} z:{2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
+                        fireCoOrdinates = string.Format("x={0} y={1} z={2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
                     }
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                     keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);

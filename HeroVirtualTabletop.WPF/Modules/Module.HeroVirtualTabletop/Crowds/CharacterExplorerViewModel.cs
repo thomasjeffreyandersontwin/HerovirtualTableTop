@@ -311,7 +311,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void RenameCharacterCrowd(string updatedName)
         {
-            if (this.OriginalName == updatedName)
+             if (this.OriginalName == updatedName)
             {
                 OriginalName = null;
                 return;
