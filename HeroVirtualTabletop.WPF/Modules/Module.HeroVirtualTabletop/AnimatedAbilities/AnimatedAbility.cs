@@ -270,9 +270,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AttackDirection direction = new AttackDirection();
             if(targetCharactersDictionary == null || targetCharactersDictionary.Count == 0)
             {
-                direction.AttackDirectionX = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.X;
-                direction.AttackDirectionY = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Y;
-                direction.AttackDirectionZ = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Z;
+                var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
+                direction.AttackDirectionX = targetInFacingDirection.X;
+                direction.AttackDirectionY = targetInFacingDirection.Y;
+                direction.AttackDirectionZ = targetInFacingDirection.Z;
             }
             else
             {
@@ -328,9 +329,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 if(defendingCharacter == null && attackConfiguration.AttackEffectOption == AttackEffectOption.None)
                 {
-                    direction.AttackDirectionX = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.X;
-                    direction.AttackDirectionY = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Y;
-                    direction.AttackDirectionZ = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).TargetInFacingDirection.Z;
+                    var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
+                    direction.AttackDirectionX = targetInFacingDirection.X;
+                    direction.AttackDirectionY = targetInFacingDirection.Y;
+                    direction.AttackDirectionZ = targetInFacingDirection.Z;
                 }
                 else
                 {
