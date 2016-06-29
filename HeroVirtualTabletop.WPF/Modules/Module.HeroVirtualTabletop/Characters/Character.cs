@@ -142,6 +142,7 @@ namespace Module.HeroVirtualTabletop.Characters
         public string OldName { get; private set; }
         
         private IMemoryElementPosition position;
+        [JsonIgnore]
         public IMemoryElementPosition Position
         {
             get

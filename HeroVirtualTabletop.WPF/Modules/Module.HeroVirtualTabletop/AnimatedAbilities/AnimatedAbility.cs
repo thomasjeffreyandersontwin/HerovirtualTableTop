@@ -360,12 +360,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             // Restore Secondary colors for costume of the attacker
             attackingCharacter.Deactivate();
         }
-        public override string Play(bool persistent = false, Character target = null)
+        public override string Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
             if (this.IsAttack)
                 return this.InitiateAttack(persistent, target);
             else
-                return base.Play(persistent, target);
+                return base.Play(persistent, target, forcePlay);
         }
     }
 
