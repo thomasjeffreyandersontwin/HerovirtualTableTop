@@ -4,7 +4,7 @@ S "+backward"
 D "+right"
 Z "+down"
 SPACE "+up"
-
+TAB "target_custom_next alive"
 DOWN "+lookup"
 DOWNARROW "+lookup"
 LEFT "+turnleft"
@@ -13,22 +13,13 @@ RIGHT "+turnright"
 RIGHTARROW "+turnright"
 UP "+lookdown"
 UPARROW "+lookdown"
-
 ; "+zoomin"
-. "+zoomout"
-
+' "+zoomout"
 B "bind_load_file b.txt"
-C /nop
-H /nop
-delete /nop
-
+delete "/deletenpc"
 M "move_npc"
-
-X /nop"
-
+X /"nop"
 F "fly"
 N "noclip"
 SHIFT+M "popmenu maps"
 SHIFT+N "popmenu NPC"
-
-
