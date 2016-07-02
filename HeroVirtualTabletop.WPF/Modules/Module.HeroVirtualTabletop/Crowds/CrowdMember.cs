@@ -14,6 +14,8 @@ using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Framework.WPF.Library;
 using System.ComponentModel;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -238,19 +240,27 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public override ICrowdMember Clone()
         {
-            CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
+            //CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
+            CrowdMemberModel crowdMemberModel = new CrowdMemberModel()
+            {
+                ActiveIdentity = this.ActiveIdentity,
+                DefaultIdentity = this.DefaultIdentity,
+                Name = this.Name,
+                RosterCrowd = null
+            };
             crowdMemberModel.InitializeCharacter();
-            crowdMemberModel.RosterCrowd = null; //RosterCrowd should not be cloned
-            foreach (Identities.Identity id in this.AvailableIdentities)
+            foreach (Identity id in this.AvailableIdentities)
             {
-                crowdMemberModel.AvailableIdentities.Add(id);
+                Identity clonedIdentity = id.Clone();
+                crowdMemberModel.AvailableIdentities.Add(clonedIdentity);
             }
-            crowdMemberModel.ActiveIdentity = this.ActiveIdentity;
-            crowdMemberModel.DefaultIdentity = this.DefaultIdentity;
-            foreach (AnimatedAbilities.AnimatedAbility ab in this.AnimatedAbilities)
+            foreach (AnimatedAbility ab in this.AnimatedAbilities)
             {
-                crowdMemberModel.AnimatedAbilities.Add(ab);
+                AnimatedAbility clonedAbility = ab.Clone() as AnimatedAbility;
+                clonedAbility.Owner = this;
+                crowdMemberModel.AnimatedAbilities.Add(clonedAbility);
             }
+            // Need to add logic for Movements and other option groups
             return crowdMemberModel;
         }
         public override void SavePosition()

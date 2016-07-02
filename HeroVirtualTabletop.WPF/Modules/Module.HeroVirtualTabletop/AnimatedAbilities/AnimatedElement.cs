@@ -769,9 +769,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         [JsonProperty(PropertyName = "AnimationElements")]
-        private HashedObservableCollection<IAnimationElement, string> animationElements;
+        protected HashedObservableCollection<IAnimationElement, string> animationElements;
         [JsonIgnore]
-        public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; private set; }
+        public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; protected set; }
         
         public int LastOrder
         {
