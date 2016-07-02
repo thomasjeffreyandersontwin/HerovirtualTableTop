@@ -15,7 +15,7 @@ namespace Module.HeroVirtualTabletop.Identities
     /// <summary>
     /// Represents a model or a costume for characters
     /// </summary>
-    public class Identity : NotifyPropertyChanged, ICharacterOption
+    public class Identity : CharacterOption
     {
         #region ComparisonOverrides
 
@@ -52,21 +52,6 @@ namespace Module.HeroVirtualTabletop.Identities
         #endregion
         
         protected KeyBindsGenerator keyBindsGenerator;
-
-        private string name;
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-            set
-            {
-                object oldValue = name;
-                name = value;
-                OnPropertyChanged("Name");
-            }
-        }
         
         private string surface;
 

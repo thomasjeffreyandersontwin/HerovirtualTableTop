@@ -156,7 +156,7 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer.Interval = 50;
             clickTimer.Elapsed +=
                 new ElapsedEventHandler(clickTimer_Elapsed);
-            hookID = MouseHook.SetHook(clickCharacterInDesktop);
+            //hookID = MouseHook.SetHook(clickCharacterInDesktop);
 
         }
 

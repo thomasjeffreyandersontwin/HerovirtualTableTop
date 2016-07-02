@@ -19,6 +19,7 @@ using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Identities;
 using Framework.WPF.Extensions;
 using System.Threading;
+using Module.HeroVirtualTabletop.OptionGroups;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -36,7 +37,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         string Stop(Character Target = null);
     }
 
-    public class AnimationElement : NotifyPropertyChanged, IAnimationElement
+    public class AnimationElement : CharacterOption, IAnimationElement
     {
         [JsonConstructor]
         private AnimationElement() { }
@@ -48,21 +49,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Owner = owner;
             this.Persistent = persistent;
         }
-
-        private string name;
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-            set
-            {
-                name = value;
-                OnPropertyChanged("Name");
-            }
-        }
-
+        
         private int order;
         public int Order
         {

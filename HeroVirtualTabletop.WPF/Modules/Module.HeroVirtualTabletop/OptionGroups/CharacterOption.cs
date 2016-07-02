@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Framework.WPF.Library;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -10,5 +11,23 @@ namespace Module.HeroVirtualTabletop.OptionGroups
     public interface ICharacterOption: INotifyPropertyChanged
     {
         string Name { get; set; }
+    }
+
+    public abstract class CharacterOption : NotifyPropertyChanged, ICharacterOption
+    {
+        private string name;
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+            set
+            {
+                object oldValue = name;
+                name = value;
+                OnPropertyChanged("Name");
+            }
+        }
     }
 }

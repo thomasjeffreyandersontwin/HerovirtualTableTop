@@ -21,7 +21,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
     /// </summary>
     public partial class OptionGroupView : UserControl
     {
-        
         public OptionGroupView()
         {
             InitializeComponent();

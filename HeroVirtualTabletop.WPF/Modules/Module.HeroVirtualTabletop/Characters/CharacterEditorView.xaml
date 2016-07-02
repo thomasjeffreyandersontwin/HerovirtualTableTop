@@ -39,12 +39,64 @@
         <StackPanel Grid.Column="1" HorizontalAlignment="Stretch">
             <TextBox Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <GridSplitter></GridSplitter>
+
+            <StackPanel>
+                <Border>
+                    <Border.Resources>
+                        <Style TargetType="{x:Type Border}">
+                            <Setter Property="Width" Value="Auto"/>
+                            <Setter Property="Panel.ZIndex" Value="1000"/>
+                            <Setter Property="HorizontalAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Top"/>
+                            <Setter Property="Margin" Value="4 4 4 4"/>
+                            <Setter Property="CornerRadius" Value="3"/>
+                            <Setter Property="BorderBrush" Value="DarkGray"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                        </Style>
+                    </Border.Resources>
+                    <WrapPanel VerticalAlignment="Bottom">
+                        <WrapPanel.Resources>
+                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
+                                <Setter Property="Padding" Value="0"/>
+                                <Setter Property="Margin" Value="0"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="FontSize" Value="15"/>
+                                <Setter Property="Background" Value="#00000000"/>
+                                <Setter Property="Width" Value="auto"/>
+                            </Style>
+                        </WrapPanel.Resources>
+                        <Button x:Name="AddOptionGroup" Content="&#xf067;" Foreground="Green" ToolTip="Add Option Group" Command="{Binding AddOptionGroupCommand}"/>
+                        <Button x:Name="RemoveOptionGroup" Content="&#xf068;" Foreground="Red" ToolTip="Remove Option Group" Command="{Binding RemoveOptionGroupCommand}"/>
+                    </WrapPanel>
+                </Border>
+                <ListView 
+                    ItemsSource="{Binding OptionGroups, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                    SelectedValuePath="OptionGroup"
+                    SelectedValue="{Binding SelectedOptionGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <ListView.Style>
+                        <Style TargetType="ListView">
+                            <Setter Property="Background" Value="Transparent"></Setter>
+                            <Setter Property="BorderThickness" Value="0"></Setter>
+                        </Style>
+                    </ListView.Style>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <optiongroups:OptionGroupView>
+
+                            </optiongroups:OptionGroupView>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+            
+            <!--
             <StackPanel>
                 <optiongroups:OptionGroupView x:Name="Identities" DataContext="{Binding Path=IdentityViewModel}">
                 </optiongroups:OptionGroupView>
                 <optiongroups:OptionGroupView x:Name="Abilitities" DataContext="{Binding Path=AnimatedAbilitiesViewModel}">
                 </optiongroups:OptionGroupView>
             </StackPanel>
+            -->
         </StackPanel>
     </Grid>
 </UserControl>

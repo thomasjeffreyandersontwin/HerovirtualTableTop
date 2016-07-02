@@ -22,7 +22,12 @@ using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.OptionGroups
 {
-    public class OptionGroupViewModel<T> : BaseViewModel where T : ICharacterOption
+    public interface IOptionGroupViewModel
+    {
+        IOptionGroup OptionGroup { get; }
+    }
+
+    public class OptionGroupViewModel<T> : BaseViewModel, IOptionGroupViewModel where T : ICharacterOption
     {
         #region Private Fields
 
@@ -35,7 +40,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         #endregion
 
         #region Public Properties
-
+        
         public OptionGroup<T> OptionGroup
         {
             get
@@ -46,6 +51,15 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 optionGroup = value;
                 OnPropertyChanged("OptionGroup");
+            }
+        }
+
+
+        IOptionGroup IOptionGroupViewModel.OptionGroup
+        {
+            get
+            {
+                return OptionGroup as IOptionGroup;
             }
         }
 
@@ -129,7 +143,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> TogglePlayOptionCommand { get; private set; }
 
         public ICommand SetActiveOptionCommand { get; private set; }
-
+        
         #endregion
 
         #region Constructor
@@ -415,6 +429,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             Attack attack = GetNewAttackAbility();
             (optionGroup as OptionGroup<AnimatedAbility>).Add(attack);
 
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
             InitializeAttackEventHandlers(attack);
         }
         

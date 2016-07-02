@@ -1264,7 +1264,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Retrieve Ability Collection
         private void GetAbilityCollection(object state)
         {
-            var abilityCollection = new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }));
+            var abilityCollection = new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
         }
 

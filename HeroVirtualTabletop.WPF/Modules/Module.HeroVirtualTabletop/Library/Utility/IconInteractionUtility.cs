@@ -34,14 +34,13 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         private static CloseGame closeGame;
         private static SetUserHWND setUserHWnd;
         private static ExecuteCommand executeCmd;
-        private static SetCOHPath setCOHPath;
 
         static IconInteractionUtility()
         {
-            string outPutDirectory = Application.ExecutablePath;
-            outPutDirectory = outPutDirectory.Substring(0, outPutDirectory.IndexOf("Shell"));
-            string iconPath = Path.Combine(outPutDirectory, @"Modules\Module.HeroVirtualTabletop\Resources\");
-            dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(iconPath, "HookCostume.dll"));
+            //string outPutDirectory = Application.ExecutablePath;
+            //outPutDirectory = outPutDirectory.Substring(0, outPutDirectory.IndexOf("Shell"));
+            //string iconPath = Path.Combine(outPutDirectory, @"Modules\Module.HeroVirtualTabletop\Resources\");
+            dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "HookCostume.dll"));
             if (dllHandle != null)
             {
                 IntPtr initGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "InitGame");

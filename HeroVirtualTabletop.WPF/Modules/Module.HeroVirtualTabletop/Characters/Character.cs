@@ -18,6 +18,7 @@ using Module.HeroVirtualTabletop.AnimatedAbilities;
 using System.Text.RegularExpressions;
 using System.Windows.Media;
 using Framework.WPF.Extensions;
+using System.Runtime.Serialization;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -38,20 +39,37 @@ namespace Module.HeroVirtualTabletop.Characters
 
         protected void InitializeCharacter()
         {
-            availableIdentities = new OptionGroup<Identity>();
-            animatedAbilities = new OptionGroup<AnimatedAbility>();
+            //availableIdentities = new OptionGroup<Identity>();
+            //animatedAbilities = new OptionGroup<AnimatedAbility>();
+            optionGroups = new HashedObservableCollection<IOptionGroup, string>(x => x.Name);
+            OptionGroups = new ReadOnlyHashedObservableCollection<IOptionGroup, string>(optionGroups);
             this.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
         }
 
         public Character(string name): this()
         {
             Name = name;
+            IOptionGroup tmp = AvailableIdentities;
+            tmp = AnimatedAbilities;
+            tmp = null;
             SetActiveIdentity();
         }
 
         public Character(string name, string surface, IdentityType identityType): this(name)
         {
             SetActiveIdentity(surface, identityType);
+        }
+
+        [OnDeserialized]
+        private void AfterDeserialized(StreamingContext stream)
+        {
+            foreach (IOptionGroup opt in this.OptionGroups)
+            {
+                opt.UpdateIndicies();
+            }
+            IOptionGroup x = AvailableIdentities;
+            x = AnimatedAbilities;
+            x = null;
         }
 
         /// <summary>
@@ -66,14 +84,14 @@ namespace Module.HeroVirtualTabletop.Characters
                 //We look for a costume with the same name of the character
                 if (File.Exists(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME, name + Constants.GAME_COSTUMES_EXT)))
                 {
-                    if (!availableIdentities.ContainsKey(name))
+                    if (!AvailableIdentities.ContainsKey(name))
                     {
-                        availableIdentities.Add(new Identity(name, IdentityType.Costume, name));
+                        AvailableIdentities.Add(new Identity(name, IdentityType.Costume, name));
                     }
                     //Costume exists, use it
-                    this.ActiveIdentity = availableIdentities[name];
-                    this.DefaultIdentity = availableIdentities[name];
-                    if (availableIdentities.ContainsKey("Base"))
+                    this.ActiveIdentity = AvailableIdentities[name];
+                    this.DefaultIdentity = AvailableIdentities[name];
+                    if (AvailableIdentities.ContainsKey("Base"))
                     {
                         AvailableIdentities.Remove("Base");
                     }
@@ -84,24 +102,24 @@ namespace Module.HeroVirtualTabletop.Characters
                 //Validate the surface by checking if the costume exists
                 if (File.Exists(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME, surface + Constants.GAME_COSTUMES_EXT)))
                 {
-                    if (!availableIdentities.ContainsKey(surface))
+                    if (!AvailableIdentities.ContainsKey(surface))
                     {
-                        availableIdentities.Add(new Identity(surface, identityType, surface));
+                        AvailableIdentities.Add(new Identity(surface, identityType, surface));
                     }
                     //If valid, use it
-                    this.ActiveIdentity = availableIdentities[surface];
+                    this.ActiveIdentity = AvailableIdentities[surface];
                 }
             }
             else //A surface has been passed and it should be a model
             {
                 //To do: Validate the model??
                 //Use the surface as model
-                if (!availableIdentities.ContainsKey(surface))
+                if (!AvailableIdentities.ContainsKey(surface))
                 {
-                    availableIdentities.Add(new Identity(surface, identityType, surface));
+                    AvailableIdentities.Add(new Identity(surface, identityType, surface));
                 }
                 //If valid, use it
-                this.ActiveIdentity = availableIdentities[surface];
+                this.ActiveIdentity = AvailableIdentities[surface];
             }
         }
 
@@ -179,19 +197,44 @@ namespace Module.HeroVirtualTabletop.Characters
             return name;
         }
 
-        private OptionGroup<Identity> availableIdentities;
-        [JsonProperty(Order = 0)]
+        [JsonProperty(PropertyName = "OptionGroups", Order = 0)]
+        private HashedObservableCollection<IOptionGroup, string> optionGroups;
+        [JsonIgnore]
+        public ReadOnlyHashedObservableCollection<IOptionGroup, string> OptionGroups { get; private set; }
+
+
+        public void RemoveOptionGroup(IOptionGroup optGroup)
+        {
+            optionGroups.Remove(optGroup);
+            OnPropertyChanged("OptionGroups");
+        }
+
+        public void AddOptionGroup(IOptionGroup optGroup)
+        {
+            optionGroups.Add(optGroup);
+            OnPropertyChanged("OptionGroups");
+        }
+        
+        //private OptionGroup<Identity> availableIdentities;
+        //[JsonProperty(Order = 0)]
+        [JsonIgnore]
         public OptionGroup<Identity> AvailableIdentities
         {
             get
             {
+                OptionGroup<Identity> availableIdentities = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == "AvailableIdentities"; }) as OptionGroup<Identity>;
+                if (availableIdentities == null)
+                {
+                    availableIdentities = new OptionGroup<Identity>("AvailableIdentities");
+                    optionGroups.Add(availableIdentities);
+                }
                 return availableIdentities;
             }
-            set
-            {
-                availableIdentities = value;
-                OnPropertyChanged("AvailableIdentities");
-            }
+            //set
+            //{
+            //    availableIdentities = value;
+            //    OnPropertyChanged("AvailableIdentities");
+            //}
         }
 
         private Identity defaultIdentity;
@@ -200,11 +243,11 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             get
             {
-                if (defaultIdentity == null || !availableIdentities.Contains(defaultIdentity))
+                if (defaultIdentity == null || !AvailableIdentities.Contains(defaultIdentity))
                 {
-                    if (availableIdentities.Count > 0)
+                    if (AvailableIdentities.Count > 0)
                     {
-                        defaultIdentity = availableIdentities[0];
+                        defaultIdentity = AvailableIdentities[0];
                     }
                     else
                     {
@@ -216,12 +259,12 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
-                if (value != null && !availableIdentities.ContainsKey(value.Name))
+                if (value != null && !AvailableIdentities.ContainsKey(value.Name))
                 {
-                    availableIdentities.Add(value);
+                    AvailableIdentities.Add(value);
                 }
                 if (value != null)
-                    defaultIdentity = availableIdentities[value.Name];
+                    defaultIdentity = AvailableIdentities[value.Name];
                 else
                     defaultIdentity = null;
                 OnPropertyChanged("DefaultIdentity");
@@ -234,7 +277,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             get
             {
-                if (activeIdentity == null || !availableIdentities.ContainsKey(activeIdentity.Name))
+                if (activeIdentity == null || !AvailableIdentities.ContainsKey(activeIdentity.Name))
                 {
                     activeIdentity = DefaultIdentity;
                 }
@@ -249,13 +292,13 @@ namespace Module.HeroVirtualTabletop.Characters
                 //Deactive any effect activated as a result of former Identity loading
                 if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
                     activeIdentity.AnimationOnLoad.Stop();
-                if (value != null && !availableIdentities.ContainsKey(value.Name))
+                if (value != null && !AvailableIdentities.ContainsKey(value.Name))
                 {   
-                    availableIdentities.Add(value);
+                    AvailableIdentities.Add(value);
                 }
                 if (value != null)
                 {
-                    activeIdentity = availableIdentities[value.Name];
+                    activeIdentity = AvailableIdentities[value.Name];
                     if (HasBeenSpawned)
                     {
                         Target(false);
@@ -497,19 +540,26 @@ namespace Module.HeroVirtualTabletop.Characters
             Position = new Position();
         }
 
-        private OptionGroup<AnimatedAbility> animatedAbilities;
-        [JsonProperty(Order = 3)]
+        //private OptionGroup<AnimatedAbility> animatedAbilities;
+        //[JsonProperty(Order = 3)]
+        [JsonIgnore]
         public OptionGroup<AnimatedAbility> AnimatedAbilities
         {
             get
             {
+                OptionGroup<AnimatedAbility> animatedAbilities = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == "AnimatedAbilities"; }) as OptionGroup<AnimatedAbility>;
+                if (animatedAbilities == null)
+                {
+                    animatedAbilities = new OptionGroup<AnimatedAbility>("AnimatedAbilities");
+                    optionGroups.Add(animatedAbilities);
+                }
                 return animatedAbilities;
             }
-            set
-            {
-                animatedAbilities = value;
-                OnPropertyChanged("AnimatedAbilities");
-            }
+            //set
+            //{
+            //    animatedAbilities = value;
+            //    OnPropertyChanged("AnimatedAbilities");
+            //}
         }
 
         public void Activate()

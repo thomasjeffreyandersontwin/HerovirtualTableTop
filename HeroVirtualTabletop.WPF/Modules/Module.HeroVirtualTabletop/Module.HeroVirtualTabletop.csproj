@@ -322,7 +322,7 @@
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
     <None Include="Resources\HookCostume.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />

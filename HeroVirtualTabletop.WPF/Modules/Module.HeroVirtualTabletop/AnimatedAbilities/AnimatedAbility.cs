@@ -16,7 +16,7 @@ using System.Windows.Forms;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
-    public class AnimatedAbility : SequenceElement, ICharacterOption
+    public class AnimatedAbility : SequenceElement
     {
         [JsonConstructor]
         private AnimatedAbility() : base(string.Empty) { }
