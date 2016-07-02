@@ -9,6 +9,7 @@ using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Newtonsoft.Json;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
@@ -134,5 +135,10 @@ namespace Module.HeroVirtualTabletop.Identities
             return keybind;
         }
         
+        public Identity Clone()
+        {
+            Identity clonedIdentity = new Identity(this.Surface, this.Type, this.Name);
+            return clonedIdentity;
+        }
     }
 }

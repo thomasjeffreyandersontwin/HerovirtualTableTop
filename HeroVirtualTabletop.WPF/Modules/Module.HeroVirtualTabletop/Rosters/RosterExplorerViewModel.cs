@@ -197,7 +197,9 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else if (isTripleClick)
                 {
-                    TargetAndFollow();
+                    Character character = Participants.FirstOrDefault(p => (p as Character).HasBeenSpawned && (p as Character).gamePlayer.Pointer == targetObserver.CurrentTargetPointer) as Character;
+                    if (character != null)
+                        ActivateCharacter(character);
                 }
                 else if (isDoubleClick)
                 {
@@ -632,7 +634,16 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ActivateCharacter(object state)
         {
             this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
-            this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(this.ActiveCharacter as Character);
+            ActivateCharacter(this.ActiveCharacter as Character);
+        }
+
+        private void ActivateCharacter(Character character)
+        {
+            Action action = delegate()
+            {
+                this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(character);
+            };
+            Application.Current.Dispatcher.BeginInvoke(action);
         }
 
         #endregion

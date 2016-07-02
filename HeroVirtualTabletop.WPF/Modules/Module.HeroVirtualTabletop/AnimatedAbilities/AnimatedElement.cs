@@ -756,16 +756,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         [JsonProperty(PropertyName = "AnimationElements")]
-        private HashedObservableCollection<IAnimationElement, string> animationElements;
+        protected HashedObservableCollection<IAnimationElement, string> animationElements;
         [JsonIgnore]
-        public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; private set; }
+        public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; protected set; }
         
         public int LastOrder
         {
             get
             {
                 if (animationElements.Count > 0)
-                    return animationElements.Select(x => x.Order).Max();
+                    return animationElements.Max(x => x.Order);
                 else
                     return 0;
             }
@@ -784,13 +784,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             this.animationElements.Add(element);
             this.animationElements.Sort();
+            this.FixPlayWithNextForElements(element);
+        }
+
+        private void FixPlayWithNextForElements(IAnimationElement element)
+        {
+            if(element != null && !(element is MOVElement || element is FXEffectElement))
+            {
+                // the previous element cannot be played with next
+                int position = this.animationElements.IndexOf(element);
+                if(position != 0)
+                {
+                    this.animationElements[position - 1].PlayWithNext = false;
+                }
+            }
+            if(this.animationElements.Count > 0)
+                this.animationElements[this.animationElements.Count - 1].PlayWithNext = false;
         }
 
         public void RemoveAnimationElement(IAnimationElement element)
         {
+            int position = this.animationElements.IndexOf(element);
             foreach (IAnimationElement elem in animationElements.Where(a => a.Order > element.Order))
                 elem.Order -= 1;
             animationElements.Remove(element);
+            if (this.animationElements.Count > position)
+                FixPlayWithNextForElements(this.animationElements[position]);
+            else
+                FixPlayWithNextForElements(null);
         }
 
         public void RemoveAnimationElement(string name)

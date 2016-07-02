@@ -70,6 +70,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsAreaEffect");
             }
         }
+
+        public override AnimationElement Clone()
+        {
+            AnimatedAbility clonedAbility = new AnimatedAbility(this.Name, Keys.None, this.SequenceType, this.Persistent);
+            clonedAbility.DisplayName = this.DisplayName;
+            foreach (var element in this.AnimationElements)
+            {
+                var clonedElement = (element as AnimationElement).Clone() as AnimationElement;
+                clonedAbility.AddAnimationElement(clonedElement);
+            }
+            clonedAbility.animationElements = new HashedObservableCollection<IAnimationElement, string>(clonedAbility.AnimationElements, x => x.Name, x => x.Order);
+            clonedAbility.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(clonedAbility.animationElements);
+            clonedAbility.ActivateOnKey = this.ActivateOnKey;
+            clonedAbility.IsAreaEffect = this.IsAreaEffect;
+            clonedAbility.IsAttack = this.IsAttack;
+            clonedAbility.Name = this.Name;
+            return clonedAbility;
+        }
     }
 
     public class AttackEffect : AnimatedAbility
@@ -366,6 +384,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return this.InitiateAttack(persistent, target);
             else
                 return base.Play(persistent, target, forcePlay);
+        }
+
+        public override AnimationElement Clone()
+        {
+            Attack clonedAttack = new Attack(this.Name, Keys.None, this.SequenceType, this.Persistent);
+            clonedAttack.DisplayName = this.DisplayName;
+            foreach (var element in this.AnimationElements)
+            {
+                var clonedElement = (element as AnimationElement).Clone() as AnimationElement;
+                clonedAttack.AddAnimationElement(clonedElement);
+            }
+            clonedAttack.animationElements = new HashedObservableCollection<IAnimationElement, string>(clonedAttack.AnimationElements, x => x.Name, x => x.Order);
+            clonedAttack.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(clonedAttack.animationElements);
+            clonedAttack.ActivateOnKey = this.ActivateOnKey;
+            clonedAttack.IsAreaEffect = this.IsAreaEffect;
+            clonedAttack.IsAttack = this.IsAttack;
+            clonedAttack.Name = this.Name;
+            clonedAttack.OnHitAnimation = this.OnHitAnimation.Clone() as AnimatedAbility;
+            return clonedAttack;
         }
     }
 
