@@ -243,23 +243,39 @@ namespace Module.HeroVirtualTabletop.Crowds
             //CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
             CrowdMemberModel crowdMemberModel = new CrowdMemberModel()
             {
-                ActiveIdentity = this.ActiveIdentity,
-                DefaultIdentity = this.DefaultIdentity,
                 Name = this.Name,
                 RosterCrowd = null
             };
             crowdMemberModel.InitializeCharacter();
-            foreach (Identity id in this.AvailableIdentities)
-            {
-                Identity clonedIdentity = id.Clone();
-                crowdMemberModel.AvailableIdentities.Add(clonedIdentity);
-            }
+            
             foreach (AnimatedAbility ab in this.AnimatedAbilities)
             {
                 AnimatedAbility clonedAbility = ab.Clone() as AnimatedAbility;
-                clonedAbility.Owner = this;
+                clonedAbility.Owner = crowdMemberModel;
                 crowdMemberModel.AnimatedAbilities.Add(clonedAbility);
             }
+
+            foreach (Identity id in this.AvailableIdentities)
+            {
+                Identity clonedIdentity = id.Clone();
+                if(id.AnimationOnLoad != null)
+                {
+                    AnimatedAbility animationOnLoad = crowdMemberModel.AnimatedAbilities.Where(aa => aa.Name == id.AnimationOnLoad.Name).FirstOrDefault();
+                    clonedIdentity.AnimationOnLoad = animationOnLoad;
+                }
+                crowdMemberModel.AvailableIdentities.Add(clonedIdentity);
+            }
+            if(this.DefaultIdentity != null)
+            {
+                Identity defaultIdentity = crowdMemberModel.AvailableIdentities.Where(i => i.Name == this.DefaultIdentity.Name).FirstOrDefault();
+                crowdMemberModel.DefaultIdentity = defaultIdentity;
+            }
+            if (this.ActiveIdentity != null)
+            {
+                Identity activeIdentity = crowdMemberModel.AvailableIdentities.Where(i => i.Name == this.ActiveIdentity.Name).FirstOrDefault();
+                crowdMemberModel.ActiveIdentity = activeIdentity;
+            }
+
             // Need to add logic for Movements and other option groups
             return crowdMemberModel;
         }

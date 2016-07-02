@@ -153,7 +153,6 @@ namespace Module.HeroVirtualTabletop.Identities
         public Identity Clone()
         {
             Identity clonedIdentity = new Identity(this.Surface, this.Type, this.Name);
-            clonedIdentity.AnimationOnLoad = this.AnimationOnLoad.Clone() as AnimatedAbility;
             return clonedIdentity;
         }
     }
