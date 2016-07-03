@@ -633,7 +633,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ActivateCharacter(object state)
         {
-            this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
             ActivateCharacter(this.ActiveCharacter as Character);
         }
 
@@ -641,6 +640,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             Action action = delegate()
             {
+                this.ActiveCharacter = SelectedParticipants[0] as CrowdMemberModel;
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(character);
             };
             Application.Current.Dispatcher.BeginInvoke(action);
