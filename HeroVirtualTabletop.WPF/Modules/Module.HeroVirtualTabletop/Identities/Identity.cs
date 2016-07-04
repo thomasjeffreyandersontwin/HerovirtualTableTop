@@ -113,6 +113,9 @@ namespace Module.HeroVirtualTabletop.Identities
         public string Render(bool completeEvent = true)
         {
             string keybind = string.Empty;
+            if (completeEvent)
+                if (AnimationOnLoad != null)
+                    AnimationOnLoad.Play();
             switch (Type)
             {
                 case IdentityType.Model:
@@ -129,8 +132,29 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
-                if (AnimationOnLoad != null)
-                    AnimationOnLoad.Play();
+            }
+            return keybind;
+        }
+
+        public string RenderWoAnimation(bool completeEvent = true)
+        {
+            string keybind = string.Empty;
+            switch (Type)
+            {
+                case IdentityType.Model:
+                    {
+                        keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BeNPC, Surface);
+                        break;
+                    }
+                case IdentityType.Costume:
+                    {
+                        keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Surface);
+                        break;
+                    }
+            }
+            if (completeEvent)
+            {
+                keybind = keyBindsGenerator.CompleteEvent();
             }
             return keybind;
         }

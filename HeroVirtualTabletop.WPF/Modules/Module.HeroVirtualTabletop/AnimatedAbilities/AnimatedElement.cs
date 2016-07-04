@@ -304,9 +304,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private NAudio.Vorbis.VorbisWaveReader soundReader;
         private LoopWaveStream loop;
         private NAudio.Wave.WaveOut waveOut;
-        private Task audioPlaying;
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-
+        
         public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Character target = Target ?? this.Owner;
@@ -338,10 +337,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     waveOut.Init(soundReader);
                 }
-                //audioPlaying = Task.Run(() =>
-                //{
-                //    waveOut.Play();
-                //});
                 waveOut.Play();
             }
             finally
@@ -358,12 +353,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (IsActive)
             {
                 IsActive = false;
-                if (waveOut != null) waveOut.Stop();
             }
 
             if (soundReader != null) soundReader.Close();
             if (loop != null) loop.Close();
-            if (audioPlaying != null) audioPlaying.Dispose();
             if (waveOut != null) waveOut.Dispose();
             
             return base.Stop(target);

@@ -249,7 +249,6 @@
       <Name>Module.Shared</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Page Include="AnimatedAbilities\AbilityEditorView.xaml">
       <SubType>Designer</SubType>
