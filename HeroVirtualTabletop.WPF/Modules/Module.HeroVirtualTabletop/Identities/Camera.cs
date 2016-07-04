@@ -97,7 +97,7 @@ namespace Module.HeroVirtualTabletop.Identities
                     distanceTable.Clear();
                     maneuveredCharacter.ClearFromDesktop(true, true);
                     skin = value.ActiveIdentity;
-                    keybinds[1] = skin.Render();
+                    keybinds[1] = skin.RenderWoAnimation();
                 }
                 lastKeybinds = keybinds;
             }

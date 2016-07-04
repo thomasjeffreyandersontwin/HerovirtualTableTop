@@ -14,36 +14,66 @@ using Newtonsoft.Json;
 
 namespace Module.HeroVirtualTabletop.OptionGroups
 {
-    public interface IOptionGroup
+    public enum OptionType
     {
-        string Name { get; set; }
-        IEnumerable Options { get; }
-        string NewValidOptionName(string name = null);
+        Identity,
+        Ability,
+        Movement,
+        Mixed
     }
 
-    //[JsonObject]
-    [JsonArray]
+    public interface IOptionGroup
+    {
+        string Name { get; }
+        IEnumerable Options { get; }
+        string NewValidOptionName(string name = null);
+        OptionType Type { get; }
+        void UpdateIndicies();
+    }
+
+    [JsonObject]
     public class OptionGroup<T> : HashedObservableCollection<T, string>, IOptionGroup where T : ICharacterOption
     {
-        public OptionGroup(): base(opt => { return opt.Name; })
+        [JsonConstructor]
+        private OptionGroup(): base(opt => { return opt.Name; })
         {
-
+            switch (typeof(T).Name)
+            {
+                case "Identity":
+                    Type = OptionType.Identity;
+                    break;
+                case "AnimatedAbility":
+                    Type = OptionType.Ability;
+                    break;
+                case "Movement":
+                    Type = OptionType.Movement;
+                    break;
+                case "CharacterOption":
+                    Type = OptionType.Mixed;
+                    break;
+            }
         }
 
+        public OptionGroup(string name) : this()
+        {
+            Name = name;
+        }
+        [JsonProperty(PropertyName = "Name", Order = 0)]
         private string name;
+        [JsonIgnore]
         public string Name
         {
             get
             {
                 return name;
             }
-            set
+            private set
             {
                 name = value;
-                OnPropertyChanged(new PropertyChangedEventArgs("Name"));
             }
         }
         
+        [JsonProperty(Order = 1)]
         public IEnumerable Options
         {
             get
@@ -58,7 +88,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     this.Add(opt);
                 }
             }
-        }        
+        }
+
+        public OptionType Type
+        {
+            get;
+            private set;
+        }
 
         public string NewValidOptionName(string name = null)
         {
@@ -74,5 +110,15 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             return string.Format("{0}{1}", name, suffix).Trim();
         }
+        
+        public void UpdateIndicies()
+        {
+            this.indices.Clear();
+            foreach (T item in this.Items)
+            {
+                indices[keySelector(item)] = this.IndexOf(item);
+            }
+        }
+
     }
 }

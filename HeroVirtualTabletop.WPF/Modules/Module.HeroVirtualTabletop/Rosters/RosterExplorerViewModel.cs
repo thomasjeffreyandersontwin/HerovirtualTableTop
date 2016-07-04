@@ -54,8 +54,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isDoubleClick = false;
         private bool isTripleClick = false;
         private bool isQuadrupleClick = false;
-        private int milliseconds = 0;
-        private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime * 2;
+        private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 1.5);
         private Timer clickTimer = new Timer();
 
         #endregion
@@ -184,8 +183,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
             InitializeCommands();
             clickCount = 0;
-            clickTimer.AutoReset = true;
-            clickTimer.Interval = 50;
+            clickTimer.AutoReset = false;
+            clickTimer.Interval = maxClickTime;
             clickTimer.Elapsed +=
                 new ElapsedEventHandler(clickTimer_Elapsed);
             hookID = MouseHook.SetHook(clickCharacterInDesktop);
@@ -204,10 +203,11 @@ namespace Module.HeroVirtualTabletop.Roster
                         clickCount += 1;
                         switch (clickCount)
                         {
-                            case 1: Task.Run(()=> clickTimer.Start()); break;
+                            case 1: clickTimer.Start(); break;
                             case 2: isDoubleClick = true; break;
                             case 3: isTripleClick = true; break;
                             case 4: isQuadrupleClick = true; break;
+                            default: break;
                         }
                     }
                 }
@@ -217,31 +217,25 @@ namespace Module.HeroVirtualTabletop.Roster
 
         void clickTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
-            milliseconds += 50;
+            clickTimer.Stop();
 
-            if (milliseconds >= maxClickTime)
+            if (isQuadrupleClick)
             {
-                clickTimer.Stop();
-
-                if (isQuadrupleClick)
-                {
-                    ToggleManueverWithCamera();
-                }
-                else if (isTripleClick)
-                {
-                    Character character = Participants.FirstOrDefault(p => (p as Character).HasBeenSpawned && (p as Character).gamePlayer.Pointer == targetObserver.CurrentTargetPointer) as Character;
-                    if (character != null)
-                        ActivateCharacter(character);
-                }
-                else if (isDoubleClick)
-                {
-                    TargetAndFollow();
-                }
-            
-                clickCount = 0;
-                isDoubleClick = isTripleClick = isQuadrupleClick = false;
-                milliseconds = 0;
+                ToggleManueverWithCamera();
             }
+            else if (isTripleClick)
+            {
+                Character character = Participants.FirstOrDefault(p => (p as Character).HasBeenSpawned && (p as Character).gamePlayer.Pointer == targetObserver.CurrentTargetPointer) as Character;
+                if (character != null)
+                    ActivateCharacter(character);
+            }
+            else if (isDoubleClick)
+            {
+                TargetAndFollow();
+            }
+            
+            clickCount = 0;
+            isDoubleClick = isTripleClick = isQuadrupleClick = false;
         }
 
         #endregion
@@ -312,15 +306,16 @@ namespace Module.HeroVirtualTabletop.Roster
                     oldSelection.Remove(member);
                 });
             List<CrowdMemberModel> selected = SelectedParticipants.Cast<CrowdMemberModel>().Except(oldSelection).ToList();
-            selected.ForEach(
-                (member) =>
-                {
-                    if (!member.HasBeenSpawned)
-                        return;
-                    if (!(this.isPlayingAttack && this.attackingCharacter != null && this.attackingCharacter.Name == member.Name)) // Don't make the attacking character blue
-                        member.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
-                    oldSelection.Add(member);
-                });
+            if (selected.Count > 1)
+                selected.ForEach(
+                    (member) =>
+                    {
+                        if (!member.HasBeenSpawned)
+                            return;
+                        if (!(this.isPlayingAttack && this.attackingCharacter != null && this.attackingCharacter.Name == member.Name)) // Don't make the attacking character blue
+                            member.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                        oldSelection.Add(member);
+                    });
         }
         
         private void TargetObserver_TargetChanged(object sender, EventArgs e)

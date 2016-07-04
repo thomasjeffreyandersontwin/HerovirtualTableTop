@@ -16,7 +16,7 @@ namespace Module.HeroVirtualTabletop.Identities
     /// <summary>
     /// Represents a model or a costume for characters
     /// </summary>
-    public class Identity : NotifyPropertyChanged, ICharacterOption
+    public class Identity : CharacterOption
     {
         #region ComparisonOverrides
 
@@ -53,21 +53,6 @@ namespace Module.HeroVirtualTabletop.Identities
         #endregion
         
         protected KeyBindsGenerator keyBindsGenerator;
-
-        private string name;
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-            set
-            {
-                object oldValue = name;
-                name = value;
-                OnPropertyChanged("Name");
-            }
-        }
         
         private string surface;
 
@@ -128,6 +113,9 @@ namespace Module.HeroVirtualTabletop.Identities
         public string Render(bool completeEvent = true)
         {
             string keybind = string.Empty;
+            if (completeEvent)
+                if (AnimationOnLoad != null)
+                    AnimationOnLoad.Play();
             switch (Type)
             {
                 case IdentityType.Model:
@@ -144,8 +132,29 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
-                if (AnimationOnLoad != null)
-                    AnimationOnLoad.Play();
+            }
+            return keybind;
+        }
+
+        public string RenderWoAnimation(bool completeEvent = true)
+        {
+            string keybind = string.Empty;
+            switch (Type)
+            {
+                case IdentityType.Model:
+                    {
+                        keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BeNPC, Surface);
+                        break;
+                    }
+                case IdentityType.Costume:
+                    {
+                        keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Surface);
+                        break;
+                    }
+            }
+            if (completeEvent)
+            {
+                keybind = keyBindsGenerator.CompleteEvent();
             }
             return keybind;
         }

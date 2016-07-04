@@ -649,6 +649,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     RenameAbility(updatedName);
                     OnEditModeLeave(state, null);
                     this.SaveAbility(null);
+                    this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
                 }
                 else
                 {

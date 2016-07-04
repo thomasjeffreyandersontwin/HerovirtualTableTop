@@ -27,7 +27,14 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <GroupBox Header="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=local:OptionGroupView}, Path=Name}" x:Name="grpBox" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+        <Expander Header="{Binding Path=OptionGroup.Name}" x:Name="expander">
+            <Expander.Style>
+                <Style TargetType="Expander">
+                    <Setter Property="TextElement.Foreground" Value="white"></Setter>
+                    <Setter Property="BorderBrush" Value="#FF1144FF" />
+                    <Setter Property="BorderThickness" Value="2" />
+                </Style>
+            </Expander.Style>
             <Grid>
                 <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
                             DefaultOption="{Binding Path=DefaultOption}"
@@ -36,7 +43,7 @@
                             SelectionMode="Single"
                             MinHeight="70"
                             MaxHeight="150"
-                            Margin="0 0 28 0" Background="Transparent">
+                            Margin="0 0 28 0" Background="Transparent" BorderThickness="0" >
                     <ListBox.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Columns="5" />
@@ -142,6 +149,6 @@
                     </StackPanel>
                 </Border>
             </Grid>
-        </GroupBox>
+        </Expander>
     </Grid>
 </UserControl>

@@ -215,6 +215,5 @@ namespace Framework.WPF.Library
             int index = this.IndexOf(item);
             return indices.Keys.ToList()[indices.Values.ToList().IndexOf(index)];
         }
-
     }
 }

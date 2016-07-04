@@ -19,6 +19,7 @@ using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Identities;
 using Framework.WPF.Extensions;
 using System.Threading;
+using Module.HeroVirtualTabletop.OptionGroups;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -36,7 +37,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         string Stop(Character Target = null);
     }
 
-    public class AnimationElement : NotifyPropertyChanged, IAnimationElement
+    public class AnimationElement : CharacterOption, IAnimationElement
     {
         [JsonConstructor]
         private AnimationElement() { }
@@ -48,21 +49,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Owner = owner;
             this.Persistent = persistent;
         }
-
-        private string name;
-        public string Name
-        {
-            get
-            {
-                return name;
-            }
-            set
-            {
-                name = value;
-                OnPropertyChanged("Name");
-            }
-        }
-
+        
         private int order;
         public int Order
         {
@@ -317,9 +304,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private NAudio.Vorbis.VorbisWaveReader soundReader;
         private LoopWaveStream loop;
         private NAudio.Wave.WaveOut waveOut;
-        private Task audioPlaying;
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-
+        
         public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Character target = Target ?? this.Owner;
@@ -351,10 +337,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     waveOut.Init(soundReader);
                 }
-                //audioPlaying = Task.Run(() =>
-                //{
-                //    waveOut.Play();
-                //});
                 waveOut.Play();
             }
             finally
@@ -368,7 +350,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override string Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
-            if (waveOut != null) waveOut.Stop();
             if (IsActive)
             {
                 IsActive = false;
@@ -376,7 +357,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             if (soundReader != null) soundReader.Close();
             if (loop != null) loop.Close();
-            if (audioPlaying != null) audioPlaying.Dispose();
             if (waveOut != null) waveOut.Dispose();
             
             return base.Stop(target);
@@ -837,7 +817,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             get
             {
-                return AnimationElements.Any(x => x.IsActive);
+                return AnimationElements.Any(x => { return x.IsActive == true; });
             }
         }
 

@@ -79,6 +79,35 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        private ObservableCollection<IOptionGroupViewModel> optionGroups;
+        public ObservableCollection<IOptionGroupViewModel> OptionGroups
+        {
+            get
+            {
+                return optionGroups;
+            }
+            private set
+            {
+                optionGroups = value;
+                OnPropertyChanged("OptionGroups");
+            }
+        }
+
+        private IOptionGroup selectedOptionGroup;
+        public IOptionGroup SelectedOptionGroup
+        {
+            get
+            {
+                return selectedOptionGroup;
+            }
+            set
+            {
+                selectedOptionGroup = value;
+                OnPropertyChanged("SelectedOptionGroup");
+                this.RemoveOptionGroupCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -91,6 +120,8 @@ namespace Module.HeroVirtualTabletop.Characters
         public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
         public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
         public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
+        public DelegateCommand<object> AddOptionGroupCommand { get; private set; }
+        public DelegateCommand<object> RemoveOptionGroupCommand { get; private set; }
 
         #endregion
 
@@ -118,8 +149,10 @@ namespace Module.HeroVirtualTabletop.Characters
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
+            this.AddOptionGroupCommand = new DelegateCommand<object>(this.AddOptionGroup);
+            this.RemoveOptionGroupCommand = new DelegateCommand<object>(this.RemoveOptionGroup, this.CanRemoveOptionGroup);
         }
-
+        
         internal void LoadCharacter(object state)
         {
             Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple = state as Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>;
@@ -136,14 +169,51 @@ namespace Module.HeroVirtualTabletop.Characters
                 }
                 if(character != null && collection != null)
                 {
-                    this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
-                        new ParameterOverride("optionGroup", character.AvailableIdentities),
-                        new ParameterOverride("owner", character)
-                        );
-                    this.AnimatedAbilitiesViewModel = this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
-                        new ParameterOverride("optionGroup", character.AnimatedAbilities),
-                        new ParameterOverride("owner", character)
-                        );
+                    this.OptionGroups = new ObservableCollection<IOptionGroupViewModel>();
+                    foreach (IOptionGroup group in character.OptionGroups)
+                    {
+                        switch (group.Type)
+                        {
+                            case OptionType.Ability:
+                                OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
+                                new ParameterOverride("optionGroup", group),
+                                new ParameterOverride("owner", character)
+                                ));
+                                break;
+                            case OptionType.Identity:
+                                OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Identity>>(
+                                new ParameterOverride("optionGroup", group),
+                                new ParameterOverride("owner", character)
+                                ));
+                                break;
+                            case OptionType.Movement:
+                                OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Movements.Movement>>(
+                                new ParameterOverride("optionGroup", group),
+                                new ParameterOverride("owner", character)
+                                ));
+                                break;
+                            case OptionType.Mixed:
+                                OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
+                                new ParameterOverride("optionGroup", group),
+                                new ParameterOverride("owner", character)
+                                ));
+                                break;
+                        }
+                    }
+                    //OptionGroupViewModel <
+                    //    Identity,
+                    //    AnimatedAbility,
+                    //    Movements.Movement,
+                    //    CharacterOptionBase
+                    //>
+                    //this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
+                    //    new ParameterOverride("optionGroup", character.AvailableIdentities),
+                    //    new ParameterOverride("owner", character)
+                    //    );
+                    //this.AnimatedAbilitiesViewModel = this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
+                    //    new ParameterOverride("optionGroup", character.AnimatedAbilities),
+                    //    new ParameterOverride("owner", character)
+                    //    );
                     this.EditedCharacter = character;
                     this.characterCollection = collection;
                 }
@@ -326,6 +396,39 @@ namespace Module.HeroVirtualTabletop.Characters
         private void ToggleManeuverWithCamera(object obj)
         {
             EditedCharacter.ToggleManueveringWithCamera();
+        }
+
+        #endregion
+
+        #region Add/Remove OptionGroups
+        
+        private bool CanRemoveOptionGroup(object arg)
+        {
+            return SelectedOptionGroup != null && SelectedOptionGroup.Name != "AnimatedAbilities" && SelectedOptionGroup.Name != "AvailableIdentities";
+        }
+
+        private void RemoveOptionGroup(object obj)
+        {
+            IOptionGroup toBeRemoved = SelectedOptionGroup;
+            this.EditedCharacter.RemoveOptionGroup(toBeRemoved);
+            this.OptionGroups.Remove(this.OptionGroups.First((optG) => { return optG.OptionGroup == toBeRemoved; }));
+        }
+
+        private void AddOptionGroup(object obj)
+        {
+            string baseName = "Custom Option Group";
+            string validName = baseName;
+            int i = 1;
+            while (this.editedCharacter.OptionGroups.ContainsKey(validName))
+            {
+                validName = string.Format("{0} ({1})", baseName, i++);
+            }
+            IOptionGroup optGroup = new OptionGroup<CharacterOption>(validName);
+            this.EditedCharacter.AddOptionGroup(optGroup);
+            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
+                                new ParameterOverride("optionGroup", optGroup),
+                                new ParameterOverride("owner", editedCharacter)
+                                ));
         }
 
         #endregion
