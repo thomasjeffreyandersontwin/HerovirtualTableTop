@@ -849,8 +849,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string retVal = string.Empty;
             if (SequenceType == AnimationSequenceType.And)
             {
-                animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
-                foreach (IAnimationElement item in AnimationElements)
+                //animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
+                foreach (IAnimationElement item in AnimationElements.OrderBy(x=>x.Order))
                 {
                     retVal += item.Play(this.Persistent || persistent, Target ?? this.Owner);
                 }

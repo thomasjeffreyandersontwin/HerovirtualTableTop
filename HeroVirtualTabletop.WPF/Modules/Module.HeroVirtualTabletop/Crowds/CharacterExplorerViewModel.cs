@@ -261,8 +261,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Rename Character or Crowd
 
         private bool CanEnterEditMode(object state)
-        { 
-            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null));
+        {
+            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)));
         }
         private void EnterEditMode(object state)
         {
@@ -686,7 +686,10 @@ namespace Module.HeroVirtualTabletop.Crowds
                 else
                 {
                     if (SelectedCrowdMemberModel != null)
-                        canDeleteCharacterOrCrowd = true;
+                    {
+                        if(SelectedCrowdMemberModel.Name != Constants.DEFAULT_CHARACTER_NAME && SelectedCrowdMemberModel.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME)
+                            canDeleteCharacterOrCrowd = true;
+                    }
                 }
             }
 
@@ -906,7 +909,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public bool CanCloneCharacterCrowd(object state)
         {
-            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null));
+            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)));
         }
         public void CloneCharacterCrowd(object state)
         {
@@ -928,6 +931,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 canCut = false;
             }
+            else if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME))
+                canCut = false;
             return canCut;
         }
         public void CutCharacterCrowd(object state)
@@ -950,12 +955,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Link Character/Crowd
         public bool CanLinkCharacterCrowd(object state)
         {
-            bool canCut = true;
+            bool canLink = true;
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel == null)
             {
-                canCut = false;
+                canLink = false;
             }
-            return canCut;
+            else if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME))
+                canLink = false;
+            return canLink;
         }
         public void LinkCharacterCrowd(object state)
         {

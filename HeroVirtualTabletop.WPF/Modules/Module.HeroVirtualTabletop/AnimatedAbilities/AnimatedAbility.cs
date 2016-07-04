@@ -283,10 +283,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
-        public void AnimateAttackSequence(Character attackingCharacter, Dictionary<Character, ActiveAttackConfiguration> targetCharactersDictionary)
+        public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
             AttackDirection direction = new AttackDirection();
-            if(targetCharactersDictionary == null || targetCharactersDictionary.Count == 0)
+            if (defendingCharacters == null || defendingCharacters.Count == 0)
             {
                 var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
                 direction.AttackDirectionX = targetInFacingDirection.X;
@@ -295,41 +295,60 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             else
             {
-                var centerTargetCharacterEntry = targetCharactersDictionary.Where(tcd => tcd.Key != null && tcd.Value.IsCenterTarget == true).FirstOrDefault();
-                Character centerTargetCharacter = centerTargetCharacterEntry.Key;
-                if (centerTargetCharacterEntry.Value.AttackResult == AttackResultOption.Hit)
+                Character centerTargetCharacter = defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsCenterTarget).FirstOrDefault();
+                if(centerTargetCharacter == null)
                 {
-                    direction.AttackDirectionX = centerTargetCharacter.Position.X;
-                    direction.AttackDirectionY = centerTargetCharacter.Position.Y + 4.0d;
-                    direction.AttackDirectionZ = centerTargetCharacter.Position.Z;
+                    var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
+                    direction.AttackDirectionX = targetInFacingDirection.X;
+                    direction.AttackDirectionY = targetInFacingDirection.Y;
+                    direction.AttackDirectionZ = targetInFacingDirection.Z;
                 }
                 else
                 {
-                    Random rand = new Random();
-                    int randomOffset = rand.Next(2, 7);
-                    int multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
-                    direction.AttackDirectionX = centerTargetCharacter.Position.X + randomOffset * multiplyFactorX;
-                    multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
-                    direction.AttackDirectionY = centerTargetCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
-                    multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
-                    direction.AttackDirectionZ = centerTargetCharacter.Position.Z + randomOffset * multiplyFactorZ;
+                    if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
+                    {
+                        direction.AttackDirectionX = centerTargetCharacter.Position.X;
+                        direction.AttackDirectionY = centerTargetCharacter.Position.Y + 4.0d;
+                        direction.AttackDirectionZ = centerTargetCharacter.Position.Z;
+                    }
+                    else
+                    {
+                        Random rand = new Random();
+                        int randomOffset = rand.Next(2, 7);
+                        int multiplyOffset = rand.Next(11, 20);
+                        int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
+                        direction.AttackDirectionX = centerTargetCharacter.Position.X + randomOffset * multiplyFactorX;
+                        multiplyOffset = rand.Next(11, 20);
+                        int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
+                        direction.AttackDirectionY = centerTargetCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
+                        multiplyOffset = rand.Next(11, 20);
+                        int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
+                        direction.AttackDirectionZ = centerTargetCharacter.Position.Z + randomOffset * multiplyFactorZ;
+                    }
                 }
+                
             }
             AnimateAttack(direction, attackingCharacter);
-            if(targetCharactersDictionary != null && targetCharactersDictionary.Count >0)
+            if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
-                Parallel.ForEach(targetCharactersDictionary, (currentDictionaryEntry) =>
+                // Executing the attack on parallel thread actually works, but it sends the keybinds way too fast to the game to process, thus missing a few animations
+                // Therefore commenting out the parallel code and executing synchronous loop
+                //Parallel.ForEach(defendingCharacters, (targetCharacter) =>
+                //{
+                //    ActiveAttackConfiguration attackConfiguration = targetCharacter.ActiveAttackConfiguration;
+                //    if (attackConfiguration.AttackResult == AttackResultOption.Hit)
+                //        AnimateHit(attackConfiguration, targetCharacter);
+                //    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
+                //        AnimateMiss(attackConfiguration, targetCharacter);
+                //});
+                foreach(Character targetCharacter in defendingCharacters)
                 {
-                    Character targetCharacter = currentDictionaryEntry.Key;
-                    ActiveAttackConfiguration attackConfiguration = currentDictionaryEntry.Value;
+                    ActiveAttackConfiguration attackConfiguration = targetCharacter.ActiveAttackConfiguration;
                     if (attackConfiguration.AttackResult == AttackResultOption.Hit)
                         AnimateHit(attackConfiguration, targetCharacter);
                     else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
                         AnimateMiss(attackConfiguration, targetCharacter);
-                });
+                }
             }
             attackingCharacter.Deactivate();
         }

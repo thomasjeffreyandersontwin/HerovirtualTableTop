@@ -118,10 +118,10 @@ namespace Module.HeroVirtualTabletop.Library
             }
         }
 
-        private void ConfigureAttack(Tuple<Character, Attack> tuple)
+        private void ConfigureAttack(Tuple<List<Character>, Attack> tuple)
         {
-            Character character = tuple.Item1;
-            if(character != null)
+            List<Character> defendingCharacters = tuple.Item1;
+            if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
                 this.LoadActiveAttackWidget(tuple);
             }
@@ -130,10 +130,10 @@ namespace Module.HeroVirtualTabletop.Library
                 ActiveAttackConfiguration config = new ActiveAttackConfiguration();
                 config.AttackMode = AttackMode.None;
                 config.AttackResult = AttackResultOption.Miss;
-                this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<Character, ActiveAttackConfiguration, Attack>(tuple.Item1, config, tuple.Item2));
+                this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(tuple.Item1, tuple.Item2));
             }
         }
-        private void LoadActiveAttackWidget(Tuple<Character, Attack> tuple)
+        private void LoadActiveAttackWidget(Tuple<List<Character>, Attack> tuple)
         {
             if (tuple.Item1 != null && tuple.Item2 != null && PopupService.IsOpen("ActiveAttackView") == false)
             {
