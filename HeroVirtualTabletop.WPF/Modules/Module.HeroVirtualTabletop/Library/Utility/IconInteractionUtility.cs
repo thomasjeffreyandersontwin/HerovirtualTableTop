@@ -73,8 +73,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static void RunCOHAndLoadDLL()
         {
             initGame(IntPtr.Zero);
-            setUserHWnd(IntPtr.Zero);
             MessageBox.Show("Please wait for COH to initialize and close this message");
+            setUserHWnd(IntPtr.Zero);
         }
 
         public static void CloseCOH()

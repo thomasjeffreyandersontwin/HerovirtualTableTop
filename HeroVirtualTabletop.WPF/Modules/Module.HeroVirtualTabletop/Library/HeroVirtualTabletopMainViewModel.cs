@@ -175,7 +175,7 @@ namespace Module.HeroVirtualTabletop.Library
 
             IconInteractionUtility.RunCOHAndLoadDLL();
 
-            //LoadRequiredKeybinds();
+            LoadRequiredKeybinds();
 
         }
 

@@ -355,10 +355,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override string Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
-            if (waveOut != null) waveOut.Stop();
             if (IsActive)
             {
                 IsActive = false;
+                if (waveOut != null) waveOut.Stop();
             }
 
             if (soundReader != null) soundReader.Close();
@@ -824,7 +824,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             get
             {
-                return AnimationElements.Any(x => x.IsActive);
+                return AnimationElements.Any(x => { return x.IsActive == true; });
             }
         }
 

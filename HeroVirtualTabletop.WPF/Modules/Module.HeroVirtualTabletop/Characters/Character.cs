@@ -400,6 +400,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     {
                         keybind = keyBindsGenerator.CompleteEvent();
                         gamePlayer = WaitUntilTargetIsRegistered();
+                        Position = new Position();
                     }
                 }
                 return keybind;
