@@ -10,6 +10,7 @@ using Module.Shared.Events;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -29,84 +30,95 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Public Properties
 
-        private Character character;
-        private Attack attack;
-
-        private ActiveAttackConfiguration selectedActiveAttackConfig;
-        public ActiveAttackConfiguration SelectedActiveAttackConfiguration
+        private Attack activeAttack;
+        public Attack ActiveAttack
         {
             get
             {
-                return selectedActiveAttackConfig;
+                return activeAttack;
             }
             set
             {
-                selectedActiveAttackConfig = value;
-                OnPropertyChanged("SelectedActiveAttackConfiguration");
+                activeAttack = value;
+                OnPropertyChanged("ActiveAttack");
             }
         }
 
-        private bool isStunnedSelected;
-        public bool IsStunnedSelected
+        //private bool isStunnedSelected;
+        //public bool IsStunnedSelected
+        //{
+        //    get
+        //    {
+        //        return isStunnedSelected;
+        //    }
+        //    set
+        //    {
+        //        isStunnedSelected = value;
+        //        OnPropertyChanged("IsStunnedSelected");
+        //    }
+        //}
+
+        //private bool isUnconciousSelected;
+        //public bool IsUnconciousSelected
+        //{
+        //    get
+        //    {
+        //        return isUnconciousSelected;
+        //    }
+        //    set
+        //    {
+        //        isUnconciousSelected = value;
+        //        OnPropertyChanged("IsUnconciousSelected");
+        //    }
+        //}
+
+        //private bool isDyingSelected;
+        //public bool IsDyingSelected
+        //{
+        //    get
+        //    {
+        //        return isDyingSelected;
+        //    }
+        //    set
+        //    {
+        //        isDyingSelected = value;
+        //        OnPropertyChanged("IsDyingSelected");
+        //    }
+        //}
+
+        //private bool isDeadSelected;
+        //public bool IsDeadSelected
+        //{
+        //    get
+        //    {
+        //        return isDeadSelected;
+        //    }
+        //    set
+        //    {
+        //        isDeadSelected = value;
+        //        OnPropertyChanged("IsDeadSelected");
+        //    }
+        //}
+
+        private ObservableCollection<Character> defendingCharacters;
+        public ObservableCollection<Character> DefendingCharacters
         {
             get
             {
-                return isStunnedSelected;
+                return defendingCharacters;
             }
             set
             {
-                isStunnedSelected = value;
-                OnPropertyChanged("IsStunnedSelected");
+                defendingCharacters = value;
+                OnPropertyChanged("DefendingCharacters");
             }
         }
 
-        private bool isUnconciousSelected;
-        public bool IsUnconciousSelected
-        {
-            get
-            {
-                return isUnconciousSelected;
-            }
-            set
-            {
-                isUnconciousSelected = value;
-                OnPropertyChanged("IsUnconciousSelected");
-            }
-        }
-
-        private bool isDyingSelected;
-        public bool IsDyingSelected
-        {
-            get
-            {
-                return isDyingSelected;
-            }
-            set
-            {
-                isDyingSelected = value;
-                OnPropertyChanged("IsDyingSelected");
-            }
-        }
-
-        private bool isDeadSelected;
-        public bool IsDeadSelected
-        {
-            get
-            {
-                return isDeadSelected;
-            }
-            set
-            {
-                isDeadSelected = value;
-                OnPropertyChanged("IsDeadSelected");
-            }
-        }
-        
         #endregion
 
         #region Commands
 
-        
+        public DelegateCommand<object> CenterTargetChangedCommand { get; private set; }
         public DelegateCommand<object> SetActiveAttackCommand { get; private set; }
         public DelegateCommand<object> CancelActiveAttackCommand { get; private set; }
 
@@ -127,49 +139,55 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Initialization
 
-        private void InitializeAnimationElementSelections()
-        {
-            
-        }
-
         private void InitializeCommands()
         {
             this.SetActiveAttackCommand = new DelegateCommand<object>(this.SetActiveAttack);
             this.CancelActiveAttackCommand = new DelegateCommand<object>(this.CancelActiveAttack);
+            this.CenterTargetChangedCommand = new DelegateCommand<object>(this.ChangeCenterTarget);
         }
 
         #endregion
 
         #region Methods
 
-        private void ConfigureActiveAttack(Tuple<Character, Attack> tuple)
+        private void ChangeCenterTarget(object state)
         {
-            this.character = tuple.Item1;
-            this.attack = tuple.Item2;
-            this.SelectedActiveAttackConfiguration = new ActiveAttackConfiguration();
-            SelectedActiveAttackConfiguration.AttackMode = AttackMode.Defend;
-            SelectedActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
-            SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
-            SelectedActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
-            this.IsStunnedSelected = true;
+            if(this.ActiveAttack.IsAreaEffect)
+            {
+                Character character = state as Character;
+                if (character != null && character.ActiveAttackConfiguration.IsCenterTarget)
+                {
+                    foreach (Character ch in this.DefendingCharacters.Where(dc => dc.Name != character.Name))
+                    {
+                        ch.ActiveAttackConfiguration.IsCenterTarget = false;
+                    }
+                }
+            }
+        }
+
+        private void ConfigureActiveAttack(Tuple<List<Character>, Attack> tuple)
+        {
+            this.DefendingCharacters = new ObservableCollection<Character>(tuple.Item1);
+            this.ActiveAttack = tuple.Item2;
         }
 
         private void SetActiveAttack(object state)
         {
-            if (this.IsDeadSelected)
-                this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dead;
-            else if (this.IsDyingSelected)
-                this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dying;
-            else if (this.IsUnconciousSelected)
-                this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Unconcious;
-            else
-                this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
-
             // Change mouse pointer to back to bulls eye
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
             Mouse.OverrideCursor = cursor;
 
-            this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<Character, ActiveAttackConfiguration, Attack>(this.character, this.SelectedActiveAttackConfiguration, this.attack));
+            // If any character has Attack Effect not set for Hit, we set it to Stunned by default
+            foreach(var character in this.DefendingCharacters)
+            {
+                if(character.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
+                {
+                    if (character.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.None)
+                        character.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
+                }
+            }
+
+            this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
         }
 

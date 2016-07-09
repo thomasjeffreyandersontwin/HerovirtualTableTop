@@ -295,9 +295,12 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 if (selectedOption != null && selectedOption is AnimatedAbility)
                 {
-                    AnimatedAbility ability = selectedOption as AnimatedAbility;
-                    if (ability.IsActive && !ability.Persistent)
-                        ability.Stop();
+                    if (selectedOption as AnimatedAbility != value as AnimatedAbility)
+                    {
+                        AnimatedAbility ability = selectedOption as AnimatedAbility;
+                        if (ability.IsActive && !ability.Persistent)
+                            ability.Stop();
+                    }
                 }
                 selectedOption = value;
             }
@@ -376,7 +379,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private void TogglePlayOption(object obj)
         {
             SelectedOption = (T)obj;
-            if (typeof(T) == typeof(AnimatedAbility))
+            if (SelectedOption is AnimatedAbility)
             {
                 AnimatedAbility ability = obj as AnimatedAbility;
                 if (!ability.IsActive)
@@ -399,7 +402,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(new Tuple<Crowds.CrowdMemberModel, Crowds.CrowdModel>(member, member.RosterCrowd as Crowds.CrowdModel));
                 member.Spawn(false);
             }
-            this.Owner.Target(false);
+            this.Owner.Target();
         }
 
         private void AddIdentity(object state)

@@ -249,7 +249,6 @@
       <Name>Module.Shared</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Page Include="AnimatedAbilities\AbilityEditorView.xaml">
       <SubType>Designer</SubType>
@@ -321,6 +320,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <EmbeddedResource Include="Resources\areaattack.mnu" />
     <None Include="Resources\HookCostume.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

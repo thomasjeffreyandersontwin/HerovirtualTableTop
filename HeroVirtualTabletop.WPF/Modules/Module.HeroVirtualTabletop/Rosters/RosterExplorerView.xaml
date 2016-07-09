@@ -44,6 +44,10 @@
                 <MenuItem Header="Maneuver with camera" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ToggleManeuverWithCameraCommand}"></MenuItem>
                 <MenuItem Header="Clear From Desktop" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ClearFromDesktopCommand}"></MenuItem>
             </ContextMenu>
+            <ContextMenu x:Key="AreaAttackMenu">
+                <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AreaAttackTargetCommand}"></MenuItem>
+                <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AreaAttackTargetAndExecuteCommand}"></MenuItem>
+            </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
     <UserControl.InputBindings>
@@ -111,7 +115,19 @@
             </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}"  HorizontalAlignment="Stretch">
+                    <Grid  HorizontalAlignment="Stretch">
+                        <Grid.Style>
+                            <Style TargetType="{x:Type Grid}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="True">
+                                        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=AreaAttackMenu}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="False">
+                                        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=RosterExplorerMenu}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition ></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>

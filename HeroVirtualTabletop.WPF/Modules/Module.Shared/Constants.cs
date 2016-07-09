@@ -48,6 +48,12 @@ namespace Module.Shared
         public const string GAME_MODELS_FILENAME = "Models.txt";
         public const string GAME_DATA_BACKUP_FOLDERNAME = "Backup";
         public const string GAME_SOUND_FOLDERNAME = "sound";
+        public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME = "bindsavetarget.txt";
+        public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME = "bindsavetargetexecute.txt";
+        public const string GAME_TEXTS_FOLDERNAME = "texts";
+        public const string GAME_LANGUAGE_FOLDERNAME = "english";
+        public const string GAME_MENUS_FOLDERNAME = "menus";
+        public const string GAME_AREAATTACK_MENU_FILENAME = "areaattack.mnu";
         #endregion
 
         #region Character Explorer

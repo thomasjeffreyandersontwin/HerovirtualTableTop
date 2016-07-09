@@ -118,10 +118,10 @@ namespace Module.HeroVirtualTabletop.Library
             }
         }
 
-        private void ConfigureAttack(Tuple<Character, Attack> tuple)
+        private void ConfigureAttack(Tuple<List<Character>, Attack> tuple)
         {
-            Character character = tuple.Item1;
-            if(character != null)
+            List<Character> defendingCharacters = tuple.Item1;
+            if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
                 this.LoadActiveAttackWidget(tuple);
             }
@@ -130,10 +130,10 @@ namespace Module.HeroVirtualTabletop.Library
                 ActiveAttackConfiguration config = new ActiveAttackConfiguration();
                 config.AttackMode = AttackMode.None;
                 config.AttackResult = AttackResultOption.Miss;
-                this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<Character, ActiveAttackConfiguration, Attack>(tuple.Item1, config, tuple.Item2));
+                this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(tuple.Item1, tuple.Item2));
             }
         }
-        private void LoadActiveAttackWidget(Tuple<Character, Attack> tuple)
+        private void LoadActiveAttackWidget(Tuple<List<Character>, Attack> tuple)
         {
             if (tuple.Item1 != null && tuple.Item2 != null && PopupService.IsOpen("ActiveAttackView") == false)
             {
@@ -175,8 +175,9 @@ namespace Module.HeroVirtualTabletop.Library
 
             IconInteractionUtility.RunCOHAndLoadDLL();
 
-            //LoadRequiredKeybinds();
+            LoadRequiredKeybinds();
 
+            CreatePopupMenuIfNotExists();
         }
 
         private void LoadRequiredKeybinds()
@@ -288,6 +289,35 @@ namespace Module.HeroVirtualTabletop.Library
 
                 ZipArchive archive = new ZipArchive(data.Stream);
                 archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+            }
+        }
+
+        private void CreatePopupMenuIfNotExists()
+        {
+            string dirTexts = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME);
+            if (!Directory.Exists(dirTexts))
+                Directory.CreateDirectory(dirTexts);
+            string dirLanguage = Path.Combine(dirTexts, Constants.GAME_LANGUAGE_FOLDERNAME);
+            if (!Directory.Exists(dirLanguage))
+                Directory.CreateDirectory(dirLanguage);
+            string dirMenus = Path.Combine(dirLanguage, Constants.GAME_MENUS_FOLDERNAME);
+            if (!Directory.Exists(dirMenus))
+                Directory.CreateDirectory(dirMenus);
+            string fileAreaAttackMenu = Path.Combine(dirMenus, Constants.GAME_AREAATTACK_MENU_FILENAME);
+            var assembly = Assembly.GetExecutingAssembly();
+            
+            if (!File.Exists(fileAreaAttackMenu))
+            {
+                var resourceName = "Module.HeroVirtualTabletop.Resources.areaattack.mnu";
+
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string result = reader.ReadToEnd();
+                    File.AppendAllText(
+                        fileAreaAttackMenu, result
+                        );
+                }
             }
         }
 
