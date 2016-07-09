@@ -13,7 +13,7 @@ IMPLEMENT_DYNAMIC(COHDialog, CDialogEx)
 COHDialog::COHDialog(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_DIALOG1, pParent)
 {
-
+//	WM_MOUSEMOVE
 }
 
 COHDialog::~COHDialog()

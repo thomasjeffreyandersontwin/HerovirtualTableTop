@@ -284,7 +284,7 @@ __declspec(dllexport) int __cdecl CloseGame(HWND hWnd)
 	m_HookDLG.PostMessage(WM_CLOSE, 0, 0);
 	Sleep(1000);
 
-	TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID), 0);
+//	TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID), 0);
 	return FALSE;
 }
 
