@@ -177,6 +177,7 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadRequiredKeybinds();
 
+            CreatePopupMenuIfNotExists();
         }
 
         private void LoadRequiredKeybinds()
@@ -288,6 +289,35 @@ namespace Module.HeroVirtualTabletop.Library
 
                 ZipArchive archive = new ZipArchive(data.Stream);
                 archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+            }
+        }
+
+        private void CreatePopupMenuIfNotExists()
+        {
+            string dirTexts = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME);
+            if (!Directory.Exists(dirTexts))
+                Directory.CreateDirectory(dirTexts);
+            string dirLanguage = Path.Combine(dirTexts, Constants.GAME_LANGUAGE_FOLDERNAME);
+            if (!Directory.Exists(dirLanguage))
+                Directory.CreateDirectory(dirLanguage);
+            string dirMenus = Path.Combine(dirLanguage, Constants.GAME_MENUS_FOLDERNAME);
+            if (!Directory.Exists(dirMenus))
+                Directory.CreateDirectory(dirMenus);
+            string fileAreaAttackMenu = Path.Combine(dirMenus, Constants.GAME_AREAATTACK_MENU_FILENAME);
+            var assembly = Assembly.GetExecutingAssembly();
+            
+            if (!File.Exists(fileAreaAttackMenu))
+            {
+                var resourceName = "Module.HeroVirtualTabletop.Resources.areaattack.mnu";
+
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string result = reader.ReadToEnd();
+                    File.AppendAllText(
+                        fileAreaAttackMenu, result
+                        );
+                }
             }
         }
 

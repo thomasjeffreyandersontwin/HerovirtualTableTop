@@ -139,11 +139,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Initialization
 
-        private void InitializeAnimationElementSelections()
-        {
-            
-        }
-
         private void InitializeCommands()
         {
             this.SetActiveAttackCommand = new DelegateCommand<object>(this.SetActiveAttack);
@@ -174,28 +169,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.DefendingCharacters = new ObservableCollection<Character>(tuple.Item1);
             this.ActiveAttack = tuple.Item2;
-            //this.SelectedActiveAttackConfiguration = new ActiveAttackConfiguration();
-            //SelectedActiveAttackConfiguration.AttackMode = AttackMode.Defend;
-            //SelectedActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
-            //SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
-            //SelectedActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
-            //this.IsStunnedSelected = true;
         }
 
         private void SetActiveAttack(object state)
         {
-            //if (this.IsDeadSelected)
-            //    this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dead;
-            //else if (this.IsDyingSelected)
-            //    this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dying;
-            //else if (this.IsUnconciousSelected)
-            //    this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Unconcious;
-            //else
-            //    this.SelectedActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
-
             // Change mouse pointer to back to bulls eye
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
             Mouse.OverrideCursor = cursor;
+
+            // If any character has Attack Effect not set for Hit, we set it to Stunned by default
+            foreach(var character in this.DefendingCharacters)
+            {
+                if(character.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
+                {
+                    if (character.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.None)
+                        character.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
+                }
+            }
 
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
