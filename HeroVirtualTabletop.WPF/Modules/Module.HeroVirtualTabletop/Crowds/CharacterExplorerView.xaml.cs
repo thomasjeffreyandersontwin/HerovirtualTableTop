@@ -29,6 +29,8 @@ namespace Module.HeroVirtualTabletop.Crowds
     {
         private CharacterExplorerViewModel viewModel;
         private CrowdModel selectedCrowdRoot;
+        private Point startPosition;
+        private bool isDragging;
         public CharacterExplorerView(CharacterExplorerViewModel viewModel)
         {
             InitializeComponent();
@@ -172,8 +174,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
+            startPosition = e.GetPosition(null);
 
+            TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
+            
             if (treeViewItem != null)
             {
                 treeViewItem.Focus();
@@ -417,5 +421,34 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
         #endregion
+
+        private void treeViewCrowd_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && !isDragging)
+            {
+                Point position = e.GetPosition(null);
+
+                if (((Math.Abs(position.X - startPosition.X)) > SystemParameters.MinimumHorizontalDragDistance) ||
+                    ((Math.Abs(position.Y - startPosition.Y)) > SystemParameters.MinimumVerticalDragDistance))
+                {
+                    StartDrag(e); 
+                }
+
+            }
+
+        }
+
+        
+        private void StartDrag(MouseEventArgs e)
+        {
+
+            isDragging = true;
+            DataObject data = new DataObject("DragToRoster", this.treeViewCrowd.SelectedItem);
+
+            DragDropEffects de = DragDrop.DoDragDrop(this.treeViewCrowd, data, DragDropEffects.Link);
+
+            isDragging = false;
+
+        }
     }
 }

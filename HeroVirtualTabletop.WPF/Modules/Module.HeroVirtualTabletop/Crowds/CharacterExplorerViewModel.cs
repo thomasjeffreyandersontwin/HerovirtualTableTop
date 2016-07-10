@@ -1173,8 +1173,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddToRoster(Tuple<CrowdMemberModel, CrowdModel> data)
         {
-            CrowdMemberModel crowdMember = data.Item1;
-            CrowdModel rosterCrowd = data.Item2;
+            CrowdMemberModel crowdMember = data != null ? data.Item1 : this.SelectedCrowdMemberModel;
+            CrowdModel rosterCrowd = data != null ? data.Item2 : this.SelectedCrowdModel;
             List<CrowdMemberModel> rosterCharacters = new List<CrowdMemberModel>();
             if (rosterCrowd == null)
             {

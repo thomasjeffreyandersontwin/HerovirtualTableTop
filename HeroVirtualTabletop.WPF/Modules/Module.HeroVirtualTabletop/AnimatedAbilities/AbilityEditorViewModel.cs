@@ -44,8 +44,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Events
 
-        public event EventHandler AnimationAdded;
-        public void OnAnimationAdded(object sender, EventArgs e)
+        public event EventHandler<CustomEventArgs<bool>> AnimationAdded;
+        public void OnAnimationAdded(object sender, CustomEventArgs<bool> e)
         {
             if (AnimationAdded != null)
             {
@@ -1197,11 +1197,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Cut Animation
-        public bool CanCutAnimation(object state)
+        private bool CanCutAnimation(object state)
         {
             return (this.SelectedAnimationElement != null);
         }
-        public void CutAnimation(object state)
+        private void CutAnimation(object state)
         {
             if (this.SelectedAnimationParent != null)
             {
@@ -1219,7 +1219,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Paste Animation
-        public bool CanPasteAnimation(object state)
+        private bool CanPasteAnimation(object state)
         {
             bool canPaste = false;
             switch (Helper.GlobalClipboardAction)
@@ -1293,7 +1293,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return canPaste;
         }
-        public void PasteAnimation(object state)
+        private void PasteAnimation(object state)
         {
             // Lock animation Tree from updating
             this.LockModelAndMemberUpdate(true);
@@ -1320,7 +1320,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         if (animationElement is SequenceElement && string.IsNullOrEmpty((animationElement as AnimationElement).DisplayName))
                             (animationElement as AnimationElement).DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
                         this.AddAnimationElement(animationElement as AnimationElement);
-                        OnAnimationAdded(animationElement, null);
+                        OnAnimationAdded(animationElement, new CustomEventArgs<bool>() { Value = false });
                         this.SaveAbility(null);
                         break;
                     }
@@ -1415,6 +1415,42 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.IsAttackSelected = false;
                 this.IsHitSelected = true;
                 this.CurrentAbility = this.CurrentAttackAbility.OnHitAnimation;
+            }
+        }
+
+        #endregion
+
+        #region Move Animation Element
+        /// <summary>
+        /// This method is used for Drag drop and performs a cut paste under the hood
+        /// </summary>
+        /// <param name="sourceElement"></param>
+        /// <param name="targetElement"></param>
+        public void MoveSelectedAnimationElement(SequenceElement targetElementParent, int order)
+        {
+            IAnimationElement sourceElement = null; 
+            SequenceElement sourceElementParent = null;
+            if (this.SelectedAnimationParent != null)
+            {
+                sourceElement = this.SelectedAnimationElement;
+                sourceElementParent = this.SelectedAnimationParent as SequenceElement;
+            }
+            else
+            {
+                sourceElement = this.SelectedAnimationElement;
+                sourceElementParent = this.CurrentAbility;
+            }
+            SequenceElement destinationElementParent = targetElementParent ?? this.CurrentAbility;
+            if(sourceElement != null && sourceElementParent != null)
+            {
+                List<IAnimationElement> flattenedList = GetFlattenedAnimationList(CurrentAbility.AnimationElements.ToList());
+                sourceElementParent.RemoveAnimationElement(sourceElement);
+                sourceElement.Name = GetAppropriateAnimationName(sourceElement.Type, flattenedList);
+                if (sourceElement is SequenceElement && string.IsNullOrEmpty((sourceElement as AnimationElement).DisplayName))
+                    (sourceElement as AnimationElement).DisplayName = "Sequence: " + (sourceElement as SequenceElement).SequenceType.ToString();
+                destinationElementParent.AddAnimationElement(sourceElement as AnimationElement, order);
+                OnAnimationAdded(sourceElement, new CustomEventArgs<bool>() { Value = false});
+                this.SaveAbility(null);
             }
         }
 

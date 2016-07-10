@@ -304,6 +304,11 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
             this.EditCharacterCommand.RaiseCanExecuteChanged();
         }
+
+        public void RaiseEventToImportRosterMember()
+        {
+            this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(null);
+        }
         
         private void CheckRosterConsistency(IEnumerable<CrowdMemberModel> members)
         {

@@ -272,6 +272,22 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             return winName;
         }
 
+        // Helper to search up the VisualTree
+        public static T FindAncestor<T>(DependencyObject current)
+            where T : DependencyObject
+        {
+            do
+            {
+                if (current is T)
+                {
+                    return (T)current;
+                }
+                current = VisualTreeHelper.GetParent(current);
+            }
+            while (current != null);
+            return null;
+        }
+
         #endregion
     }
 }

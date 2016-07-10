@@ -86,7 +86,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             expression.UpdateSource();
         }
 
-        private void viewModel_AnimationAdded(object sender, EventArgs e)
+        private void viewModel_AnimationAdded(object sender, CustomEventArgs<bool> e)
         {
             IAnimationElement modelToSelect = sender as IAnimationElement;
             if (sender == null) // Need to unselect
@@ -180,7 +180,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
                 if (txtBox != null && this.viewModel.SelectedAnimationElement is PauseElement)
-                    this.viewModel.EnterAnimationElementEditModeCommand.Execute(txtBox);
+                {
+                    if(!(e != null && e.Value == false)) // to avoid renaming in case of cut-paste or drag-drop
+                        this.viewModel.EnterAnimationElementEditModeCommand.Execute(txtBox); 
+                }
             }
             //this.UpdateDataGrid(modelToSelect);
         }
@@ -218,6 +221,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
+            startPoint = e.GetPosition(null);
+            flag = 1;
+            
             TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
 
             if (treeViewItem != null)
@@ -308,6 +314,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     break;
             }
             return treeViewItem;
+        }
+
+        private TreeViewItem GetNearestContainer(UIElement element)
+        {
+            // Walk up the element tree to the nearest tree view item.
+            TreeViewItem container = element as TreeViewItem;
+            while ((container == null) && (element != null))
+            {
+                element = VisualTreeHelper.GetParent(element) as UIElement;
+                container = element as TreeViewItem;
+            }
+            return container;
         }
 
         private void treeViewAnimations_PreviewKeyUp(object sender, KeyEventArgs e)
@@ -451,6 +469,90 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //}
         }
         #endregion
-        
+
+        #region Drag Drop
+
+        int flag = 0;
+        Point startPoint;
+        private void treeViewAnimations_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (flag == 1)
+            {
+                // Get the current mouse position
+                Point mousePos = e.GetPosition(null);
+                Vector diff = startPoint - mousePos;
+
+                if (e.LeftButton == MouseButtonState.Pressed &&
+                    Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    // Get the dragged ListViewItem
+                    TreeView treeView = sender as TreeView;
+                    TreeViewItem treeViewItem =
+                        Helper.FindAncestor<TreeViewItem>((DependencyObject)e.OriginalSource);
+
+                    // Find the data behind the ListViewItem
+                    //AnimationElement elementBehind = (AnimationElement)treeView.ItemContainerGenerator.ItemFromContainer(treeViewItem);
+                    AnimationElement element = (AnimationElement)treeView.SelectedItem;
+                    // Initialize the drag & drop operation
+                    DataObject dragData = new DataObject("AnimationSelfDragDrop", element);
+                    DragDrop.DoDragDrop(treeViewItem, dragData, DragDropEffects.Move);
+                }
+            }
+        }
+
+        private void FindDropTarget(TreeView tv, out TreeViewItem itemNode, DragEventArgs dragEventArgs)
+        {
+            itemNode = null;
+
+            DependencyObject k = VisualTreeHelper.HitTest(tv, dragEventArgs.GetPosition(tv)).VisualHit;
+
+            while (k != null)
+            {
+                if (k is TreeViewItem)
+                {
+                    TreeViewItem treeNode = k as TreeViewItem;
+                    if (treeNode.DataContext is AnimationElement)
+                    {
+                        itemNode = treeNode;
+                    }
+                }
+                else if (k == tv)
+                {
+                    return;
+                }
+
+                k = VisualTreeHelper.GetParent(k);
+            }
+        }
+
+        private void treeViewAnimations_PreviewDragEnter(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent("AnimationSelfDragDrop") || sender == e.Source)
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+
+        private void treeViewAnimations_PreviewDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent("AnimationSelfDragDrop"))
+            {
+                TreeViewItem itemNode;
+                FindDropTarget((TreeView)sender, out itemNode, e);
+                
+                if(itemNode != null)
+                {
+                    AnimationElement dropAnimationElement = (itemNode != null && itemNode.IsVisible ? itemNode.DataContext as AnimationElement : null);
+                    AnimationElement dragAnimationElement = e.Data.GetData("AnimationSelfDragDrop") as AnimationElement;
+                    TreeViewItem itemNodeParent = GetImmediateTreeViewItemParent(itemNode);
+                    SequenceElement dropAnimationElementParent = itemNodeParent != null ? itemNodeParent.DataContext as SequenceElement : null;
+                    this.viewModel.MoveSelectedAnimationElement(dropAnimationElementParent, dropAnimationElement.Order);
+                }
+                flag = 0;
+            }
+        }
+
+        #endregion
     }
 }

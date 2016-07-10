@@ -111,5 +111,20 @@ namespace Module.HeroVirtualTabletop.Roster
                 milliseconds = 0;
             }
         }
+
+        private void RosterViewListBox_Drop(object sender, DragEventArgs e)
+        {
+            this.viewModel.RaiseEventToImportRosterMember();
+        }
+
+        private void RosterViewListBox_DragOver(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent("DragToRoster"))
+            {
+                e.Effects = DragDropEffects.None;
+                e.Handled = true;
+            } 
+        }
+
     }
 }
