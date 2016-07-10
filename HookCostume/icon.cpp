@@ -74,6 +74,50 @@ BOOL InjectDLL(TCHAR* szDllName)
 	VirtualFreeEx(m_hTargetProcess,szRemoteDllName,0,MEM_RELEASE);
 	return TRUE;			
 }
+#include <shlwapi.h>
+#include <TLHELP32.H>
+#include <psapi.h>
+typedef struct _ProcInfo
+{
+	DWORD	dwProcId;
+	char	ProcName[32];
+}PROCINFO;
+
+DWORD	FindProcess(LPTSTR szName)
+{
+	DWORD			dwResult = 0;
+
+	HANDLE			hSnapHandle;
+	PROCESSENTRY32	pProcessEntry;
+
+	hSnapHandle = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapHandle == INVALID_HANDLE_VALUE)
+	{
+		return	dwResult;
+	}
+
+	pProcessEntry.dwSize = sizeof(pProcessEntry);
+	if (!Process32First(hSnapHandle, &pProcessEntry))
+	{
+		CloseHandle(hSnapHandle);
+		return	dwResult;
+	}
+
+	do
+	{
+		if (pProcessEntry.th32ProcessID == 0)
+			continue;
+
+		if (lstrcmpi(szName, pProcessEntry.szExeFile) == 0)
+		{
+			dwResult = pProcessEntry.th32ProcessID;
+			break;
+		}
+	} while (Process32Next(hSnapHandle, &pProcessEntry));
+
+	CloseHandle(hSnapHandle);
+	return	dwResult;
+}
 
 int WINAPI mWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	PSTR szCmdParam, int iCmdShow)
@@ -83,39 +127,65 @@ int WINAPI mWinMain (HINSTANCE hInstance, HINSTANCE hPrevInstance,
     //if (!stricmp(szCmdParam, "-r")) //phc
 	random = 1;					  //phc	
 
-    // First check to see if the file exists.
-    //
-    while (GetFileAttributesA("cityofheroes.exe") == INVALID_FILE_ATTRIBUTES) {
-		PromptUserForCohLocation();
-    }
+	memset(&pinfo, 0, sizeof(pinfo));
+	HWND hwnd= ::FindWindowA("CrypticWindow", NULL);
+	if (hwnd == NULL) {
 
-    STARTUPINFO startup;
-    memset(&startup, 0, sizeof(startup));
-    startup.cb = sizeof(STARTUPINFO);
-    memset(&pinfo, 0, sizeof(pinfo));
+		// First check to see if the file exists.
+		//
+		while (GetFileAttributesA("cityofheroes.exe") == INVALID_FILE_ATTRIBUTES) {
+			PromptUserForCohLocation();
+		}
 
-    if(!CreateProcessA("cityofheroes.exe", "cityofheroes.exe -project coh -noverify", NULL, NULL, FALSE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED | DETACHED_PROCESS, NULL, NULL, (LPSTARTUPINFOA)&startup, &pinfo)) {
-		MessageBoxA(NULL, "Failed to launch process!", "Error", MB_OK | MB_ICONEXCLAMATION);
-		return 0;
-    }
+		STARTUPINFO startup;
+		memset(&startup, 0, sizeof(startup));
+		startup.cb = sizeof(STARTUPINFO);
 
-    // delete old crap previous version used
-	BOOL blAtr = GetFileAttributesA("data\\charcreate.txt");
-    if (blAtr)
-		DeleteFileA("data\\charcreate.txt");
+		if (!CreateProcessA("cityofheroes.exe", "cityofheroes.exe -project coh -noverify", NULL, NULL, FALSE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED | DETACHED_PROCESS, NULL, NULL, (LPSTARTUPINFOA)&startup, &pinfo)) {
+			MessageBoxA(NULL, "Failed to launch process!", "Error", MB_OK | MB_ICONEXCLAMATION);
+			return 0;
+		}
 
-    RunPatch();
 
-	//Inject my Dll
+		// delete old crap previous version used
+		BOOL blAtr = GetFileAttributesA("data\\charcreate.txt");
+		if (blAtr)
+			DeleteFileA("data\\charcreate.txt");
 
-	gamePID = pinfo.dwProcessId ;
-	m_hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID);
+		RunPatch();
 
-	InjectDLL(_T("HookCostume.dll"));
+		//Inject my Dll
 
-	CloseHandle(m_hTargetProcess);
+		gamePID = pinfo.dwProcessId;
+		m_hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID);
 
-    ResumeThread(pinfo.hThread);
+		InjectDLL(_T("HookCostume.dll"));
+
+		CloseHandle(m_hTargetProcess);
+
+		ResumeThread(pinfo.hThread);
+	}
+	else {
+		gamePID = FindProcess(_T("cityofheroes.exe"));
+		pinfo.hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID);
+		SuspendThread(pinfo.hProcess);
+
+		char buff[10];
+		//check memory
+		ReadProcessMemory(pinfo.hProcess, (void *)0x004165BD, &buff, 5, NULL);
+		if (memcmp(buff, "\xE8\x4E\x81\x5C\x00", 5) == 0) {
+			RunPatch();
+		}
+
+		m_hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID);
+		SuspendThread(m_hTargetProcess);
+
+		InjectDLL(_T("HookCostume.dll"));
+
+		ResumeThread(m_hTargetProcess);
+		CloseHandle(m_hTargetProcess);
+
+	}
     return 0;
 }
 
