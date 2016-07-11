@@ -177,18 +177,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
             Mouse.OverrideCursor = cursor;
 
-            // If any character has Attack Effect not set for Hit, we set it to Stunned by default
-            foreach(var character in this.DefendingCharacters)
-            {
-                if(character.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
-                {
-                    if (character.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.None)
-                        character.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
-                }
-            }
-
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.ActiveAttack);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
         }
 
         private void CancelActiveAttack(object state)

@@ -46,6 +46,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private bool isPlayingAttack = false;
         private bool isPlayingAreaEffect = false;
+        private bool isCharacterReset = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
         private List<Character> targetCharacters = new List<Character>();
@@ -591,6 +592,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (this.isPlayingAttack)
                         member.Target();
+                    else if(this.isCharacterReset) // character has been selected to reset state, so just target
+                    {
+                        this.isCharacterReset = false; // reset this flag
+                        member.Target();
+                    }
                     else
                         member.TargetAndFollow();
                 }
@@ -788,6 +794,11 @@ namespace Module.HeroVirtualTabletop.Roster
                         } 
                     }
                 }
+                else if(currentTarget == null) // Shoot randomly up front
+                {
+                    List<Character> defendingCharacters = new List<Character>();
+                    this.LaunchActiveAttack(new Tuple<List<Character>, Attack>(defendingCharacters, this.currentAttack));
+                }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
         }
@@ -797,27 +808,23 @@ namespace Module.HeroVirtualTabletop.Roster
             List<Character> defendingCharacters = tuple.Item1;
             Attack attack = tuple.Item2;
             attack.AnimateAttackSequence(attackingCharacter, defendingCharacters);
-            // Update AttackConfig to update icons based on attack effect
-            //if(attackConfig.AttackResult == AttackResultOption.Hit)
-            //{
-            //    ActiveAttackConfiguration activeAttack = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = attackConfig.AttackEffectOption };
-            //    targetCharacter.ActiveAttackConfiguration = activeAttack;
-            //}
             // Update Mouse cursor
             Mouse.OverrideCursor = Cursors.Arrow;
             // Hide attack icon from attacking character
             if(this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
                 this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
-            this.ResetAttack();
+            this.ResetAttack(defendingCharacters);
         }
 
-        private void ResetAttack()
+        private void ResetAttack(List<Character> defenders)
         {
             this.isPlayingAttack = false;
             this.isPlayingAreaEffect = false;
             targetObserver.TargetChanged -= AttackTargetUpdated;
             this.currentAttack = null;
             this.attackingCharacter = null;
+            foreach (var defender in defenders)
+                defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
             this.fileSystemWatcher.EnableRaisingEvents = false;
         }
 
@@ -839,9 +846,8 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                     } 
                     // Update icons in Roster
-                    defendingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
-                    defendingCharacter.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
-                    //defendingCharacter.ActiveAttackConfiguration = null;
+                    defendingCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackEffectOption = AttackEffectOption.None, AttackMode = AttackMode.None };
+                    this.isCharacterReset = true;
                 }
             }
         }

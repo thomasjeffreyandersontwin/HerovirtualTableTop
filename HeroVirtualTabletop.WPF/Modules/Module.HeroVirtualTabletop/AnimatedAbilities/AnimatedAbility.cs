@@ -179,11 +179,30 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private bool isActive;
+        public override bool IsActive
+        {
+            get
+            {
+                return isActive || base.IsActive;
+            }
+            protected set
+            {
+                isActive = value;
+                OnPropertyChanged("IsActive");
+            }
+        }
+        public override void Stop(Character Target = null)
+        {
+            IsActive = false;
+            base.Stop(Target);
+        }
+
         public string InitiateAttack(bool persistent = false, Character target = null)
         {
             var character = target ?? this.Owner;
             Stop(character);
-            if (this.Persistent || persistent)
+            //if (this.Persistent || persistent)
                 IsActive = true;
             // Change the costume to Complementary color - CHRIS to do
             character.Activate();
@@ -213,6 +232,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             // TODO: Animate Knockback
             this.AnimateKnockBack(attackConfiguration, target);
+            System.Threading.Thread.Sleep(1000);
             // Now play most severe of effects
             this.AnimateAttackEffects(attackConfiguration, target);
             return null;
@@ -330,6 +350,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 
             }
             AnimateAttack(direction, attackingCharacter);
+            System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
+
             if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
                 // Executing the attack on parallel thread actually works, but it sends the keybinds way too fast to the game to process, thus missing a few animations
@@ -347,57 +369,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     ActiveAttackConfiguration attackConfiguration = targetCharacter.ActiveAttackConfiguration;
                     if (attackConfiguration.AttackResult == AttackResultOption.Hit)
                         AnimateHit(attackConfiguration, targetCharacter);
-                    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
+                    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null)
                         AnimateMiss(attackConfiguration, targetCharacter);
                 }
             }
             attackingCharacter.Deactivate();
         }
 
-        public void AnimateAttackSequence(Character attackingCharacter, Character defendingCharacter, ActiveAttackConfiguration attackConfiguration)
-        {
-            AttackDirection direction = new AttackDirection();
-            if(attackConfiguration.AttackResult == AttackResultOption.Hit)
-            {
-                direction.AttackDirectionX = defendingCharacter.Position.X;
-                direction.AttackDirectionY = defendingCharacter.Position.Y + 4.0d;// Aim at the Chest :p
-                direction.AttackDirectionZ = defendingCharacter.Position.Z;
-            }
-            else 
-            {
-                if(defendingCharacter == null && attackConfiguration.AttackEffectOption == AttackEffectOption.None)
-                {
-                    var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
-                    direction.AttackDirectionX = targetInFacingDirection.X;
-                    direction.AttackDirectionY = targetInFacingDirection.Y;
-                    direction.AttackDirectionZ = targetInFacingDirection.Z;
-                }
-                else
-                {
-                    Random rand = new Random();
-                    int randomOffset = rand.Next(1, 3);
-                    int multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorX = multiplyOffset % 2 == 0 ? 1 : -1;
-                    direction.AttackDirectionX = defendingCharacter.Position.X + randomOffset * multiplyFactorX;
-                    multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : 0;
-                    direction.AttackDirectionY = defendingCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
-                    multiplyOffset = rand.Next(11, 20);
-                    int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
-                    direction.AttackDirectionZ = defendingCharacter.Position.Z + randomOffset * multiplyFactorZ;
-                }
-            }
-            
-            AnimateAttack(direction, attackingCharacter);
-            
-            if (attackConfiguration.AttackResult == AttackResultOption.Hit)
-                AnimateHit(attackConfiguration, defendingCharacter);
-            else if(attackConfiguration.AttackResult == AttackResultOption.Miss && defendingCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
-                AnimateMiss(attackConfiguration, defendingCharacter);
-
-            // Restore Secondary colors for costume of the attacker
-            attackingCharacter.Deactivate();
-        }
         public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
             if (this.IsAttack)
