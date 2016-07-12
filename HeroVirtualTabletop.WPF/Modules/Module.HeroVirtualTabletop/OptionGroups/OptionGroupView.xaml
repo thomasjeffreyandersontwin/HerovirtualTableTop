@@ -27,7 +27,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <Expander Header="{Binding Path=OptionGroup.Name}" x:Name="expander">
+        <Expander Header="{Binding}" x:Name="expander">
             <Expander.Style>
                 <Style TargetType="Expander">
                     <Setter Property="TextElement.Foreground" Value="white"></Setter>
@@ -35,6 +35,28 @@
                     <Setter Property="BorderThickness" Value="2" />
                 </Style>
             </Expander.Style>
+            <Expander.HeaderTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <TextBox x:Name="textBlockName" Text="{Binding Path=OptionGroup.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                            <TextBox.InputBindings>
+                                <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
+                                <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <TextBox x:Name="textBoxName" Visibility="Hidden" MinWidth="100"
+                                             Text="{Binding Path=OptionGroup.Name, UpdateSourceTrigger=Explicit}">
+                            <behaviors:CommandBehaviorCollection.Behaviors>
+                                <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.SubmitRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                            </behaviors:CommandBehaviorCollection.Behaviors>
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.SubmitRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                                <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </Grid>
+                </DataTemplate>
+            </Expander.HeaderTemplate>
             <Grid>
                 <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
                             DefaultOption="{Binding Path=DefaultOption}"

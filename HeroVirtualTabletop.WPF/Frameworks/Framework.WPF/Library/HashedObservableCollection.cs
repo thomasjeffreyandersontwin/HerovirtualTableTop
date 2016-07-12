@@ -31,7 +31,10 @@ namespace Framework.WPF.Library
             return collection.ContainsKey(key);
         }
 
-
+        public virtual bool UpdateKey(TKey oldKey, TKey newKey)
+        {
+            return collection.UpdateKey(oldKey, newKey);
+        }
     }
 
     /// <summary>

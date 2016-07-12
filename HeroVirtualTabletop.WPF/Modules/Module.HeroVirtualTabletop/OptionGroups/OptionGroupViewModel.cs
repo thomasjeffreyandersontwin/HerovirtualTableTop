@@ -1,6 +1,7 @@
 ﻿using Framework.WPF.Behaviors;
 using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
+using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
@@ -10,6 +11,7 @@ using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared.Events;
+using Module.Shared.Messages;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -25,6 +27,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
     public interface IOptionGroupViewModel
     {
         IOptionGroup OptionGroup { get; }
+        event EventHandler EditModeEnter;
+        event EventHandler EditModeLeave;
     }
 
     public class OptionGroupViewModel<T> : BaseViewModel, IOptionGroupViewModel where T : ICharacterOption
@@ -36,11 +40,24 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         #endregion
 
         #region Events
+        public event EventHandler EditModeEnter;
+        public void OnEditModeEnter(object sender, EventArgs e)
+        {
+            if (EditModeEnter != null)
+                EditModeEnter(sender, e);
+        }
 
+        public event EventHandler EditModeLeave;
+        public void OnEditModeLeave(object sender, EventArgs e)
+        {
+            if (EditModeLeave != null)
+                EditModeLeave(sender, e);
+        }
+        
         #endregion
 
         #region Public Properties
-        
+
         public OptionGroup<T> OptionGroup
         {
             get
@@ -113,6 +130,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         }
 
         private Visibility addOrRemoveIsVisible = Visibility.Visible;
+        private IMessageBoxService messageBoxService;
+
         public Visibility AddOrRemoveIsVisible
         {
             get
@@ -125,6 +144,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 OnPropertyChanged("AddOrRemoveIsVisible");
             }
         }
+        
+        public string OriginalName { get; set; }
 
         #endregion
 
@@ -143,15 +164,20 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> TogglePlayOptionCommand { get; private set; }
 
         public ICommand SetActiveOptionCommand { get; private set; }
-        
+
+        public DelegateCommand<object> EnterEditModeCommand { get; private set; }
+        public DelegateCommand<object> SubmitRenameCommand { get; private set; }
+        public DelegateCommand<object> CancelEditModeCommand { get; private set; }
+
         #endregion
 
         #region Constructor
 
-        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator, OptionGroup<T> optionGroup, Character owner)
+        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator, OptionGroup<T> optionGroup, Character owner)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            this.messageBoxService = messageBoxService;
             this.Owner = owner;
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
@@ -190,8 +216,17 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.PlayOptionCommand = new DelegateCommand<object>(this.PlayOption, this.CanPlayOption);
             this.StopOptionCommand = new DelegateCommand<object>(this.StopOption, this.CanStopOption);
             this.TogglePlayOptionCommand = new DelegateCommand<object>(this.TogglePlayOption);
+
+            this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode, this.CanEnterEditMode);
+            this.SubmitRenameCommand = new DelegateCommand<object>(this.SubmitRename);
+            this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
         }
-        
+
+        private bool CanEnterEditMode(object arg)
+        {
+            return OptionGroup.Name != "AvailableIdentities" && OptionGroup.Name != "AnimatedAbilities";
+        }
+
         #endregion
 
         #region Methods
@@ -309,7 +344,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             //    PlayOption(null);
             //}
         }
-
 
         private bool CanPlayOption(object arg)
         {
@@ -491,6 +525,54 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private void Ability_AttackTargetSelected(Tuple<Character, Attack> targetSelectedEventTuple)
         {
 
+        }
+        
+        private void EnterEditMode(object state)
+        {
+            this.OriginalName = OptionGroup.Name;
+            OnEditModeEnter(state, null);
+        }
+        
+        private void CancelEditMode(object state)
+        {
+            OptionGroup.Name = this.OriginalName;
+            OnEditModeLeave(state, null);
+        }
+
+        private void SubmitRename(object state)
+        {
+            if (this.OriginalName != null)
+            {
+                string updatedName = Helper.GetTextFromControlObject(state);
+                bool duplicateName = CheckDuplicateName(updatedName);
+                if (!duplicateName)
+                {
+                    RenameOptionGroup(updatedName);
+                    OnEditModeLeave(state, null);
+                }
+                else
+                {
+                    messageBoxService.ShowDialog(Messages.DUPLICATE_NAME_MESSAGE, Messages.DUPLICATE_NAME_CAPTION, System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                    this.CancelEditMode(state);
+                }
+            }
+        }
+
+        private void RenameOptionGroup(string updatedName)
+        {
+            if (this.OriginalName == updatedName)
+            {
+                OriginalName = null;
+                return;
+            }
+            this.OptionGroup.Name = updatedName;
+            this.Owner.OptionGroups.UpdateKey(this.OriginalName, updatedName);
+            this.OriginalName = null;
+        }
+
+        private bool CheckDuplicateName(string updatedName)
+        {
+            return this.Owner.OptionGroups.ContainsKey(updatedName);
         }
 
         #endregion
