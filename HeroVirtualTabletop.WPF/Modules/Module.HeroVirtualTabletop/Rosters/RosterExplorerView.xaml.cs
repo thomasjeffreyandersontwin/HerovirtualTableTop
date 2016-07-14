@@ -119,7 +119,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void RosterViewListBox_DragOver(object sender, DragEventArgs e)
         {
-            if (!e.Data.GetDataPresent("DragToRoster"))
+            if (!e.Data.GetDataPresent("CrowdMemberDragFromCharacterExplorer"))
             {
                 e.Effects = DragDropEffects.None;
                 e.Handled = true;

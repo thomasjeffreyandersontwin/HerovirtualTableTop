@@ -63,7 +63,7 @@ namespace Module.HeroVirtualTabletop.Library
         {
             this.eventAggregator = eventAggregator;
 
-            LaunchGame();
+            //LaunchGame();
 
             LoadModelsFile();
 

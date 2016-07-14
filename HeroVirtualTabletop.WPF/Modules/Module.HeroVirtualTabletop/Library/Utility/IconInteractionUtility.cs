@@ -25,15 +25,19 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ExecuteCommand([MarshalAs(UnmanagedType.LPStr)]string commandline);
-        
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SetCOHPath([MarshalAs(UnmanagedType.LPStr)]string path);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate string GetHoveredNPCInfo();
 
         private static IntPtr dllHandle;
         private static InitGame initGame;
         private static CloseGame closeGame;
         private static SetUserHWND setUserHWnd;
         private static ExecuteCommand executeCmd;
+        private static GetHoveredNPCInfo getHoveredNPCInfo;
 
         static IconInteractionUtility()
         {
@@ -66,7 +70,14 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     executeCmd = (ExecuteCommand)(Marshal.GetDelegateForFunctionPointer(executeCmdAddress, typeof(ExecuteCommand)));
                 }
-                
+
+                IntPtr getHoveredNPCInfoAddress = WindowsUtilities.GetProcAddress(dllHandle, "GetHoveredNPCInfo");
+                if (getHoveredNPCInfoAddress != IntPtr.Zero)
+                {
+                    getHoveredNPCInfo = (GetHoveredNPCInfo)(Marshal.GetDelegateForFunctionPointer(getHoveredNPCInfoAddress, typeof(GetHoveredNPCInfo)));
+                }
+
+
             }
         }
 
@@ -86,6 +97,6 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             executeCmd(command);
         }
-        
+
     }
 }

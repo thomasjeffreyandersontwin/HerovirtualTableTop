@@ -27,7 +27,8 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
     {
         Filter,
         Delete,
-        Paste
+        Paste,
+        DragDrop
     }
     public enum AnimationType
     {

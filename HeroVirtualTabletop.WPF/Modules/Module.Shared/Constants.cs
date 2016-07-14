@@ -60,6 +60,7 @@ namespace Module.Shared
         public const string DEFAULT_CHARACTER_NAME = "DEFAULT";
         public const string COMBAT_EFFECTS_CHARACTER_NAME = "COMBAT EFFECTS";
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
+        public const string CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY = "CrowdMemberDragFromCharacterExplorer";
         #endregion
 
         #region Roster Explorer
@@ -76,7 +77,7 @@ namespace Module.Shared
         public const string DYING_ABILITY_NAME = "Dying";
         public const string DEAD_ABITIY_NAME = "Dead";
         public const string MISS_ABITIY_NAME = "Miss";
-
+        public const string ANIMATION_DRAG_KEY = "AnimationElementDragFromAbilityEditor";
         #endregion
     }
 }

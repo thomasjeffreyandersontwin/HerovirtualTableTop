@@ -29,8 +29,6 @@ namespace Module.HeroVirtualTabletop.Crowds
     {
         private CharacterExplorerViewModel viewModel;
         private CrowdModel selectedCrowdRoot;
-        private Point startPosition;
-        private bool isDragging;
         public CharacterExplorerView(CharacterExplorerViewModel viewModel)
         {
             InitializeComponent();
@@ -42,7 +40,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.EditNeeded += viewModel_EditNeeded;
             this.viewModel.ExpansionUpdateNeeded+=viewModel_ExpansionUpdateNeeded;
         }
-        private void viewModel_EditNeeded(object sender, EventArgs e)
+        private void viewModel_EditNeeded(object sender, CustomEventArgs<string> e)
         {
             ICrowdMemberModel modelToSelect = sender as ICrowdMemberModel;
             if(sender == null) // need to unselect
@@ -98,13 +96,23 @@ namespace Module.HeroVirtualTabletop.Crowds
                 if (!itemFound)
                 {
                     DependencyObject dObject = null;
-                    if(this.selectedCrowdRoot != null && this.viewModel.SelectedCrowdModel != null)
+                    if(e != null) // Something sent as event args
                     {
-                        TreeViewItem item = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(this.selectedCrowdRoot) as TreeViewItem;
-                        dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedCrowdModel.Name);
+                        if(e.Value == "EditAfterDragDrop" && this.currentDropItemNodeParent != null)
+                        {
+                            dObject = currentDropItemNodeParent;
+                        }
                     }
                     else
-                        dObject = treeViewCrowd.GetItemFromSelectedObject(this.viewModel.SelectedCrowdModel);
+                    {
+                        if (this.selectedCrowdRoot != null && this.viewModel.SelectedCrowdModel != null)
+                        {
+                            TreeViewItem item = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(this.selectedCrowdRoot) as TreeViewItem;
+                            dObject = FindTreeViewItemUnderTreeViewItemByModelName(item, this.viewModel.SelectedCrowdModel.Name);
+                        }
+                        else
+                            dObject = treeViewCrowd.GetItemFromSelectedObject(this.viewModel.SelectedCrowdModel);
+                    }
                     TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
                     if (tvi != null)
                     {
@@ -172,9 +180,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             BindingExpression expression = txtBox.GetBindingExpression(TextBox.TextProperty);
             expression.UpdateSource(); 
         }
-        private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void treeViewCrowd_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            startPosition = e.GetPosition(null);
+            startPoint = e.GetPosition(null);
 
             TreeViewItem treeViewItem = VisualUpwardSearch(e.OriginalSource as DependencyObject);
             
@@ -325,6 +333,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 ExpandMatchedNode(sender);
             }
+            else if(updateEvent == ExpansionUpdateEvent.DragDrop)
+            {
+                if (this.currentDropItemNode != null)
+                    this.currentDropItemNode.IsExpanded = true;
+            }
             else
             {
                 if (this.selectedCrowdRoot != null && crowdModel != null)
@@ -422,33 +435,138 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         #endregion
 
-        private void treeViewCrowd_PreviewMouseMove(object sender, MouseEventArgs e)
+        #region Drag Drop
+
+        bool isDragging = false;
+        Point startPoint;
+        TreeViewItem currentDropItemNode;
+        TreeViewItem currentDropItemNodeParent;
+
+        private void StartDrag(TreeView tv, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed && !isDragging)
-            {
-                Point position = e.GetPosition(null);
-
-                if (((Math.Abs(position.X - startPosition.X)) > SystemParameters.MinimumHorizontalDragDistance) ||
-                    ((Math.Abs(position.Y - startPosition.Y)) > SystemParameters.MinimumVerticalDragDistance))
-                {
-                    StartDrag(e); 
-                }
-
-            }
-
-        }
-
-        
-        private void StartDrag(MouseEventArgs e)
-        {
-
             isDragging = true;
-            DataObject data = new DataObject("DragToRoster", this.treeViewCrowd.SelectedItem);
+            // Get the dragged ListViewItem
+            TreeView treeView = tv as TreeView;
+            TreeViewItem treeViewItem =
+                Helper.FindAncestor<TreeViewItem>((DependencyObject)e.OriginalSource);
 
-            DragDropEffects de = DragDrop.DoDragDrop(this.treeViewCrowd, data, DragDropEffects.Link);
+            // Find the data behind the TreeViewItem
+            //AnimationElement elementBehind = (AnimationElement)treeView.ItemContainerGenerator.ItemFromContainer(treeViewItem);
+            var element = treeView.SelectedItem;
+            // Initialize the drag & drop operation
+            DataObject dragData = new DataObject(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY, element);
+            DragDrop.DoDragDrop(treeViewItem, dragData, DragDropEffects.Move);
 
             isDragging = false;
 
         }
+        private void treeViewCrowd_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            Action action = delegate()
+            {
+                if (e.LeftButton == MouseButtonState.Pressed && !isDragging)
+                {
+                    // Get the current mouse position
+                    Point mousePos = e.GetPosition(null);
+                    Vector diff = startPoint - mousePos;
+                    if (
+                    Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                    {
+                        StartDrag(sender as TreeView, e);
+                    }
+                }
+            };
+            Application.Current.Dispatcher.BeginInvoke(action);
+        }
+
+        private void FindDropTarget(TreeView tv, out TreeViewItem itemNode, DragEventArgs dragEventArgs)
+        {
+            itemNode = null;
+
+            DependencyObject k = VisualTreeHelper.HitTest(tv, dragEventArgs.GetPosition(tv)).VisualHit;
+
+            while (k != null)
+            {
+                if (k is TreeViewItem)
+                {
+                    TreeViewItem treeNode = k as TreeViewItem;
+                    if (treeNode.DataContext is ICrowdModel || treeNode.DataContext is ICrowdMemberModel)
+                    {
+                        itemNode = treeNode;
+                        break;
+                    }
+                }
+                else if (k == tv)
+                {
+                    break;
+                }
+
+                k = VisualTreeHelper.GetParent(k);
+            }
+        }
+
+        private void treeViewCrowd_PreviewDragEnter(object sender, DragEventArgs e)
+        {
+            if (!e.Data.GetDataPresent(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY) || sender == e.Source)
+            {
+                e.Effects = DragDropEffects.None;
+            }
+        }
+
+        private void treeViewCrowd_PreviewDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY))
+            {
+                
+                FindDropTarget((TreeView)sender, out currentDropItemNode, e);
+                
+                if (currentDropItemNode != null)
+                {
+                    var dropMember = (currentDropItemNode != null && currentDropItemNode.IsVisible ? currentDropItemNode.DataContext : null);
+                    var dragMember = e.Data.GetData(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY);
+                    CrowdModel targetCrowd = null;
+                    if(dropMember is CrowdModel)
+                    {
+                        targetCrowd = dropMember as CrowdModel;
+                        currentDropItemNodeParent = currentDropItemNode;
+                    }
+                    else
+                    {
+                        currentDropItemNodeParent = GetImmediateTreeViewItemParent(currentDropItemNode);
+                        targetCrowd = currentDropItemNodeParent != null ? currentDropItemNodeParent.DataContext as CrowdModel : null;
+                    }
+                    
+                    this.viewModel.DragDropSelectedCrowdMember(targetCrowd);
+                }
+            }
+        }
+
+        private void textBlockCrowdMember_PreviewDragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY))
+            {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+        }
+
+        private void textBlockCrowdMember_PreviewDrop(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void textBlockCrowdMember_PreviewDragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY))
+            {
+                e.Effects = DragDropEffects.Move;
+                e.Handled = true;
+            }
+        }
+        #endregion
     }
 }

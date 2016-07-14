@@ -386,7 +386,8 @@
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Padding" Value="-2,0,0,0"/>
         <Setter Property="Foreground" Value="White"/>
-        <!-- The Padding -2,0,0,0 is required because the TextBox
+        <Setter Property="Cursor" Value="Arrow"/>
+         <!-- The Padding -2,0,0,0 is required because the TextBox
         seems to have an inherent "Padding" of about 2 pixels.
         Without the Padding property,
         the text seems to be 2 pixels to the left

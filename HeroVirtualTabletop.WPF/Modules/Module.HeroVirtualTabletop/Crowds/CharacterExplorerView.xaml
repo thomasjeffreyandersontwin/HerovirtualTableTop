@@ -5,6 +5,7 @@
              xmlns:crowd="clr-namespace:Module.HeroVirtualTabletop.Crowds"
              xmlns:managedcharacter="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
+             xmlns:extensions="clr-namespace:Framework.WPF.Extensions;assembly=Framework.WPF"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
              xmlns:convertes="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
@@ -29,8 +30,10 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <crowd:CharacterMenuControl Grid.Row="0"/>
-        <TreeView x:Name="treeViewCrowd" Grid.Row="1" ItemsSource="{Binding CrowdCollection}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
-                  Margin="0"  HorizontalAlignment="Stretch" PreviewMouseDown="OnPreviewMouseDown" PreviewKeyUp="treeViewCrowd_PreviewKeyUp" PreviewMouseMove="treeViewCrowd_PreviewMouseMove" 
+        <TreeView x:Name="treeViewCrowd" Grid.Row="1" ItemsSource="{Binding CrowdCollection}" Style="{StaticResource ResourceKey=SearchableTreeView}" AllowDrop="True"
+                  Margin="0"  HorizontalAlignment="Stretch" PreviewMouseDown="treeViewCrowd_OnPreviewMouseDown" PreviewKeyUp="treeViewCrowd_PreviewKeyUp" 
+                  PreviewMouseMove="treeViewCrowd_PreviewMouseMove" PreviewDragEnter="treeViewCrowd_PreviewDragEnter" PreviewDrop="treeViewCrowd_PreviewDrop"
+                  extensions:DragDropExtension.ScrollOnDragDrop="True"
                   >
             <TreeView.Resources>
                 <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext}"/>
@@ -57,7 +60,7 @@
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf0c0;" HorizontalAlignment="Center" VerticalAlignment="Center">
                         </TextBlock>
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockCrowd" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                            <TextBox x:Name="textBlockCrowd" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}" PreviewDragEnter="textBlockCrowdMember_PreviewDragEnter" PreviewDragOver="textBlockCrowdMember_PreviewDragOver" PreviewDrop="textBlockCrowdMember_PreviewDrop">
                                 <TextBox.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
                                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockCrowd}"/>
@@ -88,7 +91,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf007;" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockCharacter" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}"
+                            <TextBox x:Name="textBlockCharacter" Text="{Binding Path=Name}" Style="{StaticResource SelectableTextBlockLikeStyle}" PreviewDragEnter="textBlockCrowdMember_PreviewDragEnter" PreviewDragOver="textBlockCrowdMember_PreviewDragOver" PreviewDrop="textBlockCrowdMember_PreviewDrop"
                                               >
                                 <TextBox.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockCharacter}"/>

@@ -784,6 +784,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         {
                             if (this.targetCharacters.FirstOrDefault(tc => tc.Name == currentTarget.Name) == null)
                                 this.targetCharacters.Add(currentTarget);
+                            currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                             ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                             attackConfig.AttackMode = AttackMode.Defend;
                             attackConfig.AttackEffectOption = AttackEffectOption.None;
@@ -824,7 +825,11 @@ namespace Module.HeroVirtualTabletop.Roster
             this.currentAttack = null;
             this.attackingCharacter = null;
             foreach (var defender in defenders)
+            {
                 defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
+                defender.Deactivate(); // restore original costume
+            }
+                
             this.fileSystemWatcher.EnableRaisingEvents = false;
         }
 
@@ -861,6 +866,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (this.targetCharacters.FirstOrDefault(tc => tc.Name == currentTarget.Name) == null)
                         this.targetCharacters.Add(currentTarget);
+                    currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                     ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                     attackConfig.AttackMode = AttackMode.Defend;
                     attackConfig.AttackEffectOption = AttackEffectOption.None;
@@ -878,6 +884,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (this.targetCharacters.FirstOrDefault(tc => tc.Name == currentTarget.Name) == null)
                         this.targetCharacters.Add(currentTarget);
+                    currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                     ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                     attackConfig.AttackMode = AttackMode.Defend;
                     attackConfig.AttackEffectOption = AttackEffectOption.None;
