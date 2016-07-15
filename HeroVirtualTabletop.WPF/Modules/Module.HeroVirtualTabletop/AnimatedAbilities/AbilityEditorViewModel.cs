@@ -53,6 +53,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public event EventHandler AnimationElementDraggedFromGrid;
+        public void OnAnimationElementDraggedFromGrid(object sender, EventArgs e)
+        {
+            if (AnimationElementDraggedFromGrid != null)
+            {
+                AnimationElementDraggedFromGrid(sender, e);
+            }
+        }
+
         public event EventHandler EditModeEnter;
         public void OnEditModeEnter(object sender, EventArgs e)
         {
@@ -1422,7 +1431,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Move Animation Element
         /// <summary>
-        /// This method is used for Drag drop and performs a cut paste under the hood
+        /// This method is used for Drag drop inside the treeview and performs a cut paste under the hood
         /// </summary>
         /// <param name="sourceElement"></param>
         /// <param name="targetElement"></param>
@@ -1451,6 +1460,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 destinationElementParent.AddAnimationElement(sourceElement as AnimationElement, order);
                 OnAnimationAdded(sourceElement, new CustomEventArgs<bool>() { Value = false});
                 this.SaveAbility(null);
+            }
+        }
+        /// <summary>
+        /// Drag drop between refernce ability grid and animations treview
+        /// </summary>
+        /// <param name="referenceAbility"></param>
+        /// <param name="targetElementParent"></param>
+        /// <param name="order"></param>
+        public void MoveReferenceAbilityToAnimationElements(AnimatedAbility referenceAbility, SequenceElement targetElementParent, int order)
+        {
+            SequenceElement destinationElementParent = targetElementParent ?? this.CurrentAbility;
+            if(referenceAbility != null)
+            {
+                AnimationElement animationElement = this.GetAnimationElement(AnimationType.Reference);
+                (animationElement as ReferenceAbility).Reference = referenceAbility;
+                animationElement.DisplayName = GetDisplayNameFromResourceName(referenceAbility.Name);
+                destinationElementParent.AddAnimationElement(animationElement, order);
+                OnAnimationElementDraggedFromGrid(animationElement, null);
+                SaveAbility(null);
+                this.CloneAnimationCommand.RaiseCanExecuteChanged();
             }
         }
 

@@ -343,6 +343,7 @@
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
                           SelectionMode="Single"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          PreviewMouseDown="dataGridAbilityReferences_PreviewMouseDown" PreviewMouseMove="dataGridAbilityReferences_PreviewMouseMove"
                       >
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollIntoViewForDataGrid />

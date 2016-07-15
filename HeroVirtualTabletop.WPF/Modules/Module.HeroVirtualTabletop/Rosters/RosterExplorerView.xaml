@@ -7,6 +7,7 @@
              xmlns:characters="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
+             xmlns:extensions="clr-namespace:Framework.WPF.Extensions;assembly=Framework.WPF"
              xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
@@ -93,7 +94,8 @@
                 ></characters:CharacterManagementMenuControl>
         <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White" Drop="RosterViewListBox_Drop" DragOver="RosterViewListBox_DragOver"
-                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    extensions:DragDropExtension.ScrollOnDragDrop="True">
             <ListBox.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.ContainerStyle>

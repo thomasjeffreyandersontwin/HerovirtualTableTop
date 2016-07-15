@@ -445,20 +445,31 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void StartDrag(TreeView tv, MouseEventArgs e)
         {
             isDragging = true;
-            // Get the dragged ListViewItem
-            TreeView treeView = tv as TreeView;
-            TreeViewItem treeViewItem =
-                Helper.FindAncestor<TreeViewItem>((DependencyObject)e.OriginalSource);
+            try
+            {
+                // Get the dragged ListViewItem
+                TreeView treeView = tv as TreeView;
+                TreeViewItem treeViewItem =
+                    Helper.FindAncestor<TreeViewItem>((DependencyObject)e.OriginalSource);
+                if(treeViewItem != null)
+                {
+                    // Find the data behind the TreeViewItem
+                    //AnimationElement elementBehind = (AnimationElement)treeView.ItemContainerGenerator.ItemFromContainer(treeViewItem);
+                    var element = treeView.SelectedItem;
+                    // Initialize the drag & drop operation
+                    DataObject dragData = new DataObject(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY, element);
+                    DragDrop.DoDragDrop(treeViewItem, dragData, DragDropEffects.Move);
+                }
+            
+            }
+            catch(Exception ex)
+            {
 
-            // Find the data behind the TreeViewItem
-            //AnimationElement elementBehind = (AnimationElement)treeView.ItemContainerGenerator.ItemFromContainer(treeViewItem);
-            var element = treeView.SelectedItem;
-            // Initialize the drag & drop operation
-            DataObject dragData = new DataObject(Constants.CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY, element);
-            DragDrop.DoDragDrop(treeViewItem, dragData, DragDropEffects.Move);
-
-            isDragging = false;
-
+            }
+            finally
+            {
+                isDragging = false;
+            }
         }
         private void treeViewCrowd_PreviewMouseMove(object sender, MouseEventArgs e)
         {
