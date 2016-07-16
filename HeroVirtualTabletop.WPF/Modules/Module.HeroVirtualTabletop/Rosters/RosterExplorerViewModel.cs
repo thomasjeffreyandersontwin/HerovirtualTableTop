@@ -234,9 +234,10 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        if (isPlayingAreaEffect)
+                        //if (isPlayingAreaEffect)
                         {
                             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            System.Threading.Thread.Sleep(500);
                             string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
                             keybind = keyBindsGenerator.CompleteEvent();
                         }
