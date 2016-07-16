@@ -10,7 +10,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
     /// <summary>
     /// Stream for looping playback
     /// </summary>
-    public class LoopWaveStream : WaveStream
+    public class LoopWaveStreamEx : WaveStream
     {
         WaveStream sourceStream;
 

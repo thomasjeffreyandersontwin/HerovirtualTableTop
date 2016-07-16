@@ -706,6 +706,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.isPlayingAttack = false;
             this.isPlayingAreaEffect = false;
             targetObserver.TargetChanged -= AttackTargetUpdated;
+            this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
             this.currentAttack = null;
             this.attackingCharacter = null;
         }

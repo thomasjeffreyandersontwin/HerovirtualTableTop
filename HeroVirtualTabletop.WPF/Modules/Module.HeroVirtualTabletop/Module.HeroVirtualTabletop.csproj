@@ -75,6 +75,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.dll</HintPath>
     </Reference>
+    <Reference Include="NAudio, Version=1.7.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NAudio.1.7.3\lib\net35\NAudio.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
@@ -229,10 +233,6 @@
     <EmbeddedResource Include="Resources\MOVElements.csv" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\..\Downloads\NAudio-Source\NAudio\NAudio.csproj">
-      <Project>{da4f02e3-0b5e-42cd-b8d9-5583fa51d66e}</Project>
-      <Name>NAudio</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Frameworks\Framework.WPF\Framework.WPF.csproj">
       <Project>{8af7c885-3d47-4837-84b1-9761b9737f3f}</Project>
       <Name>Framework.WPF</Name>
@@ -313,10 +313,10 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <EmbeddedResource Include="Resources\HookCostume.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\silence.mp3" />
-    <None Include="Resources\HookCostume.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />
     <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />
