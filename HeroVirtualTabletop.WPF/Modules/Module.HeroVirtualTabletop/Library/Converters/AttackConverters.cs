@@ -88,4 +88,20 @@ namespace Module.HeroVirtualTabletop.Library.Converters
             throw new NotImplementedException();
         }
     }
+    public class ActiveAttackEffectToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            Visibility visibility = Visibility.Collapsed;
+            AttackEffectOption activeAttackEffect = (AttackEffectOption)value;
+            if (activeAttackEffect != Enumerations.AttackEffectOption.None)
+                visibility = Visibility.Visible;
+            return visibility;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

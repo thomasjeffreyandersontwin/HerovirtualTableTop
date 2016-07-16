@@ -62,8 +62,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 EditModeLeave(sender, e);
         }
 
-        public event EventHandler EditNeeded;
-        public void OnEditNeeded(object sender, EventArgs e)
+        public event EventHandler<CustomEventArgs<string>> EditNeeded;
+        public void OnEditNeeded(object sender, CustomEventArgs<string> e)
         {
             if (EditNeeded != null)
             {
@@ -261,8 +261,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Rename Character or Crowd
 
         private bool CanEnterEditMode(object state)
-        { 
-            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null));
+        {
+            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)));
         }
         private void EnterEditMode(object state)
         {
@@ -686,7 +686,10 @@ namespace Module.HeroVirtualTabletop.Crowds
                 else
                 {
                     if (SelectedCrowdMemberModel != null)
-                        canDeleteCharacterOrCrowd = true;
+                    {
+                        if(SelectedCrowdMemberModel.Name != Constants.DEFAULT_CHARACTER_NAME && SelectedCrowdMemberModel.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME)
+                            canDeleteCharacterOrCrowd = true;
+                    }
                 }
             }
 
@@ -906,7 +909,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public bool CanCloneCharacterCrowd(object state)
         {
-            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null));
+            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)));
         }
         public void CloneCharacterCrowd(object state)
         {
@@ -928,6 +931,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 canCut = false;
             }
+            else if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME))
+                canCut = false;
             return canCut;
         }
         public void CutCharacterCrowd(object state)
@@ -950,12 +955,14 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Link Character/Crowd
         public bool CanLinkCharacterCrowd(object state)
         {
-            bool canCut = true;
+            bool canLink = true;
             if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel == null)
             {
-                canCut = false;
+                canLink = false;
             }
-            return canCut;
+            else if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME))
+                canLink = false;
+            return canLink;
         }
         public void LinkCharacterCrowd(object state)
         {
@@ -1166,8 +1173,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddToRoster(Tuple<CrowdMemberModel, CrowdModel> data)
         {
-            CrowdMemberModel crowdMember = data.Item1;
-            CrowdModel rosterCrowd = data.Item2;
+            CrowdMemberModel crowdMember = data != null ? data.Item1 : this.SelectedCrowdMemberModel;
+            CrowdModel rosterCrowd = data != null ? data.Item2 : this.SelectedCrowdModel;
             List<CrowdMemberModel> rosterCharacters = new List<CrowdMemberModel>();
             if (rosterCrowd == null)
             {
@@ -1266,6 +1273,97 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             var abilityCollection = new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
+        }
+
+        #endregion
+
+        #region Perform Move CrowdMembers
+
+        public void DragDropSelectedCrowdMember(CrowdModel targetCrowdModel)
+        {
+            bool saveNeeded = false;
+            this.LockModelAndMemberUpdate(true);
+            if(this.SelectedCrowdMemberModel != null) // dragged a Character
+            {
+                // avoid linking or cloning of default and combat effect crowds
+                // avoid dragging to all characters crowd
+                if(this.SelectedCrowdMemberModel.Name != Constants.DEFAULT_CHARACTER_NAME && this.SelectedCrowdMemberModel.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && targetCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+                {  
+                    if (this.SelectedCrowdModel.Name == targetCrowdModel.Name)
+                    {
+                        // It is in the same crowd, so clone
+                        CrowdMemberModel clonedModel = this.SelectedCrowdMemberModel.Clone() as CrowdMemberModel;
+                        EliminateDuplicateName(clonedModel);
+                        this.AddNewCharacter(clonedModel);
+                        saveNeeded = true;
+                        OnEditNeeded(clonedModel, new CustomEventArgs<string>() { Value = "EditAfterDragDrop" });
+                    }
+                    else
+                    {
+                        // It is dragged to a different crowd, so link
+                        if (!MemberExistsInCrowd(this.SelectedCrowdMemberModel, targetCrowdModel))
+                        {
+                            saveNeeded = true;
+                            this.AddCharacterToCrowd(this.SelectedCrowdMemberModel, targetCrowdModel);
+                        }
+                    }
+                }
+            }
+            else // dragged a Crowd
+            {
+                // link the crowd but don't create circular reference, and avoid all characters crowd
+                if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME && targetCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME && targetCrowdModel.Name != this.SelectedCrowdModel.Name)
+                {
+                    bool canLinkCrowd = false;
+                    if (SelectedCrowdModel.CrowdMemberCollection != null)
+                    {
+                        if (!IsCrowdNestedWithinContainerCrowd(targetCrowdModel.Name, SelectedCrowdModel))
+                            canLinkCrowd = true;
+                    }
+                    else
+                        canLinkCrowd = true;
+                    if(canLinkCrowd)
+                    {
+                        saveNeeded = true;
+                        if (!MemberExistsInCrowd(this.SelectedCrowdModel, targetCrowdModel))
+                        {
+                            targetCrowdModel.Add(this.SelectedCrowdModel); // Linking
+                        }
+                        else
+                        {
+                            // Cloning
+                            CrowdModel clonedModel = this.SelectedCrowdModel.Clone() as CrowdModel;
+                            EliminateDuplicateName(clonedModel);
+                            if (clonedModel.CrowdMemberCollection != null)
+                            {
+                                List<ICrowdMemberModel> models = GetFlattenedMemberList(clonedModel.CrowdMemberCollection.ToList());
+                                foreach (var member in models)
+                                {
+                                    if (member is CrowdMemberModel)
+                                    {
+                                        this.AddCharacterToAllCharactersCrowd(member as CrowdMemberModel);
+                                    }
+                                    else
+                                    {
+                                        this.AddCrowdToCrowdCollection(member as CrowdModel);
+                                    }
+                                }
+                            }
+                            targetCrowdModel.Add(clonedModel);
+                            this.AddCrowdToCrowdCollection(clonedModel);
+                            OnEditNeeded(clonedModel, new CustomEventArgs<string>() { Value = "EditAfterDragDrop" });
+                            clipboardObject = null;
+                        }
+                    }
+                }
+            }
+            if(saveNeeded)
+                this.SaveCrowdCollection();
+            if (targetCrowdModel != null)
+            {
+                OnExpansionUpdateNeeded(targetCrowdModel, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.DragDrop });
+            }
+            this.LockModelAndMemberUpdate(false);
         }
 
         #endregion

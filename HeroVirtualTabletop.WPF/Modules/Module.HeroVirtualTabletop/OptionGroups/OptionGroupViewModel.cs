@@ -181,9 +181,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.Owner = owner;
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.StopAttack);
             InitializeAttackEventHandlers();
             InitializeCommands();
-            this.eventAggregator.GetEvent<AttackTargetSelectedEvent>().Subscribe(Ability_AttackTargetSelected);
         }
 
         private void Owner_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -426,7 +426,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
             }
         }
-
+        private void StopAttack(object state)
+        {
+            if(state != null && state is AnimatedAbility)
+                StopOption(state);
+        }
         private void SpawnAndTargetOwnerCharacter()
         {
             if (!this.Owner.HasBeenSpawned)

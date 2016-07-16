@@ -48,12 +48,19 @@ namespace Module.Shared
         public const string GAME_MODELS_FILENAME = "Models.txt";
         public const string GAME_DATA_BACKUP_FOLDERNAME = "Backup";
         public const string GAME_SOUND_FOLDERNAME = "sound";
+        public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME = "bindsavetarget.txt";
+        public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME = "bindsavetargetexecute.txt";
+        public const string GAME_TEXTS_FOLDERNAME = "texts";
+        public const string GAME_LANGUAGE_FOLDERNAME = "english";
+        public const string GAME_MENUS_FOLDERNAME = "menus";
+        public const string GAME_AREAATTACK_MENU_FILENAME = "areaattack.mnu";
         #endregion
 
         #region Character Explorer
         public const string DEFAULT_CHARACTER_NAME = "DEFAULT";
         public const string COMBAT_EFFECTS_CHARACTER_NAME = "COMBAT EFFECTS";
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
+        public const string CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY = "CrowdMemberDragFromCharacterExplorer";
         #endregion
 
         #region Roster Explorer
@@ -70,7 +77,7 @@ namespace Module.Shared
         public const string DYING_ABILITY_NAME = "Dying";
         public const string DEAD_ABITIY_NAME = "Dead";
         public const string MISS_ABITIY_NAME = "Miss";
-
+        public const string ANIMATION_DRAG_KEY = "AnimationElementDragFromAbilityEditor";
         #endregion
     }
 }

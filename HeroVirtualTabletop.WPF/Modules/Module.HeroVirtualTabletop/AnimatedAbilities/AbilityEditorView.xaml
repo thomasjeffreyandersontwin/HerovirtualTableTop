@@ -7,6 +7,7 @@
              xmlns:abilities="clr-namespace:Module.HeroVirtualTabletop.AnimatedAbilities"             
              xmlns:enumerations="clr-namespace:Module.HeroVirtualTabletop.Library.Enumerations"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
+             xmlns:extensions="clr-namespace:Framework.WPF.Extensions;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
              xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
@@ -182,8 +183,10 @@
             <RadioButton Grid.Row="0" Grid.Column="2" Content="Link" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Link}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
             <RadioButton Grid.Row="1" Grid.Column="2" Content="Copy" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Copy}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding UpdateReferenceTypeCommand}" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>
-        <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" 
-                  PreviewMouseDown="OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="400"
+        <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" AllowDrop="True"
+                  PreviewMouseDown="treeViewAnimations_OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="400" 
+                  PreviewMouseMove="treeViewAnimations_PreviewMouseMove" PreviewDragEnter="treeViewAnimations_PreviewDragEnter" PreviewDrop="treeViewAnimations_PreviewDrop"
+                  extensions:DragDropExtension.ScrollOnDragDrop="True"
                   >
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type abilities:SequenceElement}"
@@ -197,7 +200,7 @@
                         <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding Type, Converter={StaticResource AnimationTypeToAnimationIconTextConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         </TextBlock>
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockAnimationElement" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                            <TextBox x:Name="textBlockAnimationElement" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}" PreviewDragEnter="textBlockAnimationElementChild_PreviewDragEnter" PreviewDragOver="textBlockAnimationElement_PreviewDragOver" PreviewDrop="textBlockAnimationElement_PreviewDrop">
                                 <TextBox.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockAnimationElement}"/>
                                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" CommandParameter="{Binding ElementName=textBlockAnimationElement}"/>
@@ -224,9 +227,9 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding Type, Converter={StaticResource AnimationTypeToAnimationIconTextConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="{Binding Type, Converter={StaticResource AnimationTypeToAnimationIconTextConverter}}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0">
-                            <TextBox x:Name="textBlockAnimationElementChild" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}">
+                            <TextBox x:Name="textBlockAnimationElementChild" Text="{Binding Path=DisplayName}" Style="{StaticResource SelectableTextBlockLikeStyle}" PreviewDragEnter="textBlockAnimationElementChild_PreviewDragEnter" PreviewDragOver="textBlockAnimationElement_PreviewDragOver" PreviewDrop="textBlockAnimationElement_PreviewDrop">
                                 <TextBox.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockAnimationElementChild}"/>
                                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAnimationElementEditModeCommand}" CommandParameter="{Binding ElementName=textBlockAnimationElementChild}"/>
@@ -340,6 +343,7 @@
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
                           SelectionMode="Single"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                          PreviewMouseDown="dataGridAbilityReferences_PreviewMouseDown" PreviewMouseMove="dataGridAbilityReferences_PreviewMouseMove"
                       >
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollIntoViewForDataGrid />

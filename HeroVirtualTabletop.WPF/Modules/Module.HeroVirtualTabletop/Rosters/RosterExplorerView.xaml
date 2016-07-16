@@ -7,6 +7,7 @@
              xmlns:characters="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
+             xmlns:extensions="clr-namespace:Framework.WPF.Extensions;assembly=Framework.WPF"
              xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
@@ -22,6 +23,7 @@
             <localconverters:ActiveAttackEffectToAnimationIconTextConverter x:Key="ActiveAttackEffectToAnimationIconTextConverter"/>
             <localconverters:ActiveAttackModeToVisibilityConverter x:Key="ActiveAttackModeToVisibilityConverter"/>
             <localconverters:ActiveAttackModeToAnimationIconTextConverter x:Key="ActiveAttackModeToAnimationIconTextConverter"/>
+            <localconverters:ActiveAttackEffectToVisibilityConverter x:Key="ActiveAttackEffectToVisibilityConverter"/>
             <CollectionViewSource 
                 x:Key="ParticipantsView" 
                 Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
@@ -43,6 +45,10 @@
                 <MenuItem Header="Move Target to Camera" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.MoveTargetToCameraCommand}"></MenuItem>
                 <MenuItem Header="Maneuver with camera" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ToggleManeuverWithCameraCommand}"></MenuItem>
                 <MenuItem Header="Clear From Desktop" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ClearFromDesktopCommand}"></MenuItem>
+            </ContextMenu>
+            <ContextMenu x:Key="AreaAttackMenu">
+                <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AreaAttackTargetCommand}"></MenuItem>
+                <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AreaAttackTargetAndExecuteCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -87,8 +93,9 @@
                 ActivateCharacterCommand="{Binding ActivateCharacterCommand}"
                 ></characters:CharacterManagementMenuControl>
         <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
-                    AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White"
-                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White" Drop="RosterViewListBox_Drop" DragOver="RosterViewListBox_DragOver"
+                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                    extensions:DragDropExtension.ScrollOnDragDrop="True">
             <ListBox.GroupStyle>
                 <GroupStyle>
                     <GroupStyle.ContainerStyle>
@@ -111,7 +118,19 @@
             </ListBox.GroupStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Grid ContextMenu="{StaticResource ResourceKey=RosterExplorerMenu}"  HorizontalAlignment="Stretch">
+                    <Grid  HorizontalAlignment="Stretch">
+                        <Grid.Style>
+                            <Style TargetType="{x:Type Grid}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="True">
+                                        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=AreaAttackMenu}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="False">
+                                        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=RosterExplorerMenu}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Grid.Style>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition ></ColumnDefinition>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -142,7 +161,7 @@
                         </Label>
                         <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
                         </TextBlock>
-                        <TextBlock Grid.Column="3" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="3" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock.InputBindings>
                                 <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                             </TextBlock.InputBindings>

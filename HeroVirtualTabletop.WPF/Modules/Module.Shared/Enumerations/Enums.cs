@@ -47,7 +47,8 @@ namespace Module.Shared.Enumerations
         LoadMap,
         BindLoadFile,
         Macro,
-        NOP
+        NOP,
+        PopMenu
     }
 
 }

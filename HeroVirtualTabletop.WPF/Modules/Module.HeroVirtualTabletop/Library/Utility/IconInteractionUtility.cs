@@ -25,7 +25,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int ExecuteCommand([MarshalAs(UnmanagedType.LPStr)]string commandline);
-        
+
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SetCOHPath([MarshalAs(UnmanagedType.LPStr)]string path);
 
@@ -97,6 +97,6 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             executeCmd(command);
         }
-        
+
     }
 }
