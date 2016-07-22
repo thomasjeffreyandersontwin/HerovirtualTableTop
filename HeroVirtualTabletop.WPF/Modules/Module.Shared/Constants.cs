@@ -79,5 +79,10 @@ namespace Module.Shared
         public const string MISS_ABITIY_NAME = "Miss";
         public const string ANIMATION_DRAG_KEY = "AnimationElementDragFromAbilityEditor";
         #endregion
+
+        #region Default Option Groups
+        public const string ABILITY_OPTION_GROUP_NAME = "Powers";
+        public const string IDENTITY_OPTION_GROUP_NAME = "Identities";
+        #endregion
     }
 }

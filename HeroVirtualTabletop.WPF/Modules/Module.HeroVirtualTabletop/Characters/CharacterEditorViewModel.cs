@@ -404,7 +404,7 @@ namespace Module.HeroVirtualTabletop.Characters
         
         private bool CanRemoveOptionGroup(object arg)
         {
-            return SelectedOptionGroup != null && SelectedOptionGroup.Name != "AnimatedAbilities" && SelectedOptionGroup.Name != "AvailableIdentities";
+            return SelectedOptionGroup != null && SelectedOptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME;
         }
 
         private void RemoveOptionGroup(object obj)

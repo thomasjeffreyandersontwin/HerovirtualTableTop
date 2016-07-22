@@ -76,8 +76,6 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     getHoveredNPCInfo = (GetHoveredNPCInfo)(Marshal.GetDelegateForFunctionPointer(getHoveredNPCInfoAddress, typeof(GetHoveredNPCInfo)));
                 }
-
-
             }
         }
 
@@ -97,6 +95,9 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             executeCmd(command);
         }
-
+        public static string GetHoveredNPCInfoFromGame()
+        {
+            return getHoveredNPCInfo();
+        }
     }
 }

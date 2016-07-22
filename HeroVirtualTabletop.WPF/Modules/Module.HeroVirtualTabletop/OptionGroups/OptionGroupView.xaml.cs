@@ -26,5 +26,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             InitializeComponent();
         }
 
+        private void Ellipse_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+
+        }
+
     }
 }

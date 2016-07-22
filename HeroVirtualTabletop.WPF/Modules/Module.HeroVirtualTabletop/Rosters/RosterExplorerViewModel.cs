@@ -235,16 +235,40 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
                         //if (isPlayingAreaEffect)
+                        //{
+                        //    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                        //    System.Threading.Thread.Sleep(500);
+                        //    string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
+                        //    keybind = keyBindsGenerator.CompleteEvent();
+                        //}
+
+                        if (isPlayingAreaEffect)
                         {
-                            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                            System.Threading.Thread.Sleep(500);
-                            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
-                            keybind = keyBindsGenerator.CompleteEvent();
+                            string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+                            //if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                            //{
+                            //    string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                            //    if (!string.IsNullOrWhiteSpace(characterName))
+                            //    {
+                            //        if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
+                            //        {
+                            //            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            //            System.Threading.Thread.Sleep(500);
+                            //            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
+                            //            keybind = keyBindsGenerator.CompleteEvent();
+                            //        }
+                            //    }
+                            //}
                         }
                     }
                 }
             }
             return MouseHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
+        private string GetCharacterNameFromHoveredInfo(string hoveredCharacterInfo)
+        {
+            return string.Empty;
         }
 
         void clickTimer_Elapsed(object sender, ElapsedEventArgs e)

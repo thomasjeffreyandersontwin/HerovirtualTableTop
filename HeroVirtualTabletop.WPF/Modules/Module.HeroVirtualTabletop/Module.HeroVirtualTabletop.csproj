@@ -321,9 +321,6 @@
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
     <EmbeddedResource Include="Resources\areaattack.mnu" />
-    <None Include="Resources\HookCostume.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />
     <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />

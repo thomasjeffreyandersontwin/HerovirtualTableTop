@@ -222,10 +222,10 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             get
             {
-                OptionGroup<Identity> availableIdentities = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == "AvailableIdentities"; }) as OptionGroup<Identity>;
+                OptionGroup<Identity> availableIdentities = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == Constants.IDENTITY_OPTION_GROUP_NAME; }) as OptionGroup<Identity>;
                 if (availableIdentities == null)
                 {
-                    availableIdentities = new OptionGroup<Identity>("AvailableIdentities");
+                    availableIdentities = new OptionGroup<Identity>(Constants.IDENTITY_OPTION_GROUP_NAME);
                     optionGroups.Add(availableIdentities);
                 }
                 return availableIdentities;
@@ -548,10 +548,10 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             get
             {
-                OptionGroup<AnimatedAbility> animatedAbilities = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == "AnimatedAbilities"; }) as OptionGroup<AnimatedAbility>;
+                OptionGroup<AnimatedAbility> animatedAbilities = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == Constants.ABILITY_OPTION_GROUP_NAME; }) as OptionGroup<AnimatedAbility>;
                 if (animatedAbilities == null)
                 {
-                    animatedAbilities = new OptionGroup<AnimatedAbility>("AnimatedAbilities");
+                    animatedAbilities = new OptionGroup<AnimatedAbility>(Constants.ABILITY_OPTION_GROUP_NAME);
                     optionGroups.Add(animatedAbilities);
                 }
                 return animatedAbilities;

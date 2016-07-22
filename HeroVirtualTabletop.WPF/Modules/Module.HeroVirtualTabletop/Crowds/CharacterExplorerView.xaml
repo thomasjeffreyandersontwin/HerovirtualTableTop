@@ -68,7 +68,7 @@
                                     <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.UpdateSelectedCrowdMemberCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
-                            <TextBox x:Name="textBoxCrowd" Visibility="Hidden" MinWidth="100"
+                            <TextBox x:Name="textBoxCrowd" Visibility="Hidden" MinWidth="100" Style="{StaticResource TextBoxDefaultStyle}"
                                          Text="{Binding Name, UpdateSourceTrigger=Explicit}">
 
                                 <behaviors:CommandBehaviorCollection.Behaviors>
@@ -100,7 +100,7 @@
                                     <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.UpdateSelectedCrowdMemberCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
-                            <TextBox x:Name="textBoxCharacter" Visibility="Hidden" MinWidth="100"
+                            <TextBox x:Name="textBoxCharacter" Visibility="Hidden" MinWidth="100" Style="{StaticResource TextBoxDefaultStyle}"
                                              Text="{Binding Path=Name, UpdateSourceTrigger=Explicit}">
                                 <behaviors:CommandBehaviorCollection.Behaviors>
                                     <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=crowd:CharacterExplorerView}, Path=DataContext.SubmitCharacterCrowdRenameCommand}" CommandParameter="{Binding ElementName=textBoxCharacter}"/>
@@ -138,7 +138,7 @@
                 <Image Grid.Column="0" Source="pack://application:,,,/Module.Shared;Component/Resources/Images/Search.png"/>
                 <!--The following text binding won't work, will need to modify it later-->
                 <TextBox Grid.Column="1"                           
-                         Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                         Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxDefaultStyle}"/>
             </Grid>
         </Border>
     </Grid>

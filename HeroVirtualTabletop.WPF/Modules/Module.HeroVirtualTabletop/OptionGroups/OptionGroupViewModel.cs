@@ -394,7 +394,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         }
         private void StopAttack(object state)
         {
-            if(state != null && state is AnimatedAbility)
+            if (state != null && state is AnimatedAbility)
                 StopOption(state);
         }
         private void SpawnAndTargetOwnerCharacter()
@@ -490,11 +490,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 // Inform Roster to update attacker
                 this.eventAggregator.GetEvent<AttackInitiatedEvent>().Publish(new Tuple<Character, Attack>(targetCharacter, customEventArgs.Value));
             }
-        }
-
-        private void Ability_AttackTargetSelected(Tuple<Character, Attack> targetSelectedEventTuple)
-        {
-
         }
 
         #endregion

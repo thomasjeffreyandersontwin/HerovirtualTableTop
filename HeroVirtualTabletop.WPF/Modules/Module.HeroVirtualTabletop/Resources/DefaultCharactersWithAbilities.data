@@ -19,7 +19,7 @@
 				"$id": "3",
 				"$type": "Module.HeroVirtualTabletop.OptionGroups.OptionGroup`1[[Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop]], Module.HeroVirtualTabletop",
 				"Type": 1,
-				"Name": "AnimatedAbilities",
+				"Name": "Powers",
 				"Options": [
 					{
 						"$id": "5",
@@ -1114,7 +1114,7 @@
 				"$id": "87",
 				"$type": "Module.HeroVirtualTabletop.OptionGroups.OptionGroup`1[[Module.HeroVirtualTabletop.AnimatedAbilities.AnimatedAbility, Module.HeroVirtualTabletop]], Module.HeroVirtualTabletop",
 				"Type": 1,
-				"Name": "AnimatedAbilities",
+				"Name": "Powers",
 				"Options": [
 					{
 						"$id": "89",

@@ -41,7 +41,7 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <Button x:Name="closeBtn" Grid.Row="0" Grid.Column="2"  HorizontalAlignment="Right" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
@@ -61,7 +61,7 @@
                         <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
                     </TextBox.InputBindings>
                 </TextBox>
-                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=CurrentAttackAbility.Name, UpdateSourceTrigger=Explicit}">
+                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=CurrentAttackAbility.Name, UpdateSourceTrigger=Explicit}" Style="{StaticResource TextBoxDefaultStyle}">
                     <behaviors:CommandBehaviorCollection.Behaviors>
                         <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAbilityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                     </behaviors:CommandBehaviorCollection.Behaviors>
@@ -71,7 +71,7 @@
                     </TextBox.InputBindings>
                 </TextBox>
             </Grid>
-            
+
             <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
@@ -82,16 +82,16 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
-                <CheckBox Grid.Row="0" Grid.Column="1" Name="chkBoxAreaEffect" IsChecked="{Binding CurrentAbility.IsAreaEffect}" IsEnabled="{Binding CurrentAttackAbility.IsAttack}" Content="Area Effect" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="Sequence" Foreground="White" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
-                <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
-                <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-                <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxPersistent" IsChecked="{Binding CurrentAbility.Persistent}" Content="Persistent"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}" Style="{StaticResource CheckBoxDefaultStyle}"/>
+                <CheckBox Grid.Row="0" Grid.Column="1" Name="chkBoxAreaEffect" IsChecked="{Binding CurrentAbility.IsAreaEffect}" IsEnabled="{Binding CurrentAttackAbility.IsAttack}" Content="Area Effect"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}" Style="{StaticResource CheckBoxDefaultStyle}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Sequence" HorizontalAlignment="Left" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
+                <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"  Style="{StaticResource RadioButtonDefaultStyle}"/>
+                <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center"  Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}" Style="{StaticResource RadioButtonDefaultStyle}"/>
+                <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center"  Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource RadioButtonDefaultStyle}"/>
+                <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center"  Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource RadioButtonDefaultStyle}"/>
             </Grid>
             <StackPanel Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <CheckBox Name="chkBoxIsAttack" IsChecked="{Binding CurrentAttackAbility.IsAttack}" Content="Attack" Command="{Binding ConfigureAttackAnimationCommand}" Foreground="White" Margin="5" VerticalAlignment="Top"/>
+                <CheckBox Name="chkBoxIsAttack" IsChecked="{Binding CurrentAttackAbility.IsAttack}" Content="Attack" Command="{Binding ConfigureAttackAnimationCommand}" Margin="5" VerticalAlignment="Top" Style="{StaticResource CheckBoxDefaultStyle}"/>
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="Attack">
                         <Button.Style >
@@ -99,7 +99,7 @@
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=IsAttackSelected}" Value="True">
                                         <Setter Property="Opacity" Value="1"/>
-                                     </DataTrigger>
+                                    </DataTrigger>
                                     <DataTrigger  Binding="{Binding Path=IsAttackSelected}" Value="False">
                                         <Setter Property="Opacity" Value="0.5"/>
                                     </DataTrigger>
@@ -123,8 +123,8 @@
                     </Button>
                 </StackPanel>
             </StackPanel>
-            
-            </Grid>
+
+        </Grid>
         <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
             <Grid.RowDefinitions>
                 <RowDefinition/>
@@ -146,13 +146,13 @@
                 <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
                 <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
             </StackPanel>
-            <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" Foreground="White" VerticalAlignment="Center"/>
+            <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
             <ComboBox Grid.Row="1" Grid.Column="1" Margin="2"
                           Name="cbBoxActivateOnKey" ItemsSource="{Binding Source={StaticResource Keys}}"
                           SelectedValue="{Binding Path=CurrentAbility.ActivateOnKey}">
             </ComboBox>
         </Grid>
-        
+
         <StackPanel Orientation="Horizontal" Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" >
             <StackPanel.Resources>
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
@@ -174,17 +174,17 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Column="0" Orientation="Vertical" VerticalAlignment="Center" Grid.RowSpan="2">
-                <CheckBox Name="chkBoxPlayWithNext" IsEnabled="{Binding CanPlayWithNext}" IsChecked="{Binding SelectedAnimationElement.PlayWithNext}" Style="{StaticResource CheckBoxDefault}" Content="Play W/ Next" HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
-                <CheckBox Name="chkBoxPlayOnTargeted" IsChecked="{Binding CurrentAbility.PlayOnTargeted}" Style="{StaticResource CheckBoxDefault}" Content="Play On Targeted" Foreground="White"  HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
+                <CheckBox Name="chkBoxPlayWithNext" IsEnabled="{Binding CanPlayWithNext}" IsChecked="{Binding SelectedAnimationElement.PlayWithNext}" Style="{StaticResource CheckBoxDefaultStyle}" Content="Play W/ Next" HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
+                <CheckBox Name="chkBoxPlayOnTargeted" IsChecked="{Binding CurrentAbility.PlayOnTargeted}" Style="{StaticResource CheckBoxDefaultStyle}" Content="Play On Targeted" HorizontalAlignment="Left" Command="{Binding SaveAbilityCommand}"/>
             </StackPanel>
             <!--<ComboBox Grid.Column="1" Name="cmbBoxAnimationResource" HorizontalAlignment="Stretch" Margin="5"/>-->
-            <TextBox Grid.Column="1" Grid.RowSpan="2" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5" 
+            <TextBox Grid.Column="1" Grid.RowSpan="2" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5" Style="{StaticResource TextBoxDefaultStyle}"
                      Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-            <RadioButton Grid.Row="0" Grid.Column="2" Content="Link" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Link}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-            <RadioButton Grid.Row="1" Grid.Column="2" Content="Copy" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Copy}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" Command="{Binding UpdateReferenceTypeCommand}" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            <RadioButton Grid.Row="0" Grid.Column="2" Content="Link" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Link}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource RadioButtonDefaultStyle}"/>
+            <RadioButton Grid.Row="1" Grid.Column="2" Content="Copy" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Copy}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding UpdateReferenceTypeCommand}" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource RadioButtonDefaultStyle}"/>
         </Grid>
         <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" AllowDrop="True"
-                  PreviewMouseDown="treeViewAnimations_OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="400" 
+                  PreviewMouseDown="treeViewAnimations_OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="400"
                   PreviewMouseMove="treeViewAnimations_PreviewMouseMove" PreviewDragEnter="treeViewAnimations_PreviewDragEnter" PreviewDrop="treeViewAnimations_PreviewDrop"
                   extensions:DragDropExtension.ScrollOnDragDrop="True"
                   >
@@ -207,7 +207,7 @@
                                     <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
-                            <TextBox x:Name="textBoxAnimationElement" Visibility="Hidden" MinWidth="100"
+                            <TextBox x:Name="textBoxAnimationElement" Visibility="Hidden" MinWidth="100" Style="{StaticResource TextBoxDefaultStyle}"
                                          Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EditableAnimationDisplayName, UpdateSourceTrigger=Explicit}">
                                 <behaviors:CommandBehaviorCollection.Behaviors>
                                     <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAnimationElementRenameCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElement}"/>
@@ -236,7 +236,7 @@
                                     <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
                                 </TextBox.InputBindings>
                             </TextBox>
-                            <TextBox x:Name="textBoxAnimationElementChild" Visibility="Hidden" MinWidth="100"
+                            <TextBox x:Name="textBoxAnimationElementChild" Visibility="Hidden" MinWidth="100" Style="{StaticResource TextBoxDefaultStyle}"
                                              Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.EditableAnimationDisplayName, UpdateSourceTrigger=Explicit}">
                                 <behaviors:CommandBehaviorCollection.Behaviors>
                                     <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SubmitAnimationElementRenameCommand}" CommandParameter="{Binding ElementName=textBoxAnimationElementChild}"/>
@@ -263,8 +263,8 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid x:Name="resourcesGrid" Grid.Row="0">
-                <DataGrid x:Name="dataGridMOVResources"
-                          MaxWidth="400" 
+                <DataGrid x:Name="dataGridMOVResources" 
+                          MaxWidth="400"
                           Background="Transparent" RowBackground="Transparent" Margin="5"
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Movement, FallbackValue=Collapsed}"
                           ItemsSource="{Binding MOVResourcesCVS.View}"
@@ -273,9 +273,9 @@
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           IsSynchronizedWithCurrentItem="True"
                       >
-                        <i:Interaction.Behaviors>
-                            <behaviors:ScrollIntoViewForDataGrid />
-                        </i:Interaction.Behaviors>
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForDataGrid />
+                    </i:Interaction.Behaviors>
                     <DataGrid.Resources>
                         <Style TargetType="DataGridCell">
                             <Setter Property="Foreground" Value="White"></Setter>
@@ -288,7 +288,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="dataGridFXResources"
-                          MaxWidth="400" 
+                          MaxWidth="400"
                           Background="Transparent" RowBackground="Transparent" Margin="5"
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=FX, FallbackValue=Collapsed}"
                           ItemsSource="{Binding FXResourcesCVS.View}"
@@ -312,7 +312,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="dataGridSoundResources"
-                          MaxWidth="400" 
+                          MaxWidth="400"
                           Background="Transparent" RowBackground="Transparent" Margin="5"
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Sound, FallbackValue=Collapsed}"
                           ItemsSource="{Binding SoundResourcesCVS.View}"
@@ -336,7 +336,7 @@
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="dataGridAbilityReferences"
-                          MaxWidth="400" 
+                          MaxWidth="400"
                           Background="Transparent" RowBackground="Transparent" Margin="5"
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Reference, FallbackValue=Collapsed}"
                           ItemsSource="{Binding ReferenceAbilitiesCVS.View}"
@@ -410,4 +410,5 @@
             <KeyBinding Key="Delete" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.RemoveAnimationCommand}"/>
         </Grid.InputBindings>
     </Grid>
+
 </UserControl>

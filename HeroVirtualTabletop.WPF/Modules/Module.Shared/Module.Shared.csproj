@@ -168,6 +168,8 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
+    <Resource Include="Resources\Fonts\Montreal-DemiBold.TTF" />
+    <Resource Include="Resources\Fonts\Paragon City Italic.ttf" />
     <Resource Include="Resources\Fonts\FontAwesome.otf" />
   </ItemGroup>
   <ItemGroup>

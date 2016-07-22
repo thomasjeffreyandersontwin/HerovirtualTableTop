@@ -42,7 +42,7 @@
                         <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.EnterEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
                     </TextBox.InputBindings>
                 </TextBox>
-                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=EditedIdentity.Name, UpdateSourceTrigger=Explicit}">
+                <TextBox Name="textBoxName" Visibility="Hidden" Text="{Binding Path=EditedIdentity.Name, UpdateSourceTrigger=Explicit}" Style="{StaticResource TextBoxDefaultStyle}">
                     <behaviors:CommandBehaviorCollection.Behaviors>
                         <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.SubmitIdentityRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                     </behaviors:CommandBehaviorCollection.Behaviors>
@@ -72,7 +72,7 @@
                         SelectedItem="{Binding Path=EditedIdentity.Type, Mode=TwoWay}">
             </ComboBox>
 
-            <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+            <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Style="{StaticResource TextBoxDefaultStyle}"/>
         </StackPanel>
         <Grid x:Name="listGrid" Margin="5" Grid.Row="1">
             <Grid.RowDefinitions>
