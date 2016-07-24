@@ -192,10 +192,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsActive");
             }
         }
-        public override void Stop(Character Target = null)
+        public override string Stop(Character Target = null)
         {
             IsActive = false;
-            base.Stop(Target);
+            return base.Stop(Target);
         }
 
         public string InitiateAttack(bool persistent = false, Character target = null)
@@ -376,12 +376,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             attackingCharacter.Deactivate();
         }
 
-        public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
+        public override string Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
             if (this.IsAttack)
-                this.InitiateAttack(persistent, target);
+                return this.InitiateAttack(persistent, target);
             else
-                base.Play(persistent, target, forcePlay);
+                return base.Play(persistent, target, forcePlay);
         }
 
         public override AnimationElement Clone()

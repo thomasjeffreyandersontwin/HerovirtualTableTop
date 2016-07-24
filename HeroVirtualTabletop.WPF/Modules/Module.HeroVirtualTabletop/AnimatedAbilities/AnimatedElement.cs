@@ -32,7 +32,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool PlayWithNext { get; set; }
         AnimationResource Resource { get; set; }
         bool IsActive { get; }
-        
+        bool Persistent { get; set; }
         string Play(bool persistent = false, Character Target = null, bool forcePlay = false);
         string Stop(Character Target = null);
     }
@@ -302,7 +302,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
 
         private NAudio.Vorbis.VorbisWaveReader soundReader;
-        private LoopWaveStream loop;
+        private LoopWaveStreamEx loop;
         private NAudio.Wave.WaveOut waveOut;
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
         
@@ -329,7 +329,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 waveOut.Volume = volume;
                 if (this.Persistent || persistent)
                 {
-                    loop = new LoopWaveStream(soundReader);
+                    loop = new LoopWaveStreamEx(soundReader);
                     waveOut.Init(loop);
                     IsActive = true;
                 }
