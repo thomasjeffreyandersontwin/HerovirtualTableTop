@@ -74,9 +74,6 @@
                                                     <Setter Property="Stroke" Value="#FF3377FF" />
                                                     <Setter Property="StrokeThickness" Value="2" />
                                                     <Style.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Fill" Value="{x:Static SystemColors.HighlightBrush}"/>
-                                                        </Trigger>
                                                         <DataTrigger Value="True">
                                                             <DataTrigger.Binding>
                                                                 <MultiBinding Converter="{StaticResource ResourceKey=CharOptComparer}">
@@ -95,7 +92,7 @@
                                             </Ellipse.InputBindings>
                                         </Ellipse>
 
-                                        <Ellipse Width="40" Height="40" StrokeThickness="2" Stroke="Silver">
+                                        <Ellipse Name="silverEllipse" Width="40" Height="40" StrokeThickness="2" Stroke="Silver">
                                             <Ellipse.Style>
                                                 <Style TargetType="Ellipse">
                                                     <Setter Property="Visibility" Value="Hidden"></Setter>
@@ -114,7 +111,7 @@
                                             </Ellipse.Style>
                                         </Ellipse>
 
-                                        <Ellipse Width="44" Height="44" StrokeThickness="2" Stroke="Red">
+                                        <Ellipse Name="redEllipse" Width="44" Height="44" StrokeThickness="2" Stroke="Red">
                                             <Ellipse.Style>
                                                 <Style TargetType="Ellipse">
                                                     <Setter Property="Visibility" Value="Hidden"></Setter>
@@ -139,8 +136,14 @@
                                             </Ellipse.Style>
                                         </Ellipse>
 
-                                        <TextBlock Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis" Width="40" VerticalAlignment="Center" TextAlignment="Center" Foreground="White"/>
+                                        <TextBlock Name="OptionNameTextBlock" Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis" Width="40" VerticalAlignment="Center" TextAlignment="Center" Foreground="White" Panel.ZIndex="-1"/>
                                     </Grid>
+                                    <DataTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="optionEllipse" Property="Fill" Value="{StaticResource HighlightBackgroundBrush}"/>
+                                            <Setter TargetName="OptionNameTextBlock" Property="Panel.ZIndex" Value="1"/>
+                                        </Trigger>
+                                    </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </local:OptionListBox>

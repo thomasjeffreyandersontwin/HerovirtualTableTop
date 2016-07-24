@@ -38,6 +38,7 @@
     <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#EEE" />
     <SolidColorBrush x:Key="WindowBackgroundBrush" Color="#FFF" />
     <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="#DDD" />
+    <SolidColorBrush x:Key="HighlightBackgroundBrush" Color="#007ACC" Opacity="0.3"/>
 
     <!-- Fill Brushes -->
 
