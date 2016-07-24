@@ -24,7 +24,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
     public interface IOptionGroup
     {
-        string Name { get; }
+        string Name { get; set; }
         IEnumerable Options { get; }
         string NewValidOptionName(string name = null);
         OptionType Type { get; }
@@ -67,9 +67,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 return name;
             }
-            private set
+            set
             {
                 name = value;
+                OnPropertyChanged(new PropertyChangedEventArgs("Name"));
             }
         }
         

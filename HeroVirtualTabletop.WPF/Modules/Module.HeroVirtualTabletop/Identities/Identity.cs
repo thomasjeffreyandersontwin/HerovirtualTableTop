@@ -113,9 +113,7 @@ namespace Module.HeroVirtualTabletop.Identities
         public string Render(bool completeEvent = true)
         {
             string keybind = string.Empty;
-            if (completeEvent)
-                if (AnimationOnLoad != null)
-                    AnimationOnLoad.Play();
+            
             switch (Type)
             {
                 case IdentityType.Model:
@@ -132,6 +130,8 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
+                if (AnimationOnLoad != null)
+                    AnimationOnLoad.Play();
             }
             return keybind;
         }
