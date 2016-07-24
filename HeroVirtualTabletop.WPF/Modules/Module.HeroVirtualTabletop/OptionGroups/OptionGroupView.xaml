@@ -139,6 +139,7 @@
                                             </Ellipse.Style>
                                         </Ellipse>
 
+                                        <TextBlock Text="{Binding Path=Name}" TextTrimming="CharacterEllipsis" Width="40" VerticalAlignment="Center" TextAlignment="Center" Foreground="White"/>
                                     </Grid>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
