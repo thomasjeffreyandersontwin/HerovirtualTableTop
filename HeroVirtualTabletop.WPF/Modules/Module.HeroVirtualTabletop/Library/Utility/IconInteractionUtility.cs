@@ -29,8 +29,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int SetCOHPath([MarshalAs(UnmanagedType.LPStr)]string path);
 
-        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate string GetHoveredNPCInfo();
+        [UnmanagedFunctionPointer(CallingConvention.Winapi, CharSet = CharSet.Ansi)]
+        private delegate IntPtr GetHoveredNPCInfo();
 
         private static IntPtr dllHandle;
         private static InitGame initGame;
@@ -97,7 +97,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         }
         public static string GetHoveredNPCInfoFromGame()
         {
-            return getHoveredNPCInfo();
+            return Marshal.PtrToStringAnsi(getHoveredNPCInfo());
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Module.HeroVirtualTabletop.Roster;
+﻿using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Roster;
 using Module.Shared;
 using System;
 using System.Collections.Generic;
@@ -49,15 +50,17 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (Keyboard.Modifiers == ModifierKeys.Control && e.LeftButton == MouseButtonState.Pressed)
             {
-                var ItemsPres = ((sender as TextBlock).Parent as Expander).Content as ItemsPresenter;
-                var VStackPanel = VisualTreeHelper.GetChild(ItemsPres as DependencyObject, 0) as VirtualizingStackPanel;
-                foreach (ListBoxItem item in VStackPanel.Children)
+                var groupbox = Helper.GetTemplateAncestorByType(e.OriginalSource as TextBlock, typeof(GroupBox));
+                var itemsPres = Helper.GetDescendantByType(groupbox, typeof(ItemsPresenter)) as ItemsPresenter;
+                var vStackPanel = VisualTreeHelper.GetChild(itemsPres as DependencyObject, 0) as VirtualizingStackPanel;
+                foreach (ListBoxItem item in vStackPanel.Children)
                 {
                     item.IsSelected = true;
                 }
                 e.Handled = true;
             }
         }
+        
         private void ListViewItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ClickCount == 1)

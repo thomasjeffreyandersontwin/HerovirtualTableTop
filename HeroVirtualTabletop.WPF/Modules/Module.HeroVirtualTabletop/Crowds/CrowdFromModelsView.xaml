@@ -49,7 +49,7 @@
                     </TextBox.InputBindings>
                 </TextBox>
             </Grid>
-            <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" Style="{StaticResource TextBoxDefaultStyle}"/>
+            <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5" />
             
             <GroupBox x:Name="listGroup" Header="Models" Margin="5" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                 <GroupBox.Resources>

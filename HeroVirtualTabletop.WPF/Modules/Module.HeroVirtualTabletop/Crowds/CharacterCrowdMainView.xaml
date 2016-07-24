@@ -133,13 +133,13 @@
         </Expander>
         <Expander Grid.Column="5" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
-                  Header="Ability Editor"
+                  Header="Power Editor"
                   Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   Visibility="{Binding ElementName=abilityEditorPanel, Path=Children[0].DataContext.IsShowingAbilityEditor, Converter={StaticResource BooleanToVisibilityConverter}}"
                   IsExpanded="{Binding IsAbilityEditorExpanded}"
                   >
 
-            <GroupBox Header="Ability Editor" x:Name="grpBoxAbilityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+            <GroupBox Header="Power Editor" x:Name="grpBoxAbilityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>

@@ -225,6 +225,22 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         #region General Control
 
+        public static Visual GetAncestorByType(DependencyObject element, Type type)
+        {
+            while (element != null && !(element.GetType() == type))
+                element = VisualTreeHelper.GetParent(element);
+
+            return element as Visual;
+        }
+
+        public static Visual GetTemplateAncestorByType(DependencyObject element, Type type)
+        {
+            while (element != null && !(element.GetType() == type))
+                element = (element as FrameworkElement).TemplatedParent;
+
+            return element as Visual;
+        }
+
         public static Visual GetDescendantByType(Visual element, Type type)
         {
             if (element == null) return null;

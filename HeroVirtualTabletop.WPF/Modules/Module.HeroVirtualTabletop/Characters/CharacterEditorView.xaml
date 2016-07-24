@@ -23,7 +23,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <TextBox Grid.Row="0" Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxDefaultStyle}"></TextBox>
+        <TextBox Grid.Row="0" Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
         <GridSplitter Grid.Row="1"></GridSplitter>
 
         <Grid Grid.Row="2">
@@ -31,7 +31,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <Border>
+            <!--<Border>
                 <Border.Resources>
                     <Style TargetType="{x:Type Border}">
                         <Setter Property="Width" Value="Auto"/>
@@ -58,7 +58,15 @@
                     <Button x:Name="AddOptionGroup" Content="&#xf067;" Foreground="Green" ToolTip="Add Option Group" Command="{Binding AddOptionGroupCommand}"/>
                     <Button x:Name="RemoveOptionGroup" Content="&#xf068;" Foreground="Red" ToolTip="Remove Option Group" Command="{Binding RemoveOptionGroupCommand}"/>
                 </WrapPanel>
-            </Border>
+            </Border>-->
+            <Grid HorizontalAlignment="Right" Margin="4 4 4 4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Option Group" Command="{Binding AddOptionGroupCommand}"/>
+                <Button Grid.Column="1" Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option Group" Command="{Binding RemoveOptionGroupCommand}"/>
+            </Grid>
             <ListView Grid.Row="1"
                     ItemsSource="{Binding OptionGroups, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                     SelectedValuePath="OptionGroup"
