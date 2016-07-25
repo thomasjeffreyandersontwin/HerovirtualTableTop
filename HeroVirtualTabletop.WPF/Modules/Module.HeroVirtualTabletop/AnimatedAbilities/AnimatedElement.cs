@@ -20,6 +20,10 @@ using Module.HeroVirtualTabletop.Identities;
 using Framework.WPF.Extensions;
 using System.Threading;
 using Module.HeroVirtualTabletop.OptionGroups;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
+using Microsoft.Xna.Framework.Content;
+using System.Runtime.Serialization;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -32,9 +36,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool PlayWithNext { get; set; }
         AnimationResource Resource { get; set; }
         bool IsActive { get; }
-        bool Persistent { get; set; }
-        string Play(bool persistent = false, Character Target = null, bool forcePlay = false);
-        string Stop(Character Target = null);
+        bool Persistent { get; }
+
+        void Play(bool persistent = false, Character Target = null, bool forcePlay = false);
+        void Stop(Character Target = null);
     }
 
     public class AnimationElement : CharacterOption, IAnimationElement
@@ -49,7 +54,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Owner = owner;
             this.Persistent = persistent;
         }
-        
+
         private int order;
         public int Order
         {
@@ -94,7 +99,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Type");
             }
         }
-        
+
         private bool playWithNext;
         public bool PlayWithNext
         {
@@ -166,7 +171,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Persistent");
             }
         }
-        
+
         //private AnimationResource resource;
         public AnimationResource Resource
         {
@@ -183,17 +188,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public virtual string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public virtual void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
-            Character target = Target ?? this.Owner;
-            return "Playing " + this.Order + " for " + target.Name;
+
         }
 
-        public virtual string Stop(Character Target = null)
+        public virtual void Stop(Character Target = null)
         {
-            Character target = Target ?? this.Owner;
-            //return "Stopped " + this.Order + " for " + target.Name;
-            return "";
+
         }
 
         protected virtual AnimationResource GetResource()
@@ -203,7 +205,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         protected virtual void SetResource(AnimationResource value)
         {
-            
+
         }
 
         public virtual AnimationElement Clone()
@@ -235,7 +237,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         private int time;
-        [JsonIgnore]
         public int Time
         {
             get
@@ -249,12 +250,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             IsActive = true;
-            System.Threading.Thread.Sleep(Time*1000);
+            System.Timers.Timer timer = new System.Timers.Timer();
+            timer.Interval = Time;
+            bool done = false;
+            timer.Elapsed += delegate (object sender, System.Timers.ElapsedEventArgs e) { done = true; };
+            timer.Start();
+            while (!done)
+            {
+                continue;
+            }
             IsActive = false;
-            return string.Empty;
         }
 
         protected override AnimationResource GetResource()
@@ -299,55 +307,69 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 soundFile = value;
                 OnPropertyChanged("SoundFile");
             }
-            }
+        }
 
-        private NAudio.Vorbis.VorbisWaveReader soundReader;
-        private LoopWaveStreamEx loop;
-        private NAudio.Wave.WaveOut waveOut;
-        private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-        
-        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        private SoundEffect soundEffect;
+        private SoundEffectInstance soundEffectInstance;
+        private Task setVolumeTask;
+        private CancellationTokenSource tokenSrc;
+
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Character target = Target ?? this.Owner;
             Stop(target);
-            if (((string)SoundFile) == null || !File.Exists(SoundFile))
+            if (((string)SoundFile) == null) //|| !File.Exists(SoundFile)
             {
-                return string.Empty;
+                return;
             }
-            fileLock.EnterReadLock();// Not sure this locking is needed
-            try
+            if (soundEffect == null)
             {
-                soundReader = new NAudio.Vorbis.VorbisWaveReader(SoundFile);
-                waveOut = new NAudio.Wave.WaveOut();
-                float dist = 0;
-                float volume = 1.0f;
-                target.Position.IsWithin(0, Camera.Position, out dist);
-                if (dist > 100)
-                    volume = 0;
-                else
-                    volume = (100 - dist) / 100;
-                waveOut.Volume = volume;
-                if (this.Persistent || persistent)
-                {
-                    loop = new LoopWaveStreamEx(soundReader);
-                    waveOut.Init(loop);
-                    IsActive = true;
-                }
-                else
-                {
-                    waveOut.Init(soundReader);
-                }
-                waveOut.Play();
+                using (FileStream s = File.OpenRead(SoundFile))
+                    soundEffect = SoundEffect.FromStream(s);//gm.Content.Load<SoundEffect>(SoundFile);
+                soundEffectInstance = soundEffect.CreateInstance();
             }
-            finally
+            tokenSrc = new CancellationTokenSource();
+
+            float dist = 0;
+            float volume = 1.0f;
+            target.Position.IsWithin(0, Camera.Position, out dist);
+            if (dist > 100)
+                volume = 0;
+            else
+                volume = (100 - dist) / 100;
+            if (float.IsNaN(volume))
+                volume = 1.0f;
+
+            soundEffectInstance.Volume = volume;
+
+            //setVolumeTask = Task.Run(delegate ()
+            //{
+            //    PauseElement pause = new PauseElement("pasue", time: 500);
+            //    while (true)
+            //    {
+            //        float dist = 0;
+            //        float volume = 1.0f;
+            //        target.Position.IsWithin(0, Camera.Position, out dist);
+            //        if (dist > 100)
+            //            volume = 0;
+            //        else
+            //            volume = (100 - dist) / 100;
+            //        if (soundEffectInstance == null || float.IsNaN(volume))
+            //            break;
+            //        soundEffectInstance.Volume = volume;
+            //        pause.Play();
+            //    }
+            //}, tokenSrc.Token);
+
+            if (this.Persistent || persistent)
             {
-                fileLock.ExitReadLock();
+                soundEffectInstance.IsLooped = true;
+                IsActive = true;
             }
-            
-            return "";//base.Play(this.Persistent || persistent);
+            Task.Factory.StartNew(() => { soundEffectInstance.Play(); }, tokenSrc.Token);
         }
 
-        public override string Stop(Character Target = null)
+        public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
             if (IsActive)
@@ -355,11 +377,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 IsActive = false;
             }
 
-            if (soundReader != null) soundReader.Close();
-            if (loop != null) loop.Close();
-            if (waveOut != null) waveOut.Dispose();
-            
-            return base.Stop(target);
+            if (soundEffectInstance != null)
+            {
+                tokenSrc.Cancel();
+                if (soundEffectInstance.State == SoundState.Playing)
+                    soundEffectInstance.Stop();
+                soundEffect.Dispose();
+                soundEffectInstance.Dispose();
+                soundEffect = null;
+                soundEffectInstance = null;
+            }
         }
 
         protected override AnimationResource GetResource()
@@ -371,12 +398,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             SoundFile = value;
         }
-        
+
         public override AnimationElement GetNewAnimationElement()
         {
             return new SoundElement(this.Name, this.SoundFile, this.Persistent);
         }
-        
     }
 
     public class MOVElement : AnimationElement
@@ -406,7 +432,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = true, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = true, Character Target = null, bool forcePlay = false)
         {
             Stop(Target);
             Character target = Target ?? this.Owner;
@@ -416,27 +442,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = true;
             if (PlayWithNext == false || forcePlay)
                 keybind = keyBindsGenerator.CompleteEvent();
-            return keybind;
         }
 
-        public override string Stop(Character Target = null)
+        public override void Stop(Character Target = null)
         {
             if (IsActive)
             {
                 Character target = Target ?? this.Owner;
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                 target.Target(false);
-                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "nop");
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
                 IsActive = false;
-                return keyBindsGenerator.CompleteEvent() + base.Stop(target);
+                keyBindsGenerator.CompleteEvent();
             }
-            return string.Empty;
         }
 
         protected override AnimationResource GetResource()
         {
             return MOVResource;
-    }
+        }
 
         protected override void SetResource(AnimationResource value)
         {
@@ -461,12 +485,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Effect = effect;
             this.Type = AnimationType.FX;
             this.PlayWithNext = playWithNext;
-            Color black = Color.FromRgb(0, 0, 0);
-            this.colors = new ObservableCollection<Color>() { black, black, black, black };
+            System.Windows.Media.Color black = System.Windows.Media.Color.FromRgb(0, 0, 0);
+            this.colors = new ObservableCollection<System.Windows.Media.Color>() { black, black, black, black };
         }
 
-        private ObservableCollection<Color> colors;
-        public ObservableCollection<Color> Colors
+        private ObservableCollection<System.Windows.Media.Color> colors;
+        public ObservableCollection<System.Windows.Media.Color> Colors
         {
             get
             {
@@ -478,7 +502,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Colors");
             }
         }
-        
+
         private AnimationResource effect;
         [JsonIgnore]
         public AnimationResource Effect
@@ -493,7 +517,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("Effect");
             }
         }
-        
+
         [JsonIgnore]
         public AttackDirection AttackDirection
         {
@@ -517,19 +541,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 string FXName = ParseFXName(Effect);
                 string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, FXName, Constants.GAME_COSTUMES_EXT));
                 if (File.Exists(newFile))
-                return File.ReadAllText(newFile);
+                    return File.ReadAllText(newFile);
                 return string.Empty;
             }
         }
 
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
-            Stop(Target);
             Character target = Target ?? this.Owner;
+            if (target.ActiveIdentity.Type != IdentityType.Costume)
+                return;
+            Stop(Target);
             target.Target(false);
-            string keybind = string.Empty;
-            string name = target.Name;
+            string name = target.ActiveIdentity.Surface;
             string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
             string file = name + Constants.GAME_COSTUMES_EXT;
             string origFile = Path.Combine(location, file);
@@ -558,10 +583,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         fireCoOrdinates = string.Format("x={0} y={1} z={2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
                     }
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
+                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
                     if (PlayWithNext == false || forcePlay)
                     {
-                        keybind = keyBindsGenerator.CompleteEvent();
+                        keyBindsGenerator.CompleteEvent();
                     }
                     IsActive = true;
                 }
@@ -574,29 +599,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 fileLock.ExitWriteLock();
             }
-            
-            return keybind;
         }
 
-        public override string Stop(Character Target = null)
+        public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
             if (IsActive)
             {
-                string keybinds = "";
                 fileLock.EnterWriteLock();
                 try
                 {
-                    keybinds = reloadOriginalCostumeFile(target.Name);
+                    reloadOriginalCostumeFile(target.ActiveIdentity.Surface);
                 }
                 finally
                 {
                     fileLock.ExitWriteLock();
                 }
                 IsActive = false;
-                return keybinds + base.Stop();
             }
-            return string.Empty;
         }
 
         private void archiveOriginalCostumeFile(string name)
@@ -626,7 +646,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             File.Copy(newFile, origFile, true);
         }
 
-        private string reloadOriginalCostumeFile(string name)
+        private void reloadOriginalCostumeFile(string name)
         {
             string archFile = Path.Combine(
                 Settings.Default.CityOfHeroesGameDirectory,
@@ -640,9 +660,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 File.Copy(archFile, origFile, true);
             }
+            File.AppendAllText(origFile, "\n");
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, name);
-            return keyBindsGenerator.CompleteEvent();
+            keyBindsGenerator.CompleteEvent();
         }
 
         private string ParseFXName(string effect)
@@ -659,7 +680,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Regex re = new Regex(Regex.Escape(fxNone));
             if (!re.IsMatch(fileStr))
             {
-                fileStr += 
+                fileStr +=
 @"CostumePart """"
 {
     Fx none
@@ -707,11 +728,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             FXEffectElement clonedElement = new FXEffectElement(this.Name, this.Resource, this.Persistent, this.PlayWithNext);
             clonedElement.DisplayName = this.DisplayName;
             clonedElement.Type = this.Type;
-            clonedElement.Colors = this.Colors.DeepClone() as ObservableCollection<Color>;
+            clonedElement.Colors = this.Colors.DeepClone() as ObservableCollection<System.Windows.Media.Color>;
             return clonedElement;
+        }
     }
-    }
-    
+
     public class SequenceElement : AnimationElement
     {
         [JsonConstructor]
@@ -730,8 +751,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void Initialize()
         {
-            this.animationElements = new HashedObservableCollection<IAnimationElement, string>(x => x.Name, x => x.Order);
-            this.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(animationElements);
+            this.animationElements = new HashedObservableCollection<AnimationElement, string>(x => x.Name, x => x.Order);
+            this.AnimationElements = new ReadOnlyHashedObservableCollection<AnimationElement, string>(animationElements);
         }
 
         private AnimationSequenceType sequenceType;
@@ -749,10 +770,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         [JsonProperty(PropertyName = "AnimationElements")]
-        protected HashedObservableCollection<IAnimationElement, string> animationElements;
+        protected HashedObservableCollection<AnimationElement, string> animationElements;
         [JsonIgnore]
-        public ReadOnlyHashedObservableCollection<IAnimationElement, string> AnimationElements { get; protected set; }
-        
+        public ReadOnlyHashedObservableCollection<AnimationElement, string> AnimationElements { get; protected set; }
+
         public int LastOrder
         {
             get
@@ -764,7 +785,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public void AddAnimationElement(IAnimationElement element, int order = 0)
+        public void AddAnimationElement(AnimationElement element, int order = 0)
         {
             element.Owner = this.Owner;
             if (order == 0)
@@ -776,40 +797,56 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 element.Order = order;
             }
             this.animationElements.Add(element);
+            element.PropertyChanged += Element_PropertyChanged;
             this.animationElements.Sort();
             this.FixPlayWithNextForElements(element);
         }
 
-        private void FixPlayWithNextForElements(IAnimationElement element)
+        private void Element_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(element != null && !(element is MOVElement || element is FXEffectElement))
+            OnPropertyChanged(e.PropertyName);
+        }
+
+        private void FixPlayWithNextForElements(AnimationElement element)
+        {
+            if (element != null && !(element is MOVElement || element is FXEffectElement))
             {
                 // the previous element cannot be played with next
                 int position = this.animationElements.IndexOf(element);
-                if(position != 0)
+                if (position != 0)
                 {
                     this.animationElements[position - 1].PlayWithNext = false;
                 }
             }
-            if(this.animationElements.Count > 0)
+            if (this.animationElements.Count > 0)
                 this.animationElements[this.animationElements.Count - 1].PlayWithNext = false;
         }
 
-        public void RemoveAnimationElement(IAnimationElement element)
+        public void RemoveAnimationElement(AnimationElement element)
         {
             int position = this.animationElements.IndexOf(element);
             foreach (IAnimationElement elem in animationElements.Where(a => a.Order > element.Order))
                 elem.Order -= 1;
             animationElements.Remove(element);
+            element.PropertyChanged -= Element_PropertyChanged;
             if (this.animationElements.Count > position)
                 FixPlayWithNextForElements(this.animationElements[position]);
             else
                 FixPlayWithNextForElements(null);
         }
 
+        [OnDeserialized]
+        private void AfterDeserialized(StreamingContext stream)
+        {
+            foreach (AnimationElement element in this.animationElements)
+            {
+                element.PropertyChanged += Element_PropertyChanged;
+            }
+        }
+
         public void RemoveAnimationElement(string name)
         {
-            IAnimationElement element = animationElements[name];
+            AnimationElement element = animationElements[name];
             RemoveAnimationElement(element);
         }
 
@@ -821,54 +858,51 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Stop(Target ?? this.Owner);
             //if (this.Persistent || persistent)
             //    IsActive = true;
-            string retVal = string.Empty;
             if (SequenceType == AnimationSequenceType.And)
             {
-                animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
-                foreach (IAnimationElement item in AnimationElements)
+                //animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
+                foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
-                    retVal += item.Play(this.Persistent || persistent, Target ?? this.Owner);
+                    item.Play(this.Persistent || persistent, Target ?? this.Owner);
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                retVal = AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
+                AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
             }
             OnPropertyChanged("IsActive");
-            return retVal;
         }
 
-        public override string Stop(Character Target = null)
+        public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
             //if (IsActive)
             //    IsActive = false;
-            foreach (IAnimationElement item in AnimationElements.Where( x => x.IsActive))
+            foreach (IAnimationElement item in AnimationElements.Where(x => x.IsActive))
             {
                 item.Stop(target);
             }
             OnPropertyChanged("IsActive");
-            return base.Stop(target);
         }
 
         public override AnimationElement Clone()
         {
             SequenceElement seqClone = new SequenceElement(this.Name, this.SequenceType, this.Persistent);
             seqClone.DisplayName = this.DisplayName;
-            foreach(var element in this.AnimationElements)
+            foreach (var element in this.AnimationElements)
             {
                 var clonedElement = (element as AnimationElement).Clone() as AnimationElement;
                 seqClone.AddAnimationElement(clonedElement);
             }
-            seqClone.animationElements = new HashedObservableCollection<IAnimationElement, string>(seqClone.AnimationElements, x => x.Name, x => x.Order);
-            seqClone.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(seqClone.animationElements);
+            seqClone.animationElements = new HashedObservableCollection<AnimationElement, string>(seqClone.AnimationElements, x => x.Name, x => x.Order);
+            seqClone.AnimationElements = new ReadOnlyHashedObservableCollection<AnimationElement, string>(seqClone.animationElements);
             return seqClone;
         }
     }
@@ -907,10 +941,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 reference = value;
-                OnPropertyChanged("Reference"); 
+                OnPropertyChanged("Reference");
             }
         }
-        
+
         public override bool IsActive
         {
             get
@@ -919,24 +953,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override string Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             string retVal = string.Empty;
             if (this.Reference != null)
             {
-                retVal = this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+                this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
             }
             OnPropertyChanged("IsActive");
-            return retVal;
         }
 
-        public override string Stop(Character Target = null)
+        public override void Stop(Character Target = null)
         {
-            string retVal = string.Empty;
             if (this.Reference != null)
-                retVal = this.Reference.Stop(Target ?? this.Owner);
+                this.Reference.Stop(Target ?? this.Owner);
             OnPropertyChanged("IsActive");
-            return retVal;
         }
 
         protected override AnimationResource GetResource()

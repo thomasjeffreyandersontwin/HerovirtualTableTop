@@ -18,7 +18,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Tags = new ReadOnlyObservableCollection<string>(this.tags);
         }
 
-        public AnimationResource(string value): this()
+        public AnimationResource(string value) : this()
         {
             this.Value = value;
         }
@@ -31,6 +31,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public AnimationResource(string value, string name, params string[] tags) : this(value)
         {
             this.Name = name;
+            //this.Value = System.IO.Path.GetFileNameWithoutExtension(value);
             this.tags.AddRange(tags);
         }
 
@@ -102,10 +103,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         #region String behaviour
-        
+
         public static implicit operator string(AnimationResource s)
         {
-            return s == null ? string.Empty : ( s.Value != null ? s.Value.ToString() : s.Reference.Name);
+            return s == null ? string.Empty : (s.Value != null ? s.Value.ToString() : s.Reference.Name);
         }
 
         public static implicit operator AnimatedAbility(AnimationResource s)
@@ -147,7 +148,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override bool Equals(object obj)
         {
             bool areEqual = false;
-            if(obj is AnimationResource)
+            if (obj is AnimationResource)
                 areEqual = this == (AnimationResource)obj;
             return areEqual;
         }

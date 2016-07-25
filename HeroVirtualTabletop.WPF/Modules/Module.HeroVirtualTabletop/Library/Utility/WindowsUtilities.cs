@@ -37,12 +37,22 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-        
+
         [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Ansi)]
         public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)]string lpFileName);
 
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool FreeLibrary(IntPtr hModule);
+
         [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
+        [DllImport("kernel32", CallingConvention = CallingConvention.Winapi, SetLastError = true)]
+        public static extern bool SetDefaultDllDirectories(uint DirectoryFlags);
+
+        [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern int AddDllDirectory(string NewDirectory);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
         public struct STARTUPINFO
@@ -90,7 +100,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             public STARTUPINFO StartupInfo;
             public IntPtr lpAttributeList;
         }
-        
+
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi)]
         public static extern bool CreateProcess(
            string lpApplicationName,
@@ -188,5 +198,14 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public const uint CREATE_SUSPENDED = 0x00000004;
         public const uint DETACHED_PROCESS = 0x00000008;
         public const uint CREATE_NEW_PROCESS_GROUP = 0x00000200;
+    }
+
+    public static class DllSearchDirectoryFlags
+    {
+        public const uint LOAD_LIBRARY_SEARCH_APPLICATION_DIR = 0x00000200;
+        public const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x00001000;
+        public const uint LOAD_LIBRARY_SEARCH_SYSTEM32 = 0x00000800;
+        public const uint LOAD_LIBRARY_SEARCH_USER_DIRS = 0x00000400;
+        public static uint ALL = LOAD_LIBRARY_SEARCH_APPLICATION_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS | LOAD_LIBRARY_SEARCH_SYSTEM32 | LOAD_LIBRARY_SEARCH_USER_DIRS;
     }
 }

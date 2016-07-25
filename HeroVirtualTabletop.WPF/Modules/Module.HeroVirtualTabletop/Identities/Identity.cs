@@ -51,9 +51,9 @@ namespace Module.HeroVirtualTabletop.Identities
         }
 
         #endregion
-        
+
         protected KeyBindsGenerator keyBindsGenerator;
-        
+
         private string surface;
 
         public string Surface
@@ -83,8 +83,8 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
-        private AnimatedAbilities.AnimatedAbility animationOnLoad = null;
-        public AnimatedAbilities.AnimatedAbility AnimationOnLoad
+        private AnimatedAbility animationOnLoad = null;
+        public AnimatedAbility AnimationOnLoad
         {
             get
             {
@@ -113,7 +113,12 @@ namespace Module.HeroVirtualTabletop.Identities
         public string Render(bool completeEvent = true)
         {
             string keybind = string.Empty;
-            
+            if (completeEvent)
+            {
+                if (AnimationOnLoad != null)
+                    AnimationOnLoad.Play();
+                new PauseElement("pause", 2000).Play();
+            }
             switch (Type)
             {
                 case IdentityType.Model:
@@ -130,8 +135,6 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
-                if (AnimationOnLoad != null)
-                    AnimationOnLoad.Play();
             }
             return keybind;
         }
@@ -158,7 +161,7 @@ namespace Module.HeroVirtualTabletop.Identities
             }
             return keybind;
         }
-        
+
         public Identity Clone()
         {
             Identity clonedIdentity = new Identity(this.Surface, this.Type, this.Name);

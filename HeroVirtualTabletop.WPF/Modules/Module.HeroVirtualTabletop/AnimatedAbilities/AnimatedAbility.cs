@@ -81,8 +81,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 var clonedElement = (element as AnimationElement).Clone() as AnimationElement;
                 clonedAbility.AddAnimationElement(clonedElement);
             }
-            clonedAbility.animationElements = new HashedObservableCollection<IAnimationElement, string>(clonedAbility.AnimationElements, x => x.Name, x => x.Order);
-            clonedAbility.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(clonedAbility.animationElements);
+            clonedAbility.animationElements = new HashedObservableCollection<AnimationElement, string>(clonedAbility.AnimationElements, x => x.Name, x => x.Order);
+            clonedAbility.AnimationElements = new ReadOnlyHashedObservableCollection<AnimationElement, string>(clonedAbility.animationElements);
             clonedAbility.ActivateOnKey = this.ActivateOnKey;
             clonedAbility.IsAreaEffect = this.IsAreaEffect;
             clonedAbility.IsAttack = this.IsAttack;
@@ -100,17 +100,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
 
         }
-        public AttackEffectOption Effect 
-        { 
+        public AttackEffectOption Effect
+        {
             get;
-            set; 
+            set;
         }
 
-        public double KnockBackDistance 
-        { 
-            get; 
-            set; 
-        
+        public double KnockBackDistance
+        {
+            get;
+            set;
+
         }
         public KnockBackOption KnockbackEffect
         {
@@ -152,7 +152,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         private AnimatedAbility onHitAnimation;
-        public AnimatedAbility OnHitAnimation 
+        public AnimatedAbility OnHitAnimation
         {
             get
             {
@@ -192,10 +192,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsActive");
             }
         }
-        public override string Stop(Character Target = null)
+        public override void Stop(Character Target = null)
         {
             IsActive = false;
-            return base.Stop(Target);
+            base.Stop(Target);
         }
 
         public string InitiateAttack(bool persistent = false, Character target = null)
@@ -203,7 +203,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             var character = target ?? this.Owner;
             Stop(character);
             //if (this.Persistent || persistent)
-                IsActive = true;
+            IsActive = true;
             // Change the costume to Complementary color - CHRIS to do
             character.Activate();
             // Fire event to update Roster and select target
@@ -215,16 +215,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public string AnimateHit(ActiveAttackConfiguration attackConfiguration, Character target)
         {
             // Play the attack's on hit ability if there exists one
-            if(this.OnHitAnimation != null && this.OnHitAnimation.AnimationElements != null && this.OnHitAnimation.AnimationElements.Count >0)
+            if (this.OnHitAnimation != null && this.OnHitAnimation.AnimationElements != null && this.OnHitAnimation.AnimationElements.Count > 0)
             {
                 this.OnHitAnimation.Play(false, target);
             }
             else // Or play the default hit ability
             {
-                if(Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+                if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
                 {
                     var globalHitAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.HIT_ABITIY_NAME);
-                    if(globalHitAbility != null && globalHitAbility.AnimationElements != null && globalHitAbility.AnimationElements.Count > 0)
+                    if (globalHitAbility != null && globalHitAbility.AnimationElements != null && globalHitAbility.AnimationElements.Count > 0)
                     {
                         globalHitAbility.Play(false, target);
                     }
@@ -261,14 +261,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         break;
                 }
             }
-            
+
             return null;
         }
         public void AnimateAttack(AttackDirection direction, Character attacker)
         {
-            foreach(var animation in this.AnimationElements)
+            foreach (var animation in this.AnimationElements)
             {
-                if(animation is FXEffectElement)
+                if (animation is FXEffectElement)
                 {
                     (animation as FXEffectElement).AttackDirection = direction;
                 }
@@ -283,7 +283,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
             //System.Threading.Thread.Sleep(2000); // Wait for attacker to finish moves before deactivating
-            
+
         }
 
         public void AnimateMiss(ActiveAttackConfiguration attackConfiguration, Character target)
@@ -317,7 +317,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
             {
                 Character centerTargetCharacter = defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsCenterTarget).FirstOrDefault();
-                if(centerTargetCharacter == null)
+                if (centerTargetCharacter == null)
                 {
                     var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
                     direction.AttackDirectionX = targetInFacingDirection.X;
@@ -347,7 +347,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         direction.AttackDirectionZ = centerTargetCharacter.Position.Z + randomOffset * multiplyFactorZ;
                     }
                 }
-                
+
             }
             AnimateAttack(direction, attackingCharacter);
             System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
@@ -376,12 +376,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             attackingCharacter.Deactivate();
         }
 
-        public override string Play(bool persistent = false, Character target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
             if (this.IsAttack)
-                return this.InitiateAttack(persistent, target);
+                this.InitiateAttack(persistent, target);
             else
-                return base.Play(persistent, target, forcePlay);
+                base.Play(persistent, target, forcePlay);
         }
 
         public override AnimationElement Clone()
@@ -393,8 +393,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 var clonedElement = (element as AnimationElement).Clone() as AnimationElement;
                 clonedAttack.AddAnimationElement(clonedElement);
             }
-            clonedAttack.animationElements = new HashedObservableCollection<IAnimationElement, string>(clonedAttack.AnimationElements, x => x.Name, x => x.Order);
-            clonedAttack.AnimationElements = new ReadOnlyHashedObservableCollection<IAnimationElement, string>(clonedAttack.animationElements);
+            clonedAttack.animationElements = new HashedObservableCollection<AnimationElement, string>(clonedAttack.AnimationElements, x => x.Name, x => x.Order);
+            clonedAttack.AnimationElements = new ReadOnlyHashedObservableCollection<AnimationElement, string>(clonedAttack.animationElements);
             clonedAttack.ActivateOnKey = this.ActivateOnKey;
             clonedAttack.IsAreaEffect = this.IsAreaEffect;
             clonedAttack.IsAttack = this.IsAttack;
@@ -421,7 +421,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private AttackMode attackMode;
         public AttackMode AttackMode // None/Attack/Defend
         {
-            get 
+            get
             {
                 return attackMode;
             }
