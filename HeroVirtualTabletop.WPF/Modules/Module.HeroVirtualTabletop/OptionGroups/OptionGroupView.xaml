@@ -32,20 +32,20 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400"/>
-        </Grid.ColumnDefinitions>       
-            <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
+        </Grid.ColumnDefinitions>
+        <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                    <ToggleButton Name="toggleButton" Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="{Binding ElementName=ExpanderOptionGroup, Path=IsExpanded}" 
-                                  Background="Transparent" BorderBrush="Transparent">  
-                    </ToggleButton>
+                <ToggleButton Name="toggleButton" Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" IsChecked="{Binding ElementName=ExpanderOptionGroup, Path=IsExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent">
+                </ToggleButton>
                 <Expander Name="ExpanderOptionGroup" Grid.RowSpan="2" Grid.Column="1" Style="{StaticResource ExpanderWithoutToggleButtonStyle}"
                   OverridesDefaultStyle="True" IsExpanded="False" VerticalAlignment="Top"
                   >
@@ -53,11 +53,11 @@
                         <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
                             DefaultOption="{Binding Path=DefaultOption}"
                             ActiveOption="{Binding Path=ActiveOption}"
-                            HorizontalAlignment="Stretch" VerticalAlignment="Center"
+                            HorizontalAlignment="Left" VerticalAlignment="Center"
                             SelectionMode="Single"
                             MinHeight="70"
                             MaxHeight="150"
-                            Margin="0 0 28 0" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}">
+                            Margin="0,3,0,2.8" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}" Width="359">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <UniformGrid Columns="7" />
@@ -141,23 +141,18 @@
                                     <DataTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
                                             <Setter TargetName="optionEllipse" Property="Fill" Value="{StaticResource HighlightBackgroundBrush}"/>
-                                            <Setter TargetName="OptionNameTextBlock" Property="Panel.ZIndex" Value="1"/>
                                         </Trigger>
                                     </DataTemplate.Triggers>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </local:OptionListBox>
-                        <Grid Visibility="{Binding AddOrRemoveIsVisible}" HorizontalAlignment="Right" Margin="4 28 0 4">
-                            <Grid.RowDefinitions>
-                                <RowDefinition/>
-                                <RowDefinition/>
-                            </Grid.RowDefinitions>
+                        <StackPanel Visibility="{Binding AddOrRemoveIsVisible}" HorizontalAlignment="Right" Margin="4 28 0 4">
                             <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
-                            <Button Grid.Row="1" Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
-                         </Grid>
+                            <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
+                        </StackPanel>
                     </Grid>
                 </Expander>
             </Grid>
-            </GroupBox>
+        </GroupBox>
     </Grid>
 </UserControl>

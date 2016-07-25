@@ -210,90 +210,6 @@ namespace Module.HeroVirtualTabletop.Roster
             fileSystemWatcher.EnableRaisingEvents = false;
         }
 
-        IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0)
-            {
-                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
-                {
-                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
-                    {
-                        //Handle clicks
-                        clickCount += 1;
-                        switch (clickCount)
-                        {
-                            case 1: clickTimer.Start(); break;
-                            case 2: isDoubleClick = true; break;
-                            case 3: isTripleClick = true; break;
-                            case 4: isQuadrupleClick = true; break;
-                            default: break;
-                        }
-                    }
-                }
-                else if(MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
-                {
-                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
-                    {
-                        //if (isPlayingAreaEffect)
-                        //{
-                        //    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                        //    System.Threading.Thread.Sleep(500);
-                        //    string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
-                        //    keybind = keyBindsGenerator.CompleteEvent();
-                        //}
-
-                        if (isPlayingAreaEffect)
-                        {
-                            string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
-                            //if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
-                            //{
-                            //    string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                            //    if (!string.IsNullOrWhiteSpace(characterName))
-                            //    {
-                            //        if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
-                            //        {
-                            //            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                            //            System.Threading.Thread.Sleep(500);
-                            //            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
-                            //            keybind = keyBindsGenerator.CompleteEvent();
-                            //        }
-                            //    }
-                            //}
-                        }
-                    }
-                }
-            }
-            return MouseHook.CallNextHookEx(hookID, nCode, wParam, lParam);
-        }
-
-        private string GetCharacterNameFromHoveredInfo(string hoveredCharacterInfo)
-        {
-            return string.Empty;
-        }
-
-        void clickTimer_Elapsed(object sender, ElapsedEventArgs e)
-        {
-            clickTimer.Stop();
-
-            if (isQuadrupleClick)
-            {
-                ToggleManueverWithCamera();
-            }
-            else if (isTripleClick)
-            {
-                Character character = Participants.FirstOrDefault(p => (p as Character).HasBeenSpawned && (p as Character).gamePlayer.Pointer == targetObserver.CurrentTargetPointer) as Character;
-                if (character != null)
-                    ActivateCharacter(character);
-            }
-            else if (isDoubleClick)
-            {
-                TargetAndFollow();
-            }
-            
-            clickCount = 0;
-            isDoubleClick = isTripleClick = isQuadrupleClick = false;
-        }
-
         #endregion
 
         #region Initialization
@@ -318,6 +234,90 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region Methods
+
+
+        IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
+                {
+                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        //Handle clicks
+                        clickCount += 1;
+                        switch (clickCount)
+                        {
+                            case 1: clickTimer.Start(); break;
+                            case 2: isDoubleClick = true; break;
+                            case 3: isTripleClick = true; break;
+                            case 4: isQuadrupleClick = true; break;
+                            default: break;
+                        }
+                    }
+                }
+                else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
+                {
+                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        if (isPlayingAreaEffect)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                            string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+                            if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                            {
+                                string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                                CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                                if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                                {
+                                    if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
+                                    {
+                                        AddDesktopTargetToRosterSelection(hoveredCharacter);
+                                        hoveredCharacter.Target();
+                                        KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                                        //System.Threading.Thread.Sleep(500);
+                                        string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
+                                        keybind = keyBindsGenerator.CompleteEvent();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return MouseHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
+        private string GetCharacterNameFromHoveredInfo(string hoveredCharacterInfo)
+        {
+            // Sample : "Name: [Agents of Orisha 3 [Agents]] X:[137.50] Y:[-0.50] Z:[-77.23]"
+            int nameEnd = hoveredCharacterInfo.IndexOf("[", 7);
+            string name = hoveredCharacterInfo.Substring(7, nameEnd - 7).Trim();
+            return name;
+        }
+
+        void clickTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            clickTimer.Stop();
+
+            if (isQuadrupleClick)
+            {
+                ToggleManueverWithCamera();
+            }
+            else if (isTripleClick)
+            {
+                Character character = Participants.FirstOrDefault(p => (p as Character).HasBeenSpawned && (p as Character).gamePlayer.Pointer == targetObserver.CurrentTargetPointer) as Character;
+                if (character != null)
+                    ActivateCharacter(character);
+            }
+            else if (isDoubleClick)
+            {
+                TargetAndFollow();
+            }
+
+            clickCount = 0;
+            isDoubleClick = isTripleClick = isQuadrupleClick = false;
+        }
 
         private void Commands_RaiseCanExecuteChanged()
         {
@@ -384,11 +384,6 @@ namespace Module.HeroVirtualTabletop.Roster
             // sometimes i get exception here in this method's dispatcher calls during application closing. we need to handle this
             try
             {
-                Dispatcher.Invoke(() =>
-                    {
-                        if (SelectedParticipants == null)
-                            SelectedParticipants = new ObservableCollection<object>() as IList;
-                    });
                 uint currentTargetPointer = targetObserver.CurrentTargetPointer;
                 CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
                     (p) =>
@@ -396,20 +391,31 @@ namespace Module.HeroVirtualTabletop.Roster
                         Character c = p as Character;
                         return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                     }).FirstOrDefault();
-                if (currentTarget == null)
-                    return;
-                if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
-                {
-                    Dispatcher.Invoke(() => { if (SelectedParticipants != null)SelectedParticipants.Clear(); });
-                }
-                if (!SelectedParticipants.Contains(currentTarget))
-                {
-                    Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); OnPropertyChanged("SelectedParticipants"); });
-                }
+                AddDesktopTargetToRosterSelection(currentTarget);
             }
             catch (TaskCanceledException ex)
             {
                 
+            }
+        }
+
+        private void AddDesktopTargetToRosterSelection(CrowdMemberModel currentTarget)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                if (SelectedParticipants == null)
+                    SelectedParticipants = new ObservableCollection<object>() as IList;
+            });
+
+            if (currentTarget == null)
+                return;
+            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
+            {
+                Dispatcher.Invoke(() => { if (SelectedParticipants != null)SelectedParticipants.Clear(); });
+            }
+            if (!SelectedParticipants.Contains(currentTarget))
+            {
+                Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); OnPropertyChanged("SelectedParticipants"); });
             }
         }
 
