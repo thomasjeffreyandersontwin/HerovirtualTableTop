@@ -806,8 +806,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     Character c = p as Character;
                     return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                 }).FirstOrDefault();
-            //if (currentTarget == null) //Target has been changed to something not in roster
-            //    return;
             Action action = delegate ()
             {
                 if (this.isPlayingAttack && currentTarget != null)
@@ -861,8 +859,8 @@ namespace Module.HeroVirtualTabletop.Roster
             foreach (var defender in defenders)
             {
                 defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
-                if (!this.currentAttack.OnHitAnimation.Persistent)
-                    this.currentAttack.OnHitAnimation.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(defender); });
+                //if (!this.currentAttack.OnHitAnimation.Persistent)
+                //    this.currentAttack.OnHitAnimation.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(defender); });
                 defender.Deactivate(); // restore original costume
             }
             this.currentAttack = null;
