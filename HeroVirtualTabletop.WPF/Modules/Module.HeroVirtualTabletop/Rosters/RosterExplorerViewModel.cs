@@ -861,8 +861,8 @@ namespace Module.HeroVirtualTabletop.Roster
             foreach (var defender in defenders)
             {
                 defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
-                if (!this.currentAttack.OnHitAnimation.Persistent)
-                    this.currentAttack.OnHitAnimation.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(defender); });
+                //if (!this.currentAttack.OnHitAnimation.Persistent)
+                //    this.currentAttack.OnHitAnimation.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(defender); });
                 defender.Deactivate(); // restore original costume
             }
             this.currentAttack = null;

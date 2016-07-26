@@ -534,7 +534,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     return string.Empty;
                 }
-                string name = Owner.Name;
+                string name = Owner.ActiveIdentity.Surface;
                 string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
                 string file = name + Constants.GAME_COSTUMES_EXT;
                 string newFolder = Path.Combine(location, name);

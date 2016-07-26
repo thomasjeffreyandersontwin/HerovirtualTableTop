@@ -337,11 +337,15 @@ namespace Module.HeroVirtualTabletop.Identities
         private void CreateAbilitiesViewSource(ObservableCollection<AnimatedAbility> abilities)
         {
             abilitiesCVS = new CollectionViewSource();
-            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner; }));
+            Attack none = new Attack("None", owner: this.Owner);
+            abilities.Add(none);
+            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner && an.IsAttack == false; }));
             abilitiesCVS.View.Filter += abilitiesCVS_Filter;
             AnimatedAbility moveTo = null;
             if (EditedIdentity != null)
                 moveTo = EditedIdentity.AnimationOnLoad;
+            else
+                moveTo = none;
             abilitiesCVS.View.MoveCurrentTo(moveTo);
             OnPropertyChanged("AbilitiesCVS");
         }
