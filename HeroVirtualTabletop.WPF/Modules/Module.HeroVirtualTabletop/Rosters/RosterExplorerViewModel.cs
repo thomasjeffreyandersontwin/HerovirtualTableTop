@@ -806,8 +806,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     Character c = p as Character;
                     return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                 }).FirstOrDefault();
-            //if (currentTarget == null) //Target has been changed to something not in roster
-            //    return;
             Action action = delegate ()
             {
                 if (this.isPlayingAttack && currentTarget != null)
