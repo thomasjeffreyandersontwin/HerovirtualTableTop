@@ -162,8 +162,16 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             string generatedKeyBindText = string.Empty;
 
             command = PopEvents();
-            generatedKeyBindText = triggerKey + " " + command;
-            IconInteractionUtility.ExecuteCmd("/"+command);
+
+            //generatedKeyBindText = triggerKey + " " + command;
+
+            string parsedCmd = command;
+            while (parsedCmd.Length > 254)
+            {
+                parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254) + 1);
+                IconInteractionUtility.ExecuteCmd("/" + parsedCmd);
+            }
+
             return command;
 
             //try
