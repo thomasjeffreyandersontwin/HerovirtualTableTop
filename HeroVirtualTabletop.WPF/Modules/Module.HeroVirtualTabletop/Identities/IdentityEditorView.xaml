@@ -29,13 +29,21 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition />
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <StackPanel Grid.Row="0">
-            <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <Button Grid.Row="0" HorizontalAlignment="Right"  x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="0,0,2,0" Style="{StaticResource CloseButtonStyle}"/>
 
-            <Grid Grid.Column="1" VerticalAlignment="Center" Margin="5">
+            <Grid Grid.Row="1" VerticalAlignment="Center" Margin="5">
                 <TextBox x:Name="textBlockName" Text="{Binding Path=EditedIdentity.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
                     <TextBox.InputBindings>
                         <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:IdentityEditorView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
@@ -53,9 +61,9 @@
                 </TextBox>
             </Grid>
 
-            <CheckBox Name="IsDefault" IsChecked="{Binding Path=IsDefault, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Default Identity" Foreground="White" Margin="5"/>
+            <CheckBox Grid.Row="2" Name="IsDefault" IsChecked="{Binding Path=IsDefault, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Default Identity" Foreground="White" Margin="5"/>
 
-            <Grid Margin="5" VerticalAlignment="Center">
+            <Grid Grid.Row="3" Margin="5" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
@@ -64,7 +72,7 @@
                 <TextBlock Grid.Column="1" VerticalAlignment="Center" Text="{Binding EditedIdentity.Surface, Mode=OneWay}"></TextBlock>
             </Grid>
 
-            <ComboBox
+            <ComboBox Grid.Row="4"
                         Name="cbBoxType"
 	                    HorizontalAlignment="Stretch"
                         Margin="5"
@@ -72,12 +80,9 @@
                         SelectedItem="{Binding Path=EditedIdentity.Type, Mode=TwoWay}">
             </ComboBox>
 
-            <TextBox Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-        </StackPanel>
+            <TextBox Grid.Row="5" Name="FilterTextBox" Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+        </Grid>
         <Grid x:Name="listGrid" Margin="5" Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition />
-            </Grid.RowDefinitions>
             <Grid.Resources>
                 <Style TargetType="{x:Type ListBox}">
                     <Setter Property="Background" Value="Transparent"/>
@@ -86,7 +91,7 @@
             </Grid.Resources>
             <ListBox x:Name="listBoxModels" Grid.Row="0"
                          Width="300"
-                         SelectionMode="Single"
+                         SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ItemsSource="{Binding ModelsCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Model}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
@@ -102,8 +107,8 @@
                 </ListBox.Resources>
             </ListBox>
             <ListBox x:Name="listBoxCostumes" Grid.Row="0"
-                         Width="300"
-                         SelectionMode="Single"
+                         Width="300" 
+                         SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ItemsSource="{Binding CostumesCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Costume}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
@@ -119,30 +124,32 @@
                 </ListBox.Resources>
             </ListBox>
         </Grid>
-        <StackPanel Grid.Row="2" Margin="5">
-            <Label Foreground="White">Animation On Load:</Label>
-            <ListBox x:Name="listBoxAnimations"
-                Width="300"
+        <Grid Grid.Row="2" Margin="5">
+            <StackPanel>
+                <Label Foreground="White">Animation On Load:</Label>
+                <ListBox x:Name="listBoxAnimations" 
+                Width="300" ScrollViewer.VerticalScrollBarVisibility="Auto"
                 SelectionMode="Single"
                 ItemsSource="{Binding AbilitiesCVS.View}"
                 SelectedItem="{Binding Path=EditedIdentity.AnimationOnLoad, Mode=TwoWay}"
                 DisplayMemberPath="Name">
-                <ListBox.Style>
-                    <Style TargetType="{x:Type ListBox}">
-                        <Setter Property="Background" Value="Transparent"/>
-                        <Setter Property="TextElement.Foreground" Value="White"/>
-                    </Style>
-                </ListBox.Style>
-                <i:Interaction.Behaviors>
-                    <behaviors:ScrollIntoViewForListBox />
-                </i:Interaction.Behaviors>
-                <ListBox.Resources>
-                    <Style TargetType="{x:Type ListBoxItem}">
-                        <Setter Property="Background" Value="Transparent" />
-                        <Setter Property="TextElement.Foreground" Value="White"/>
-                    </Style>
-                </ListBox.Resources>
-            </ListBox>
-        </StackPanel>
+                    <ListBox.Style>
+                        <Style TargetType="{x:Type ListBox}">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="TextElement.Foreground" Value="White"/>
+                        </Style>
+                    </ListBox.Style>
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForListBox />
+                    </i:Interaction.Behaviors>
+                    <ListBox.Resources>
+                        <Style TargetType="{x:Type ListBoxItem}">
+                            <Setter Property="Background" Value="Transparent" />
+                            <Setter Property="TextElement.Foreground" Value="White"/>
+                        </Style>
+                    </ListBox.Resources>
+                </ListBox>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>
