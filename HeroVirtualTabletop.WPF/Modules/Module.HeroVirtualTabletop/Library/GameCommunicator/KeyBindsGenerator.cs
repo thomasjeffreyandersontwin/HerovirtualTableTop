@@ -146,7 +146,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
         }
 
-        private string PopEvents()
+        public string PopEvents()
         {
             lastKeyBindGenerated = KeyBindsGenerator.generatedKeybindText;
             generatedKeybinds.Add(lastKeyBindGenerated);
@@ -154,6 +154,11 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             KeyBindsGenerator.generatedKeybindText = "";
             //return string.Format("\"{0}\"", GeneratedKeybindText);
             return GeneratedKeybindText;
+        }
+
+        public string GetEvent()
+        {
+            return KeyBindsGenerator.generatedKeybindText;
         }
 
         public string CompleteEvent()
@@ -165,11 +170,22 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             //generatedKeyBindText = triggerKey + " " + command;
 
-            string parsedCmd = command;
-            while (parsedCmd.Length > 254)
+            if (command.Length > 254)
             {
-                parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254) + 1);
+                string parsedCmd = command;
+                int position = 0;
+                while (parsedCmd.Length > 254)
+                {
+                    parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254));
+                    IconInteractionUtility.ExecuteCmd("/" + parsedCmd);
+                    position += parsedCmd.Length + 2;
+                    parsedCmd = command.Substring(position);
+                }
                 IconInteractionUtility.ExecuteCmd("/" + parsedCmd);
+            }
+            else
+            {
+                IconInteractionUtility.ExecuteCmd("/" + command);
             }
 
             return command;

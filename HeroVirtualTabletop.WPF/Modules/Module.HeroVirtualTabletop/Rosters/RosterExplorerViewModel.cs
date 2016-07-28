@@ -207,6 +207,7 @@ namespace Module.HeroVirtualTabletop.Roster
             fileSystemWatcher.Filter = "*.txt";
             fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
             fileSystemWatcher.Changed += fileSystemWatcher_Changed;
+            //fileSystemWatcher.Created += fileSystemWatcher_Changed;
             fileSystemWatcher.EnableRaisingEvents = false;
         }
 
@@ -222,7 +223,9 @@ namespace Module.HeroVirtualTabletop.Roster
                         clickCount += 1;
                         switch (clickCount)
                         {
-                            case 1: clickTimer.Start(); break;
+                            case 1: Action action = delegate () { clickTimer.Start(); };
+                                    Application.Current.Dispatcher.BeginInvoke(action);
+                                    break;
                             case 2: isDoubleClick = true; break;
                             case 3: isTripleClick = true; break;
                             case 4: isQuadrupleClick = true; break;
@@ -234,25 +237,31 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        if (isPlayingAreaEffect)
+                        new PauseElement("", 500).Play();
+                        string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+                        if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                         {
-                            System.Threading.Thread.Sleep(500);
-                            string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
-                            if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                            string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                            CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                            if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
                             {
-                                string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                                CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
-                                if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                                if (isPlayingAreaEffect)
                                 {
                                     if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
                                     {
                                         AddDesktopTargetToRosterSelection(hoveredCharacter);
                                         hoveredCharacter.Target();
-                                        KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                                        //System.Threading.Thread.Sleep(500);
-                                        string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
-                                        keybind = keyBindsGenerator.CompleteEvent();
+                                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
+                                        keyBindsGenerator.CompleteEvent();
                                     }
+                                }
+                                else
+                                {
+                                    AddDesktopTargetToRosterSelection(hoveredCharacter);
+                                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
+                                    fileSystemWatcher.EnableRaisingEvents = true;
+                                    keyBindsGenerator.CompleteEvent();
                                 }
                             }
                         }
@@ -267,6 +276,10 @@ namespace Module.HeroVirtualTabletop.Roster
             // Sample : "Name: [Agents of Orisha 3 [Agents]] X:[137.50] Y:[-0.50] Z:[-77.23]"
             int nameEnd = hoveredCharacterInfo.IndexOf("[", 7);
             string name = hoveredCharacterInfo.Substring(7, nameEnd - 7).Trim();
+            if (name.EndsWith("] X:"))
+            {
+                name = name.Substring(0, name.LastIndexOf("]"));
+            }
             return name;
         }
 
@@ -933,14 +946,28 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             Action action = delegate ()
             {
-                if (this.isPlayingAreaEffect && e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME)
+                if (this.isPlayingAreaEffect)
                 {
-                    TargetCharacterForAreaAttack(null);
+                    if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME)
+                    {
+                        TargetCharacterForAreaAttack(null);
+                    }
+                    else if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME)
+                    {
+                        TargetAndExecuteAreaAttack(null);
+                    }
                 }
-                if (this.isPlayingAreaEffect && e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME)
+                else
                 {
-                    TargetAndExecuteAreaAttack(null);
+                    fileSystemWatcher.EnableRaisingEvents = false;
+                    switch (e.Name)
+                    {
+                        case Constants.GAME_CHARACTER_BINDSAVE_SPAWN:
+                            Spawn(null);
+                            break;
+                    }
                 }
+                //File.Delete(e.FullPath);
             };
             Application.Current.Dispatcher.BeginInvoke(action);
         }

@@ -39,6 +39,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool Persistent { get; }
 
         void Play(bool persistent = false, Character Target = null, bool forcePlay = false);
+        Task PlayGrouped(List<Character> targets, bool persistent = false);
+        string GetKeybind(Character Target = null);
         void Stop(Character Target = null);
     }
 
@@ -193,6 +195,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
+        public virtual Task PlayGrouped(List<Character> targets, bool persistent = false)
+        {
+            return new Task(() =>
+            {
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                foreach (Character target in targets)
+                {
+                    GetKeybind(target);
+                }
+                IconInteractionUtility.ExecuteCmd("/" + keyBindsGenerator.GetEvent());
+            });
+        }
+
         public virtual void Stop(Character Target = null)
         {
 
@@ -222,6 +237,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return new AnimationElement(this.Name, this.Persistent);
         }
 
+        public virtual string GetKeybind(Character Target = null)
+        {
+            return string.Empty;
+        }
     }
 
     public class PauseElement : AnimationElement
@@ -340,7 +359,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (float.IsNaN(volume))
                 volume = 1.0f;
 
-            soundEffectInstance.Volume = volume;
+            soundEffectInstance.Volume = 1.0f;
 
             //setVolumeTask = Task.Run(delegate ()
             //{
@@ -432,16 +451,22 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Play(bool persistent = true, Character Target = null, bool forcePlay = false)
+        public override string GetKeybind(Character Target = null)
         {
-            Stop(Target);
             Character target = Target ?? this.Owner;
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             target.Target(false);
-            string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            return keyBindsGenerator.GetEvent();
+        }
+
+        public override void Play(bool persistent = true, Character Target = null, bool forcePlay = false)
+        {
+            Stop(Target);
+            GetKeybind(Target);
             IsActive = true;
             if (PlayWithNext == false || forcePlay)
-                keybind = keyBindsGenerator.CompleteEvent();
+                new KeyBindsGenerator().CompleteEvent();
         }
 
         public override void Stop(Character Target = null)
@@ -547,12 +572,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        private string PrepareCostumeFile(Character Target = null, bool persistent = false)
         {
             Character target = Target ?? this.Owner;
             if (target.ActiveIdentity.Type != IdentityType.Costume)
-                return;
-            Stop(Target);
+                return string.Empty;
             target.Target(false);
             string name = target.ActiveIdentity.Surface;
             string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
@@ -577,28 +601,53 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     insertFXIntoCharacterCostumeFile(origFile, newFile);
                     string fxCostume = Path.Combine(name, string.Format("{0}_{1}", name, FXName));
+
+
+                    if (Persistent || persistent)
+                    {
+                        archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
+                        fxCostume = origFile;
+                    }
+
                     string fireCoOrdinates = null;
                     if (this.AttackDirection != null)
                     {
                         fireCoOrdinates = string.Format("x={0} y={1} z={2}", this.AttackDirection.AttackDirectionX, this.AttackDirection.AttackDirectionY, this.AttackDirection.AttackDirectionZ);
                     }
+
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
-                    if (PlayWithNext == false || forcePlay)
-                    {
-                        keyBindsGenerator.CompleteEvent();
-                    }
-                    IsActive = true;
+                    return keyBindsGenerator.GetEvent();
                 }
-                if (Persistent || persistent)
-                {
-                    archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
-                }
+            }
+            catch
+            {
+                return string.Empty;
             }
             finally
             {
                 fileLock.ExitWriteLock();
             }
+            return string.Empty;
+        }
+
+        public override string GetKeybind(Character Target = null)
+        {
+            return PrepareCostumeFile(Target);
+        }
+
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        {
+            Stop(Target);
+            string keybind = PrepareCostumeFile(Target, persistent);
+            if (string.IsNullOrEmpty(keybind))
+                return;
+            if (PlayWithNext == false || forcePlay)
+            {
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                keyBindsGenerator.CompleteEvent();
+            }
+            IsActive = true;
         }
 
         public override void Stop(Character Target = null)
@@ -880,6 +929,51 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             OnPropertyChanged("IsActive");
         }
 
+        //public override string GetKeybind(Character Target = null)
+        //{
+        //    foreach (AnimationElement el in this.AnimationElements)
+        //    {
+        //        el.GetKeybind(Target);
+        //    }
+        //    return new KeyBindsGenerator().GetEvent();
+        //}
+
+        public override Task PlayGrouped(List<Character> targets, bool persistent = false)
+        {
+            List<Task> tasks = new List<Task>();
+            foreach (AnimationElement element in this.AnimationElements)
+            {
+                if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
+                {
+                    foreach (Character target in targets)
+                    {
+                        element.GetKeybind(target);
+                    }
+                }
+                else
+                {
+                    tasks.Add(new Task(() => { IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents()); }));
+                    if (element.Type == AnimationType.Pause || element.Type == AnimationType.Sound)
+                    {
+                        tasks.Add(new Task(() => { element.Play(persistent); }));
+                    }
+                    else
+                    {
+                        tasks.Add(new Task(() => { element.PlayGrouped(targets, persistent).RunSynchronously(); }));
+                    }
+                }
+            }
+            if (AnimationElements.Last().Type == AnimationType.FX || AnimationElements.Last().Type == AnimationType.Movement)
+            {
+                tasks.Add(new Task(() => { IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents()); }));
+            }
+            return new Task(() =>
+            {
+                foreach (Task t in tasks)
+                    t.RunSynchronously();
+            });
+        }
+
         public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
@@ -961,6 +1055,22 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
             }
             OnPropertyChanged("IsActive");
+        }
+
+        public override string GetKeybind(Character Target = null)
+        {
+            if (this.Reference != null)
+                return Reference.GetKeybind(Target);
+            else
+                return string.Empty;
+        }
+
+        public override Task PlayGrouped(List<Character> targets, bool persistent = false)
+        {
+            if (this.Reference != null)
+                return Reference.PlayGrouped(targets, persistent);
+            else
+                return new Task(() => { });
         }
 
         public override void Stop(Character Target = null)
