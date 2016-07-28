@@ -54,6 +54,7 @@ namespace Module.Shared
         public const string GAME_LANGUAGE_FOLDERNAME = "english";
         public const string GAME_MENUS_FOLDERNAME = "menus";
         public const string GAME_AREAATTACK_MENU_FILENAME = "areaattack.mnu";
+        public const string GAME_CHARACTER_BINDSAVE_SPAWN = "spawn.txt";
         #endregion
 
         #region Character Explorer

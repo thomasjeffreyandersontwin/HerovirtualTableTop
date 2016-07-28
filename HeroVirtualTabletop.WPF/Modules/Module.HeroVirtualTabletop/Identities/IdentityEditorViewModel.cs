@@ -170,6 +170,14 @@ namespace Module.HeroVirtualTabletop.Identities
             }
         }
 
+        public bool CanEditIdentityOptions
+        {
+            get
+            {
+                return !Helper.GlobalVariables_IsPlayingAttack;
+            }
+        }
+
         public string OriginalName { get; set; }
 
         #endregion
@@ -214,6 +222,8 @@ namespace Module.HeroVirtualTabletop.Identities
             CreateCostumesViewSource();
             eventAggregator.GetEvent<EditIdentityEvent>().Subscribe(this.LoadIdentity);
             eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.CreateAbilitiesViewSource);
+            this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
         }
         
         #endregion
@@ -235,6 +245,19 @@ namespace Module.HeroVirtualTabletop.Identities
         #endregion
 
         #region Methods
+
+        private void AttackInitiated(Tuple<Character, Attack> tuple)
+        {
+            OnPropertyChanged("CanEditIdentityOptions");
+        }
+
+        private void AttackEnded(object state)
+        {
+            if (state != null && state is AnimatedAbility)
+            {
+                OnPropertyChanged("CanEditIdentityOptions");
+            }
+        }
 
         private void LoadIdentity(Tuple<Identity, Character> data)
         {

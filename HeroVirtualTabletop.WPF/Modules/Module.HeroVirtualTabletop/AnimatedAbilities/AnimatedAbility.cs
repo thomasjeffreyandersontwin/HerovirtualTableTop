@@ -212,12 +212,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return null;
         }
 
-        public string AnimateHit(ActiveAttackConfiguration attackConfiguration, Character target)
+        public string AnimateHit(List<Character> targets)
         {
             // Play the attack's on hit ability if there exists one
             if (this.OnHitAnimation != null && this.OnHitAnimation.AnimationElements != null && this.OnHitAnimation.AnimationElements.Count > 0)
             {
-                this.OnHitAnimation.Play(false, target);
+                this.OnHitAnimation.PlayGrouped(targets);
             }
             else // Or play the default hit ability
             {
@@ -226,42 +226,33 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     var globalHitAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.HIT_ABITIY_NAME);
                     if (globalHitAbility != null && globalHitAbility.AnimationElements != null && globalHitAbility.AnimationElements.Count > 0)
                     {
-                        globalHitAbility.Play(false, target);
+                        globalHitAbility.PlayGrouped(targets).RunSynchronously();
                     }
                 }
             }
             // TODO: Animate Knockback
-            this.AnimateKnockBack(attackConfiguration, target);
+            this.AnimateKnockBack(targets);
             System.Threading.Thread.Sleep(1000);
             // Now play most severe of effects
-            this.AnimateAttackEffects(attackConfiguration, target);
+            this.AnimateAttackEffects(targets);
             return null;
         }
-        public string AnimateAttackEffects(ActiveAttackConfiguration attackConfiguration, Character target)
+        public string AnimateAttackEffects(List<Character> targets)
         {
             if (Helper.GlobalCombatAbilities != null && Helper.GlobalCombatAbilities.Count > 0)
             {
-                switch (attackConfiguration.AttackEffectOption)
-                {
-                    case AttackEffectOption.Dead:
-                        var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
-                        globalDeadAbility.Play(false, target);
-                        break;
-                    case AttackEffectOption.Dying:
-                        var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
-                        globalDyingAbility.Play(false, target);
-                        break;
-                    case AttackEffectOption.Unconcious:
-                        var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
-                        globalUnconciousAbility.Play(false, target);
-                        break;
-                    case AttackEffectOption.Stunned:
-                        var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
-                        globalStunnedAbility.Play(false, target);
-                        break;
-                }
-            }
+                var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
+                globalDeadAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead ).ToList()).RunSynchronously();
+                        
+                var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
+                globalDyingAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList()).RunSynchronously();
 
+                var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
+                globalUnconciousAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList()).RunSynchronously();
+
+                var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
+                globalStunnedAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList()).RunSynchronously();
+            }
             return null;
         }
         public void AnimateAttack(AttackDirection direction, Character attacker)
@@ -286,7 +277,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
-        public void AnimateMiss(ActiveAttackConfiguration attackConfiguration, Character target)
+        public void AnimateMiss(List<Character> targets)
         {
             // Just play the default miss ability on the defender
             if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
@@ -294,12 +285,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 var globalMissAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.MISS_ABITIY_NAME);
                 if (globalMissAbility != null && globalMissAbility.AnimationElements != null && globalMissAbility.AnimationElements.Count > 0)
                 {
-                    globalMissAbility.Play(false, target);
+                    globalMissAbility.PlayGrouped(targets).RunSynchronously();
                 }
             }
         }
 
-        public void AnimateKnockBack(ActiveAttackConfiguration attackConfiguration, Character target)
+        public void AnimateKnockBack(List<Character> targets)
         {
 
         }
@@ -364,14 +355,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
                 //        AnimateMiss(attackConfiguration, targetCharacter);
                 //});
-                foreach (Character targetCharacter in defendingCharacters)
-                {
-                    ActiveAttackConfiguration attackConfiguration = targetCharacter.ActiveAttackConfiguration;
-                    if (attackConfiguration.AttackResult == AttackResultOption.Hit)
-                        AnimateHit(attackConfiguration, targetCharacter);
-                    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null)
-                        AnimateMiss(attackConfiguration, targetCharacter);
-                }
+
+                AnimateHit(defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList());
+                AnimateMiss(defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList());
+                
             }
             attackingCharacter.Deactivate();
         }

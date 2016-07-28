@@ -388,22 +388,23 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             //if (hasBeenSpawned)
             //{
-                if (gamePlayer != null && gamePlayer.IsReal)
+            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
+
+            if (gamePlayer != null && gamePlayer.IsReal)
+            {
+                gamePlayer.Target(); //This ensure targeting even if not in view
+                WaitUntilTargetIsRegistered();
+            }
+            else
+            {
+                if (completeEvent)
                 {
-                    gamePlayer.Target(); //This ensure targeting even if not in view
-                    WaitUntilTargetIsRegistered();
+                    keybind = keyBindsGenerator.CompleteEvent();
+                    gamePlayer = WaitUntilTargetIsRegistered();
+                    Position = new Position();
                 }
-                else
-                {
-                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
-                    if (completeEvent)
-                    {
-                        keybind = keyBindsGenerator.CompleteEvent();
-                        gamePlayer = WaitUntilTargetIsRegistered();
-                        Position = new Position();
-                    }
-                }
-                return keybind;
+            }
+            return keybind;
             //}
             //return string.Empty;
         }

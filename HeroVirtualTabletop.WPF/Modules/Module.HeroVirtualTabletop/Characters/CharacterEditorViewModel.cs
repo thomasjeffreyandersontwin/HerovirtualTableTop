@@ -7,6 +7,7 @@ using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using Prism.Events;
@@ -134,6 +135,8 @@ namespace Module.HeroVirtualTabletop.Characters
             InitializeCommands();
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe(this.LoadCharacter);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(this.UnLoadCharacter);
+            this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
         }
 
         #endregion
@@ -149,7 +152,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
-            this.AddOptionGroupCommand = new DelegateCommand<object>(this.AddOptionGroup);
+            this.AddOptionGroupCommand = new DelegateCommand<object>(this.AddOptionGroup, this.CanAddOptionGroup);
             this.RemoveOptionGroupCommand = new DelegateCommand<object>(this.RemoveOptionGroup, this.CanRemoveOptionGroup);
         }
         
@@ -231,6 +234,19 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Methods
 
+        private void AttackInitiated(Tuple<Character, Attack> tuple)
+        {
+            this.Commands_RaiseCanExecuteChanged();
+        }
+
+        private void AttackEnded(object state)
+        {
+            if (state != null && state is AnimatedAbility)
+            {
+                this.Commands_RaiseCanExecuteChanged();
+            }
+        }
+
         private void Commands_RaiseCanExecuteChanged()
         {
             this.SpawnCommand.RaiseCanExecuteChanged();
@@ -241,6 +257,8 @@ namespace Module.HeroVirtualTabletop.Characters
             this.TargetAndFollowCommand.RaiseCanExecuteChanged();
             this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
             this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
+            this.AddOptionGroupCommand.RaiseCanExecuteChanged();
+            this.RemoveOptionGroupCommand.RaiseCanExecuteChanged();
         }
 
         #region Spawn
@@ -264,7 +282,7 @@ namespace Module.HeroVirtualTabletop.Characters
         #region Clear from Desktop
         private bool CanClearFromDesktop(object state)
         {
-            return EditedCharacter != null && EditedCharacter.HasBeenSpawned;
+            return EditedCharacter != null && EditedCharacter.HasBeenSpawned && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void ClearFromDesktop(object state)
@@ -401,10 +419,15 @@ namespace Module.HeroVirtualTabletop.Characters
         #endregion
 
         #region Add/Remove OptionGroups
+
+        private bool CanAddOptionGroup(object state)
+        {
+            return !Helper.GlobalVariables_IsPlayingAttack;
+        }
         
         private bool CanRemoveOptionGroup(object arg)
         {
-            return SelectedOptionGroup != null && SelectedOptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME;
+            return SelectedOptionGroup != null && SelectedOptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void RemoveOptionGroup(object obj)

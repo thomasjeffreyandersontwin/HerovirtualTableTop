@@ -73,7 +73,7 @@
             </Grid>
 
             <ComboBox Grid.Row="4"
-                        Name="cbBoxType"
+                        Name="cbBoxType" IsEnabled="{Binding CanEditIdentityOptions}"
 	                    HorizontalAlignment="Stretch"
                         Margin="5"
                         ItemsSource="{Binding Source={StaticResource IdentityTypes}}"
@@ -90,7 +90,7 @@
                 </Style>
             </Grid.Resources>
             <ListBox x:Name="listBoxModels" Grid.Row="0"
-                         Width="300"
+                         Width="300" IsEnabled="{Binding CanEditIdentityOptions}"
                          SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ItemsSource="{Binding ModelsCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Model}"
@@ -107,7 +107,7 @@
                 </ListBox.Resources>
             </ListBox>
             <ListBox x:Name="listBoxCostumes" Grid.Row="0"
-                         Width="300" 
+                         Width="300" IsEnabled="{Binding CanEditIdentityOptions}"
                          SelectionMode="Single" ScrollViewer.VerticalScrollBarVisibility="Auto"
                          ItemsSource="{Binding CostumesCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Costume}"
@@ -129,7 +129,7 @@
                 <Label Foreground="White">Animation On Load:</Label>
                 <ListBox x:Name="listBoxAnimations" 
                 Width="300" ScrollViewer.VerticalScrollBarVisibility="Auto"
-                SelectionMode="Single"
+                SelectionMode="Single" IsEnabled="{Binding CanEditIdentityOptions}"
                 ItemsSource="{Binding AbilitiesCVS.View}"
                 SelectedItem="{Binding Path=EditedIdentity.AnimationOnLoad, Mode=TwoWay}"
                 DisplayMemberPath="Name">
