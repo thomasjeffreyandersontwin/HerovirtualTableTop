@@ -20,7 +20,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 {
     public class Helper
     {
-        #region Global Clipboard
+        #region Global Variables for the application
         public static object GlobalClipboardObject
         {
             get;
@@ -45,6 +45,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             set;
         }
         public static List<AnimatedAbility> GlobalCombatAbilities
+        {
+            get;
+            set;
+        }
+
+        public static bool GlobalVariables_IsPlayingAttack
         {
             get;
             set;

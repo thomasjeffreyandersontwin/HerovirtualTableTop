@@ -37,6 +37,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private EventAggregator eventAggregator;
         private OptionGroup<T> optionGroup;
+        
         #endregion
 
         #region Events
@@ -208,14 +209,14 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         #region Initialization
         private void InitializeCommands()
         {
-            this.AddOptionCommand = new DelegateCommand<object>(this.AddOption);
-            this.RemoveOptionCommand = new DelegateCommand<object>(this.RemoveOption);
+            this.AddOptionCommand = new DelegateCommand<object>(this.AddOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
+            this.RemoveOptionCommand = new DelegateCommand<object>(this.RemoveOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
 
             this.SetDefaultOptionCommand = new DelegateCommand<object>(this.SetDefaultOption);
-            this.EditOptionCommand = new DelegateCommand<object>(this.EditOption);
+            this.EditOptionCommand = new DelegateCommand<object>(this.EditOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
             this.PlayOptionCommand = new DelegateCommand<object>(this.PlayOption, this.CanPlayOption);
             this.StopOptionCommand = new DelegateCommand<object>(this.StopOption, this.CanStopOption);
-            this.TogglePlayOptionCommand = new DelegateCommand<object>(this.TogglePlayOption);
+            this.TogglePlayOptionCommand = new DelegateCommand<object>(this.TogglePlayOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
 
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode, this.CanEnterEditMode);
             this.SubmitRenameCommand = new DelegateCommand<object>(this.SubmitRename);
@@ -224,12 +225,22 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private bool CanEnterEditMode(object arg)
         {
-            return OptionGroup.Name != "AvailableIdentities" && OptionGroup.Name != "AnimatedAbilities";
+            return OptionGroup.Name != "Available Identities" && OptionGroup.Name != "Powers";
         }
 
         #endregion
 
         #region Methods
+
+        private void UpdateCommands()
+        {
+            this.AddOptionCommand.RaiseCanExecuteChanged();
+            this.RemoveOptionCommand.RaiseCanExecuteChanged();
+            this.EditOptionCommand.RaiseCanExecuteChanged();
+            this.TogglePlayOptionCommand.RaiseCanExecuteChanged();
+            this.PlayOptionCommand.RaiseCanExecuteChanged();
+            this.StopOptionCommand.RaiseCanExecuteChanged();
+        }
 
         private void AddOption(object state)
         {
@@ -347,7 +358,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private bool CanPlayOption(object arg)
         {
-            return (selectedOption is AnimatedAbility);
+            return (selectedOption is AnimatedAbility && !Helper.GlobalVariables_IsPlayingAttack);
         }
 
         private void PlayOption(object state)
@@ -428,8 +439,12 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         }
         private void StopAttack(object state)
         {
-            if(state != null && state is AnimatedAbility)
+            if (state != null && state is AnimatedAbility)
+            {
                 StopOption(state);
+                Helper.GlobalVariables_IsPlayingAttack = false;
+                this.UpdateCommands();
+            }
         }
         private void SpawnAndTargetOwnerCharacter()
         {
@@ -518,6 +533,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             CustomEventArgs<Attack> customEventArgs = e as CustomEventArgs<Attack>;
             if(targetCharacter != null && customEventArgs != null)
             {
+                Helper.GlobalVariables_IsPlayingAttack = true;
+                this.UpdateCommands();
                 // Change mouse pointer to bulls eye
                 Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
                 Mouse.OverrideCursor = cursor;
