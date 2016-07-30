@@ -863,6 +863,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
             if (defendingCharacters.Count == 0) // For blank shooting, need to raise the attack close event for other view models to update their controls and commands
             {
+                Helper.GlobalVariables_IsPlayingAttack = false;
                 this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
             }
             this.ResetAttack(defendingCharacters);
