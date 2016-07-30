@@ -427,7 +427,7 @@ namespace Module.HeroVirtualTabletop.Characters
         
         private bool CanRemoveOptionGroup(object arg)
         {
-            return SelectedOptionGroup != null && SelectedOptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME && !Helper.GlobalVariables_IsPlayingAttack;
+            return SelectedOptionGroup != null && SelectedOptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.MOVEMENT_OPTION_GROUP_NAME && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void RemoveOptionGroup(object obj)
@@ -435,6 +435,7 @@ namespace Module.HeroVirtualTabletop.Characters
             IOptionGroup toBeRemoved = SelectedOptionGroup;
             this.EditedCharacter.RemoveOptionGroup(toBeRemoved);
             this.OptionGroups.Remove(this.OptionGroups.First((optG) => { return optG.OptionGroup == toBeRemoved; }));
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 
         private void AddOptionGroup(object obj)
@@ -452,6 +453,7 @@ namespace Module.HeroVirtualTabletop.Characters
                                 new ParameterOverride("optionGroup", optGroup),
                                 new ParameterOverride("owner", editedCharacter)
                                 ));
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 
         #endregion

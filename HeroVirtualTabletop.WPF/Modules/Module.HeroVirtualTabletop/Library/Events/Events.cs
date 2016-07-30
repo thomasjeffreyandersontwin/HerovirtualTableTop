@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Movements;
 
 namespace Module.HeroVirtualTabletop.Library.Events
 {
@@ -21,7 +22,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class CreateCrowdFromModelsEvent : PubSubEvent<CrowdModel> { };
     public class ActivateCharacterEvent : PubSubEvent<Character> { };
     public class NeedAbilityCollectionRetrievalEvent : PubSubEvent<object> { };
-    public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbilities.AnimatedAbility>> { };
+    public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbility>> { };
     public class StopAllActiveAbilitiesEvent : PubSubEvent<object> { };
     public class ListenForTargetChanged : PubSubEvent<object> { };
     public class StopListeningForTargetChanged : PubSubEvent<object> { };
@@ -35,5 +36,9 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class ConfigureActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { };
     public class SetActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
     public class CloseActiveAttackEvent : PubSubEvent<object> { }
+    #endregion
+
+    #region Movement Events
+    public class EditMovementEvent : PubSubEvent<Tuple<Movement, Character>> { };
     #endregion
 }

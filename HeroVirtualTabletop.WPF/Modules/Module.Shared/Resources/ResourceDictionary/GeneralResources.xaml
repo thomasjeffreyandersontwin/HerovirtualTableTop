@@ -926,6 +926,7 @@
         <Setter Property="TextElement.Foreground" Value="white"></Setter>
         <Setter Property="BorderBrush" Value="{StaticResource MainBlueThemeColorBrush}" />
         <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="Background" Value="Transparent"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Expander}">

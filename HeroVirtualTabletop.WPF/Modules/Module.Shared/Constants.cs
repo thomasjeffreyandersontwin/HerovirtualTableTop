@@ -84,6 +84,7 @@ namespace Module.Shared
         #region Default Option Groups
         public const string ABILITY_OPTION_GROUP_NAME = "Powers";
         public const string IDENTITY_OPTION_GROUP_NAME = "Identities";
+        public const string MOVEMENT_OPTION_GROUP_NAME = "Movements";
         #endregion
     }
 }

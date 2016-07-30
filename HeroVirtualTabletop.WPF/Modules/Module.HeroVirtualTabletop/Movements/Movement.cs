@@ -1,4 +1,5 @@
 ﻿using Module.HeroVirtualTabletop.OptionGroups;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,12 @@ namespace Module.HeroVirtualTabletop.Movements
 {
     public class Movement: CharacterOption
     {
-        
+        [JsonConstructor]
+        private Movement() { }
+
+        public Movement(string name)
+        {
+            this.Name = name;
+        }
     }
 }

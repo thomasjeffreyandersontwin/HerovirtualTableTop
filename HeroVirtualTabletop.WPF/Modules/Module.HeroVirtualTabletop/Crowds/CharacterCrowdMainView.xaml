@@ -29,6 +29,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Expander Grid.Column="0" Style="{StaticResource VerticalExpanderStyle}"
                   OverridesDefaultStyle="True"
@@ -149,6 +150,27 @@
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="AbilityEditor">
                     </ToggleButton>
                     <Grid x:Name="abilityEditorPanel" Width="Auto" Grid.Row="1"/>
+                </Grid>
+            </GroupBox>
+        </Expander>
+        <Expander Grid.Column="6" Style="{StaticResource VerticalExpanderStyle}"
+                  OverridesDefaultStyle="True"
+                  Header="Movement Editor"
+                  Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
+                  Visibility="{Binding ElementName=movementEditorPanel, Path=Children[0].DataContext.IsShowingMovementEditor, Converter={StaticResource BooleanToVisibilityConverter}}"
+                  IsExpanded="{Binding IsMovementEditorExpanded}"
+                  >
+
+            <GroupBox Header="Movement Editor" x:Name="grpBoxMovementEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsMovementEditorExpanded}" 
+                                  Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="MovementEditor">
+                    </ToggleButton>
+                    <Grid x:Name="movementEditorPanel" Width="Auto" Grid.Row="1"/>
                 </Grid>
             </GroupBox>
         </Expander>

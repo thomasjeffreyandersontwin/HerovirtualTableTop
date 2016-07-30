@@ -26,7 +26,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
     {
         string Name { get; set; }
         IEnumerable Options { get; }
-        string NewValidOptionName(string name = null);
+        string GetNewValidOptionName(string name = null);
         OptionType Type { get; }
         void UpdateIndicies();
     }
@@ -97,7 +97,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             private set;
         }
 
-        public string NewValidOptionName(string name = null)
+        public string GetNewValidOptionName(string name = null)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -120,6 +120,5 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 indices[keySelector(item)] = this.IndexOf(item);
             }
         }
-
     }
 }

@@ -19,6 +19,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Media;
 using Framework.WPF.Extensions;
 using System.Runtime.Serialization;
+using Module.HeroVirtualTabletop.Movements;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -51,6 +52,7 @@ namespace Module.HeroVirtualTabletop.Characters
             Name = name;
             IOptionGroup tmp = AvailableIdentities;
             tmp = AnimatedAbilities;
+            tmp = Movements;
             tmp = null;
             SetActiveIdentity();
         }
@@ -69,6 +71,7 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             IOptionGroup x = AvailableIdentities;
             x = AnimatedAbilities;
+            x = Movements;
             x = null;
         }
 
@@ -268,6 +271,21 @@ namespace Module.HeroVirtualTabletop.Characters
                 else
                     defaultIdentity = null;
                 OnPropertyChanged("DefaultIdentity");
+            }
+        }
+
+        private Movement defaultMovement;
+        [JsonProperty(Order = 3)]
+        public Movement DefaultMovement
+        {
+            get
+            {
+                return defaultMovement;
+            }
+            set
+            {
+                defaultMovement = value;
+                OnPropertyChanged("DefaultMovement");
             }
         }
 
@@ -542,8 +560,6 @@ namespace Module.HeroVirtualTabletop.Characters
             Position = new Position();
         }
 
-        //private OptionGroup<AnimatedAbility> animatedAbilities;
-        //[JsonProperty(Order = 3)]
         [JsonIgnore]
         public OptionGroup<AnimatedAbility> AnimatedAbilities
         {
@@ -557,11 +573,21 @@ namespace Module.HeroVirtualTabletop.Characters
                 }
                 return animatedAbilities;
             }
-            //set
-            //{
-            //    animatedAbilities = value;
-            //    OnPropertyChanged("AnimatedAbilities");
-            //}
+        }
+
+        [JsonIgnore]
+        public OptionGroup<Movement> Movements
+        {
+            get
+            {
+                OptionGroup<Movement> movements = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == Constants.MOVEMENT_OPTION_GROUP_NAME; }) as OptionGroup<Movement>;
+                if (movements == null)
+                {
+                    movements = new OptionGroup<Movement>(Constants.MOVEMENT_OPTION_GROUP_NAME);
+                    optionGroups.Add(movements);
+                }
+                return movements;
+            }
         }
 
         public void Activate()

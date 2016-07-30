@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Movements;
 using Module.Shared.Events;
 using Module.Shared.Messages;
 using Prism.Events;
@@ -252,6 +253,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 AddAbility(state);
             }
+            else if(typeof(T) == typeof(Movement))
+            {
+                AddMovement(state);
+            }
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
             this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Subscribe(this.SaveOptionGroupCompletedCallback);
         }
@@ -477,7 +482,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private Identity GetNewIdentity()
         {
-            return new Identity("Model_Statesman", IdentityType.Model, optionGroup.NewValidOptionName("Identity"));
+            return new Identity("Model_Statesman", IdentityType.Model, optionGroup.GetNewValidOptionName("Identity"));
         }
         
         private void AddAbility(object state)
@@ -491,7 +496,18 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         
         private Attack GetNewAttackAbility()
         {
-            return new Attack(optionGroup.NewValidOptionName("Ability"), owner: this.Owner);
+            return new Attack(optionGroup.GetNewValidOptionName("Ability"), owner: this.Owner);
+        }
+
+        private void AddMovement(object state)
+        {
+            Movement movement = GetNewMovement();
+            (optionGroup as OptionGroup<Movement>).Add(movement);
+        }
+
+        private Movement GetNewMovement()
+        {
+            return new Movement(optionGroup.GetNewValidOptionName("Movement"));
         }
 
         private void EditOption(object obj)
@@ -506,6 +522,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 Attack attack = (Attack)Convert.ChangeType(SelectedOption, typeof(Attack));
                 InitializeAttackEventHandlers(attack);
                 eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(attack, Owner));
+            }
+            else if(typeof(T) == typeof(Movement))
+            {
+                Movement movement = (Movement)Convert.ChangeType(SelectedOption, typeof(Movement));
+                eventAggregator.GetEvent<EditMovementEvent>().Publish(new Tuple<Movement, Character>(movement, Owner));
             }
         }
 

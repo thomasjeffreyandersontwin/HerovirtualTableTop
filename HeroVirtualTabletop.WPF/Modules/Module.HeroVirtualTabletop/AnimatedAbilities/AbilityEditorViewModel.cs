@@ -35,8 +35,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
 
-        private CharacterExplorerViewModel charExpVM;
-
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
 
@@ -520,7 +518,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Methods
 
-        #region Command Disabling during Attack 
+        #region Attack Consistency
 
         private void AttackInitiated(Tuple<Character, Attack> tuple)
         {

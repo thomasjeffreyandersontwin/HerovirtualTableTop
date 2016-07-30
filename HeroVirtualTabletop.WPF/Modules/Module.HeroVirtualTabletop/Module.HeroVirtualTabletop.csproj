@@ -176,6 +176,10 @@
     <Compile Include="Library\Utility\IconInteractionUtility.cs" />
     <Compile Include="Library\Utility\KeyBoardHook.cs" />
     <Compile Include="Movements\Movement.cs" />
+    <Compile Include="Movements\MovementEditorView.xaml.cs">
+      <DependentUpon>MovementEditorView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Movements\MovementEditorViewModel.cs" />
     <Compile Include="OptionGroups\OptionGroupView.xaml.cs">
       <DependentUpon>OptionGroupView.xaml</DependentUpon>
     </Compile>
@@ -282,6 +286,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Identities\IdentityEditorView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Movements\MovementEditorView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

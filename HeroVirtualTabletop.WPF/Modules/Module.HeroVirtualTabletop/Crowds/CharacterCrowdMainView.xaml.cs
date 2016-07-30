@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Converters;
+using Module.HeroVirtualTabletop.Movements;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -38,6 +39,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.LoadCharacterEditor();
             this.viewModel.LoadIdentityEditor();
             this.viewModel.LoadAbilityEditor();
+            this.viewModel.LoadMovementEditor();
             this.viewModel.LoadCrowdFromModelsView();
         }
 
@@ -53,6 +55,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 RenderIdentityEditor(sender as IdentityEditorView);
             else if (sender != null && sender is AbilityEditorView)
                 RenderAbilityEditor(sender as AbilityEditorView);
+            else if (sender != null && sender is MovementEditorView)
+                RenderMovementEditor(sender as MovementEditorView);
             else if (sender != null && sender is CrowdFromModelsView)
                 RenderCrowdFromModelsView(sender as CrowdFromModelsView);
         }
@@ -76,6 +80,10 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void RenderAbilityEditor(AbilityEditorView abilityEditorView)
         {
             this.abilityEditorPanel.Children.Add(abilityEditorView);
+        }
+        private void RenderMovementEditor(MovementEditorView movementEditorView)
+        {
+            this.movementEditorPanel.Children.Add(movementEditorView);
         }
         private void RenderCrowdFromModelsView(CrowdFromModelsView crowdFromModelsView)
         {
