@@ -147,7 +147,7 @@
                 <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
             </StackPanel>
             <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
-            <ComboBox Grid.Row="1" Grid.Column="1" Margin="2"
+            <ComboBox Grid.Row="1" Grid.Column="1" Margin="2" IsEnabled="{Binding CanEditAbilityOptions}"
                           Name="cbBoxActivateOnKey" ItemsSource="{Binding Source={StaticResource Keys}}"
                           SelectedValue="{Binding Path=CurrentAbility.ActivateOnKey}">
             </ComboBox>
@@ -186,7 +186,7 @@
         <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" AllowDrop="True"
                   PreviewMouseDown="treeViewAnimations_OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="300"
                   PreviewMouseMove="treeViewAnimations_PreviewMouseMove" PreviewDragEnter="treeViewAnimations_PreviewDragEnter" PreviewDrop="treeViewAnimations_PreviewDrop"
-                  extensions:DragDropExtension.ScrollOnDragDrop="True"
+                  extensions:DragDropExtension.ScrollOnDragDrop="True" IsEnabled="{Binding CanEditAbilityOptions}"
                   >
             <TreeView.Resources>
                 <HierarchicalDataTemplate DataType="{x:Type abilities:SequenceElement}"
@@ -269,7 +269,7 @@
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Movement, FallbackValue=Collapsed}"
                           ItemsSource="{Binding MOVResourcesCVS.View}"
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
-                          SelectionMode="Single"
+                          SelectionMode="Single" IsEnabled="{Binding CanEditAbilityOptions}"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           IsSynchronizedWithCurrentItem="True" CanUserResizeRows="False"
                       >
@@ -298,7 +298,7 @@
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=FX, FallbackValue=Collapsed}"
                           ItemsSource="{Binding FXResourcesCVS.View}"
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
-                          SelectionMode="Single"
+                          SelectionMode="Single" IsEnabled="{Binding CanEditAbilityOptions}"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           IsSynchronizedWithCurrentItem="True" CanUserResizeRows="False"
                       >
@@ -327,7 +327,7 @@
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Sound, FallbackValue=Collapsed}"
                           ItemsSource="{Binding SoundResourcesCVS.View}"
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
-                          SelectionMode="Single"
+                          SelectionMode="Single" IsEnabled="{Binding CanEditAbilityOptions}"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           IsSynchronizedWithCurrentItem="True" CanUserResizeRows="False"
                       >
@@ -355,7 +355,7 @@
                           Background="Transparent" RowBackground="Transparent" Margin="5" BorderBrush="#FF1144FF"
                           Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=Reference, FallbackValue=Collapsed}"
                           ItemsSource="{Binding ReferenceAbilitiesCVS.View}"
-                          SelectionUnit="FullRow" AutoGenerateColumns="False"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False" IsEnabled="{Binding CanEditAbilityOptions}"
                           SelectionMode="Single" CanUserResizeRows="False"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                           PreviewMouseDown="dataGridAbilityReferences_PreviewMouseDown" PreviewMouseMove="dataGridAbilityReferences_PreviewMouseMove"
@@ -406,22 +406,22 @@
                 </Grid.Resources>
                 <WrapPanel Grid.Column="0" Grid.Row="0">
                     <Label>Color 1:</Label>
-                    <xctk:ColorPicker Width="50"
+                    <xctk:ColorPicker Width="50" IsEnabled="{Binding CanEditAbilityOptions}"
                         SelectedColor="{Binding SelectedAnimationElement.Colors[0], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
                 </WrapPanel>
                 <WrapPanel Grid.Column="1" Grid.Row="0">
                     <Label>Color 2:</Label>
-                    <xctk:ColorPicker Width="50"
+                    <xctk:ColorPicker Width="50" IsEnabled="{Binding CanEditAbilityOptions}"
                         SelectedColor="{Binding SelectedAnimationElement.Colors[1], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
                 </WrapPanel>
                 <WrapPanel Grid.Column="0" Grid.Row="1">
                     <Label>Color 3:</Label>
-                    <xctk:ColorPicker Width="50"
+                    <xctk:ColorPicker Width="50" IsEnabled="{Binding CanEditAbilityOptions}"
                         SelectedColor="{Binding SelectedAnimationElement.Colors[2], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
                 </WrapPanel>
                 <WrapPanel Grid.Column="1" Grid.Row="1">
                     <Label>Color 4:</Label>
-                    <xctk:ColorPicker Width="50"
+                    <xctk:ColorPicker Width="50" IsEnabled="{Binding CanEditAbilityOptions}"
                         SelectedColor="{Binding SelectedAnimationElement.Colors[3], Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></xctk:ColorPicker>
                 </WrapPanel>
             </Grid>

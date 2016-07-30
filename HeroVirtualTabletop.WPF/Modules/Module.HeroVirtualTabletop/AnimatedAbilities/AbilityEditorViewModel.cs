@@ -423,7 +423,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsHitSelected");
             }
         }
-
+        public bool CanEditAbilityOptions
+        {
+            get
+            {
+                return !Helper.GlobalVariables_IsPlayingAttack;
+            }
+        }
         #endregion
 
         #region Commands
@@ -463,6 +469,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
+            this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
             this.InitializeAnimationElementSelections();
         }
@@ -489,18 +497,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
-            this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility);
-            this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence);
+            this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility, this.CanSaveAbility);
+            this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence, this.CanSaveSequence);
             this.EnterAbilityEditModeCommand = new DelegateCommand<object>(this.EnterAbilityEditMode);
             this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
-            this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement);
+            this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement, this.CanAddAnimationElement);
             this.RemoveAnimationCommand = new DelegateCommand<object>(this.RemoveAnimation, this.CanRemoveAnimation);
             this.UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
             this.SubmitAnimationElementRenameCommand = new DelegateCommand<object>(this.SubmitAnimationElementRename);
             this.EnterAnimationElementEditModeCommand = new DelegateCommand<object>(this.EnterAnimationElementEditMode, this.CanEnterAnimationElementEditMode);
             this.CancelAnimationElementEditModeCommand = new DelegateCommand<object>(this.CancelAnimationElementEditMode);
-            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(this.DemoAnimatedAbility);
-            this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation);
+            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(this.DemoAnimatedAbility, this.CanDemoAnimation);
+            this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation, this.CanDemoAnimation);
             this.CloneAnimationCommand = new DelegateCommand<object>(this.CloneAnimation, this.CanCloneAnimation);
             this.CutAnimationCommand = new DelegateCommand<object>(this.CutAnimation, this.CanCutAnimation);
             this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
@@ -511,6 +519,39 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Methods
+
+        #region Command Disabling during Attack 
+
+        private void AttackInitiated(Tuple<Character, Attack> tuple)
+        {
+            this.UpdateCommandsAndControls();
+        }
+
+        private void AttackEnded(object state)
+        {
+            if (state != null && state is AnimatedAbility)
+            {
+                this.UpdateCommandsAndControls();
+            }
+        }
+
+        private void UpdateCommandsAndControls()
+        {
+            this.SaveAbilityCommand.RaiseCanExecuteChanged();
+            this.SaveSequenceCommand.RaiseCanExecuteChanged();
+            this.AddAnimationElementCommand.RaiseCanExecuteChanged();
+            this.RemoveAnimationCommand.RaiseCanExecuteChanged();
+            this.DemoAnimatedAbilityCommand.RaiseCanExecuteChanged();
+            this.DemoAnimationCommand.RaiseCanExecuteChanged();
+            this.CloneAnimationCommand.RaiseCanExecuteChanged();
+            this.CutAnimationCommand.RaiseCanExecuteChanged();
+            this.PasteAnimationCommand.RaiseCanExecuteChanged();
+            this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
+            this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+            OnPropertyChanged("CanEditAbilityOptions");
+        }
+
+        #endregion
 
         #region Update Selected Animation
 
@@ -720,6 +761,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Add Animation Element
 
+        private bool CanAddAnimationElement(object state)
+        {
+            return !Helper.GlobalVariables_IsPlayingAttack; 
+        }
+
         private void AddAnimationElement(object state)
         {
             AnimationType animationType = (AnimationType)state;
@@ -879,6 +925,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Save Ability
+
+        private bool CanSaveAbility(object state)
+        {
+            return !Helper.GlobalVariables_IsPlayingAttack;
+        }
 
         private void SaveAbility(object state)
         {
@@ -1056,6 +1107,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #endregion
 
         #region Save Sequence
+
+        private bool CanSaveSequence(object state)
+        {
+            return !Helper.GlobalVariables_IsPlayingAttack;
+        }
+
         private void SaveSequence(object state)
         {
             if (this.CurrentSequenceElement != null)
@@ -1070,7 +1127,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanRemoveAnimation(object state)
         {
-            return this.SelectedAnimationElement != null;
+            return this.SelectedAnimationElement != null && !Helper.GlobalVariables_IsPlayingAttack; 
         }
 
         private void RemoveAnimation(object state)
@@ -1138,6 +1195,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Demo Animation
 
+        private bool CanDemoAnimation(object state)
+        {
+            return !Helper.GlobalVariables_IsPlayingAttack;
+        }
+
         private void DemoAnimatedAbility(object state)
         {
             Character currentTarget = GetCurrentTarget();
@@ -1192,7 +1254,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanCloneAnimation(object state)
         {
-            return (this.SelectedAnimationElement != null || (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0));
+            return (this.SelectedAnimationElement != null || (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0)) && !Helper.GlobalVariables_IsPlayingAttack; 
         }
         private void CloneAnimation(object state)
         {
@@ -1208,7 +1270,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Cut Animation
         private bool CanCutAnimation(object state)
         {
-            return (this.SelectedAnimationElement != null);
+            return (this.SelectedAnimationElement != null) && !Helper.GlobalVariables_IsPlayingAttack; 
         }
         private void CutAnimation(object state)
         {
@@ -1231,74 +1293,77 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private bool CanPasteAnimation(object state)
         {
             bool canPaste = false;
-            switch (Helper.GlobalClipboardAction)
+            if(!Helper.GlobalVariables_IsPlayingAttack)
             {
-                case ClipboardAction.Clone:
-                    if (Helper.GlobalClipboardObject != null)
-                    {
-                        if (Helper.GlobalClipboardObject is SequenceElement)
+                switch (Helper.GlobalClipboardAction)
+                {
+                    case ClipboardAction.Clone:
+                        if (Helper.GlobalClipboardObject != null)
                         {
-                            SequenceElement seqElement = Helper.GlobalClipboardObject as SequenceElement;
-                            List<AnimationElement> elementList = this.GetFlattenedAnimationList(seqElement.AnimationElements.ToList());
-                            if (!(elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; })))
-                                canPaste = true;
-                        }
-                        else if (Helper.GlobalClipboardObject is ReferenceAbility)
-                        {
-                            ReferenceAbility refAbility = Helper.GlobalClipboardObject as ReferenceAbility;
-                            if (refAbility.Reference == this.CurrentAbility)
-                                canPaste = false;
-                            else if (refAbility.Reference != null && refAbility.Reference.AnimationElements != null && refAbility.Reference.AnimationElements.Count > 0)
+                            if (Helper.GlobalClipboardObject is SequenceElement)
                             {
-                                bool refexists = false;
-                                if (refAbility.Reference.AnimationElements.Contains(this.CurrentAbility))
-                                    refexists = true;
-                                List<AnimationElement> elementList = this.GetFlattenedAnimationList(refAbility.Reference.AnimationElements.ToList());
-                                if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
-                                    refexists = true;
-                                if (!refexists)
+                                SequenceElement seqElement = Helper.GlobalClipboardObject as SequenceElement;
+                                List<AnimationElement> elementList = this.GetFlattenedAnimationList(seqElement.AnimationElements.ToList());
+                                if (!(elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; })))
+                                    canPaste = true;
+                            }
+                            else if (Helper.GlobalClipboardObject is ReferenceAbility)
+                            {
+                                ReferenceAbility refAbility = Helper.GlobalClipboardObject as ReferenceAbility;
+                                if (refAbility.Reference == this.CurrentAbility)
+                                    canPaste = false;
+                                else if (refAbility.Reference != null && refAbility.Reference.AnimationElements != null && refAbility.Reference.AnimationElements.Count > 0)
+                                {
+                                    bool refexists = false;
+                                    if (refAbility.Reference.AnimationElements.Contains(this.CurrentAbility))
+                                        refexists = true;
+                                    List<AnimationElement> elementList = this.GetFlattenedAnimationList(refAbility.Reference.AnimationElements.ToList());
+                                    if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                                        refexists = true;
+                                    if (!refexists)
+                                        canPaste = true;
+                                }
+                                else
                                     canPaste = true;
                             }
                             else
                                 canPaste = true;
                         }
-                        else
-                            canPaste = true;
-                    }
-                    break;
-                case ClipboardAction.Cut:
-                    if (Helper.GlobalClipboardObject != null && Helper.GlobalClipboardObjectParent != null)
-                    {
-                        if (Helper.GlobalClipboardObject is SequenceElement)
+                        break;
+                    case ClipboardAction.Cut:
+                        if (Helper.GlobalClipboardObject != null && Helper.GlobalClipboardObjectParent != null)
                         {
-                            SequenceElement seqElement = Helper.GlobalClipboardObject as SequenceElement;
-                            List<AnimationElement> elementList = this.GetFlattenedAnimationList(seqElement.AnimationElements.ToList());
-                            if (!(elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; })))
-                                canPaste = true;
-                        }
-                        else if (Helper.GlobalClipboardObject is ReferenceAbility)
-                        {
-                            ReferenceAbility refAbility = Helper.GlobalClipboardObject as ReferenceAbility;
-                            if (refAbility.Reference == this.CurrentAbility)
-                                canPaste = false;
-                            else if (refAbility.Reference != null && refAbility.Reference.AnimationElements != null && refAbility.Reference.AnimationElements.Count > 0)
+                            if (Helper.GlobalClipboardObject is SequenceElement)
                             {
-                                bool refexists = false;
-                                if (refAbility.Reference.AnimationElements.Contains(this.CurrentAbility))
-                                    refexists = true;
-                                List<AnimationElement> elementList = this.GetFlattenedAnimationList(refAbility.Reference.AnimationElements.ToList());
-                                if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
-                                    refexists = true;
-                                if (!refexists)
+                                SequenceElement seqElement = Helper.GlobalClipboardObject as SequenceElement;
+                                List<AnimationElement> elementList = this.GetFlattenedAnimationList(seqElement.AnimationElements.ToList());
+                                if (!(elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; })))
+                                    canPaste = true;
+                            }
+                            else if (Helper.GlobalClipboardObject is ReferenceAbility)
+                            {
+                                ReferenceAbility refAbility = Helper.GlobalClipboardObject as ReferenceAbility;
+                                if (refAbility.Reference == this.CurrentAbility)
+                                    canPaste = false;
+                                else if (refAbility.Reference != null && refAbility.Reference.AnimationElements != null && refAbility.Reference.AnimationElements.Count > 0)
+                                {
+                                    bool refexists = false;
+                                    if (refAbility.Reference.AnimationElements.Contains(this.CurrentAbility))
+                                        refexists = true;
+                                    List<AnimationElement> elementList = this.GetFlattenedAnimationList(refAbility.Reference.AnimationElements.ToList());
+                                    if (elementList.Where((an) => { return an.Type == AnimationType.Reference; }).Any((an) => { return an.Resource.Reference == this.CurrentAbility; }))
+                                        refexists = true;
+                                    if (!refexists)
+                                        canPaste = true;
+                                }
+                                else
                                     canPaste = true;
                             }
                             else
                                 canPaste = true;
                         }
-                        else
-                            canPaste = true;
-                    }
-                    break;
+                        break;
+                }
             }
             return canPaste;
         }
@@ -1349,7 +1414,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Reference Ability
         private bool CanUpdateReferenceType(object state)
         {
-            return this.CurrentReferenceElement != null && this.CurrentReferenceElement.Reference != null;
+            return this.CurrentReferenceElement != null && this.CurrentReferenceElement.Reference != null && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void UpdateReferenceType(object state)
@@ -1388,10 +1453,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private bool CanConfigureAttackAnimation(object state)
         {
             bool canConfigureAttack = false;
-            if (state == null)
-                canConfigureAttack = true;
-            else
-                canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack;
+            if (!Helper.GlobalVariables_IsPlayingAttack)
+            {
+                if (state == null)
+                    canConfigureAttack = true;
+                else
+                    canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack; 
+            }
 
             return canConfigureAttack;
         }

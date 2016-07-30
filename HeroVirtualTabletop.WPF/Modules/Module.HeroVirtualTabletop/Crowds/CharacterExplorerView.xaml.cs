@@ -475,7 +475,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             Action action = delegate()
             {
-                if (e.LeftButton == MouseButtonState.Pressed && !isDragging)
+                if (e.LeftButton == MouseButtonState.Pressed && !isDragging && !Helper.GlobalVariables_IsPlayingAttack)
                 {
                     // Get the current mouse position
                     Point mousePos = e.GetPosition(null);

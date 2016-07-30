@@ -24,6 +24,7 @@ using Module.Shared.Events;
 using System.Windows;
 using System.IO;
 using System.Reflection;
+using Module.HeroVirtualTabletop.AnimatedAbilities;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -224,6 +225,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
             this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Subscribe(this.StopAllActiveAbilities);
+            this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             //LoadCrowdCollection(Application.Current.MainWindow);
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
         }
@@ -257,6 +260,33 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
 
         #region Methods
+
+        #region Command Disabling during Attack
+
+        private void AttackInitiated(Tuple<Character, Attack> tuple)
+        {
+            this.UpdateCommandsAndControls();
+        }
+
+        private void AttackEnded(object state)
+        {
+            if (state != null && state is AnimatedAbility)
+            {
+                this.UpdateCommandsAndControls();
+            }
+        }
+
+        private void UpdateCommandsAndControls()
+        {
+            this.DeleteCharacterCrowdCommand.RaiseCanExecuteChanged();
+            this.CloneCharacterCrowdCommand.RaiseCanExecuteChanged();
+            this.CutCharacterCrowdCommand.RaiseCanExecuteChanged();
+            this.LinkCharacterCrowdCommand.RaiseCanExecuteChanged();
+            this.PasteCharacterCrowdCommand.RaiseCanExecuteChanged();
+            this.EditCharacterCommand.RaiseCanExecuteChanged();
+        }
+
+        #endregion
 
         #region Rename Character or Crowd
 
@@ -679,7 +709,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public bool CanDeleteCharacterCrowd(object state)
         {
             bool canDeleteCharacterOrCrowd = false;
-            if (SelectedCrowdModel != null)
+            if (SelectedCrowdModel != null && !Helper.GlobalVariables_IsPlayingAttack)
             {
                 if (SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
                     canDeleteCharacterOrCrowd = true;
@@ -909,7 +939,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public bool CanCloneCharacterCrowd(object state)
         {
-            return !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)));
+            return !Helper.GlobalVariables_IsPlayingAttack && !(this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.selectedCrowdMemberModel == null) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel != null && (this.SelectedCrowdMemberModel.Name == Constants.DEFAULT_CHARACTER_NAME || this.SelectedCrowdMemberModel.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)));
         }
         public void CloneCharacterCrowd(object state)
         {
@@ -927,7 +957,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         public bool CanCutCharacterCrowd(object state)
         {
             bool canCut = true;
-            if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel == null)
+            if (Helper.GlobalVariables_IsPlayingAttack)
+                canCut = false;
+            else if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel == null)
             {
                 canCut = false;
             }
@@ -956,7 +988,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         public bool CanLinkCharacterCrowd(object state)
         {
             bool canLink = true;
-            if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel == null)
+            if (Helper.GlobalVariables_IsPlayingAttack)
+                canLink = false;
+            else if (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME && this.SelectedCrowdMemberModel == null)
             {
                 canLink = false;
             }
@@ -982,57 +1016,60 @@ namespace Module.HeroVirtualTabletop.Crowds
         public bool CanPasteCharacterCrowd(object state)
         {
             bool canPaste = false;
-            switch(this.clipboardAction)
+            if (!Helper.GlobalVariables_IsPlayingAttack)
             {
-                case ClipboardAction.Clone:
-                    canPaste = this.ClipboardObject != null
-                        //if we are cloning a crowd we can not paste to all characters crowd
-                        && !(this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
-                        //if we are cloning a crowd we can not paste inside itself
-                        && ((this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != this.ClipboardObject) || this.ClipboardObject is CrowdMemberModel);
-                    break;
-                case ClipboardAction.Cut:
-                    if (this.ClipboardObject != null && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
-                    {
-                        if (this.ClipboardObject is CrowdModel)
+                switch (this.clipboardAction)
+                {
+                    case ClipboardAction.Clone:
+                        canPaste = this.ClipboardObject != null
+                            //if we are cloning a crowd we can not paste to all characters crowd
+                            && !(this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
+                            //if we are cloning a crowd we can not paste inside itself
+                            && ((this.ClipboardObject is CrowdModel && this.SelectedCrowdModel != this.ClipboardObject) || this.ClipboardObject is CrowdMemberModel);
+                        break;
+                    case ClipboardAction.Cut:
+                        if (this.ClipboardObject != null && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
                         {
-                            CrowdModel cutCrowdModel = this.ClipboardObject as CrowdModel;
-                            if (cutCrowdModel.Name != this.SelectedCrowdModel.Name)
+                            if (this.ClipboardObject is CrowdModel)
                             {
-                                if (cutCrowdModel.CrowdMemberCollection != null)
+                                CrowdModel cutCrowdModel = this.ClipboardObject as CrowdModel;
+                                if (cutCrowdModel.Name != this.SelectedCrowdModel.Name)
                                 {
-                                    if (!IsCrowdNestedWithinContainerCrowd(SelectedCrowdModel.Name, cutCrowdModel))
+                                    if (cutCrowdModel.CrowdMemberCollection != null)
+                                    {
+                                        if (!IsCrowdNestedWithinContainerCrowd(SelectedCrowdModel.Name, cutCrowdModel))
+                                            canPaste = true;
+                                    }
+                                    else
                                         canPaste = true;
                                 }
-                                else
-                                    canPaste = true;
                             }
+                            else
+                                canPaste = true;
                         }
-                        else
-                            canPaste = true;
-                    }
-                    break;
-                case ClipboardAction.Link:
-                    if (this.ClipboardObject != null && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
-                    {
-                        if (this.ClipboardObject is CrowdModel)
+                        break;
+                    case ClipboardAction.Link:
+                        if (this.ClipboardObject != null && this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
                         {
-                            CrowdModel linkedCrowdModel = this.ClipboardObject as CrowdModel;
-                            if (linkedCrowdModel.Name != this.SelectedCrowdModel.Name)
+                            if (this.ClipboardObject is CrowdModel)
                             {
-                                if (linkedCrowdModel.CrowdMemberCollection != null)
+                                CrowdModel linkedCrowdModel = this.ClipboardObject as CrowdModel;
+                                if (linkedCrowdModel.Name != this.SelectedCrowdModel.Name)
                                 {
-                                    if (!IsCrowdNestedWithinContainerCrowd(SelectedCrowdModel.Name, linkedCrowdModel))
+                                    if (linkedCrowdModel.CrowdMemberCollection != null)
+                                    {
+                                        if (!IsCrowdNestedWithinContainerCrowd(SelectedCrowdModel.Name, linkedCrowdModel))
+                                            canPaste = true;
+                                    }
+                                    else
                                         canPaste = true;
                                 }
-                                else
-                                    canPaste = true;
                             }
+                            else
+                                canPaste = true;
                         }
-                        else
-                            canPaste = true;
-                    }
-                    break;
+                        break;
+                } 
             }
             return canPaste;
         }
@@ -1258,7 +1295,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private bool CanEditCharacter(object state)
         {
-            return this.SelectedCrowdMemberModel != null;
+            return this.SelectedCrowdMemberModel != null && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void EditCharacter(object state)

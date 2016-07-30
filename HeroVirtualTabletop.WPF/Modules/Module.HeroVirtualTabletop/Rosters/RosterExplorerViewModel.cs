@@ -861,6 +861,10 @@ namespace Module.HeroVirtualTabletop.Roster
             // Hide attack icon from attacking character
             if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
                 this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
+            if (defendingCharacters.Count == 0) // For blank shooting, need to raise the attack close event for other view models to update their controls and commands
+            {
+                this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
+            }
             this.ResetAttack(defendingCharacters);
         }
 
@@ -891,8 +895,16 @@ namespace Module.HeroVirtualTabletop.Roster
                 Character defendingCharacter = this.Participants.FirstOrDefault(p => p.Name == charName) as Character;
                 if (defendingCharacter != null && defendingCharacter.ActiveAttackConfiguration != null)
                 {
-                    // Make him stand up 
-                    if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+                    // If he is just stunned make him normal
+                    if(defendingCharacter.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned)
+                    {
+                        KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                        defendingCharacter.Target(false);
+                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
+                        keyBindsGenerator.CompleteEvent();
+                    }
+                    // Else make him stand up 
+                    else if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
                     {
                         var globalStandUpAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.STANDUP_ABILITY_NAME);
                         if (globalStandUpAbility != null && globalStandUpAbility.AnimationElements != null && globalStandUpAbility.AnimationElements.Count > 0)
@@ -970,7 +982,6 @@ namespace Module.HeroVirtualTabletop.Roster
                             break;
                     }
                 }
-                //File.Delete(e.FullPath);
             };
             Application.Current.Dispatcher.BeginInvoke(action);
         }
