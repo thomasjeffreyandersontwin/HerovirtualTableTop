@@ -14,7 +14,7 @@
              xmlns:i="clr-namespace:System.Windows.Interactivity;assembly=System.Windows.Interactivity"
              xmlns:system="clr-namespace:System;assembly=mscorlib"
              xmlns:forms="clr-namespace:System.Windows.Forms;assembly=System.Windows.Forms"
-             mc:Ignorable="d">
+             mc:Ignorable="d" behaviors:CommandBehavior.Event="Loaded" behaviors:CommandBehavior.Command="{Binding LoadResourcesCommand}" behaviors:CommandBehavior.CommandParameter="{Binding RelativeSource={RelativeSource Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -47,13 +47,7 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <!--<TextBox x:Name="textBlockName" Text="{Binding Path=CurrentAttackAbility.Name}" Style="{StaticResource SelectableTextBlockLikeStyle}">
-                <TextBox.InputBindings>
-                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
-                    <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterAbilityEditModeCommand}" CommandParameter="{Binding ElementName=textBlockName}"/>
-                </TextBox.InputBindings>
-            </TextBox>-->
-            <ComboBox Grid.Row="0" Grid.Column="0" Margin="2" IsEnabled="{Binding CanEditMovementOptions}"
+            <ComboBox Grid.Row="0" Grid.Column="0" MinWidth="120" IsEnabled="{Binding CanEditMovementOptions}"
                           Name="comboBoxMovements" ItemsSource="{Binding CurrentCharacter.Movements}" DisplayMemberPath="Name" SelectedValue="{Binding CurrentMovement}">
                 <ComboBox.InputBindings>
                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterMovementEditModeCommand}" CommandParameter="{Binding ElementName=comboBoxMovements}"/>
@@ -68,12 +62,12 @@
                     <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.CancelMovementEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                 </TextBox.InputBindings>
             </TextBox>
-            <CheckBox Grid.Row="1" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default"  HorizontalAlignment="Left" Command="{Binding SetDefaultMovementCommand}"/>
-            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top" >
+            <CheckBox Grid.Row="1" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Right">
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
-                <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
+                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement" Command="{Binding DemoMovementCommand}" />
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" >
                 <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement" Command="{Binding AddMovementCommand}"/>
@@ -91,10 +85,66 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
-                <ColumnDefinition/>
-                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
+            <TextBlock Grid.Row="0" Grid.Column="0" Foreground="Green" FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf18e;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Text="Define Move Right" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="0" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayRightMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Right Movement" Command="{Binding DemoDirectionalMoveCommand}" HorizontalAlignment="Right" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Foreground="Green"  FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf190;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="Define Move Left" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="1" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayLeftMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Left Movement" Command="{Binding DemoDirectionalMoveCommand}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Foreground="Green"  FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf01b;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="Define Move Forward" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="2" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayForwardMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Forward Movement" Command="{Binding DemoDirectionalMoveCommand}" />
+            <TextBlock Grid.Row="3" Grid.Column="0" Foreground="Green"  FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf01a;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="3" Grid.Column="1" Text="Define Move Backward" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="3" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayBackwardMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Backward Movement" Command="{Binding DemoDirectionalMoveCommand}" HorizontalAlignment="Right" />
+            <TextBlock Grid.Row="4" Grid.Column="0" Foreground="Green"  FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf0ee;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="4" Grid.Column="1" Text="Define Move Up" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="4" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayUpwardMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Upward Movement" Command="{Binding DemoDirectionalMoveCommand}" />
+            <TextBlock Grid.Row="5" Grid.Column="0" Foreground="Green"  FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf0ed;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Text="Define Move Down" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="5" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayDownwardMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Downward Movement" Command="{Binding DemoDirectionalMoveCommand}" />
+            <TextBlock Grid.Row="6" Grid.Column="0" Foreground="Green"  FontFamily="{StaticResource FontFamily_FontAwesome}" Text="&#xf28e;" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Text="Define Move Still" Style="{StaticResource SelectableTextBlockLikeStyleWithHighLighting}"/>
+            <Button Grid.Row="6" Grid.Column="2" Background="Transparent" Foreground="Green" x:Name="btnPlayStillMovement" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Demo Still Movement" Command="{Binding DemoDirectionalMoveCommand}" />
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5"
+                     Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <DataGrid Grid.Row="1" x:Name="dataGridAbilityReferences"
+                          MaxWidth="200"
+                          Background="Transparent" RowBackground="Transparent" Margin="5" BorderBrush="#FF1144FF"
+                          ItemsSource="{Binding ReferenceAbilitiesCVS.View}"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False" IsEnabled="{Binding CanEditMovementOptions}"
+                          SelectionMode="Single" CanUserResizeRows="False"
+                          SelectedValue="{Binding SelectedAnimationElement.Resource}"
+                            IsSynchronizedWithCurrentItem="True" 
+                      >
+                <i:Interaction.Behaviors>
+                    <behaviors:ScrollIntoViewForDataGrid />
+                </i:Interaction.Behaviors>
+                <DataGrid.Resources>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Foreground" Value="White"></Setter>
+                        <Style.Triggers>
+                            <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                <Setter Property="Background" Value="#FF1144FF" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.Resources>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto"></DataGridTextColumn>
+                    <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*"></DataGridTextColumn>
+                </DataGrid.Columns>
+            </DataGrid>
         </Grid>
     </Grid>
 </UserControl>

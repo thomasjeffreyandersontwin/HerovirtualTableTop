@@ -170,23 +170,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             //generatedKeyBindText = triggerKey + " " + command;
 
-            if (command.Length > 254)
-            {
-            string parsedCmd = command;
-                int position = 0;
-            while (parsedCmd.Length > 254)
-            {
-                    parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254));
-                    IconInteractionUtility.ExecuteCmd("/" + parsedCmd);
-                    position += parsedCmd.Length + 2;
-                    parsedCmd = command.Substring(position);
-                }
-                IconInteractionUtility.ExecuteCmd("/" + parsedCmd);
-            }
-            else
-            {
-                IconInteractionUtility.ExecuteCmd("/" + command);
-            }
+            IconInteractionUtility.ExecuteCmd(command);
 
             return command;
 

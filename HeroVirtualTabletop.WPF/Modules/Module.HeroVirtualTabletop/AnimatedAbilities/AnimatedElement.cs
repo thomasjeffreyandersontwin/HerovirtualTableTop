@@ -941,7 +941,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override Task PlayGrouped(List<Character> targets, bool persistent = false)
         {
             List<Task> tasks = new List<Task>();
-            foreach (AnimationElement element in this.AnimationElements)
+            List<AnimationElement> elementsToPlay = new List<AnimationElement>();
+            if (this.SequenceType == AnimationSequenceType.And)
+                elementsToPlay.AddRange(this.AnimationElements);
+            else
+            {
+                var rnd = new Random();
+                int chosen = rnd.Next(0, AnimationElements.Count);
+                elementsToPlay.Add(AnimationElements[chosen]);
+            }
+            foreach (AnimationElement element in elementsToPlay)
             {
                 if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
                 {
@@ -952,7 +961,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 else
                 {
-                    tasks.Add(new Task(() => { IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents()); }));
+                    tasks.Add(new Task(() => 
+                    { 
+                        IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents());
+                        new PauseElement("", 500).Play();
+                    }));
                     if (element.Type == AnimationType.Pause || element.Type == AnimationType.Sound)
                     {
                         tasks.Add(new Task(() => { element.Play(persistent); }));
@@ -963,9 +976,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
-            if (AnimationElements.Last().Type == AnimationType.FX || AnimationElements.Last().Type == AnimationType.Movement)
+            if (elementsToPlay.Last().Type == AnimationType.FX || AnimationElements.Last().Type == AnimationType.Movement)
             {
-                tasks.Add(new Task(() => { IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents()); }));
+                tasks.Add(new Task(() => 
+                { 
+                    IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents());
+                    new PauseElement("", 500).Play();
+                }));
             }
             return new Task(() =>
             {

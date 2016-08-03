@@ -430,7 +430,33 @@
             </DataTrigger>
         </Style.Triggers>
     </Style>
-    
+
+    <Style x:Key="SelectableTextBlockLikeStyleWithHighLighting" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Setter Property="IsReadOnly" Value="True"/>
+        <Setter Property="IsTabStop" Value="False"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Padding" Value="-2,0,0,0"/>
+        <Setter Property="Foreground" Value="White"/>
+        <Setter Property="Cursor" Value="Arrow"/>
+        <Setter Property="FontFamily" Value="{DynamicResource MontDemiBold}"/>
+        <Setter Property="FontSize" Value="{DynamicResource FontSize_Normal}"/>
+        <!--<Setter Property="FontWeight" Value="Thin"/>
+        <Setter Property="FontStretch" Value="ExtraExpanded"/>-->
+        <!-- The Padding -2,0,0,0 is required because the TextBox
+        seems to have an inherent "Padding" of about 2 pixels.
+        Without the Padding property,
+        the text seems to be 2 pixels to the left
+        compared to a TextBlock
+    -->
+        <Style.Triggers>
+            <Trigger Property="IsFocused" Value="True">
+                <Setter Property="Background" Value="White"></Setter>
+                <Setter Property="TextElement.Foreground" Value="Black"></Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <Style x:Key="ExpanderToggleButtonStyle" TargetType="{x:Type ToggleButton}">
         <Setter Property="Template">
             <Setter.Value>

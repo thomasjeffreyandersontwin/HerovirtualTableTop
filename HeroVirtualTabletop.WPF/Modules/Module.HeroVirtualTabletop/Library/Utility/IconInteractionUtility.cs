@@ -93,7 +93,24 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static void ExecuteCmd(string command)
         {
-            executeCmd(command);
+            if (command.Length > 254)
+            {
+                string parsedCmd = command;
+                int position = 0;
+                while (parsedCmd.Length > 254)
+                {
+                    parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254));
+                    executeCmd("/" + parsedCmd);
+                    System.Threading.Thread.Sleep(500); // Sleep a while after executing a command
+                    position += parsedCmd.Length + 2;
+                    parsedCmd = command.Substring(position);
+                }
+                executeCmd("/" + parsedCmd);
+            }
+            else
+            {
+                executeCmd("/" + command);
+            }
         }
         public static string GetHoveredNPCInfoFromGame()
         {

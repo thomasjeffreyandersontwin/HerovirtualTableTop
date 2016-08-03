@@ -13,10 +13,13 @@ using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 
 namespace Module.HeroVirtualTabletop.Movements
 {
@@ -92,6 +95,25 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        private IAnimationElement selectedAnimationElement;
+        public IAnimationElement SelectedAnimationElement
+        {
+            get
+            {
+                return selectedAnimationElement;
+            }
+            set
+            {
+                if (selectedAnimationElement != null)
+                    (selectedAnimationElement as AnimationElement).PropertyChanged -= SelectedAnimationElement_PropertyChanged;
+                if (value != null)
+                    (value as AnimationElement).PropertyChanged += SelectedAnimationElement_PropertyChanged;
+                selectedAnimationElement = value;
+                OnPropertyChanged("SelectedAnimationElement");
+            }
+        }
+
+
         private ObservableCollection<Movement> availableMovements;
         public ObservableCollection<Movement> AvailableMovements
         {
@@ -133,6 +155,31 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("IsDefaultMovementLoaded");
             }
         }
+        private CollectionViewSource referenceAbilitiesCVS;
+        public CollectionViewSource ReferenceAbilitiesCVS
+        {
+            get
+            {
+                return referenceAbilitiesCVS;
+            }
+        }
+        private string filter;
+        public string Filter
+        {
+            get
+            {
+                return filter;
+            }
+            set
+            {
+                filter = value;
+                if (referenceAbilitiesCVS != null)
+                {
+                    referenceAbilitiesCVS.View.Refresh();
+                }
+                OnPropertyChanged("Filter");
+            }
+        }
 
         public bool CanEditMovementOptions
         {
@@ -169,7 +216,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public DelegateCommand<object> AddMovementCommand { get; private set; }
         public DelegateCommand<object> SaveMovementCommand { get; private set; }
         public DelegateCommand<object> RemoveMovementCommand { get; private set; }
-
+        public DelegateCommand<object> LoadResourcesCommand { get; private set; }
         public DelegateCommand<object> SetDefaultMovementCommand { get; private set; }
 
         #endregion
@@ -183,6 +230,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.messageBoxService = messageBoxService;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditMovementEvent>().Subscribe(this.LoadMovement);
+            this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
@@ -204,6 +252,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.RemoveMovementCommand = new DelegateCommand<object>(this.RemoveMovement, this.CanRemoveMovement);
             this.SubmitMovementRenameCommand = new DelegateCommand<object>(this.SubmitMovementRename);
             this.SetDefaultMovementCommand = new DelegateCommand<object>(this.SetDefaultMovement, this.CanSetDefaultMovement);
+            this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
         }
 
         private void InitializeMovementSelections()
@@ -395,6 +444,91 @@ namespace Module.HeroVirtualTabletop.Movements
             this.SaveMovement(null);
         }
 
+        #endregion
+
+        #region Animation Resources
+
+        private void SelectedAnimationElement_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Resource")
+            {
+                (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName((sender as AnimationElement).Resource);
+                SaveMovement(null);
+                //DemoMovement(null);
+            }
+        }
+        private void LoadResources(object state)
+        {
+            // publish a event to retrieve reference resources
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+        }
+
+        private void LoadReferenceResource(ObservableCollection<AnimatedAbility> abilityCollection)
+        {
+            if (referenceAbilitiesCVS == null)
+            {
+                referenceAbilitiesCVS = new CollectionViewSource();
+                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); }));
+                referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
+            }
+            else
+            {
+                var updatedAbilityResources = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
+                var currentAbilityResources = referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>;
+                var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null);
+                if (addedResources.Count() > 0)
+                {
+                    foreach (var addedResource in addedResources)
+                    {
+                        (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).Add(addedResource);
+                    }
+                }
+                else
+                {
+                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => a.Name == ca.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null));
+                    if (deletedResources.Count() > 0)
+                    {
+                        foreach (var deletedResource in deletedResources)
+                        {
+                            var resourceToDelete = (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).First(ar => ar.Name == deletedResource.Name && ar.Reference.Owner.Name == deletedResource.Reference.Owner.Name);
+                            (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).Remove(resourceToDelete);
+                        }
+                    }
+                }
+            }
+            OnPropertyChanged("ReferenceAbilitiesCVS");
+        }
+
+        private bool ResourcesCVS_Filter(object item)
+        {
+            AnimationResource animationRes = item as AnimationResource;
+            
+            if (string.IsNullOrWhiteSpace(Filter))
+            {
+                return true;
+            }
+
+
+            if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationRes)
+            {
+                return true;
+            }
+            bool caseReferences = false;
+            if (animationRes.Reference != null)
+            {
+                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name);
+            }
+            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || caseReferences;
+        }
+
+        #endregion
+
+        #region Utility
+
+        private string GetDisplayNameFromResourceName(string resourceName)
+        {
+            return Path.GetFileNameWithoutExtension(resourceName);
+        }
         #endregion
 
         #endregion

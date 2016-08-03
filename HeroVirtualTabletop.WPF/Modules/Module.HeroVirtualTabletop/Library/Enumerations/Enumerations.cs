@@ -71,4 +71,15 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Attack,
         Defend
     }
+
+    public enum MovementDirection
+    {
+        Right,
+        Left,
+        Forward,
+        Backward,
+        Upward,
+        Downward,
+        Still
+    }
 }

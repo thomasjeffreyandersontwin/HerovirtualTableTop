@@ -20,6 +20,7 @@ using System.Windows.Media;
 using Framework.WPF.Extensions;
 using System.Runtime.Serialization;
 using Module.HeroVirtualTabletop.Movements;
+using Microsoft.Xna.Framework;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -286,6 +287,58 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 defaultMovement = value;
                 OnPropertyChanged("DefaultMovement");
+            }
+        }
+
+        private Movement activeMovement;
+        [JsonProperty(Order = 4)]
+        public Movement ActiveMovement
+        {
+            get
+            {
+                return activeMovement;
+            }
+            set
+            {
+                activeMovement = value;
+                ////Deactivate all active persistent abilities on Identity Change
+                //AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
+                ////Deactive any effect activated as a result of former Identity loading
+                //if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
+                //    activeIdentity.AnimationOnLoad.Stop();
+                if (value != null && !Movements.ContainsKey(value.Name))
+                {
+                    Movements.Add(value);
+                }
+                if (value != null)
+                {
+                    activeMovement = Movements[value.Name];
+                    if (HasBeenSpawned)
+                    {
+                        Target(false);
+                        //activeMovement.Move();
+                    }
+
+                }
+                else
+                {
+                    activeMovement = null;
+                }
+                OnPropertyChanged("ActiveMovement");
+            }
+        }
+
+        private MovementInstruction movementInstruction;
+        [JsonIgnore]
+        public MovementInstruction MovementInstruction
+        {
+            get
+            {
+                return movementInstruction;
+            }
+            set
+            {
+                movementInstruction = value;
             }
         }
 
@@ -679,44 +732,93 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private void invertColorIntoCharacterCostumeFile(string origFile, string newFile, int colorNumber = 2)
+        //private void invertColorIntoCharacterCostumeFile(string origFile, string newFile, int colorNumber = 2)
+        //{
+        //    if (colorNumber < 1 || colorNumber > 4)
+        //    {
+        //        return;
+        //    }
+        //    string fileStr = File.ReadAllText(origFile);
+        //    string color2 = "Color" + colorNumber + @"\s+(?<Red>[\d]{1,3}),\s+(?<Green>[\d]{1,3}),\s+(?<Blue>[\d]{1,3})";
+        //    Regex re = new Regex(color2);
+
+        //    List<Color> colorsFound = new List<Color>();
+        //    Dictionary<Color,Color> contrastColors = new Dictionary<Color, Color>();
+
+        //    foreach (Match match in re.Matches(fileStr))
+        //    {
+        //        ColorExtensions.RGB rgb = new ColorExtensions.RGB()
+        //        {
+        //            R = double.Parse(match.Groups["Red"].Value),
+        //            G = double.Parse(match.Groups["Green"].Value),
+        //            B = double.Parse(match.Groups["Blue"].Value)
+        //        };
+        //        Color color = Color.FromRgb((byte)rgb.R, (byte)rgb.G, (byte)rgb.B);
+        //        if (!colorsFound.Contains(color))
+        //        {
+        //            colorsFound.Add(color);
+        //            Color contrast = color.GetContrast();
+        //            contrastColors.Add(color, contrast);
+        //        }
+        //    }
+
+        //    foreach (Color c in colorsFound)
+        //    {
+        //        string pattern = string.Format("Color" + colorNumber + @"\s+({0}),\s+({1}),\s+({2})", c.R, c.G, c.B);
+        //        re = new Regex(pattern);
+        //        fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", contrastColors[c].R, contrastColors[c].G, contrastColors[c].B));
+        //    }
+
+        //    File.AppendAllText(newFile, fileStr);
+        //}
+
+        #region Movements
+
+        public void ActivateMovement(Movement movement)
         {
-            if (colorNumber < 1 || colorNumber > 4)
-            {
-                return;
-            }
-            string fileStr = File.ReadAllText(origFile);
-            string color2 = "Color" + colorNumber + @"\s+(?<Red>[\d]{1,3}),\s+(?<Green>[\d]{1,3}),\s+(?<Blue>[\d]{1,3})";
-            Regex re = new Regex(color2);
 
-            List<Color> colorsFound = new List<Color>();
-            Dictionary<Color,Color> contrastColors = new Dictionary<Color, Color>();
-
-            foreach (Match match in re.Matches(fileStr))
-            {
-                ColorExtensions.RGB rgb = new ColorExtensions.RGB()
-                {
-                    R = double.Parse(match.Groups["Red"].Value),
-                    G = double.Parse(match.Groups["Green"].Value),
-                    B = double.Parse(match.Groups["Blue"].Value)
-                };
-                Color color = Color.FromRgb((byte)rgb.R, (byte)rgb.G, (byte)rgb.B);
-                if (!colorsFound.Contains(color))
-                {
-                    colorsFound.Add(color);
-                    Color contrast = color.GetContrast();
-                    contrastColors.Add(color, contrast);
-                }
-            }
-
-            foreach (Color c in colorsFound)
-            {
-                string pattern = string.Format("Color" + colorNumber + @"\s+({0}),\s+({1}),\s+({2})", c.R, c.G, c.B);
-                re = new Regex(pattern);
-                fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", contrastColors[c].R, contrastColors[c].G, contrastColors[c].B));
-            }
-
-            File.AppendAllText(newFile, fileStr);
         }
+
+        public void MoveBasedOnKey(string key)
+        {
+
+        }
+
+        public void DisableCamera()
+        {
+
+        }
+
+        public void SwitchToCamera()
+        {
+
+        }
+
+        public void MoveToDirection(MovementDirection direction)
+        {
+
+        }
+
+        public void MoveToLocation(IMemoryElementPosition destination)
+        {
+
+        }
+
+        public void Turn(MovementDirection direction, double distance)
+        {
+
+        }
+
+        public void TurnBasedOnKey(string key)
+        {
+
+        }
+
+        public void TurnOnFacing(Vector3 facing)
+        {
+
+        }
+
+        #endregion
     }
 }
