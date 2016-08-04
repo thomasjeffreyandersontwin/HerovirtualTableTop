@@ -11,6 +11,7 @@ using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
+using Module.Shared;
 using Module.Shared.Events;
 using Module.Shared.Messages;
 using Prism.Events;
@@ -146,6 +147,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 OnPropertyChanged("AddOrRemoveIsVisible");
             }
         }
+
+        public bool NewOptionGroupAdded { get; set; }
         
         public string OriginalName { get; set; }
 
@@ -168,8 +171,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public ICommand SetActiveOptionCommand { get; private set; }
 
         public DelegateCommand<object> EnterEditModeCommand { get; private set; }
-        public DelegateCommand<object> SubmitRenameCommand { get; private set; }
+        public DelegateCommand<object> SubmitOptionGroupRenameCommand { get; private set; }
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
+        public DelegateCommand<object> RenameNewOptionGroupCommand { get; private set; }
 
         #endregion
 
@@ -220,13 +224,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.TogglePlayOptionCommand = new DelegateCommand<object>(this.TogglePlayOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
 
             this.EnterEditModeCommand = new DelegateCommand<object>(this.EnterEditMode, this.CanEnterEditMode);
-            this.SubmitRenameCommand = new DelegateCommand<object>(this.SubmitRename);
+            this.SubmitOptionGroupRenameCommand = new DelegateCommand<object>(this.SubmitRename);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
-        }
-
-        private bool CanEnterEditMode(object arg)
-        {
-            return OptionGroup.Name != "Available Identities" && OptionGroup.Name != "Powers";
+            this.RenameNewOptionGroupCommand = new DelegateCommand<object>(this.RenameOptionGroup);
         }
 
         #endregion
@@ -257,8 +257,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 AddMovement(state);
             }
-            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
             this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Subscribe(this.SaveOptionGroupCompletedCallback);
+            this.SaveOptionGroup();
         }
         
         private void RemoveOption(object state)
@@ -271,8 +271,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 optionGroup.Remove(SelectedOption);
             }
-            eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
             this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Subscribe(this.SaveOptionGroupCompletedCallback);
+            this.SaveOptionGroup();
+        }
+
+        private void SaveOptionGroup()
+        {
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 
         private void SaveOptionGroupCompletedCallback(object state)
@@ -568,7 +573,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
 
         }
-        
+
+        #region Rename Option Group
+
+        private bool CanEnterEditMode(object arg)
+        {
+            return OptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME && OptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && OptionGroup.Name != Constants.MOVEMENT_OPTION_GROUP_NAME;
+        }
         private void EnterEditMode(object state)
         {
             this.OriginalName = OptionGroup.Name;
@@ -578,7 +589,17 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private void CancelEditMode(object state)
         {
             OptionGroup.Name = this.OriginalName;
+            this.OriginalName = null;
             OnEditModeLeave(state, null);
+        }
+
+        private void RenameOptionGroup(object state)
+        {
+            if(this.NewOptionGroupAdded)
+            {
+                this.NewOptionGroupAdded = false;
+                this.EnterEditMode(null);
+            }
         }
 
         private void SubmitRename(object state)
@@ -591,6 +612,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 {
                     RenameOptionGroup(updatedName);
                     OnEditModeLeave(state, null);
+                    this.SaveOptionGroup();
                 }
                 else
                 {
@@ -614,8 +636,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private bool CheckDuplicateName(string updatedName)
         {
-            return this.Owner.OptionGroups.ContainsKey(updatedName);
+            return this.OriginalName != updatedName && this.Owner.OptionGroups.ContainsKey(updatedName);
         }
+
+        #endregion
 
         #endregion
     }

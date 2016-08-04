@@ -8,7 +8,7 @@
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
-             mc:Ignorable="d">
+             mc:Ignorable="d" behaviors:CommandBehavior.Event="Loaded" behaviors:CommandBehavior.Command="{Binding RenameNewOptionGroupCommand}" behaviors:CommandBehavior.CommandParameter="{Binding RelativeSource={RelativeSource Self}}">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -34,6 +34,26 @@
             <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
         <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+            <GroupBox.HeaderTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <TextBlock x:Name="textBlockName" Text="{Binding}" FontFamily="{StaticResource ParagonCity}" Foreground="White">
+                            <TextBlock.InputBindings>
+                                <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
+                            </TextBlock.InputBindings>
+                        </TextBlock>
+                        <TextBox Name="textBoxName" Visibility="Collapsed" Text="{Binding DataContext, RelativeSource={RelativeSource Self}, UpdateSourceTrigger=Explicit}">
+                            <behaviors:CommandBehaviorCollection.Behaviors>
+                                <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.SubmitOptionGroupRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                            </behaviors:CommandBehaviorCollection.Behaviors>
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Enter" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.SubmitOptionGroupRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                                <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.CancelEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
+                            </TextBox.InputBindings>
+                        </TextBox>
+                    </Grid>
+                </DataTemplate>
+            </GroupBox.HeaderTemplate>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

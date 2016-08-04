@@ -449,10 +449,12 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             IOptionGroup optGroup = new OptionGroup<CharacterOption>(validName);
             this.EditedCharacter.AddOptionGroup(optGroup);
-            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
+            var optGroupViewModel = this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
                                 new ParameterOverride("optionGroup", optGroup),
                                 new ParameterOverride("owner", editedCharacter)
-                                ));
+                                );
+            OptionGroups.Add(optGroupViewModel);
+            optGroupViewModel.NewOptionGroupAdded = true;
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 

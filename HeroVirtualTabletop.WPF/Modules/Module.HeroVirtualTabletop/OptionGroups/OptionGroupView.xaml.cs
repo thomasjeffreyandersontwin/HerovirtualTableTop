@@ -1,4 +1,5 @@
-﻿using Module.HeroVirtualTabletop.OptionGroups;
+﻿using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.OptionGroups;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,20 +38,25 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)
         {
-            TextBox txtBox = sender as TextBox;
-            Grid grid = txtBox.Parent as Grid;
-            TextBox textBox = grid.Children[1] as TextBox;
-            textBox.Visibility = Visibility.Visible;
-            textBox.Focus();
-            textBox.SelectAll();
+            Border headborder = (Border)this.grpBoxOptionGroup.Template.FindName("Header", this.grpBoxOptionGroup);
+
+            ContentPresenter headContentPresenter = (ContentPresenter)headborder.Child;
+
+            var dataTemplate = this.grpBoxOptionGroup.HeaderTemplate;
+            TextBlock headerTextBlock = dataTemplate.FindName("textBlockName", headContentPresenter) as TextBlock;
+            TextBox headerTextBox = dataTemplate.FindName("textBoxName", headContentPresenter) as TextBox;
+            headerTextBox.Text = headerTextBlock.Text;
+            headerTextBox.Visibility = Visibility.Visible;
+            headerTextBox.Focus();
+            headerTextBox.SelectAll();
         }
 
         private void viewModel_EditModeLeave(object sender, EventArgs e)
         {
             TextBox txtBox = sender as TextBox;
-            txtBox.Visibility = Visibility.Hidden;
             BindingExpression expression = txtBox.GetBindingExpression(TextBox.TextProperty);
             expression.UpdateSource();
+            txtBox.Visibility = Visibility.Collapsed;
         }
     }
 }
