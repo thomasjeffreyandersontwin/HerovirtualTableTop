@@ -24,7 +24,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             set
             {
-                object oldValue = name;
                 name = value;
                 OnPropertyChanged("Name");
             }

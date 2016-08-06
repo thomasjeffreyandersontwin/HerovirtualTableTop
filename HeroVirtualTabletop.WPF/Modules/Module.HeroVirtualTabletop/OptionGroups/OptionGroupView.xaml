@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Module.HeroVirtualTabletop.OptionGroups"
              xmlns:ability="clr-namespace:Module.HeroVirtualTabletop.AnimatedAbilities"
+             xmlns:extensions="clr-namespace:Framework.WPF.Extensions;assembly=Framework.WPF"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:bindings="clr-namespace:Framework.WPF.Binding;assembly=Framework.WPF"
@@ -33,11 +34,12 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
-        <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+        <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}" 
+                  AllowDrop="True" PreviewDrop="GroupBox_PreviewDrop" PreviewDragOver="grpBoxOptionGroup_PreviewDragOver" PreviewMouseMove="groupbox_PreviewMouseMove" extensions:DragDropExtension.ScrollOnDragDrop="True">
             <GroupBox.HeaderTemplate>
                 <DataTemplate>
                     <Grid>
-                        <TextBlock x:Name="textBlockName" Text="{Binding}" FontFamily="{StaticResource ParagonCity}" Foreground="White">
+                        <TextBlock x:Name="textBlockName" Text="{Binding}" FontFamily="{StaticResource ParagonCity}" Foreground="White" PreviewMouseLeftButtonDown="textBlockName_PreviewMouseLeftButtonDown">
                             <TextBlock.InputBindings>
                                 <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EnterEditModeCommand}" MouseAction="LeftDoubleClick" CommandParameter="{Binding ElementName=textBlockName}"/>
                             </TextBlock.InputBindings>
@@ -74,7 +76,7 @@
                             DefaultOption="{Binding Path=DefaultOption}"
                             ActiveOption="{Binding Path=ActiveOption}"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
-                            SelectionMode="Single"
+                            SelectionMode="Single" 
                             MinHeight="70"
                             MaxHeight="150"
                             Margin="0,3,0,2.8" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}" Width="359">
@@ -167,8 +169,8 @@
                             </ListBox.ItemTemplate>
                         </local:OptionListBox>
                         <StackPanel Visibility="{Binding AddOrRemoveIsVisible}" HorizontalAlignment="Right" Margin="4 28 0 4">
-                            <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
-                            <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
+                            <Button Visibility="{Binding IsStandardOptionGroup, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource AddButtonStyle}" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
+                            <Button  Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
                         </StackPanel>
                     </Grid>
                 </Expander>

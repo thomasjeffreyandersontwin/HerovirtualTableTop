@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:Module.HeroVirtualTabletop.Characters"
              xmlns:crowd="clr-namespace:Module.HeroVirtualTabletop.Crowds"
              xmlns:behaviors="clr-namespace:Framework.WPF.Behaviors;assembly=Framework.WPF"
+             xmlns:extensions="clr-namespace:Framework.WPF.Extensions;assembly=Framework.WPF"
              xmlns:optiongroups="clr-namespace:Module.HeroVirtualTabletop.OptionGroups"
              xmlns:prism="http://www.codeplex.com/prism"
              xmlns:common="clr-namespace:Module.Shared;assembly=Module.Shared"
@@ -31,34 +32,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <!--<Border>
-                <Border.Resources>
-                    <Style TargetType="{x:Type Border}">
-                        <Setter Property="Width" Value="Auto"/>
-                        <Setter Property="Panel.ZIndex" Value="1000"/>
-                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                        <Setter Property="VerticalAlignment" Value="Top"/>
-                        <Setter Property="Margin" Value="4 4 4 4"/>
-                        <Setter Property="CornerRadius" Value="3"/>
-                        <Setter Property="BorderBrush" Value="DarkGray"/>
-                        <Setter Property="BorderThickness" Value="0"/>
-                    </Style>
-                </Border.Resources>
-                <WrapPanel VerticalAlignment="Bottom">
-                    <WrapPanel.Resources>
-                        <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
-                            <Setter Property="Padding" Value="0"/>
-                            <Setter Property="Margin" Value="0"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="FontSize" Value="15"/>
-                            <Setter Property="Background" Value="#00000000"/>
-                            <Setter Property="Width" Value="auto"/>
-                        </Style>
-                    </WrapPanel.Resources>
-                    <Button x:Name="AddOptionGroup" Content="&#xf067;" Foreground="Green" ToolTip="Add Option Group" Command="{Binding AddOptionGroupCommand}"/>
-                    <Button x:Name="RemoveOptionGroup" Content="&#xf068;" Foreground="Red" ToolTip="Remove Option Group" Command="{Binding RemoveOptionGroupCommand}"/>
-                </WrapPanel>
-            </Border>-->
+            
             <Grid HorizontalAlignment="Right" Margin="4 4 4 4">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -67,9 +41,11 @@
                 <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Option Group" Command="{Binding AddOptionGroupCommand}"/>
                 <Button Grid.Column="1" Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option Group" Command="{Binding RemoveOptionGroupCommand}"/>
             </Grid>
-            <ListView Grid.Row="1"
+            <ListView Grid.Row="1" x:Name="listViewOptionGroup"
                     ItemsSource="{Binding OptionGroups, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                    SelectedValuePath="OptionGroup"
+                    SelectedValuePath="OptionGroup" AllowDrop="True" 
+                      PreviewMouseMove="ListView_PreviewMouseMove" PreviewDragOver="ListView_PreviewDragOver" PreviewDrop="ListView_PreviewDrop" PreviewMouseLeftButtonUp="ListView_PreviewMouseLeftButtonUp"
+                      extensions:DragDropExtension.ScrollOnDragDrop="True"
                     SelectedValue="{Binding SelectedOptionGroup, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ItemContainerStyle="{StaticResource ListViewtemStyleNoHighlighting}">
                 <ListView.Style>
                     <Style TargetType="ListView">

@@ -460,6 +460,17 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #endregion
 
+        public void ReOrderOptionGroups(int sourceIndex, int targetIndex)
+        {
+            IOptionGroupViewModel sourceViewModel = this.OptionGroups[sourceIndex];
+            this.OptionGroups.RemoveAt(sourceIndex);
+            this.EditedCharacter.RemoveOptionGroupAt(sourceIndex);
+            this.OptionGroups.Insert(targetIndex, sourceViewModel);
+            this.EditedCharacter.InsertOptionGroup(targetIndex, sourceViewModel.OptionGroup);
+
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+        }
+
         #endregion
     }
 }

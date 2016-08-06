@@ -81,10 +81,13 @@ namespace Module.Shared
         public const string ANIMATION_DRAG_KEY = "AnimationElementDragFromAbilityEditor";
         #endregion
 
-        #region Default Option Groups
+        #region Option Groups
         public const string ABILITY_OPTION_GROUP_NAME = "Powers";
         public const string IDENTITY_OPTION_GROUP_NAME = "Identities";
         public const string MOVEMENT_OPTION_GROUP_NAME = "Movements";
+
+        public const string OPTION_DRAG_KEY = "CharacterOptionDrag";
+        public const string OPTION_GROUP_DRAG_KEY = "CharacterOptionGroupDrag";
         #endregion
     }
 }

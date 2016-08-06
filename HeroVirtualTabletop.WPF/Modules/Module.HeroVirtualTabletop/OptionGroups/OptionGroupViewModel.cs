@@ -31,6 +31,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         IOptionGroup OptionGroup { get; }
         event EventHandler EditModeEnter;
         event EventHandler EditModeLeave;
+
+        void RemoveOption(int index);
+        void InsertOption(int index, ICharacterOption option);
+
+        void SaveOptionGroup();
     }
 
     public class OptionGroupViewModel<T> : BaseViewModel, IOptionGroupViewModel where T : ICharacterOption
@@ -130,6 +135,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             get { return owner; }
             private set { owner = value; }
+        }
+        public bool IsStandardOptionGroup
+        {
+            get
+            {
+                return OptionGroup.Name == Constants.IDENTITY_OPTION_GROUP_NAME || OptionGroup.Name == Constants.ABILITY_OPTION_GROUP_NAME || OptionGroup.Name == Constants.MOVEMENT_OPTION_GROUP_NAME;
+            }
         }
 
         private Visibility addOrRemoveIsVisible = Visibility.Visible;
@@ -275,7 +287,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.SaveOptionGroup();
         }
 
-        private void SaveOptionGroup()
+        public void SaveOptionGroup()
         {
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
@@ -578,7 +590,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private bool CanEnterEditMode(object arg)
         {
-            return OptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME && OptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && OptionGroup.Name != Constants.MOVEMENT_OPTION_GROUP_NAME;
+            return !this.IsStandardOptionGroup;
         }
         private void EnterEditMode(object state)
         {
@@ -637,6 +649,28 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private bool CheckDuplicateName(string updatedName)
         {
             return this.OriginalName != updatedName && this.Owner.OptionGroups.ContainsKey(updatedName);
+        }
+
+        #endregion
+
+        #region ReOrder Option Group
+
+        public void RemoveOption(int index)
+        {
+            (optionGroup as OptionGroup<T>).RemoveAt(index);
+        }
+
+        public void InsertOption(int index, ICharacterOption characterOption)
+        {
+            OptionGroup<T> group = (optionGroup as OptionGroup<T>); 
+            var existingIndex = group.IndexOf((T)characterOption);
+            if(existingIndex >= 0)
+            {
+                group.RemoveAt(existingIndex);
+                if(index > 0 && index >= group.Count)
+                    index -= 1;
+            }
+            group.Insert(index, (T)characterOption);
         }
 
         #endregion

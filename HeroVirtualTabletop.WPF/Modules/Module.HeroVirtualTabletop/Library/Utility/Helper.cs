@@ -55,6 +55,10 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             get;
             set;
         }
+
+        public static Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
+        public static string GlobalVariables_DraggingOptionGroupName { get; set; }
+
         #endregion
 
         #region Resource Dictionary and Style related

@@ -213,9 +213,21 @@ namespace Module.HeroVirtualTabletop.Characters
             OnPropertyChanged("OptionGroups");
         }
 
+        public void RemoveOptionGroupAt(int index)
+        {
+            optionGroups.RemoveAt(index);
+            OnPropertyChanged("OptionGroups");
+        }
+
         public void AddOptionGroup(IOptionGroup optGroup)
         {
             optionGroups.Add(optGroup);
+            OnPropertyChanged("OptionGroups");
+        }
+
+        public void InsertOptionGroup(int index, IOptionGroup optGroup)
+        {
+            optionGroups.Insert(index, optGroup);
             OnPropertyChanged("OptionGroups");
         }
         
