@@ -68,7 +68,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             foreach (IOptionGroup opt in this.OptionGroups)
             {
-                opt.UpdateIndicies();
+                opt.UpdateIndices();
             }
             IOptionGroup x = AvailableIdentities;
             x = AnimatedAbilities;
@@ -275,6 +275,7 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
+                AvailableIdentities.UpdateIndices();
                 if (value != null && !AvailableIdentities.ContainsKey(value.Name))
                 {
                     AvailableIdentities.Add(value);
@@ -318,6 +319,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 ////Deactive any effect activated as a result of former Identity loading
                 //if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
                 //    activeIdentity.AnimationOnLoad.Stop();
+                Movements.UpdateIndices();
                 if (value != null && !Movements.ContainsKey(value.Name))
                 {
                     Movements.Add(value);
@@ -375,6 +377,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 //Deactive any effect activated as a result of former Identity loading
                 if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
                     activeIdentity.AnimationOnLoad.Stop();
+                AvailableIdentities.UpdateIndices();
                 if (value != null && !AvailableIdentities.ContainsKey(value.Name))
                 {   
                     AvailableIdentities.Add(value);
@@ -394,6 +397,20 @@ namespace Module.HeroVirtualTabletop.Characters
                     activeIdentity = null;
                 }
                 OnPropertyChanged("ActiveIdentity");
+            }
+        }
+        private AnimatedAbility activeAbility;
+        [JsonIgnore]
+        public AnimatedAbility ActiveAbility
+        {
+            get
+            {
+                return activeAbility;
+            }
+            set
+            {
+                activeAbility = value;
+                OnPropertyChanged("ActiveAbility");
             }
         }
 

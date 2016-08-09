@@ -28,7 +28,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         IEnumerable Options { get; }
         string GetNewValidOptionName(string name = null);
         OptionType Type { get; }
-        void UpdateIndicies();
+        void UpdateIndices();
     }
 
     [JsonObject]
@@ -112,7 +112,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             return string.Format("{0}{1}", name, suffix).Trim();
         }
         
-        public void UpdateIndicies()
+        public void UpdateIndices()
         {
             this.indices.Clear();
             foreach (T item in this.Items)

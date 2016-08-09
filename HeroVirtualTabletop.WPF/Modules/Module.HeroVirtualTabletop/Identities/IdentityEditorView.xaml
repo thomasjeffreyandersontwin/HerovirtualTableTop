@@ -61,7 +61,7 @@
                 </TextBox>
             </Grid>
 
-            <CheckBox Grid.Row="2" Name="IsDefault" IsChecked="{Binding Path=IsDefault, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Default Identity" Foreground="White" Margin="5"/>
+            <CheckBox Grid.Row="2" Name="IsDefault" IsChecked="{Binding Path=IsDefault}" Content="Default Identity" Foreground="White" Margin="5"/>
 
             <Grid Grid.Row="3" Margin="5" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>

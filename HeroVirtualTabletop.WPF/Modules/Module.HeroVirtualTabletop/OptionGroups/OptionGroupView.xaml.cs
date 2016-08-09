@@ -106,7 +106,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             Action action = delegate()
             {
-                if (e.LeftButton == MouseButtonState.Pressed && !isDragging && dataItem != null)
+                if (e.LeftButton == MouseButtonState.Pressed && !isDragging && dataItem != null && !Helper.GlobalVariables_IsPlayingAttack && !this.viewModel.IsReadOnlyMode)
                 {
                     // Get the current mouse position
                     Point mousePos = e.GetPosition(null);
@@ -147,7 +147,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 k = VisualTreeHelper.GetParent(k);
             }
         }
-
+        private bool expanderExpandedForDrop = false;
         private void grpBoxOptionGroup_PreviewDragOver(object sender, DragEventArgs e)
         {
             if (!e.Data.GetDataPresent(Constants.OPTION_DRAG_KEY) || sender == e.Source)
@@ -163,13 +163,26 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     e.Effects = DragDropEffects.None;
                 }
             }
+            if(e.Effects != DragDropEffects.None && !this.ExpanderOptionGroup.IsExpanded)
+            {
+                this.ExpanderOptionGroup.IsExpanded = expanderExpandedForDrop = true;
+            }
             e.Handled = true;
+        }
+
+        private void GroupBox_PreviewDragLeave(object sender, DragEventArgs e)
+        {
+            if(expanderExpandedForDrop)
+            {
+                this.ExpanderOptionGroup.IsExpanded = expanderExpandedForDrop = false;
+            }
         }
 
         private void GroupBox_PreviewDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(Constants.OPTION_DRAG_KEY))
             {
+                expanderExpandedForDrop = false;
                 GroupBox groupBox = (GroupBox)sender;
                 Tuple<IOptionGroupViewModel, int, ICharacterOption> dragDropDataTuple = e.Data.GetData(Constants.OPTION_DRAG_KEY) as Tuple<IOptionGroupViewModel, int, ICharacterOption>;
                 if(dragDropDataTuple != null)

@@ -32,6 +32,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         event EventHandler EditModeEnter;
         event EventHandler EditModeLeave;
 
+        bool IsReadOnlyMode { get; set; }
+
         void RemoveOption(int index);
         void InsertOption(int index, ICharacterOption option);
 
@@ -130,6 +132,20 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
         }
 
+        private bool isReadOnlyMode;
+        public bool IsReadOnlyMode 
+        {
+            get
+            {
+                return isReadOnlyMode;
+            }
+            set
+            {
+                isReadOnlyMode = value;
+                OnPropertyChanged("IsReadOnlyMode");
+            }
+        }
+
         private Character owner;
         public Character Owner
         {
@@ -147,22 +163,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private Visibility addOrRemoveIsVisible = Visibility.Visible;
         private IMessageBoxService messageBoxService;
 
-        public Visibility AddOrRemoveIsVisible
-        {
-            get
-            {
-                return addOrRemoveIsVisible;
-            }
-            set
-            {
-                addOrRemoveIsVisible = value;
-                OnPropertyChanged("AddOrRemoveIsVisible");
-            }
-        }
-
         public bool NewOptionGroupAdded { get; set; }
         
         public string OriginalName { get; set; }
+
+        
 
         #endregion
 
@@ -200,13 +205,17 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.StopAttack);
+            if(!this.IsStandardOptionGroup)
+            {
+                this.eventAggregator.GetEvent<RemoveOptionEvent>().Subscribe(this.RemoveOption);
+            }
             InitializeAttackEventHandlers();
             InitializeCommands();
         }
 
         private void Owner_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (typeof(T) == typeof(Identity))
+            if (this.OptionGroup.Type == OptionType.Identity)
             {
                 switch (e.PropertyName)
                 {
@@ -215,6 +224,45 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                         OnPropertyChanged("SelectedOption");
                         break;
                     case "DefaultIdentity":
+                        OnPropertyChanged("DefaultOption");
+                        break;
+                }
+            }
+            else if(this.OptionGroup.Type == OptionType.Ability)
+            {
+                switch (e.PropertyName)
+                {
+                    case "ActiveAbility":
+                        OnPropertyChanged("ActiveOption");
+                        OnPropertyChanged("SelectedOption");
+                        break;
+                }
+            }
+            else if(this.OptionGroup.Type == OptionType.Movement)
+            {
+                switch (e.PropertyName)
+                {
+                    case "ActiveMovement":
+                        OnPropertyChanged("ActiveOption");
+                        OnPropertyChanged("SelectedOption");
+                        break;
+                    case "DefaultMovement":
+                        OnPropertyChanged("DefaultOption");
+                        break;
+                }
+            }
+            else if(this.OptionGroup.Type == OptionType.Mixed)
+            {
+                switch (e.PropertyName)
+                {
+                    case "ActiveIdentity":
+                    case "ActiveMovement":
+                    case "ActiveAbility":
+                        OnPropertyChanged("ActiveOption");
+                        OnPropertyChanged("SelectedOption");
+                        break;
+                    case "DefaultIdentity":
+                    case "DefaultMovement":
                         OnPropertyChanged("DefaultOption");
                         break;
                 }
@@ -229,7 +277,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.AddOptionCommand = new DelegateCommand<object>(this.AddOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
             this.RemoveOptionCommand = new DelegateCommand<object>(this.RemoveOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
 
-            this.SetDefaultOptionCommand = new DelegateCommand<object>(this.SetDefaultOption);
+            this.SetDefaultOptionCommand = new DelegateCommand<object>(this.SetDefaultOption, this.CanSetDefaultOption);
             this.EditOptionCommand = new DelegateCommand<object>(this.EditOption, (object state) => { return !Helper.GlobalVariables_IsPlayingAttack; });
             this.PlayOptionCommand = new DelegateCommand<object>(this.PlayOption, this.CanPlayOption);
             this.StopOptionCommand = new DelegateCommand<object>(this.StopOption, this.CanStopOption);
@@ -275,6 +323,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         
         private void RemoveOption(object state)
         {
+            var optionToRemove = SelectedOption;
             if (typeof(T) == typeof(Identity))
             {
                 RemoveIdentity(state);
@@ -283,8 +332,21 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 optionGroup.Remove(SelectedOption);
             }
+            if(this.IsStandardOptionGroup)
+            {
+                this.eventAggregator.GetEvent<RemoveOptionEvent>().Publish(optionToRemove);
+            }
             this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Subscribe(this.SaveOptionGroupCompletedCallback);
             this.SaveOptionGroup();
+        }
+
+        private void RemoveOption(ICharacterOption option)
+        {
+            T optionToRemove = (T)option;
+            if(optionGroup.Contains(optionToRemove))
+            {
+                optionGroup.Remove(optionToRemove);
+            }
         }
 
         public void SaveOptionGroup()
@@ -300,20 +362,45 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         
         private T GetDefaultOption()
         {
-            if (typeof(T) == typeof(Identity))
+            T defaultOption = default(T);
+            if (this.OptionGroup.Type == OptionType.Identity)
             {
-                return (T)Convert.ChangeType(owner.DefaultIdentity, typeof(T));
+                defaultOption = (T)Convert.ChangeType(owner.DefaultIdentity, typeof(T));
+            }
+            else if(this.OptionGroup.Type == OptionType.Movement)
+            {
+                defaultOption = (T)Convert.ChangeType(owner.DefaultMovement, typeof(T));
+            }
+            else if(this.OptionGroup.Type == OptionType.Mixed)
+            {
+                // return the default option of the selected type
+                if(SelectedOption is Identity)
+                {
+                    defaultOption = (T)Convert.ChangeType(owner.DefaultIdentity, typeof(Identity));
+                }
+                else if(SelectedOption is Movement)
+                {
+                    defaultOption = (T)Convert.ChangeType(owner.DefaultMovement, typeof(Movement));
+                }
             }
 
-            return default(T);
+            return defaultOption;
         }
 
         private void SetDefaultOption(T value)
         {
-            if (typeof(T) == typeof(Identity))
+            if (this.OptionGroup.Type == OptionType.Identity)
             {
                 owner.DefaultIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
+            else if(this.OptionGroup.Type == OptionType.Movement)
+            {
+                owner.DefaultMovement = (Movement)Convert.ChangeType(value, typeof(Movement));
+            }
+        }
+        private bool CanSetDefaultOption(object state)
+        {
+            return typeof(T) == typeof(Identity) || typeof(T) == typeof(Movement);
         }
 
         private void SetDefaultOption(object state)
@@ -323,58 +410,90 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private T GetActiveOption()
         {
-            if (typeof(T) == typeof(Identity))
+            T activeOption = default(T);
+            if (this.OptionGroup.Type == OptionType.Identity)
             {
-                return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
+                activeOption = (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
+            }
+            else if(this.OptionGroup.Type == OptionType.Ability)
+            {
+                activeOption = (T)Convert.ChangeType(owner.ActiveAbility, typeof(Attack));
+            }
+            else if(this.OptionGroup.Type == OptionType.Movement)
+            {
+                activeOption = (T)Convert.ChangeType(owner.ActiveMovement, typeof(T));
+            }
+            else if(this.OptionGroup.Type == OptionType.Mixed)
+            {
+                if(SelectedOption is Identity)
+                {
+                    activeOption = (T)Convert.ChangeType(owner.ActiveIdentity, typeof(Identity));
+                }
+                else if(SelectedOption is Movement)
+                {
+                    activeOption = (T)Convert.ChangeType(owner.ActiveMovement, typeof(Movement));
+                }
+                else if(SelectedOption is AnimatedAbility)
+                {
+                    activeOption = (T)Convert.ChangeType(owner.ActiveAbility, typeof(Attack));
+                }
             }
 
-            return default(T);
+            return activeOption;
         }
 
         private void SetActiveOption(T value)
         {
-            if (typeof(T) == typeof(Identity))
+            if (this.OptionGroup.Type == OptionType.Identity)
             {
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
+            }
+            else if(this.OptionGroup.Type == OptionType.Movement)
+            {
+                owner.ActiveMovement = (Movement)Convert.ChangeType(value, typeof(Movement));
             }
         }
 
         private T GetSelectedOption()
         {
-            if (typeof(T) == typeof(Identity))
-            {
-                return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
-            }
-            else
-            {
-                return selectedOption;
-            }
+            //if (typeof(T) == typeof(Identity))
+            //{
+            //    return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
+            //}
+            //else
+            //{
+            //    return selectedOption;
+            //}
+            return selectedOption;
         }
 
         private void SetSelectedOption(T value)
         {
-            if (typeof(T) == typeof(Identity))
+            if (selectedOption != null && selectedOption is AnimatedAbility)
+            {
+                if (selectedOption as AnimatedAbility != value as AnimatedAbility)
+                {
+                    AnimatedAbility ability = selectedOption as AnimatedAbility;
+                    if (ability.IsActive && !ability.Persistent)
+                        ability.Stop();
+                }
+            }
+            selectedOption = value;
+            if (value is Identity)
             {
                 if (!this.Owner.HasBeenSpawned)
                     this.SpawnAndTargetOwnerCharacter();
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
-            else
+            else if(value is Movement)
             {
-                if (selectedOption != null && selectedOption is AnimatedAbility)
-                {
-                    if (selectedOption as AnimatedAbility != value as AnimatedAbility)
-                    {
-                        AnimatedAbility ability = selectedOption as AnimatedAbility;
-                        if (ability.IsActive && !ability.Persistent)
-                            ability.Stop();
-                    }
-                }
-                selectedOption = value;
+                if (!this.Owner.HasBeenSpawned)
+                    this.SpawnAndTargetOwnerCharacter();
+                owner.ActiveMovement = (Movement)Convert.ChangeType(value, typeof(Movement));
             }
-            //if (typeof(T) == typeof(AnimatedAbility))
+            //else if(value is AnimatedAbility)
             //{
-            //    PlayOption(null);
+            //    owner.ActiveAbility = (AnimatedAbility)Convert.ChangeType(value, typeof(Attack));
             //}
         }
 
@@ -408,6 +527,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     currentTarget = this.Owner;
                 }
             }
+            owner.ActiveAbility = ability;
             ability.Play(Target: currentTarget);
         }
 
@@ -440,11 +560,17 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     currentTarget = this.Owner;
                 }
             }
+            owner.ActiveAbility = null;
             ability.Stop(Target: currentTarget);
         }
         
         private void TogglePlayOption(object obj)
         {
+            if (SelectedOption != null && SelectedOption is AnimatedAbility && !(obj is AnimatedAbility))
+            {
+                StopOption(SelectedOption);
+            }
+
             SelectedOption = (T)obj;
             if (SelectedOption is AnimatedAbility)
             {
@@ -495,6 +621,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 return;
             }
             optionGroup.Remove(SelectedOption);
+            // Need to fire event so that custom groups can update themselves
         }
 
         private Identity GetNewIdentity()
@@ -529,18 +656,18 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void EditOption(object obj)
         {
-            if (typeof(T) == typeof(Identity))
+            if (SelectedOption is Identity)
             {
                 Identity identity = (Identity)Convert.ChangeType(SelectedOption, typeof(Identity));
                 eventAggregator.GetEvent<EditIdentityEvent>().Publish(new Tuple<Identity, Character>(identity, Owner));
             }
-            else if (typeof(T) == typeof(AnimatedAbility))
+            else if (SelectedOption is AnimatedAbility)
             {
                 Attack attack = (Attack)Convert.ChangeType(SelectedOption, typeof(Attack));
                 InitializeAttackEventHandlers(attack);
                 eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(attack, Owner));
             }
-            else if(typeof(T) == typeof(Movement))
+            else if (SelectedOption is Movement)
             {
                 Movement movement = (Movement)Convert.ChangeType(SelectedOption, typeof(Movement));
                 eventAggregator.GetEvent<EditMovementEvent>().Publish(new Tuple<Movement, Character>(movement, Owner));

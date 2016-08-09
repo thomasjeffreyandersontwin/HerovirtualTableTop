@@ -49,6 +49,10 @@ namespace Module.HeroVirtualTabletop.Identities
             set
             {
                 owner = value;
+                if(value != null)
+                {
+                    owner.PropertyChanged += Owner_PropertyChanged;
+                }
                 OnPropertyChanged("Owner");
             }
         }
@@ -220,6 +224,7 @@ namespace Module.HeroVirtualTabletop.Identities
             InitializeCommands();
             CreateModelsViewSource();
             CreateCostumesViewSource();
+            
             eventAggregator.GetEvent<EditIdentityEvent>().Subscribe(this.LoadIdentity);
             eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.CreateAbilitiesViewSource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
@@ -246,6 +251,16 @@ namespace Module.HeroVirtualTabletop.Identities
 
         #region Methods
 
+        private void Owner_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case "DefaultIdentity":
+                    OnPropertyChanged("IsDefault");
+                    break;
+            }
+        }
+
         private void AttackInitiated(Tuple<Character, Attack> tuple)
         {
             OnPropertyChanged("CanEditIdentityOptions");
@@ -268,6 +283,7 @@ namespace Module.HeroVirtualTabletop.Identities
             this.Owner.AvailableIdentities.CollectionChanged += AvailableIdentities_CollectionChanged;
             this.Visibility = Visibility.Visible;
             this.LoadAbilitiesCommand.Execute(null);
+            OnPropertyChanged("IsDefault");
         }
 
         private void UnloadIdentity(object state = null)

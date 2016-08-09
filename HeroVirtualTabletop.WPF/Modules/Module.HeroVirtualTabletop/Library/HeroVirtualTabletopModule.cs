@@ -16,6 +16,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Sevices;
+using Module.HeroVirtualTabletop.OptionGroups;
+using Module.HeroVirtualTabletop.Movements;
 
 namespace Module.HeroVirtualTabletop
 {
@@ -91,7 +93,7 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<CharacterCrowdMainViewModel, CharacterCrowdMainViewModel>(new ContainerControlledLifetimeManager());
 
             //Registering with ContainerControlledLifeTimeMangager should act like declaring classes as Singleton's
-            //Return a new one the first time only, then always the already instanciated one
+            //Return a new one the first time only, then always the already instantiated one
             this.container.RegisterType<IdentityEditorView, IdentityEditorView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<IdentityEditorViewModel, IdentityEditorViewModel>(new ContainerControlledLifetimeManager());
 
@@ -106,6 +108,11 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<ITargetObserver, TargetObserver>(new ContainerControlledLifetimeManager());
+
+            this.container.RegisterType<OptionGroupViewModel<Identity>, OptionGroupViewModel<Identity>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false));
+            this.container.RegisterType<OptionGroupViewModel<AnimatedAbility>, OptionGroupViewModel<AnimatedAbility>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false));
+            this.container.RegisterType<OptionGroupViewModel<Movement>, OptionGroupViewModel<Movement>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false));
+            this.container.RegisterType<OptionGroupViewModel<CharacterOption>, OptionGroupViewModel<CharacterOption>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false));
         }
 
         #endregion BaseModule Members

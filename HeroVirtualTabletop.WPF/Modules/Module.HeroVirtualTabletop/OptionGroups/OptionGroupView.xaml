@@ -35,7 +35,7 @@
             <ColumnDefinition Width="400"/>
         </Grid.ColumnDefinitions>
         <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}" 
-                  AllowDrop="True" PreviewDrop="GroupBox_PreviewDrop" PreviewDragOver="grpBoxOptionGroup_PreviewDragOver" PreviewMouseMove="groupbox_PreviewMouseMove" extensions:DragDropExtension.ScrollOnDragDrop="True">
+                  AllowDrop="True" PreviewDrop="GroupBox_PreviewDrop" PreviewDragOver="grpBoxOptionGroup_PreviewDragOver" PreviewDragLeave="GroupBox_PreviewDragLeave" PreviewMouseMove="groupbox_PreviewMouseMove" extensions:DragDropExtension.ScrollOnDragDrop="True">
             <GroupBox.HeaderTemplate>
                 <DataTemplate>
                     <Grid>
@@ -147,12 +147,12 @@
                                                             </DataTrigger.Binding>
                                                             <Setter Property="Visibility" Value="Visible"></Setter>
                                                         </DataTrigger>
-                                                        <DataTrigger Value="True">
+                                                        <!--<DataTrigger Value="True">
                                                             <DataTrigger.Binding>
                                                                 <Binding RelativeSource="{RelativeSource Self}" Path="DataContext.IsActive"></Binding>
                                                             </DataTrigger.Binding>
                                                             <Setter Property="Visibility" Value="Visible"></Setter>
-                                                        </DataTrigger>
+                                                        </DataTrigger>-->
                                                     </Style.Triggers>
                                                 </Style>
                                             </Ellipse.Style>
@@ -168,7 +168,7 @@
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </local:OptionListBox>
-                        <StackPanel Visibility="{Binding AddOrRemoveIsVisible}" HorizontalAlignment="Right" Margin="4 28 0 4">
+                        <StackPanel Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityInvertConverter}}" HorizontalAlignment="Right" Margin="4 28 0 4">
                             <Button Visibility="{Binding IsStandardOptionGroup, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource AddButtonStyle}" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
                             <Button  Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
                         </StackPanel>

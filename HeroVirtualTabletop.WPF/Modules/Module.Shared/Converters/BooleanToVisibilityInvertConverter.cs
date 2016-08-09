@@ -32,11 +32,13 @@ namespace Module.Shared.Converters
                     else
                         vRet = Visibility.Visible;
                 }
-
-                if ((string)parameter != "invert") 
-                    vRet = Visibility.Visible;
                 else
-                    vRet = Visibility.Collapsed;
+                {
+                    if ((string)parameter != "invert")
+                        vRet = Visibility.Visible;
+                    else
+                        vRet = Visibility.Collapsed;
+                }
             }
 
             return vRet;

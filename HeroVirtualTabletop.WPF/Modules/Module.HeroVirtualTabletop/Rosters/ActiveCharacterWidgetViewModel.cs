@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.OptionGroups;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -26,8 +27,6 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Private Fields
 
         private EventAggregator eventAggregator;
-        private OptionGroupViewModel<Identity> identitiesViewModel;
-        private OptionGroupViewModel<AnimatedAbility> animatedAbilitiesViewModel;
         private IntPtr hookID;
 
         #endregion
@@ -37,20 +36,6 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region Public Properties
-
-        private Visibility visibility = Visibility.Collapsed;
-        public Visibility Visibility
-        {
-            get
-            {
-                return visibility;
-            }
-            set
-            {
-                visibility = value;
-                OnPropertyChanged("Visibility");
-            }
-        }
 
         private Character activeCharacter;
         public Character ActiveCharacter
@@ -66,29 +51,17 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public OptionGroupViewModel<Identity> IdentitiesViewModel
+        private ObservableCollection<IOptionGroupViewModel> optionGroups;
+        public ObservableCollection<IOptionGroupViewModel> OptionGroups
         {
             get
             {
-                return identitiesViewModel;
+                return optionGroups;
             }
-            set
+            private set
             {
-                identitiesViewModel = value;
-                OnPropertyChanged("IdentitiesViewModel");
-            }
-        }
-
-        public OptionGroupViewModel<AnimatedAbility> AnimatedAbilitiesViewModel
-        {
-            get
-            {
-                return animatedAbilitiesViewModel;
-            }
-            set
-            {
-                animatedAbilitiesViewModel = value;
-                OnPropertyChanged("AnimatedAbilitiesViewModel");
+                optionGroups = value;
+                OnPropertyChanged("OptionGroups");
             }
         }
 
@@ -123,16 +96,37 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ActiveCharacter = character;
             if (character != null)
             {
-                this.IdentitiesViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
-                    new ParameterOverride("optionGroup", character.AvailableIdentities),
-                    new ParameterOverride("owner", character)
-                    );
-                this.AnimatedAbilitiesViewModel = this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
-                    new ParameterOverride("optionGroup", character.AnimatedAbilities),
-                    new ParameterOverride("owner", character)
-                    );
-                this.IdentitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
-                this.AnimatedAbilitiesViewModel.AddOrRemoveIsVisible = Visibility.Collapsed;
+                this.OptionGroups = new ObservableCollection<IOptionGroupViewModel>();
+                foreach (IOptionGroup group in character.OptionGroups)
+                {
+                    switch (group.Type)
+                    {
+                        case OptionType.Ability:
+                            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
+                            new ParameterOverride("optionGroup", group),
+                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            ));
+                            break;
+                        case OptionType.Identity:
+                            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Identity>>(
+                            new ParameterOverride("optionGroup", group),
+                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            ));
+                            break;
+                        case OptionType.Movement:
+                            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Movements.Movement>>(
+                            new ParameterOverride("optionGroup", group), 
+                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            ));
+                            break;
+                        case OptionType.Mixed:
+                            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
+                            new ParameterOverride("optionGroup", group),
+                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            ));
+                            break;
+                    }
+                }
 
                 character.Activate();
 

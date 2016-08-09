@@ -16,14 +16,24 @@
     <Grid>
         <GroupBox Header="{Binding ActiveCharacter.Name}" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition></RowDefinition>
-                    <RowDefinition></RowDefinition>
-                </Grid.RowDefinitions>
-                <optiongroups:OptionGroupView x:Name="Identities" DataContext="{Binding Path=IdentitiesViewModel}" Grid.Row="0">
-                </optiongroups:OptionGroupView>
-                <optiongroups:OptionGroupView x:Name="Abilitities" DataContext="{Binding Path=AnimatedAbilitiesViewModel}" Grid.Row="1">
-                </optiongroups:OptionGroupView>
+                <ListView Grid.Row="1" x:Name="listViewOptionGroup"
+                    ItemsSource="{Binding OptionGroups, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                    SelectedValuePath="OptionGroup" ItemContainerStyle="{StaticResource ListViewtemStyleNoHighlighting}">
+                    <ListView.Style>
+                        <Style TargetType="ListView">
+                            <Setter Property="Background" Value="Transparent"></Setter>
+                            <Setter Property="BorderThickness" Value="0"></Setter>
+                        </Style>
+                    </ListView.Style>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <optiongroups:OptionGroupView>
+
+                            </optiongroups:OptionGroupView>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+
+                </ListView>
             </Grid>
         </GroupBox>
     </Grid>

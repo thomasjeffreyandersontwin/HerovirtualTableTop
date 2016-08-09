@@ -29,8 +29,6 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private EventAggregator eventAggregator;
         private Character editedCharacter;
-        private OptionGroupViewModel<Identity> identitiesViewModel;
-        private OptionGroupViewModel<AnimatedAbility> animatedAbilitiesViewModel;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
 
         #endregion
@@ -51,32 +49,6 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 editedCharacter = value;
                 OnPropertyChanged("EditedCharacter");
-            }
-        }
-
-        public OptionGroupViewModel<Identity> IdentityViewModel
-        {
-            get
-            {
-                return identitiesViewModel;
-            }
-            set
-            {
-                identitiesViewModel = value;
-                OnPropertyChanged("IdentityViewModel");
-            }
-        }
-
-        public OptionGroupViewModel<AnimatedAbility> AnimatedAbilitiesViewModel
-        {
-            get
-            {
-                return animatedAbilitiesViewModel;
-            }
-            set
-            {
-                animatedAbilitiesViewModel = value;
-                OnPropertyChanged("AnimatedAbilitiesViewModel");
             }
         }
 
@@ -203,20 +175,7 @@ namespace Module.HeroVirtualTabletop.Characters
                                 break;
                         }
                     }
-                    //OptionGroupViewModel <
-                    //    Identity,
-                    //    AnimatedAbility,
-                    //    Movements.Movement,
-                    //    CharacterOptionBase
-                    //>
-                    //this.IdentityViewModel = this.Container.Resolve<OptionGroupViewModel<Identity>>(
-                    //    new ParameterOverride("optionGroup", character.AvailableIdentities),
-                    //    new ParameterOverride("owner", character)
-                    //    );
-                    //this.AnimatedAbilitiesViewModel = this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
-                    //    new ParameterOverride("optionGroup", character.AnimatedAbilities),
-                    //    new ParameterOverride("owner", character)
-                    //    );
+
                     this.EditedCharacter = character;
                     this.characterCollection = collection;
                 }
@@ -460,6 +419,8 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #endregion
 
+        #region ReOrder Option Groups
+
         public void ReOrderOptionGroups(int sourceIndex, int targetIndex)
         {
             IOptionGroupViewModel sourceViewModel = this.OptionGroups[sourceIndex];
@@ -470,6 +431,8 @@ namespace Module.HeroVirtualTabletop.Characters
 
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
+
+        #endregion
 
         #endregion
     }

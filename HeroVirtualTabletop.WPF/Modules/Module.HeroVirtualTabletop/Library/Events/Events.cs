@@ -7,6 +7,7 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Movements;
+using Module.HeroVirtualTabletop.OptionGroups;
 
 namespace Module.HeroVirtualTabletop.Library.Events
 {
@@ -16,6 +17,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class SaveCrowdEvent : PubSubEvent<object> { }
     public class SaveCrowdCompletedEvent : PubSubEvent<object> { }
     public class AddToRosterThruCharExplorerEvent : PubSubEvent<Tuple<CrowdMemberModel, CrowdModel>> { };
+    public class RemoveOptionEvent : PubSubEvent<ICharacterOption> { };
     public class EditIdentityEvent : PubSubEvent<Tuple<Identity, Character>> { };
     public class EditAbilityEvent : PubSubEvent<Tuple<AnimatedAbility, Character>> { };
     public class CheckRosterConsistencyEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { };
