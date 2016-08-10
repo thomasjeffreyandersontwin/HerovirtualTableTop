@@ -54,7 +54,16 @@ namespace Module.Shared
         public const string GAME_LANGUAGE_FOLDERNAME = "english";
         public const string GAME_MENUS_FOLDERNAME = "menus";
         public const string GAME_AREAATTACK_MENU_FILENAME = "areaattack.mnu";
-        public const string GAME_CHARACTER_BINDSAVE_SPAWN = "spawn.txt";
+        public const string GAME_CHARACTER_MENU_FILENAME = "character.mnu";
+        public const string GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME = "spawn.txt";
+        public const string GAME_CHARACTER_BINDSAVE_PLACE_FILENAME = "place.txt";
+        public const string GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME = "saveposition.txt";
+        public const string GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME = "movecamera.txt";
+        public const string GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME = "movetarget.txt";
+        public const string GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME = "manueverwithcamera.txt";
+        public const string GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME = "clear.txt";
+        public const string GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME = "activate.txt";
+        public const string GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME = "clonelink.txt";
         #endregion
 
         #region Character Explorer

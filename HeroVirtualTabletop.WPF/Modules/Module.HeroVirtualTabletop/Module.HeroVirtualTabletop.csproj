@@ -331,6 +331,7 @@
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />
     <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />
+    <EmbeddedResource Include="Resources\character.mnu" />
     <None Include="Resources\Models.txt" />
   </ItemGroup>
   <ItemGroup>

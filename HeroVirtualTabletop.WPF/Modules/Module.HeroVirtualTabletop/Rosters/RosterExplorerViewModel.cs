@@ -8,14 +8,18 @@ using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Library.Sevices;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Movements;
+using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using Module.Shared.Enumerations;
+using Module.Shared.Events;
 using Prism.Events;
 using System;
 using System.Collections;
@@ -25,6 +29,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -185,6 +190,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Subscribe(CheckRosterConsistency);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(InitiateRosterCharacterAttack);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Subscribe(this.LaunchActiveAttack);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttack);
+            this.eventAggregator.GetEvent<AddOptionEvent>().Subscribe(this.HandleCharacterOptionAddition);
 
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Subscribe((obj) =>
             {
@@ -259,6 +266,7 @@ namespace Module.HeroVirtualTabletop.Roster
                                 else
                                 {
                                     AddDesktopTargetToRosterSelection(hoveredCharacter);
+                                    GenerateMenuFileForCharacter(hoveredCharacter);
                                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
                                     fileSystemWatcher.EnableRaisingEvents = true;
                                     keyBindsGenerator.CompleteEvent();
@@ -281,6 +289,93 @@ namespace Module.HeroVirtualTabletop.Roster
                 name = name.Substring(0, name.LastIndexOf("]"));
             }
             return name;
+        }
+
+        private void GenerateMenuFileForCharacter(CrowdMemberModel character)
+        {
+            string fileCharacterMenu = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME, Constants.GAME_LANGUAGE_FOLDERNAME, Constants.GAME_MENUS_FOLDERNAME, Constants.GAME_CHARACTER_MENU_FILENAME);
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var resourceName = "Module.HeroVirtualTabletop.Resources.character.mnu";
+            List<string> menuFileLines = new List<string>();
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string line;
+                while((line = reader.ReadLine()) != null)
+                {
+                    menuFileLines.Add(line);
+                }
+
+                StringBuilder sb = new StringBuilder();
+                for(int i = 0; i < menuFileLines.Count -1; i++)
+                {
+                    sb.AppendLine(menuFileLines[i]);
+                }
+                if(character.AvailableIdentities != null && character.AvailableIdentities.Count > 0)
+                {
+                    sb.AppendLine("Menu \"Identities\"");
+                    sb.AppendLine("{");
+                    foreach(Identity identity in character.AvailableIdentities)
+                    {
+                        //Option "IdentityXYZ" "bind_save_file Identity_IdentityXYZ.txt"
+                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Identity_{0}.txt\"", identity.Name));
+                    }
+                    sb.AppendLine("}");
+                }
+                if (character.AnimatedAbilities != null && character.AnimatedAbilities.Count > 0)
+                {
+                    sb.AppendLine("Menu \"Powers\"");
+                    sb.AppendLine("{");
+                    foreach (AnimatedAbility ability in character.AnimatedAbilities)
+                    {
+                        //Option "AbilityXYZ" "bind_save_file Ability_AbilityXYZ.txt"
+                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Ability_{0}.txt\"", ability.Name));
+                    }
+                    sb.AppendLine("}");
+                }
+                if (character.Movements != null && character.Movements.Count > 0)
+                {
+                    sb.AppendLine("Menu \"Movements\"");
+                    sb.AppendLine("{");
+                    foreach (Movement movement in character.Movements)
+                    {
+                        //Option "MovementXYZ" "bind_save_file Movement_MovementXYZ.txt"
+                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Movement_{0}.txt\"", movement.Name));
+                    }
+                    sb.AppendLine("}");
+                }
+                if(character.OptionGroups != null && character.OptionGroups.FirstOrDefault(o => o.Type == OptionType.Mixed) != null)
+                {
+                    foreach(var customOptionGroup in character.OptionGroups.Where(o => o.Type == OptionType.Mixed))
+                    {
+                        sb.AppendLine(string.Format("Menu \"{0}\"", customOptionGroup.Name));
+                        sb.AppendLine("{");
+                        foreach (ICharacterOption option in customOptionGroup.Options)
+                        {
+                            if(option is Identity)
+                            {
+                                sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Identity_{0}.txt\"", option.Name));
+                            }
+                            else if(option is AnimatedAbility)
+                            {
+                                sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Ability_{0}.txt\"", option.Name));
+                            }
+                            else if(option is Movement)
+                            {
+                                sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Movement_{0}.txt\"", option.Name));
+                            }
+                        }
+                        sb.AppendLine("}");
+                    }
+                }
+
+                sb.AppendLine(menuFileLines[menuFileLines.Count - 1]);
+
+                File.WriteAllText(
+                    fileCharacterMenu, sb.ToString()
+                    );
+            }
         }
 
         void clickTimer_Elapsed(object sender, ElapsedEventArgs e)
@@ -439,6 +534,7 @@ namespace Module.HeroVirtualTabletop.Roster
             foreach (var crowdMember in crowdMembers)
             {
                 Participants.Add(crowdMember);
+                InitializeAttackEventHandlers(crowdMember);
                 CheckIfCharacterExistsInGame(crowdMember);
             }
             Participants.Sort();
@@ -789,6 +885,37 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Attack / Area Attack
 
+
+        private void InitializeAttackEventHandlers(Attack attack)
+        {
+            attack.AttackInitiated -= this.Ability_AttackInitiated;
+            attack.AttackInitiated += Ability_AttackInitiated;
+        }
+
+        private void InitializeAttackEventHandlers(Character character)
+        {
+            foreach (var ability in character.AnimatedAbilities)
+            {
+                var attack = ability as Attack;
+                InitializeAttackEventHandlers(attack);
+            }
+        }
+
+        private void Ability_AttackInitiated(object sender, EventArgs e)
+        {
+            Character targetCharacter = sender as Character;
+            CustomEventArgs<Attack> customEventArgs = e as CustomEventArgs<Attack>;
+            if (targetCharacter != null && customEventArgs != null)
+            {
+                Helper.GlobalVariables_IsPlayingAttack = true;
+                // Change mouse pointer to bulls eye
+                Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
+                Mouse.OverrideCursor = cursor;
+                // Inform Roster to update attacker
+                this.eventAggregator.GetEvent<AttackInitiatedEvent>().Publish(new Tuple<Character, Attack>(targetCharacter, customEventArgs.Value));
+            }
+        }
+
         private void InitiateRosterCharacterAttack(Tuple<Character, Attack> attackInitiatedEventTuple)
         {
             this.targetCharacters = new List<Character>();
@@ -804,6 +931,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     CreateBindSaveFiles();
                     this.fileSystemWatcher.EnableRaisingEvents = true;
                 }
+                Commands_RaiseCanExecuteChanged();
                 targetObserver.TargetChanged += AttackTargetUpdated;
                 this.currentAttack = attack;
                 this.attackingCharacter = attackingCharacter;
@@ -849,6 +977,21 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
+        }
+
+        private void CloseActiveAttack(object state)
+        {
+            if (state != null && state is AnimatedAbility)
+            {
+                Helper.GlobalVariables_IsPlayingAttack = false;
+                Commands_RaiseCanExecuteChanged();
+            }
+        }
+
+        private void HandleCharacterOptionAddition(ICharacterOption option)
+        {
+            if (option is Attack)
+                this.InitializeAttackEventHandlers(option as Attack);
         }
 
         private void LaunchActiveAttack(Tuple<List<Character>, Attack> tuple)
@@ -978,8 +1121,73 @@ namespace Module.HeroVirtualTabletop.Roster
                     fileSystemWatcher.EnableRaisingEvents = false;
                     switch (e.Name)
                     {
-                        case Constants.GAME_CHARACTER_BINDSAVE_SPAWN:
+                        case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
                             Spawn(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_PLACE_FILENAME:
+                            Place(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME:
+                            SavePostion(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME:
+                            TargetAndFollow(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
+                            MoveTargetToCamera(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME:
+                            ToggleManeuverWithCamera(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME:
+                            ActivateCharacter(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME:
+                            ClearFromDesktop(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME:
+                            break;
+                        default:
+                            Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
+                            int index = e.Name.IndexOf("_");
+                            if(index > 0 && character != null)
+                            {
+                                ActivateCharacter(null);
+                                string optionType = e.Name.Substring(0, index);
+                                string optionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                switch(optionType)
+                                {
+                                    case "Identity":
+                                        Identity identity = character.AvailableIdentities.FirstOrDefault(i => i.Name == optionName);
+                                        if (identity != null)
+                                            character.ActiveIdentity = identity;
+                                        break;
+                                    case "Ability":
+                                        AnimatedAbility ability = character.AnimatedAbilities.FirstOrDefault(a => a.Name == optionName);
+                                        if (ability != null)
+                                        {
+                                            if(!ability.IsActive)
+                                            {
+                                                character.AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
+                                                character.ActiveAbility = ability;
+                                                ability.Play();
+                                            }
+                                            else
+                                            {
+                                                character.ActiveAbility = null;
+                                                ability.Stop();
+                                            }
+                                        }
+                                        break;
+                                    case "Movement":
+                                        Movement movement = character.Movements.FirstOrDefault(m => m.Name == optionName);
+                                        if (movement != null)
+                                        {
+                                            character.ActiveMovement = movement;
+                                        }
+                                        break;
+                                }
+                            }
                             break;
                     }
                 }

@@ -177,7 +177,7 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadRequiredKeybinds();
 
-            CreatePopupMenuIfNotExists();
+            CreateAreaAttackPopupMenuIfNotExists();
         }
 
         private void LoadRequiredKeybinds()
@@ -292,7 +292,7 @@ namespace Module.HeroVirtualTabletop.Library
             }
         }
 
-        private void CreatePopupMenuIfNotExists()
+        private void CreateAreaAttackPopupMenuIfNotExists()
         {
             string dirTexts = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME);
             if (!Directory.Exists(dirTexts))

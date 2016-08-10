@@ -204,12 +204,12 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.Owner = owner;
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
+            this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.StopAttack);
             if(!this.IsStandardOptionGroup)
             {
                 this.eventAggregator.GetEvent<RemoveOptionEvent>().Subscribe(this.RemoveOption);
             }
-            InitializeAttackEventHandlers();
             InitializeCommands();
         }
 
@@ -456,14 +456,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private T GetSelectedOption()
         {
-            //if (typeof(T) == typeof(Identity))
-            //{
-            //    return (T)Convert.ChangeType(owner.ActiveIdentity, typeof(T));
-            //}
-            //else
-            //{
-            //    return selectedOption;
-            //}
             return selectedOption;
         }
 
@@ -491,10 +483,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     this.SpawnAndTargetOwnerCharacter();
                 owner.ActiveMovement = (Movement)Convert.ChangeType(value, typeof(Movement));
             }
-            //else if(value is AnimatedAbility)
-            //{
-            //    owner.ActiveAbility = (AnimatedAbility)Convert.ChangeType(value, typeof(Attack));
-            //}
         }
 
         private bool CanPlayOption(object arg)
@@ -533,7 +521,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private bool CanStopOption(object arg)
         {
-            return CanPlayOption(arg);// && (selectedOption as AnimatedAbility).IsActive;
+            return CanPlayOption(arg);
         }
 
         private void StopOption(object state)
@@ -585,6 +573,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
             }
         }
+        private void AttackInitiated(object state)
+        {
+            this.UpdateCommands();
+        }
         private void StopAttack(object state)
         {
             if (state != null && state is AnimatedAbility)
@@ -621,7 +613,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 return;
             }
             optionGroup.Remove(SelectedOption);
-            // Need to fire event so that custom groups can update themselves
         }
 
         private Identity GetNewIdentity()
@@ -635,7 +626,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             (optionGroup as OptionGroup<AnimatedAbility>).Add(attack);
 
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
-            InitializeAttackEventHandlers(attack);
+            this.eventAggregator.GetEvent<AddOptionEvent>().Publish(attack);
         }
         
         private Attack GetNewAttackAbility()
@@ -664,7 +655,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             else if (SelectedOption is AnimatedAbility)
             {
                 Attack attack = (Attack)Convert.ChangeType(SelectedOption, typeof(Attack));
-                InitializeAttackEventHandlers(attack);
                 eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(attack, Owner));
             }
             else if (SelectedOption is Movement)
@@ -673,46 +663,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 eventAggregator.GetEvent<EditMovementEvent>().Publish(new Tuple<Movement, Character>(movement, Owner));
             }
         }
-
-        private void InitializeAttackEventHandlers(Attack attack)
-        {
-            attack.AttackInitiated -= this.Ability_AttackInitiated;
-            attack.AttackInitiated += Ability_AttackInitiated;
-        }
-
-        private void InitializeAttackEventHandlers()
-        {
-            if (typeof(T) == typeof(AnimatedAbility))
-            {
-                foreach(var option in this.OptionGroup)
-                {
-                    Attack attack = (Attack)Convert.ChangeType(option, typeof(Attack));
-                    InitializeAttackEventHandlers(attack);
-                }
-            }
-        }
-
-        private void Ability_AttackInitiated(object sender, EventArgs e)
-        {
-            Character targetCharacter = sender as Character;
-            CustomEventArgs<Attack> customEventArgs = e as CustomEventArgs<Attack>;
-            if(targetCharacter != null && customEventArgs != null)
-            {
-                Helper.GlobalVariables_IsPlayingAttack = true;
-                this.UpdateCommands();
-                // Change mouse pointer to bulls eye
-                Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
-                Mouse.OverrideCursor = cursor;
-                // Inform Roster to update attacker
-                this.eventAggregator.GetEvent<AttackInitiatedEvent>().Publish(new Tuple<Character, Attack>(targetCharacter, customEventArgs.Value));
-            }
-        }
-
-        private void Ability_AttackTargetSelected(Tuple<Character, Attack> targetSelectedEventTuple)
-        {
-
-        }
-
+       
         #region Rename Option Group
 
         private bool CanEnterEditMode(object arg)
