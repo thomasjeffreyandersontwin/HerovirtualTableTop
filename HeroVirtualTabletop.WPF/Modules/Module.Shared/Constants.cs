@@ -10,6 +10,10 @@ namespace Module.Shared
     {
         #region Application
         public const string APPLICATION_NAME = "Hero Virtual";
+        public const string DEFAULT_DELIMITING_CHARACTER = "¿";
+        public const string DEFAULT_DELIMITING_CHARACTER_TRANSLATION = "Â¿";
+        public const string SPACE_REPLACEMENT_CHARACTER = "§";
+        public const string SPACE_REPLACEMENT_CHARACTER_TRANSLATION = "Â§";
         #endregion
 
         #region Regions

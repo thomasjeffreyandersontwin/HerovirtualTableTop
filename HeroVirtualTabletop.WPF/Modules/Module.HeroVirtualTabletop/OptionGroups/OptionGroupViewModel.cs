@@ -63,7 +63,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             if (EditModeLeave != null)
                 EditModeLeave(sender, e);
         }
-        
+
         #endregion
 
         #region Public Properties
@@ -146,6 +146,46 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
         }
 
+        private bool showOptions;
+        public bool ShowOptions
+        {
+            get
+            {
+                return showOptions;
+            }
+            set
+            {
+                showOptions = value;
+                OnPropertyChanged("ShowOptions");
+            }
+        }
+
+        private string loadingOptionName;
+        public string LoadingOptionName 
+        { 
+            get
+            {
+                return loadingOptionName;
+            }
+            set
+            {
+                loadingOptionName = value;
+                if (!string.IsNullOrEmpty(value))
+                {
+                    var optionToLoad = OptionGroup.FirstOrDefault(o => o.Name == value);
+                    if (optionToLoad != null)
+                    {
+                        ShowOptions = true;
+                        this.TogglePlayOption(optionToLoad);
+                    }
+                }
+                else
+                {
+                    ShowOptions = false;
+                }
+            }
+        }
+
         private Character owner;
         public Character Owner
         {
@@ -210,6 +250,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 this.eventAggregator.GetEvent<RemoveOptionEvent>().Subscribe(this.RemoveOption);
             }
+            
             InitializeCommands();
         }
 

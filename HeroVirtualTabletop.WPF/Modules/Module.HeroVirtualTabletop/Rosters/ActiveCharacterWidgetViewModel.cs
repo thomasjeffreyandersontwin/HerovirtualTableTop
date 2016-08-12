@@ -89,40 +89,54 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region Private Methods
-        
-        private void LoadCharacter(Character character)
+
+        private void LoadCharacter(Tuple<Character, string, string> tuple)
         {
             this.UnloadCharacter();
+
+            Character character = tuple.Item1;
+            string optionGroupName = tuple.Item2;
+            string optionName = tuple.Item3;
             this.ActiveCharacter = character;
             if (character != null)
             {
                 this.OptionGroups = new ObservableCollection<IOptionGroupViewModel>();
                 foreach (IOptionGroup group in character.OptionGroups)
                 {
+                    bool loadedOptionExists = group.Name == optionGroupName;
                     switch (group.Type)
                     {
                         case OptionType.Ability:
+                            
                             OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
                             new ParameterOverride("optionGroup", group),
-                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            new ParameterOverride("owner", character),
+                            new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
                         case OptionType.Identity:
                             OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Identity>>(
                             new ParameterOverride("optionGroup", group),
-                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            new ParameterOverride("owner", character),
+                            new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
                         case OptionType.Movement:
                             OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Movements.Movement>>(
                             new ParameterOverride("optionGroup", group), 
-                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            new ParameterOverride("owner", character),
+                            new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
                         case OptionType.Mixed:
                             OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
                             new ParameterOverride("optionGroup", group),
-                            new ParameterOverride("owner", character), new PropertyOverride("IsReadOnlyMode", true)
+                            new ParameterOverride("owner", character),
+                            new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
                     }

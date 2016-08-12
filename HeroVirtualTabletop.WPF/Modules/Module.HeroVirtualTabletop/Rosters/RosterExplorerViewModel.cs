@@ -312,64 +312,21 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     sb.AppendLine(menuFileLines[i]);
                 }
-                if(character.AvailableIdentities != null && character.AvailableIdentities.Count > 0)
+                if(character.OptionGroups != null && character.OptionGroups.Count > 0)
                 {
-                    sb.AppendLine("Menu \"Identities\"");
-                    sb.AppendLine("{");
-                    foreach(Identity identity in character.AvailableIdentities)
+                    foreach (var optionGroup in character.OptionGroups)
                     {
-                        //Option "IdentityXYZ" "bind_save_file Identity_IdentityXYZ.txt"
-                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Identity_{0}.txt\"", identity.Name));
-                    }
-                    sb.AppendLine("}");
-                }
-                if (character.AnimatedAbilities != null && character.AnimatedAbilities.Count > 0)
-                {
-                    sb.AppendLine("Menu \"Powers\"");
-                    sb.AppendLine("{");
-                    foreach (AnimatedAbility ability in character.AnimatedAbilities)
-                    {
-                        //Option "AbilityXYZ" "bind_save_file Ability_AbilityXYZ.txt"
-                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Ability_{0}.txt\"", ability.Name));
-                    }
-                    sb.AppendLine("}");
-                }
-                if (character.Movements != null && character.Movements.Count > 0)
-                {
-                    sb.AppendLine("Menu \"Movements\"");
-                    sb.AppendLine("{");
-                    foreach (Movement movement in character.Movements)
-                    {
-                        //Option "MovementXYZ" "bind_save_file Movement_MovementXYZ.txt"
-                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Movement_{0}.txt\"", movement.Name));
-                    }
-                    sb.AppendLine("}");
-                }
-                if(character.OptionGroups != null && character.OptionGroups.FirstOrDefault(o => o.Type == OptionType.Mixed) != null)
-                {
-                    foreach(var customOptionGroup in character.OptionGroups.Where(o => o.Type == OptionType.Mixed))
-                    {
-                        sb.AppendLine(string.Format("Menu \"{0}\"", customOptionGroup.Name));
+                        sb.AppendLine(string.Format("Menu \"{0}\"", optionGroup.Name));
                         sb.AppendLine("{");
-                        foreach (ICharacterOption option in customOptionGroup.Options)
+                        foreach (ICharacterOption option in optionGroup.Options)
                         {
-                            if(option is Identity)
-                            {
-                                sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Identity_{0}.txt\"", option.Name));
-                            }
-                            else if(option is AnimatedAbility)
-                            {
-                                sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Ability_{0}.txt\"", option.Name));
-                            }
-                            else if(option is Movement)
-                            {
-                                sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file Movement_{0}.txt\"", option.Name));
-                            }
+                            string whiteSpaceReplacedOptionGroupName = optionGroup.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                            string whiteSpaceReplacedOptionName = option.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                            sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", option.Name, whiteSpaceReplacedOptionGroupName, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedOptionName));
                         }
                         sb.AppendLine("}");
                     }
                 }
-
                 sb.AppendLine(menuFileLines[menuFileLines.Count - 1]);
 
                 File.WriteAllText(
@@ -866,7 +823,7 @@ namespace Module.HeroVirtualTabletop.Roster
             ActivateCharacter();
         }
 
-        private void ActivateCharacter(Character character = null)
+        private void ActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
         {
             Action action = delegate ()
             {
@@ -876,7 +833,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     else
                         character = SelectedParticipants[0] as CrowdMemberModel;
                 this.ActiveCharacter = character as CrowdMemberModel;
-                this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(character);
+                this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(new Tuple<Character, string, string>(character, selectedOptionGroupName, selectedOptionName));
             };
             Application.Current.Dispatcher.BeginInvoke(action);
         }
@@ -1146,49 +1103,25 @@ namespace Module.HeroVirtualTabletop.Roster
                             ClearFromDesktop(null);
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME:
-                            break;
-                        default:
-                            Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
-                            int index = e.Name.IndexOf("_");
-                            if(index > 0 && character != null)
                             {
-                                ActivateCharacter(null);
-                                string optionType = e.Name.Substring(0, index);
-                                string optionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
-                                switch(optionType)
-                                {
-                                    case "Identity":
-                                        Identity identity = character.AvailableIdentities.FirstOrDefault(i => i.Name == optionName);
-                                        if (identity != null)
-                                            character.ActiveIdentity = identity;
-                                        break;
-                                    case "Ability":
-                                        AnimatedAbility ability = character.AnimatedAbilities.FirstOrDefault(a => a.Name == optionName);
-                                        if (ability != null)
-                                        {
-                                            if(!ability.IsActive)
-                                            {
-                                                character.AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
-                                                character.ActiveAbility = ability;
-                                                ability.Play();
-                                            }
-                                            else
-                                            {
-                                                character.ActiveAbility = null;
-                                                ability.Stop();
-                                            }
-                                        }
-                                        break;
-                                    case "Movement":
-                                        Movement movement = character.Movements.FirstOrDefault(m => m.Name == optionName);
-                                        if (movement != null)
-                                        {
-                                            character.ActiveMovement = movement;
-                                        }
-                                        break;
-                                }
+                                Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
+                                this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Publish(character as CrowdMemberModel);
+                                break;
                             }
-                            break;
+                        default:
+                            {
+                                Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
+                                int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                if (index > 0 && character != null)
+                                {
+                                    string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
+                                    string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                    string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                    string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                    ActivateCharacter(character, optionGroupName, optionName);
+                                }
+                                break;
+                            }
                     }
                 }
             };

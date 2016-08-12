@@ -13,6 +13,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
 {
     public class AddToRosterEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { }
     public class DeleteCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { }
+    public class CloneLinkCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { }
     public class EditCharacterEvent : PubSubEvent<Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>> { }
     public class SaveCrowdEvent : PubSubEvent<object> { }
     public class SaveCrowdCompletedEvent : PubSubEvent<object> { }
@@ -23,7 +24,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class EditAbilityEvent : PubSubEvent<Tuple<AnimatedAbility, Character>> { };
     public class CheckRosterConsistencyEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { };
     public class CreateCrowdFromModelsEvent : PubSubEvent<CrowdModel> { };
-    public class ActivateCharacterEvent : PubSubEvent<Character> { };
+    public class ActivateCharacterEvent : PubSubEvent<Tuple<Character, string, string>> { };
     public class NeedAbilityCollectionRetrievalEvent : PubSubEvent<object> { };
     public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbility>> { };
     public class StopAllActiveAbilitiesEvent : PubSubEvent<object> { };

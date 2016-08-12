@@ -227,7 +227,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Subscribe(this.StopAllActiveAbilities);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
-            //LoadCrowdCollection(Application.Current.MainWindow);
+            this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Subscribe(this.CloneLinkCharacter);
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
         }
 
@@ -1012,6 +1012,15 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         #endregion
 
+        #region CloneLink
+        public void CloneLinkCharacter(ICrowdMemberModel character)
+        {
+            this.ClipboardObject = character;
+            clipboardAction = ClipboardAction.CloneLink;
+        }
+
+        #endregion
+
         #region Paste Character/Crowd
         public bool CanPasteCharacterCrowd(object state)
         {
@@ -1068,6 +1077,10 @@ namespace Module.HeroVirtualTabletop.Crowds
                             else
                                 canPaste = true;
                         }
+                        break;
+                    case ClipboardAction.CloneLink:
+                        if (this.ClipboardObject != null)
+                            canPaste = true;
                         break;
                 } 
             }
@@ -1159,6 +1172,24 @@ namespace Module.HeroVirtualTabletop.Crowds
                         {
                             CrowdModel linkedCrowd = this.ClipboardObject as CrowdModel;
                             this.AddCrowdToSelectedCrowd(linkedCrowd);
+                        }
+                        clipboardObject = null;
+                        break;
+                    }
+                case ClipboardAction.CloneLink:
+                    {
+                        ICrowdMemberModel model = this.ClipboardObject as ICrowdMemberModel;
+                        if (this.SelectedCrowdModel == null || (this.SelectedCrowdModel != null && MemberExistsInCrowd(model, this.SelectedCrowdModel)) || (this.SelectedCrowdModel != null && this.SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME))
+                        {   // Do clone paste
+                            this.SelectedCrowdModel = this.SelectedCrowdModel ?? model.RosterCrowd as CrowdModel;
+                            CrowdMemberModel clonedModel = (clipboardObject as CrowdMemberModel).Clone() as CrowdMemberModel;
+                            EliminateDuplicateName(clonedModel);
+                            this.AddNewCharacter(clonedModel);
+                            OnEditNeeded(clonedModel, null);
+                        }
+                        else
+                        {   // Do Link Paste
+                            this.AddCharacterToCrowd(model as Character, this.SelectedCrowdModel);
                         }
                         clipboardObject = null;
                         break;

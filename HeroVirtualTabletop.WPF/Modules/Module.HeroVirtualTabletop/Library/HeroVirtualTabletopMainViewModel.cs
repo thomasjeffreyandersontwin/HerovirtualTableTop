@@ -98,8 +98,11 @@ namespace Module.HeroVirtualTabletop.Library
             this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Publish(null);
         }
         
-        private void LoadActiveCharacterWidget(Character character)
+        private void LoadActiveCharacterWidget(Tuple<Character, string, string> tuple)
         {
+            Character character = tuple.Item1;
+            string optionGroupName = tuple.Item2;
+            string optionName = tuple.Item3;
             if (character != null && PopupService.IsOpen("ActiveCharacterWidgetView") == false)
             {
                 System.Windows.Style style = Helper.GetCustomWindowStyle();
@@ -107,10 +110,10 @@ namespace Module.HeroVirtualTabletop.Library
                 style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
                 var desktopWorkingArea = System.Windows.SystemParameters.WorkArea;
                 style.Setters.Add(new Setter(Window.LeftProperty, desktopWorkingArea.Right - 500));
-                style.Setters.Add(new Setter(Window.TopProperty, desktopWorkingArea.Bottom - 250));
+                style.Setters.Add(new Setter(Window.TopProperty, desktopWorkingArea.Bottom - 80 * character.OptionGroups.Count));
                 ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
                 PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style, WindowStartupLocation.Manual);
-                this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(character);
+                this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(tuple);
             }
             else if (character == null && PopupService.IsOpen("ActiveCharacterWidgetView"))
             {
@@ -162,16 +165,6 @@ namespace Module.HeroVirtualTabletop.Library
                 SetGameDirectory();
 
             Process[] Processes = Process.GetProcessesByName(Constants.GAME_PROCESSNAME);
-            if (Processes.Length == 0)
-            {
-                //string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_ICON_EXE_FILENAME);
-                //if (File.Exists(filePath))
-                //{
-                //    Process.Start(filePath, "-r");
-                //    // Need to automate the following process
-                //    var x = MessageBox.Show("Please wait for COH to initialize and close this message");
-                //}
-            }
 
             IconInteractionUtility.RunCOHAndLoadDLL();
 

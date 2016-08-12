@@ -69,7 +69,7 @@
                                   Background="Transparent" BorderBrush="Transparent">
                 </ToggleButton>
                 <Expander Name="ExpanderOptionGroup" Grid.RowSpan="2" Grid.Column="1" Style="{StaticResource ExpanderWithoutToggleButtonStyle}"
-                  OverridesDefaultStyle="True" IsExpanded="False" VerticalAlignment="Top"
+                  OverridesDefaultStyle="True" IsExpanded="{Binding ShowOptions}" VerticalAlignment="Top"
                   >
                     <Grid VerticalAlignment="Top">
                         <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
