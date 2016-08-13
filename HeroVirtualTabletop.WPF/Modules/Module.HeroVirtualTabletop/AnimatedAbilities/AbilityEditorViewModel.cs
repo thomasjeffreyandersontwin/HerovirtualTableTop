@@ -985,12 +985,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (referenceAbilitiesCVS == null)
             {
                 referenceAbilitiesCVS = new CollectionViewSource();
-                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }));
+                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); }));
                 referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
             }
             else
             {
-                var updatedAbilityResources = abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); });
+                var updatedAbilityResources = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
                 var currentAbilityResources = referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>;
                 var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null);
                 if (addedResources.Count() > 0)
