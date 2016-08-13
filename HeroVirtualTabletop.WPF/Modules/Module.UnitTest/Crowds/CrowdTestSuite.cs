@@ -1420,8 +1420,8 @@ namespace Module.UnitTest.Crowds
         public void SavePositionForCharacter_SavesPositionOfCharacterForCrowdMember()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
@@ -1440,8 +1440,8 @@ namespace Module.UnitTest.Crowds
         public void SavePositionForCharacter_SavesPositionOfCharacterInCrowd()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
@@ -1463,8 +1463,8 @@ namespace Module.UnitTest.Crowds
         public void SavePositionForCharacter_UpdatesRepository()
         { 
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
@@ -1486,8 +1486,8 @@ namespace Module.UnitTest.Crowds
         public void SavePositionForCharacter_PreventsSavingWithoutSpawning()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
@@ -1508,8 +1508,8 @@ namespace Module.UnitTest.Crowds
         public void PlaceCharacter_MovesCharacterToPositionBasedOnSavedLocationIfCharacterIsInNoCrowd() 
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME]; // Selected crowd is All Characters
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman
             characterExplorerViewModel.SelectedCrowdMemberModel.SavedPosition = GetRandomPosition(); // Assigning a saved position for Batman
@@ -1530,8 +1530,8 @@ namespace Module.UnitTest.Crowds
         public void PlaceCharacter_MovesCharacterToPositionBasedOnSavedLocationInCrowd()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[0] as CrowdMemberModel; // Selecting Batman from Gotham City
             characterExplorerViewModel.SelectedCrowdModel.SavedPositions.Add("Batman", GetRandomPosition(-500));// Saving a position for Batman within Gotham
@@ -1559,8 +1559,8 @@ namespace Module.UnitTest.Crowds
         public void PlaceCharacter_SpawnsTheCharacterOnlyIfThereIsNoSavedLocationInCrowdInCaseOfMultipleCharacterSelection()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[1] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
@@ -1585,8 +1585,8 @@ namespace Module.UnitTest.Crowds
         public void PlaceCharacter_PreventsPlacingIfThereIsNoSavedLocationInCrowd()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[1] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);
@@ -1603,8 +1603,8 @@ namespace Module.UnitTest.Crowds
         public void PlaceCharacters_SpawnsOrPlacesMultipleCharactersInTheCrowdAccordingToTheirSavedPositionsInTheCrowd()
         {
             InitializeCrowdRepositoryMockWithDefaultList();
-            
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
             characterExplorerViewModel.SelectedCrowdModel = characterExplorerViewModel.CrowdCollection["Gotham City"];
             characterExplorerViewModel.SelectedCrowdMemberModel = characterExplorerViewModel.SelectedCrowdModel.CrowdMemberCollection[1] as CrowdMemberModel;
             characterExplorerViewModel.AddToRosterCommand.Execute(null);

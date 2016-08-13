@@ -288,8 +288,8 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}" IsReadOnly="True"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="dataGridFXResources"
@@ -317,8 +317,8 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}" IsReadOnly="True"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="dataGridSoundResources"
@@ -346,8 +346,8 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Resource" Binding="{Binding Value}" IsReadOnly="True"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
                 <DataGrid x:Name="dataGridAbilityReferences"
@@ -374,8 +374,8 @@
                         </Style>
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto" IsReadOnly="True"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*" IsReadOnly="True"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

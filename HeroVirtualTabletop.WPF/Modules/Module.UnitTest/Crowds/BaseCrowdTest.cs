@@ -1,6 +1,7 @@
 ﻿using Framework.WPF.Library;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Module.HeroVirtualTabletop.Library.Sevices;
 using Moq;
 using System;
 using System.Collections.Generic;
@@ -15,6 +16,7 @@ namespace Module.UnitTest
     public class BaseCrowdTest : BaseTest
     {
         protected Mock<ICrowdRepository> crowdRepositoryMock = new Mock<ICrowdRepository>();
+        protected Mock<ITargetObserver> targetObserverMock = new Mock<ITargetObserver>();
         protected List<CrowdModel> crowdModelList;
         protected CharacterExplorerViewModel characterExplorerViewModel;
 

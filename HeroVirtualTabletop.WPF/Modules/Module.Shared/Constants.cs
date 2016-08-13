@@ -48,6 +48,9 @@ namespace Module.Shared
         public const string GAME_COSTUMES_FOLDERNAME = "costumes";
         public const string GAME_COSTUMES_EXT = ".costume";
         public const string GAME_CROWD_REPOSITORY_FILENAME = "CrowdRepo.data";
+        public const string GAME_MOVE_REPOSITORY_FILENAME = "MoveRepo.data";
+        public const string GAME_FX_REPOSITORY_FILENAME = "FxRepo.data";
+        public const string GAME_SOUND_REPOSITORY_FILENAME = "SoundRepo.data";
         public const string GAME_KEYBINDS_FILENAME = "required_keybinds.txt";
         public const string GAME_MODELS_FILENAME = "Models.txt";
         public const string GAME_DATA_BACKUP_FOLDERNAME = "Backup";

@@ -17,6 +17,7 @@ namespace Module.UnitTest.Characters
     {
         private RosterExplorerViewModel rosterExplorerViewModel;
 
+
         [TestInitialize]
         public void TestInitialize()
         {
@@ -24,7 +25,7 @@ namespace Module.UnitTest.Characters
             InitializeCrowdRepositoryMockWithDefaultList();
             this.numberOfItemsFound = 0;
 
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
         }
 
         #region Spawn Tests

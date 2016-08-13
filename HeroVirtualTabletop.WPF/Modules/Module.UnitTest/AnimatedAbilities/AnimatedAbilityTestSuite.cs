@@ -2,6 +2,8 @@
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.Shared.Events;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,16 +17,17 @@ namespace Module.UnitTest.AnimatedAbilities
     public class AnimatedAbilityTestSuite : BaseTest
     {
         private AbilityEditorViewModel abilityEditorViewModel;
+        protected Mock<IResourceRepository> resourceRepositoryMock = new Mock<IResourceRepository>();
         private CrowdMemberModel character;
         [TestInitialize]
         public void TestInitialize()
         {
-            abilityEditorViewModel = new AbilityEditorViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            abilityEditorViewModel = new AbilityEditorViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, resourceRepositoryMock.Object, eventAggregatorMock.Object);
             character = new CrowdMemberModel("Spyder");
             //this.abilityEditorViewModel.CurrentAbility = new AnimatedAbility("Ability");
             this.abilityEditorViewModel.Owner = character;
 
-            this.abilityEditorViewModel.AnimationAdded += (delegate(object state, EventArgs e) 
+            this.abilityEditorViewModel.AnimationAdded += (delegate(object state, CustomEventArgs<bool> e) 
             { 
                 this.abilityEditorViewModel.SelectedAnimationElement = state as IAnimationElement;
             });

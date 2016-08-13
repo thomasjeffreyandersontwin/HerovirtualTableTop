@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Moq;
 using System.Collections.Generic;
+using Module.HeroVirtualTabletop.Library.Sevices;
 
 namespace Module.UnitTest.Roster
 {
@@ -16,6 +17,7 @@ namespace Module.UnitTest.Roster
     public class RosterTest : BaseCrowdTest
     {
         private RosterExplorerViewModel rosterExplorerViewModel;
+        
 
         [TestInitialize]
         public void TestInitialize()
@@ -24,7 +26,7 @@ namespace Module.UnitTest.Roster
             InitializeCrowdRepositoryMockWithDefaultList();
             this.numberOfItemsFound = 0;
 
-            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, eventAggregatorMock.Object);
+            rosterExplorerViewModel = new RosterExplorerViewModel(busyServiceMock.Object, unityContainerMock.Object, messageBoxServiceMock.Object, targetObserverMock.Object, eventAggregatorMock.Object);
         }
 
         #region Add To Roster

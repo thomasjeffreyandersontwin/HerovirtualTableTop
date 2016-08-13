@@ -34,6 +34,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
+        private IResourceRepository resourceRepository;
 
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
@@ -182,6 +183,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName((sender as AnimationElement).Resource);
                 SaveAbility(null);
                 DemoAnimation(null);
+                SaveResources();
                 this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
             }
         }
@@ -459,9 +461,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Constructor
 
-        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator)
+        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IResourceRepository resourceRepository, EventAggregator eventAggregator)
             : base(busyService, container)
         {
+            this.resourceRepository = resourceRepository;
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             InitializeCommands();
@@ -929,6 +932,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return !Helper.GlobalVariables_IsPlayingAttack;
         }
 
+        private void SaveResources()
+        {
+            this.resourceRepository.SaveMoveResources(this.movResources.ToList());
+            this.resourceRepository.SaveFXResources(this.fxResources.ToList());
+            this.resourceRepository.SaveSoundResources(this.soundResources.ToList());
+        }
+
         private void SaveAbility(object state)
         {
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
@@ -940,72 +950,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Load Resources
         private void LoadResources(object state)
         {
-            movResources = new ObservableCollection<AnimationResource>();
+            List<AnimationResource> moveResourceCollection = this.resourceRepository.GetMoveResources();
+            movResources = new ObservableCollection<AnimationResource>(moveResourceCollection);
             MOVResources = new ReadOnlyObservableCollection<AnimationResource>(movResources);
-            fxResources = new ObservableCollection<AnimationResource>();
+
+            List<AnimationResource> fxResourceCollection = this.resourceRepository.GetFXResources();
+            fxResources = new ObservableCollection<AnimationResource>(fxResourceCollection);
             FXResources = new ReadOnlyObservableCollection<AnimationResource>(fxResources);
-            soundResources = new ObservableCollection<AnimationResource>();
+
+            List<AnimationResource> soundResourceCollection = this.resourceRepository.GetSoundResources();
+            soundResources = new ObservableCollection<AnimationResource>(soundResourceCollection);
             SoundResources = new ReadOnlyObservableCollection<AnimationResource>(soundResources);
-
-
-            Assembly assembly = Assembly.GetExecutingAssembly();
-
-            string resName = "Module.HeroVirtualTabletop.Resources.MOVElements.csv";
-            using (StreamReader Sr = new StreamReader(assembly.GetManifestResourceStream(resName)))
-            {
-                while (!Sr.EndOfStream)
-                {
-                    string resLine = Sr.ReadLine();
-                    string[] resArray = resLine.Split(';');
-                    movResources.Add(new AnimationResource(resArray[1], GetDisplayNameFromResourceName(resArray[1]), tags: resArray[0]));
-                }
-            }
-
-            resName = "Module.HeroVirtualTabletop.Resources.FXElements.csv";
-            using (StreamReader Sr = new StreamReader(assembly.GetManifestResourceStream(resName)))
-            {
-                while (!Sr.EndOfStream)
-                {
-                    string resLine = Sr.ReadLine();
-                    string[] resArray = resLine.Split(';');
-                    fxResources.Add(new AnimationResource(resArray[2], resArray[1], tags: resArray[0]));
-                }
-            }
-
-            string soundPath = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "sound");
-
-            var soundFiles = Directory.EnumerateFiles
-                        (soundPath,
-                        "*.wav", SearchOption.AllDirectories);//.OrderBy(x => { return Path.GetFileNameWithoutExtension(x); });
-
-            foreach (string file in soundFiles)
-            {
-                string name = Path.GetFileNameWithoutExtension(file);
-                string[] tmpTags = file.Substring(soundPath.Length).Split('\\').Where((s) =>
-                {
-                    return !string.IsNullOrWhiteSpace(s);
-                }).ToArray();
-                string[] tags = new string[1];
-
-                string sound = tmpTags[tmpTags.Length - 1];
-
-                string tag = tmpTags.Length >= 2 ? tmpTags[tmpTags.Length - 2] : "Sound";
-                tag = tag[0].ToString().ToUpper() + tag.Substring(1);
-
-                Regex re = new Regex(@"_{1}");
-                if (!re.IsMatch(sound, 1))
-                    re = new Regex(@"[A-Z,0-9,\-]{1}");
-                string tmp;
-                if (re.IsMatch(sound, 1))
-                {
-                    tmp = sound.Substring(0, re.Match(sound, 1).Index);
-                    tmp = tmp[0].ToString().ToUpper() + tmp.Substring(1);
-                    tag += tmp;
-                }
-
-                tags[0] = tag;
-                soundResources.Add(new AnimationResource(file, name, tags));
-            }
 
             movResourcesCVS = new CollectionViewSource();
             movResourcesCVS.Source = MOVResources;
