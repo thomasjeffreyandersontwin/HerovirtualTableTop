@@ -1,6 +1,8 @@
 ﻿using Framework.WPF.Library;
+using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
@@ -264,7 +266,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (animation as FXEffectElement).AttackDirection = direction;
                 }
             }
-            base.Play(false, attacker); // TODISCUSS: Can an attack actually be persistent and should we allow playing it as persistent?
+            Vector3 facingVector = new Vector3(direction.AttackDirectionX, direction.AttackDirectionY, direction.AttackDirectionZ);
+            (attacker.Position as Position).SetTargetFacing(facingVector);
+            base.Play(false, attacker); 
             // Restet FX direction
             foreach (var animation in this.AnimationElements)
             {
@@ -273,7 +277,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (animation as FXEffectElement).AttackDirection = null;
                 }
             }
-            //System.Threading.Thread.Sleep(2000); // Wait for attacker to finish moves before deactivating
 
         }
 
@@ -320,7 +323,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
                     {
                         direction.AttackDirectionX = centerTargetCharacter.Position.X;
-                        direction.AttackDirectionY = centerTargetCharacter.Position.Y + 4.0d;
+                        direction.AttackDirectionY = centerTargetCharacter.Position.Y + 4.0f;
                         direction.AttackDirectionZ = centerTargetCharacter.Position.Z;
                     }
                     else
@@ -332,7 +335,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         direction.AttackDirectionX = centerTargetCharacter.Position.X + randomOffset * multiplyFactorX;
                         multiplyOffset = rand.Next(11, 20);
                         int multiplyFactorY = multiplyOffset % 2 == 0 ? 1 : -1;
-                        direction.AttackDirectionY = centerTargetCharacter.Position.Y + 5.0d + randomOffset * multiplyFactorY;
+                        direction.AttackDirectionY = centerTargetCharacter.Position.Y + 5.0f + randomOffset * multiplyFactorY;
                         multiplyOffset = rand.Next(11, 20);
                         int multiplyFactorZ = multiplyOffset % 2 == 0 ? 1 : -1;
                         direction.AttackDirectionZ = centerTargetCharacter.Position.Z + randomOffset * multiplyFactorZ;
@@ -462,20 +465,30 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     }
     public class AttackDirection
     {
-        public double AttackDirectionX
+        public float AttackDirectionX
         {
             get;
             set;
         }
-        public double AttackDirectionY
+        public float AttackDirectionY
         {
             get;
             set;
         }
-        public double AttackDirectionZ
+        public float AttackDirectionZ
         {
             get;
             set;
+        }
+        public AttackDirection()
+        {
+
+        }
+        public AttackDirection(Vector3 direction)
+        {
+            this.AttackDirectionX = direction.X;
+            this.AttackDirectionY = direction.Y;
+            this.AttackDirectionZ = direction.Z;
         }
     }
 }

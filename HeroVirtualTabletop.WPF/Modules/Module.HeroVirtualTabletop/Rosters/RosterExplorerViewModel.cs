@@ -5,6 +5,7 @@ using Framework.WPF.Services.MessageBoxService;
 using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
@@ -226,17 +227,30 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        //Handle clicks
-                        clickCount += 1;
-                        switch (clickCount)
+                        if(!this.isPlayingAttack)
                         {
-                            case 1: Action action = delegate () { clickTimer.Start(); };
+                            //Handle clicks
+                            clickCount += 1;
+                            switch (clickCount)
+                            {
+                                case 1: Action action = delegate() { clickTimer.Start(); };
                                     Application.Current.Dispatcher.BeginInvoke(action);
                                     break;
-                            case 2: isDoubleClick = true; break;
-                            case 3: isTripleClick = true; break;
-                            case 4: isQuadrupleClick = true; break;
-                            default: break;
+                                case 2: isDoubleClick = true; break;
+                                case 3: isTripleClick = true; break;
+                                case 4: isQuadrupleClick = true; break;
+                                default: break;
+                            }
+                        }
+                        else
+                        {
+                            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                            Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                            AttackDirection direction = new AttackDirection(mouseDirection);
+                            if(this.currentAttack != null && this.attackingCharacter != null)
+                            {
+                                this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                            }
                         }
                     }
                 }
@@ -279,6 +293,27 @@ namespace Module.HeroVirtualTabletop.Roster
             return MouseHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
 
+        public Vector3 GetDirectionVectorFromMouseXYZInfo(string mouseXYZInfo)
+        {
+            Vector3 vector3 = new Vector3();
+            float f;
+            int xStart = mouseXYZInfo.IndexOf("[");
+            int xEnd = mouseXYZInfo.IndexOf("]");
+            string xStr = mouseXYZInfo.Substring(xStart + 1, xEnd - xStart - 1);
+            if (float.TryParse(xStr, out f))
+                vector3.X = f;
+            int yStart = mouseXYZInfo.IndexOf("[", xEnd);
+            int yEnd = mouseXYZInfo.IndexOf("]", yStart);
+            string yStr = mouseXYZInfo.Substring(yStart + 1, yEnd - yStart - 1);
+            if (float.TryParse(yStr, out f))
+                vector3.Y = f;
+            int zStart = mouseXYZInfo.IndexOf("[", yEnd);
+            int zEnd = mouseXYZInfo.IndexOf("]", zStart);
+            string zStr = mouseXYZInfo.Substring(zStart + 1, zEnd - zStart - 1);
+            if (float.TryParse(zStr, out f))
+                vector3.Z = f;
+            return vector3;
+        }
         private string GetCharacterNameFromHoveredInfo(string hoveredCharacterInfo)
         {
             // Sample : "Name: [Agents of Orisha 3 [Agents]] X:[137.50] Y:[-0.50] Z:[-77.23]"

@@ -120,6 +120,16 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             return new Vector3(px, py, pz);
         }
 
+        public void SetTargetFacing(Vector3 facingDirectionVector)
+        {
+            Vector3 currentPositionVector = new Vector3(this.X, this.Y, this.Z);
+            Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, facingDirectionVector, Vector3.Up);
+            SetTargetAttribute(56, -1 * newRotationMatrix.M11);
+            SetTargetAttribute(64, newRotationMatrix.M13);
+            SetTargetAttribute(80, newRotationMatrix.M31);
+            SetTargetAttribute(88, -1 * newRotationMatrix.M33);
+        }
+
         #region Equality Comparer and Operator Overloading
         public static bool operator ==(Position a, Position b)
         {

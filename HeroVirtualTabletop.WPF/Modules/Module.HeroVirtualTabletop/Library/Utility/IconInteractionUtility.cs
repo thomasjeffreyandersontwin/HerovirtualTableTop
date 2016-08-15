@@ -32,12 +32,17 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         [UnmanagedFunctionPointer(CallingConvention.Winapi, CharSet = CharSet.Ansi)]
         private delegate IntPtr GetHoveredNPCInfo();
 
+        [UnmanagedFunctionPointer(CallingConvention.Winapi, CharSet = CharSet.Ansi)]
+        private delegate IntPtr GetMouseXYZInGame();
+
         private static IntPtr dllHandle;
         private static InitGame initGame;
         private static CloseGame closeGame;
         private static SetUserHWND setUserHWnd;
         private static ExecuteCommand executeCmd;
         private static GetHoveredNPCInfo getHoveredNPCInfo;
+        private static GetMouseXYZInGame getMouseXYZInGame;
+
 
         static IconInteractionUtility()
         {
@@ -75,6 +80,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 if (getHoveredNPCInfoAddress != IntPtr.Zero)
                 {
                     getHoveredNPCInfo = (GetHoveredNPCInfo)(Marshal.GetDelegateForFunctionPointer(getHoveredNPCInfoAddress, typeof(GetHoveredNPCInfo)));
+                }
+
+                IntPtr getMouseXYZInGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "GetMouseXYZInGame");
+                if (getMouseXYZInGameAddress != IntPtr.Zero)
+                {
+                    getMouseXYZInGame = (GetMouseXYZInGame)(Marshal.GetDelegateForFunctionPointer(getMouseXYZInGameAddress, typeof(GetMouseXYZInGame)));
                 }
             }
         }
@@ -115,6 +126,11 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static string GetHoveredNPCInfoFromGame()
         {
             return Marshal.PtrToStringAnsi(getHoveredNPCInfo());
+        }
+
+        public static string GetMouseXYZFromGame()
+        {
+            return Marshal.PtrToStringAnsi(getMouseXYZInGame());
         }
     }
 }
