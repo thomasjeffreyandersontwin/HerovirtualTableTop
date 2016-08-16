@@ -95,21 +95,22 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        private IAnimationElement selectedAnimationElement;
-        public IAnimationElement SelectedAnimationElement
+        private MovementMember selectedMovementMember;
+        public MovementMember SelectedMovementMember
         {
             get
             {
-                return selectedAnimationElement;
+                return selectedMovementMember;
             }
             set
             {
-                if (selectedAnimationElement != null)
-                    (selectedAnimationElement as AnimationElement).PropertyChanged -= SelectedAnimationElement_PropertyChanged;
-                if (value != null)
-                    (value as AnimationElement).PropertyChanged += SelectedAnimationElement_PropertyChanged;
-                selectedAnimationElement = value;
-                OnPropertyChanged("SelectedAnimationElement");
+                selectedMovementMember = value;
+                if(selectedMovementMember != null && selectedMovementMember.MemberAbility != null)
+                {
+                    selectedMovementMember.MemberAbility.PropertyChanged -= this.SelectedMemberAbility_PropertyChanged;
+                    selectedMovementMember.MemberAbility.PropertyChanged += this.SelectedMemberAbility_PropertyChanged;
+                }
+                OnPropertyChanged("SelectedMovementMember");
             }
         }
 
@@ -190,20 +191,6 @@ namespace Module.HeroVirtualTabletop.Movements
         }
 
         public string OriginalName { get; set; }
-        public string OriginalMovementDisplayName { get; set; }
-        private string editableMovementDisplayName;
-        public string EditableMovementDisplayName
-        {
-            get
-            {
-                return editableMovementDisplayName;
-            }
-            set
-            {
-                editableMovementDisplayName = value;
-                OnPropertyChanged("EditableMovementDisplayName");
-            }
-        }
 
         #endregion
 
@@ -448,7 +435,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #region Animation Resources
 
-        private void SelectedAnimationElement_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        private void SelectedMemberAbility_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "Resource")
             {
@@ -508,11 +495,6 @@ namespace Module.HeroVirtualTabletop.Movements
                 return true;
             }
 
-
-            if (SelectedAnimationElement != null && SelectedAnimationElement.Resource == animationRes)
-            {
-                return true;
-            }
             bool caseReferences = false;
             if (animationRes.Reference != null)
             {

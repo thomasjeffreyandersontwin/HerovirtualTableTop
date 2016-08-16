@@ -67,6 +67,8 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadModelsFile();
 
+            ClearTempFilesFromDataFolder();
+
             //LoadSoundFiles();
 
             // Load camera on start
@@ -177,7 +179,7 @@ namespace Module.HeroVirtualTabletop.Library
         {
             CheckRequiredKeybindsFileExists();
 
-            IconInteractionUtility.ExecuteCmd("/bind_load_file required_keybinds.txt");
+            IconInteractionUtility.ExecuteCmd("bind_load_file required_keybinds.txt");
 
             //IntPtr hWnd = WindowsUtilities.FindWindow("CrypticWindow", null);
 
@@ -310,6 +312,20 @@ namespace Module.HeroVirtualTabletop.Library
                     File.AppendAllText(
                         fileAreaAttackMenu, result
                         );
+                }
+            }
+        }
+
+        private void ClearTempFilesFromDataFolder()
+        {
+            string dirPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
+            System.IO.DirectoryInfo di = new DirectoryInfo(dirPath);
+
+            foreach (FileInfo file in di.GetFiles())
+            {
+                if(file.Name.Contains(Constants.DEFAULT_DELIMITING_CHARACTER_TRANSLATION) || file.Name.Contains(Constants.DEFAULT_DELIMITING_CHARACTER_TRANSLATION))
+                {
+                    file.Delete();
                 }
             }
         }

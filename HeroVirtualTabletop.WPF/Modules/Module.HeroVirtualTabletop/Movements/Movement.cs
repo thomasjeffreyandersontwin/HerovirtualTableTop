@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Framework.WPF.Library;
+using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
@@ -7,6 +8,7 @@ using Module.HeroVirtualTabletop.OptionGroups;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,97 +23,20 @@ namespace Module.HeroVirtualTabletop.Movements
         public Movement(string name)
         {
             this.Name = name;
+            this.AddDefaultMemberAbilities();
         }
 
-        private AnimatedAbility moveRightAbility;
-        public AnimatedAbility MoveRightAbility
+        private ObservableCollection<MovementMember> movmementMembers;
+        public ObservableCollection<MovementMember> MovementMembers
         {
             get
             {
-                return moveRightAbility;
+                return movmementMembers;
             }
             set
             {
-                moveRightAbility = value;
-                OnPropertyChanged("MoveRightAbility");
-            }
-        }
-        private AnimatedAbility moveLeftAbility;
-        public AnimatedAbility MoveLeftAbility
-        {
-            get
-            {
-                return moveLeftAbility;
-            }
-            set
-            {
-                moveLeftAbility = value;
-                OnPropertyChanged("MoveLeftAbility");
-            }
-        }
-        private AnimatedAbility moveForwardAbility;
-        public AnimatedAbility MoveForwardAbility
-        {
-            get
-            {
-                return moveForwardAbility;
-            }
-            set
-            {
-                moveForwardAbility = value;
-                OnPropertyChanged("MoveForwardAbility");
-            }
-        }
-        private AnimatedAbility moveBackwardAbility;
-        public AnimatedAbility MoveBackwardAbility
-        {
-            get
-            {
-                return moveBackwardAbility;
-            }
-            set
-            {
-                moveBackwardAbility = value;
-                OnPropertyChanged("MoveBackwardAbility");
-            }
-        }
-        private AnimatedAbility moveUpwardAbility;
-        public AnimatedAbility MoveUpwardAbility
-        {
-            get
-            {
-                return moveUpwardAbility;
-            }
-            set
-            {
-                moveUpwardAbility = value;
-                OnPropertyChanged("MoveUpwardAbility");
-            }
-        }
-        private AnimatedAbility moveDownwardAbility;
-        public AnimatedAbility MoveDownwardAbility
-        {
-            get
-            {
-                return moveDownwardAbility;
-            }
-            set
-            {
-                moveDownwardAbility = value;
-                OnPropertyChanged("MoveDownwardAbility");
-            }
-        }
-        private AnimatedAbility moveStillAbility;
-        public AnimatedAbility MoveStillAbility
-        {
-            get
-            {
-                return moveStillAbility;
-            }
-            set
-            {
-                moveStillAbility = value;
-                OnPropertyChanged("MoveStillAbility");
+                movmementMembers = value;
+                OnPropertyChanged("MovementMembers");
             }
         }
 
@@ -138,6 +63,94 @@ namespace Module.HeroVirtualTabletop.Movements
         public void TurnBasedOnKey(string key, Character target)
         {
 
+        }
+
+        private void AddDefaultMemberAbilities()
+        {
+            if (this.MovementMembers == null || this.MovementMembers.Count == 0)
+            {
+                this.MovementMembers = new ObservableCollection<MovementMember>();
+
+                MovementMember movementMemberRight = new MovementMember { MovementDirection = MovementDirection.Right, MemberName = "Move Right" };
+                movementMemberRight.MemberAbility = new ReferenceAbility("Move Right", null);
+                movementMemberRight.MemberAbility.DisplayName = "Move Right";
+                this.MovementMembers.Add(movementMemberRight);
+
+                MovementMember movementMemberLeft = new MovementMember { MovementDirection = MovementDirection.Left, MemberName = "Move Left" };
+                movementMemberLeft.MemberAbility = new ReferenceAbility("Move Left", null);
+                movementMemberLeft.MemberAbility.DisplayName = "Move Left";
+                this.MovementMembers.Add(movementMemberLeft);
+
+                MovementMember movementMemberForward = new MovementMember { MovementDirection = MovementDirection.Forward, MemberName = "Move Forward" };
+                movementMemberForward.MemberAbility = new ReferenceAbility("Move Forward", null);
+                movementMemberForward.MemberAbility.DisplayName = "Move Forward";
+                this.MovementMembers.Add(movementMemberForward);
+
+                MovementMember movementMemberBackward = new MovementMember { MovementDirection = MovementDirection.Backward, MemberName = "Move Backward" };
+                movementMemberBackward.MemberAbility = new ReferenceAbility("Move Backward", null);
+                movementMemberBackward.MemberAbility.DisplayName = "Move Backward";
+                this.MovementMembers.Add(movementMemberBackward);
+
+                MovementMember movementMemberUpward = new MovementMember { MovementDirection = MovementDirection.Upward, MemberName = "Move Up" };
+                movementMemberUpward.MemberAbility = new ReferenceAbility("Move Up", null);
+                movementMemberUpward.MemberAbility.DisplayName = "Move Up";
+                this.MovementMembers.Add(movementMemberUpward);
+
+                MovementMember movementMemberDownward = new MovementMember { MovementDirection = MovementDirection.Downward, MemberName = "Move Down" };
+                movementMemberDownward.MemberAbility = new ReferenceAbility("Move Down", null);
+                movementMemberDownward.MemberAbility.DisplayName = "Move Down";
+                this.MovementMembers.Add(movementMemberDownward);
+
+                MovementMember movementMemberStill = new MovementMember { MovementDirection = MovementDirection.Still, MemberName = "Still" };
+                movementMemberStill.MemberAbility = new ReferenceAbility("Still", null);
+                movementMemberStill.MemberAbility.DisplayName = "Still";
+                this.MovementMembers.Add(movementMemberStill);
+            }
+        }
+    }
+
+    public class MovementMember  : NotifyPropertyChanged
+    {
+        private ReferenceAbility memberAbility;
+        public ReferenceAbility MemberAbility
+        {
+            get
+            {
+                return memberAbility;
+            }
+            set
+            {
+                memberAbility = value;
+                OnPropertyChanged("MemberAbility");
+            }
+        }
+
+        private string memberName;
+        public string MemberName
+        {
+            get
+            {
+                return memberName;
+            }
+            set
+            {
+                memberName = value;
+                OnPropertyChanged("MemberName");
+            }
+        }
+
+        private MovementDirection movementDirection;
+        public MovementDirection MovementDirection
+        {
+            get
+            {
+                return movementDirection;
+            }
+            set
+            {
+                movementDirection = value;
+                OnPropertyChanged("MovementDirection");
+            }
         }
     }
 
@@ -180,7 +193,7 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             return new Vector3();
         }
-        public Vector3 CalculateCamearaDistance(IMemoryElementPosition cameraPosition, IMemoryElementPosition characterPosition)
+        public Vector3 CalculateCameraDistance(IMemoryElementPosition cameraPosition, IMemoryElementPosition characterPosition)
         {
             return new Vector3();
         }

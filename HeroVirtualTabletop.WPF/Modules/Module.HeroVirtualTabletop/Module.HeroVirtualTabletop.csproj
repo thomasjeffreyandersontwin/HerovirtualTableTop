@@ -169,6 +169,7 @@
     <Compile Include="Library\Converters\characterComparer.cs" />
     <Compile Include="Library\Converters\CrowdNameConverter.cs" />
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
+    <Compile Include="Library\Converters\MovementConverters.cs" />
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Sevices\ITargetObserver.cs" />
     <Compile Include="Library\Sevices\TargetObserver.cs" />

@@ -369,6 +369,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 RemoveIdentity(state);
             }
+            else if(typeof(T) == typeof(Movement))
+            {
+                RemoveMovement(state);
+            }
             else
             {
                 optionGroup.Remove(SelectedOption);
@@ -655,7 +659,17 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             optionGroup.Remove(SelectedOption);
         }
-
+        private void RemoveMovement(object state)
+        {
+            if (SelectedOption == null)
+                return;
+            Movement movement = SelectedOption as Movement;
+            if (this.Owner.DefaultMovement == movement)
+                this.Owner.DefaultMovement = null;
+            if (this.Owner.ActiveMovement == movement)
+                this.Owner.ActiveMovement = null;
+            optionGroup.Remove(SelectedOption);
+        }
         private Identity GetNewIdentity()
         {
             return new Identity("Model_Statesman", IdentityType.Model, optionGroup.GetNewValidOptionName("Identity"));
