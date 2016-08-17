@@ -53,6 +53,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isPlayingAttack = false;
         private bool isPlayingAreaEffect = false;
         private bool isCharacterReset = false;
+        private bool isMenuDisplayed = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
         private List<Character> targetCharacters = new List<Character>();
@@ -244,13 +245,28 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         else
                         {
-                            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                            Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                            AttackDirection direction = new AttackDirection(mouseDirection);
-                            if(this.currentAttack != null && this.attackingCharacter != null)
+                            if (!this.isMenuDisplayed)
                             {
-                                this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                                //string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+                                //string characterName = null;
+                                //if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                                //{
+                                //    characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                                //}
+                                //if(string.IsNullOrEmpty(characterName))
+                                //{
+
+                                //}
+                                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                                Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                                AttackDirection direction = new AttackDirection(mouseDirection);
+                                if (this.currentAttack != null && this.attackingCharacter != null)
+                                {
+                                    this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                                }
                             }
+                            else
+                                this.isMenuDisplayed = false;
                         }
                     }
                 }
@@ -275,6 +291,7 @@ namespace Module.HeroVirtualTabletop.Roster
                                         hoveredCharacter.Target();
                                         keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
                                         keyBindsGenerator.CompleteEvent();
+                                        this.isMenuDisplayed = true;
                                     }
                                 }
                                 else
@@ -284,6 +301,7 @@ namespace Module.HeroVirtualTabletop.Roster
                                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
                                     fileSystemWatcher.EnableRaisingEvents = true;
                                     keyBindsGenerator.CompleteEvent();
+                                    this.isMenuDisplayed = true;
                                 }
                             }
                         }
@@ -1097,8 +1115,10 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             Action action = delegate ()
             {
+                this.isMenuDisplayed = false;
                 if (this.isPlayingAreaEffect)
                 {
+                    
                     if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME)
                     {
                         TargetCharacterForAreaAttack(null);
