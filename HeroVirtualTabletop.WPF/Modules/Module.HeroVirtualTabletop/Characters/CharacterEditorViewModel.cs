@@ -49,6 +49,7 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 editedCharacter = value;
                 OnPropertyChanged("EditedCharacter");
+                this.AddOptionGroupCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -381,7 +382,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private bool CanAddOptionGroup(object state)
         {
-            return !Helper.GlobalVariables_IsPlayingAttack;
+            return this.editedCharacter != null && this.editedCharacter.OptionGroups != null && !Helper.GlobalVariables_IsPlayingAttack;
         }
         
         private bool CanRemoveOptionGroup(object arg)

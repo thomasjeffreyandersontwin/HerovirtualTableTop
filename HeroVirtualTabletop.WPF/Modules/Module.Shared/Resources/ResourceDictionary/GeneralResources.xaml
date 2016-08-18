@@ -538,7 +538,89 @@
             </Setter.Value>
         </Setter>
     </Style>
-    
+
+    <Style x:Key="ToggleButtonSmallStyle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <Border x:Name="ToggleButtonBorder"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    Padding="{TemplateBinding Padding}"
+                    >
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="2*"/>
+                                <RowDefinition Height="3*"/>
+                            </Grid.RowDefinitions>
+                            <Grid Grid.Row="0" VerticalAlignment="Bottom">
+                                <Rectangle Fill="Transparent"/>
+                                <Ellipse Name="Circle"
+                                 Stroke="DarkGray"
+                                 Width="12"
+                                 Height="12"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                            />
+                                <Path x:Name="Sign"
+                              Data="M 0,4 H 8 M 4,0 V 8 Z"
+                              Stroke="#FF666666"
+                              Width="8"
+                              Height="8"
+                              StrokeThickness="2"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              RenderTransformOrigin="0.5,0.5"
+                          >
+                                    <Path.RenderTransform>
+                                        <RotateTransform Angle="0"/>
+                                    </Path.RenderTransform>
+                                </Path>
+                            </Grid>
+
+                            <ContentPresenter x:Name="HeaderContent"
+                              Grid.Row="1"
+                              VerticalAlignment="Top" Margin="0, 4, 0, 0"
+                              ContentSource="Content"/>
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <!--Change the sign to minus when toggled-->
+                        <Trigger Property="IsChecked"
+                     Value="True">
+                            <Setter Property="Data" 
+                   TargetName="Sign" Value="M 0,4 H 8 Z"/>
+                        </Trigger>
+
+                        <!-- MouseOver, Pressed behaviours-->
+                        <Trigger Property="IsMouseOver"
+                             Value="true">
+                            <Setter Property="Stroke"
+                                Value="#FF3C7FB1"
+                                TargetName="Circle"/>
+                            <Setter Property="Stroke"
+                                Value="#222"
+                                TargetName="Sign"/>
+                        </Trigger>
+                        <Trigger Property="IsPressed"
+                             Value="true">
+                            <Setter Property="Stroke"
+                                Value="#FF526C7B"
+                                TargetName="Circle"/>
+                            <Setter Property="StrokeThickness"
+                                Value="1.5"
+                                TargetName="Circle"/>
+                            <Setter Property="Stroke"
+                                Value="#FF003366"
+                                TargetName="Sign"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="VerticalExpanderStyle" TargetType="{x:Type Expander}">
         <Setter Property="Template">
             <Setter.Value>
@@ -869,11 +951,11 @@
     </Style>
     
     <Style x:Key="ListBoxtemStyleNoHighlighting" TargetType="ListBoxItem">
-        <Setter Property="Padding" Value="3"/>
+        <Setter Property="Padding" Value="1"/>
         <Setter Property="HorizontalContentAlignment" Value="Left"/>
         <Setter Property="VerticalContentAlignment" Value="Top"/>
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="BorderThickness" Value="0.5"/>
         <!--<Setter Property="TabNavigation" Value="Local"/>-->
         <Setter Property="Template">
             <Setter.Value>
@@ -967,6 +1049,7 @@
                         </Trigger>
                         <Trigger Property="IsExpanded" Value="False">
                             <Setter TargetName="ExpanderContent" Property="Visibility" Value="Collapsed"/>
+                            <Setter Property="Height" Value="5"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1002,17 +1085,17 @@
                          Grid.Column="0"
                          Stroke="DarkGray"
                                 Fill="{StaticResource ButtonBackgroundColorBrush}"     
-                         Width="20"
-                         Height="20"
+                         Width="12"
+                         Height="12"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"
                          />
                             <Path x:Name="Sign"
                       Grid.Column="0"
-                      Data="M 0,5 H 10 M 5,0 V 10 Z"
+                      Data="M 0,4 H 8 M 4,0 V 8 Z"
                       Stroke="#FF666666"
-                      Width="10"
-                      Height="10"
+                      Width="8"
+                      Height="8"
                       StrokeThickness="2"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Center"
@@ -1080,17 +1163,17 @@
                          Grid.Column="0"
                          Stroke="DarkGray"
                                       Fill="{StaticResource ButtonBackgroundColorBrush2}"
-                         Width="20"
-                         Height="20"
+                         Width="12"
+                         Height="12"
                          HorizontalAlignment="Center"
                          VerticalAlignment="Center"
                          />
                             <Path x:Name="Sign"
                       Grid.Column="0"
-                      Data="M 0,5 H 10 Z"
+                      Data="M 0,4 H 8 Z"
                       Stroke="#FF666666"
-                      Width="10"
-                      Height="10"
+                      Width="8"
+                      Height="8"
                       StrokeThickness="2"
                       HorizontalAlignment="Center"
                       VerticalAlignment="Center"

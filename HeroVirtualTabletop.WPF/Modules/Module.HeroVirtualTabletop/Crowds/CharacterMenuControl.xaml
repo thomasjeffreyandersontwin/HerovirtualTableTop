@@ -12,15 +12,21 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <StackPanel Orientation="Horizontal">
-            <StackPanel.Resources>
-                <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
-            </StackPanel.Resources>
+        <Grid.Resources>
+            <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">          
             <Button x:Name="btClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneCharacterCrowdCommand}"/>
             <Button x:Name="btCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutCharacterCrowdCommand}"/>
             <Button x:Name="btLink" Content="&#xf0c1;" ToolTip="Link" Command="{Binding LinkCharacterCrowdCommand}"/>
             <Button x:Name="btPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteCharacterCrowdCommand}"/>
-            <Button x:Name="btAddCharacter" Content="&#xf234;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/>
+            <Button x:Name="btAddCharacter" Content="&#xf234;" ToolTip="Add Character" Command="{Binding AddCharacterCommand}"/> 
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Grid.Row="1">
             <Button x:Name="btAddCrowd" Content="&#xf0c0;" ToolTip="Add Crowd" Command="{Binding AddCrowdCommand}"/>
             <Button x:Name="btRemove" Content="&#xf235;" ToolTip="Remove" Command="{Binding DeleteCharacterCrowdCommand}" />
             <Button x:Name="btEdit" Content="&#xf044;" ToolTip="Edit" Command="{Binding EditCharacterCommand}"/>

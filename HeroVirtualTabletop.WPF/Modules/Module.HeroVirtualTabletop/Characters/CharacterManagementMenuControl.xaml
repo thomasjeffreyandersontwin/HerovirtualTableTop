@@ -13,15 +13,21 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <WrapPanel>
-            <WrapPanel.Resources>
-                <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
-            </WrapPanel.Resources>
+        <Grid.Resources>
+            <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <WrapPanel> 
             <Button x:Name="btSave" Content="&#xF0C7;" ToolTip="Save Position" Command="{Binding SavePositionCommand}"/>
             <Button x:Name="btPlace" Content="&#xf041;" ToolTip="Place" Command="{Binding PlaceCommand}"/>
             <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn" Command="{Binding SpawnCommand}"/>
             <Button x:Name="btTarget" Content="&#xf05b;" ToolTip="Toggle Target" Command="{Binding ToggleTargetedCommand}"/>
             <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target" Command="{Binding TargetAndFollowCommand}"/>
+        </WrapPanel>
+        <WrapPanel Grid.Row="1">
             <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera" Command="{Binding MoveTargetToCameraCommand}"/>
             <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera" Command="{Binding ToggleManeuverWithCameraCommand}" />
             <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop" Command="{Binding ClearFromDesktopCommand}" />
