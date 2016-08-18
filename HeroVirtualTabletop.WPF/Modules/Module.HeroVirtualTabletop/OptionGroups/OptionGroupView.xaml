@@ -90,7 +90,7 @@
                                 <DataTemplate>
                                     <Grid Name="optGrid" 
                             ContextMenu="{StaticResource optionListBoxMenu}">
-                                        <Ellipse Name="optionEllipse"  Width="40" Height="40" ToolTip="{Binding Name}">
+                                        <Ellipse Name="optionEllipse"  Width="40" Height="40" ToolTip="{Binding Name}" behaviors:CommandBehavior.Event="MouseLeftButtonUp" behaviors:CommandBehavior.Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.TogglePlayOptionCommand}" behaviors:CommandBehavior.CommandParameter="{Binding ElementName=optionEllipse, Path=DataContext}">
                                             <Ellipse.Style>
                                                 <Style TargetType="{x:Type Ellipse}">
                                                     <Setter Property="Fill" Value="Transparent" />
@@ -110,7 +110,7 @@
                                                 </Style>
                                             </Ellipse.Style>
                                             <Ellipse.InputBindings>
-                                                <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.TogglePlayOptionCommand}" CommandParameter="{Binding ElementName=optionEllipse, Path=DataContext}" MouseAction="LeftClick"/>
+                                                <!--<MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.TogglePlayOptionCommand}" CommandParameter="{Binding ElementName=optionEllipse, Path=DataContext}" MouseAction="LeftClick"/>-->
                                                 <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.EditOptionCommand}" MouseAction="LeftDoubleClick"/>
                                             </Ellipse.InputBindings>
                                         </Ellipse>
