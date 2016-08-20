@@ -67,6 +67,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isQuadrupleClick = false;
         private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 1.5);
         private Timer clickTimer = new Timer();
+        private Timer clickTimer1 = new Timer();
 
         private FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
 
@@ -210,6 +211,10 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer.Interval = maxClickTime;
             clickTimer.Elapsed +=
                 new ElapsedEventHandler(clickTimer_Elapsed);
+            clickTimer1.AutoReset = false;
+            clickTimer1.Interval = 50;
+            clickTimer1.Elapsed +=
+                new ElapsedEventHandler(clickTimer1_Elapsed);
             hookID = MouseHook.SetHook(clickCharacterInDesktop);
             fileSystemWatcher.Path = string.Format("{0}\\", Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME));
             fileSystemWatcher.IncludeSubdirectories = false;
@@ -257,7 +262,7 @@ namespace Module.HeroVirtualTabletop.Roster
                                 if (!string.IsNullOrEmpty(characterName))
                                 {
                                     ICrowdMemberModel model = this.Participants.FirstOrDefault(p => p.Name == characterName);
-                                    if(model != null && this.SelectedParticipants != null && !this.SelectedParticipants.Contains(model))
+                                    if (model != null && this.SelectedParticipants != null && !this.SelectedParticipants.Contains(model))
                                     {
                                         canFireAttackAnimation = false;
                                     }
@@ -266,20 +271,19 @@ namespace Module.HeroVirtualTabletop.Roster
                                     //    canFireAttackAnimation = false;
                                     //}
                                 }
-                                if(canFireAttackAnimation)
+                                if (canFireAttackAnimation)
                                 {
-                                    string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                                    Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                                    AttackDirection direction = new AttackDirection(mouseDirection);
                                     if (this.currentAttack != null && this.attackingCharacter != null)
                                     {
-                                        this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                                        clickTimer1.Start();// Doing this in another thread so that if the game window has lost focus, the attack doesn't animate.
                                     }
                                 }
-                               
+
                             }
                             else
+                            {
                                 this.isMenuDisplayed = false;
+                            }
                         }
                     }
                 }
@@ -398,6 +402,19 @@ namespace Module.HeroVirtualTabletop.Roster
                 File.WriteAllText(
                     fileCharacterMenu, sb.ToString()
                     );
+            }
+        }
+
+        void clickTimer1_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            clickTimer1.Stop();
+            bool bWindow = WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null);
+            if(bWindow)
+            {
+                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                AttackDirection direction = new AttackDirection(mouseDirection);
+                this.currentAttack.AnimateAttack(direction, attackingCharacter);
             }
         }
 
@@ -980,16 +997,18 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         if (!isPlayingAreaEffect)
                         {
-                            if (this.targetCharacters.FirstOrDefault(tc => tc.Name == currentTarget.Name) == null)
+                            if(targetCharacters.Count == 0)// choose only one character for vanilla attack
+                            {
                                 this.targetCharacters.Add(currentTarget);
-                            currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
-                            ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
-                            attackConfig.AttackMode = AttackMode.Defend;
-                            attackConfig.AttackEffectOption = AttackEffectOption.None;
-                            currentTarget.ActiveAttackConfiguration = attackConfig;
-                            currentTarget.ActiveAttackConfiguration.IsCenterTarget = true;
-                            if (PopupService.IsOpen("ActiveAttackView") == false)
-                                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
+                                currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                                ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
+                                attackConfig.AttackMode = AttackMode.Defend;
+                                attackConfig.AttackEffectOption = AttackEffectOption.None;
+                                currentTarget.ActiveAttackConfiguration = attackConfig;
+                                currentTarget.ActiveAttackConfiguration.IsCenterTarget = true;
+                                if (PopupService.IsOpen("ActiveAttackView") == false)
+                                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
+                            }
                         }
                     }
                 }
