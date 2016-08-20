@@ -655,10 +655,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character target = Target ?? this.Owner;
             if (IsActive)
             {
+                target.Target(false);
                 fileLock.EnterWriteLock();
                 try
                 {
-                    reloadOriginalCostumeFile(target.ActiveIdentity.Surface);
+                     reloadOriginalCostumeFile(target.ActiveIdentity.Surface);
                 }
                 finally
                 {

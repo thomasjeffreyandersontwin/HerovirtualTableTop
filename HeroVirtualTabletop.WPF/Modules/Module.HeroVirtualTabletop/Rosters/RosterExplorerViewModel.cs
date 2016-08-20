@@ -247,23 +247,36 @@ namespace Module.HeroVirtualTabletop.Roster
                         {
                             if (!this.isMenuDisplayed)
                             {
-                                //string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
-                                //string characterName = null;
-                                //if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
-                                //{
-                                //    characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                                //}
-                                //if(string.IsNullOrEmpty(characterName))
-                                //{
-
-                                //}
-                                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                                Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                                AttackDirection direction = new AttackDirection(mouseDirection);
-                                if (this.currentAttack != null && this.attackingCharacter != null)
+                                bool canFireAttackAnimation = true;
+                                string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+                                string characterName = null;
+                                if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                                 {
-                                    this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                                    characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
                                 }
+                                if (!string.IsNullOrEmpty(characterName))
+                                {
+                                    ICrowdMemberModel model = this.Participants.FirstOrDefault(p => p.Name == characterName);
+                                    if(model != null && this.SelectedParticipants != null && !this.SelectedParticipants.Contains(model))
+                                    {
+                                        canFireAttackAnimation = false;
+                                    }
+                                    //else if(model != null && model.Name != this.attackingCharacter.Name)
+                                    //{
+                                    //    canFireAttackAnimation = false;
+                                    //}
+                                }
+                                if(canFireAttackAnimation)
+                                {
+                                    string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                                    Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                                    AttackDirection direction = new AttackDirection(mouseDirection);
+                                    if (this.currentAttack != null && this.attackingCharacter != null)
+                                    {
+                                        this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                                    }
+                                }
+                               
                             }
                             else
                                 this.isMenuDisplayed = false;
