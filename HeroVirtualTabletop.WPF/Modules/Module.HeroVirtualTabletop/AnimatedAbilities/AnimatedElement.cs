@@ -204,7 +204,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     GetKeybind(target);
                 }
-                IconInteractionUtility.ExecuteCmd("/" + keyBindsGenerator.GetEvent());
+                IconInteractionUtility.ExecuteCmd(keyBindsGenerator.GetEvent());
             });
         }
 
@@ -964,7 +964,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     tasks.Add(new Task(() => 
                     { 
-                        IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents());
+                        IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
                         new PauseElement("", 500).Play();
                     }));
                     if (element.Type == AnimationType.Pause || element.Type == AnimationType.Sound)
@@ -981,7 +981,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 tasks.Add(new Task(() => 
                 { 
-                    IconInteractionUtility.ExecuteCmd("/" + new KeyBindsGenerator().PopEvents());
+                    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
                     new PauseElement("", 500).Play();
                 }));
             }
