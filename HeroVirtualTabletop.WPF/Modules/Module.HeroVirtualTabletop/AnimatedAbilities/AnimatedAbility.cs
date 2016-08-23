@@ -214,49 +214,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return null;
         }
 
-        public string AnimateHit(List<Character> targets)
+        private AnimatedAbility GetHitAbility()
         {
-            // Play the attack's on hit ability if there exists one
+            AnimatedAbility ability = null;
             if (this.OnHitAnimation != null && this.OnHitAnimation.AnimationElements != null && this.OnHitAnimation.AnimationElements.Count > 0)
             {
-                this.OnHitAnimation.PlayGrouped(targets);
+                ability = this.OnHitAnimation;
             }
-            else // Or play the default hit ability
+            else 
             {
                 if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
                 {
                     var globalHitAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.HIT_ABITIY_NAME);
                     if (globalHitAbility != null && globalHitAbility.AnimationElements != null && globalHitAbility.AnimationElements.Count > 0)
                     {
-                        globalHitAbility.PlayGrouped(targets).RunSynchronously();
+                        ability = globalHitAbility;
                     }
                 }
             }
-            // TODO: Animate Knockback
-            this.AnimateKnockBack(targets);
-            System.Threading.Thread.Sleep(1000);
-            // Now play most severe of effects
-            this.AnimateAttackEffects(targets);
-            return null;
+            return ability;
         }
-        public string AnimateAttackEffects(List<Character> targets)
-        {
-            if (Helper.GlobalCombatAbilities != null && Helper.GlobalCombatAbilities.Count > 0)
-            {
-                var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
-                globalDeadAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead ).ToList()).RunSynchronously();
-                        
-                var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
-                globalDyingAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList()).RunSynchronously();
 
-                var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
-                globalUnconciousAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList()).RunSynchronously();
-
-                var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
-                globalStunnedAbility.PlayGrouped(targets.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList()).RunSynchronously();
-            }
-            return null;
-        }
         public void AnimateAttack(AttackDirection direction, Character attacker)
         {
             foreach (var animation in this.AnimationElements)
@@ -280,17 +258,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
-        public void AnimateMiss(List<Character> targets)
+        private AnimatedAbility GetMissAbility()
         {
-            // Just play the default miss ability on the defender
+            AnimatedAbility ability = null;
             if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
             {
                 var globalMissAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.MISS_ABITIY_NAME);
                 if (globalMissAbility != null && globalMissAbility.AnimationElements != null && globalMissAbility.AnimationElements.Count > 0)
                 {
-                    globalMissAbility.PlayGrouped(targets).RunSynchronously();
+                    ability = globalMissAbility;
                 }
             }
+            return ability;
         }
 
         public void AnimateKnockBack(List<Character> targets)
@@ -348,20 +327,62 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
-                // Executing the attack on parallel thread actually works, but it sends the keybinds way too fast to the game to process, thus missing a few animations
-                // Therefore commenting out the parallel code and executing synchronous loop
-                //Parallel.ForEach(defendingCharacters, (targetCharacter) =>
-                //{
-                //    ActiveAttackConfiguration attackConfiguration = targetCharacter.ActiveAttackConfiguration;
-                //    if (attackConfiguration.AttackResult == AttackResultOption.Hit)
-                //        AnimateHit(attackConfiguration, targetCharacter);
-                //    else if (attackConfiguration.AttackResult == AttackResultOption.Miss && targetCharacter != null && attackConfiguration.AttackEffectOption != AttackEffectOption.None)
-                //        AnimateMiss(attackConfiguration, targetCharacter);
-                //});
+                SequenceElement attackSequenceElement = new SequenceElement("attackSequence", AnimationSequenceType.And);
+                Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
+                // Attack results
+                var hitAbility = this.GetHitAbility();
+                List<Character> hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
+                var missAbility = this.GetMissAbility();
+                List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
 
-                AnimateHit(defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList());
-                AnimateMiss(defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList());
+                if(hitTargets.Count > 0)
+                {
+                    attackSequenceElement.AddAnimationElement(hitAbility);
+                    characterAnimationMappingDictionary.Add(hitAbility, hitTargets);
+                }
+                    
+                if(missTargets.Count > 0)
+                {
+                    attackSequenceElement.AddAnimationElement(missAbility);
+                    characterAnimationMappingDictionary.Add(missAbility, missTargets);
+                }
+                    
+                // Effects
+                var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
+                List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList();
+                var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
+                List<Character> deadTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead).ToList();
+                var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
+                List<Character> unconciousTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList();
+                var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
+                List<Character> stunnedTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList();
+
+                if(deadTargets.Count > 0)
+                {
+                    attackSequenceElement.AddAnimationElement(globalDeadAbility);
+                    characterAnimationMappingDictionary.Add(globalDeadAbility, deadTargets);
+                }
+                    
+                if(dyingTargets.Count > 0)
+                {
+                    attackSequenceElement.AddAnimationElement(globalDyingAbility);
+                    characterAnimationMappingDictionary.Add(globalDyingAbility, dyingTargets);
+                }
+                    
+                if(unconciousTargets.Count > 0)
+                {
+                    attackSequenceElement.AddAnimationElement(globalUnconciousAbility);
+                    characterAnimationMappingDictionary.Add(globalUnconciousAbility, unconciousTargets);
+                }
+                    
+                if(stunnedTargets.Count > 0)
+                {
+                    attackSequenceElement.AddAnimationElement(globalStunnedAbility);
+                    characterAnimationMappingDictionary.Add(globalStunnedAbility, stunnedTargets);
+                }
                 
+                // Finally play as chained 
+                attackSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
             }
             attackingCharacter.Deactivate();
         }

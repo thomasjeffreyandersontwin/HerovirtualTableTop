@@ -39,7 +39,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool Persistent { get; }
 
         void Play(bool persistent = false, Character Target = null, bool forcePlay = false);
-        Task PlayGrouped(List<Character> targets, bool persistent = false);
+        Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, bool persistent = false);
         string GetKeybind(Character Target = null);
         void Stop(Character Target = null);
     }
@@ -195,15 +195,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
-        public virtual Task PlayGrouped(List<Character> targets, bool persistent = false)
+        public virtual Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             return new Task(() =>
             {
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                foreach (Character target in targets)
+                foreach(AnimationElement element in characterAnimationMapping.Keys)
                 {
-                    GetKeybind(target);
+                    List<Character> targets = characterAnimationMapping[element];
+                    foreach (Character target in targets)
+                    {
+                        GetKeybind(target);
+                    }
                 }
+                
                 IconInteractionUtility.ExecuteCmd(keyBindsGenerator.GetEvent());
             });
         }
@@ -930,16 +935,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             OnPropertyChanged("IsActive");
         }
 
-        //public override string GetKeybind(Character Target = null)
-        //{
-        //    foreach (AnimationElement el in this.AnimationElements)
-        //    {
-        //        el.GetKeybind(Target);
-        //    }
-        //    return new KeyBindsGenerator().GetEvent();
-        //}
-
-        public override Task PlayGrouped(List<Character> targets, bool persistent = false)
+        public override Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             List<Task> tasks = new List<Task>();
             List<AnimationElement> elementsToPlay = new List<AnimationElement>();
@@ -951,8 +947,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 int chosen = rnd.Next(0, AnimationElements.Count);
                 elementsToPlay.Add(AnimationElements[chosen]);
             }
+
             foreach (AnimationElement element in elementsToPlay)
             {
+                List<Character> targets = characterAnimationMapping[element];
                 if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
                 {
                     foreach (Character target in targets)
@@ -962,29 +960,50 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 else
                 {
-                    tasks.Add(new Task(() => 
-                    { 
+                    tasks.Add(new Task(() =>
+                    {
                         IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                        new PauseElement("", 500).Play();
+                        //new PauseElement("", 500).Play();
                     }));
                     if (element.Type == AnimationType.Pause || element.Type == AnimationType.Sound)
                     {
                         tasks.Add(new Task(() => { element.Play(persistent); }));
                     }
-                    else
+                    else if (element.Type == AnimationType.Sequence)
                     {
-                        tasks.Add(new Task(() => { element.PlayGrouped(targets, persistent).RunSynchronously(); }));
+                        Dictionary<AnimationElement, List<Character>> charAnimMappingInner = new Dictionary<AnimationElement, List<Character>>();
+                        SequenceElement seqElem = (element as SequenceElement);
+                        foreach (AnimationElement elem in seqElem.AnimationElements)
+                        {
+                            charAnimMappingInner.Add(elem, targets);
+                        }
+                        tasks.Add(new Task(() => { element.PlayGrouped(charAnimMappingInner, persistent).RunSynchronously(); }));
+                    }
+                    else if(element.Type == AnimationType.Reference)
+                    {
+                        Dictionary<AnimationElement, List<Character>> charAnimMappingInner = new Dictionary<AnimationElement, List<Character>>();
+                        ReferenceAbility refElem = element as ReferenceAbility;
+                        if(refElem.Reference != null && refElem.Reference.AnimationElements != null)
+                        {
+                            foreach (AnimationElement elem in refElem.Reference.AnimationElements)
+                            {
+                                charAnimMappingInner.Add(elem, targets);
+                            }
+                        }
+                        tasks.Add(new Task(() => { element.PlayGrouped(charAnimMappingInner, persistent).RunSynchronously(); }));
                     }
                 }
             }
             if (elementsToPlay.Last().Type == AnimationType.FX || AnimationElements.Last().Type == AnimationType.Movement)
             {
-                tasks.Add(new Task(() => 
-                { 
+                tasks.Add(new Task(() =>
+                {
                     IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                    new PauseElement("", 500).Play();
+                    //new PauseElement("", 500).Play();
                 }));
             }
+            
+            
             return new Task(() =>
             {
                 foreach (Task t in tasks)
@@ -1083,10 +1102,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return string.Empty;
         }
 
-        public override Task PlayGrouped(List<Character> targets, bool persistent = false)
+        public override Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             if (this.Reference != null)
-                return Reference.PlayGrouped(targets, persistent);
+                return Reference.PlayGrouped(characterAnimationMapping, persistent);
             else
                 return new Task(() => { });
         }
