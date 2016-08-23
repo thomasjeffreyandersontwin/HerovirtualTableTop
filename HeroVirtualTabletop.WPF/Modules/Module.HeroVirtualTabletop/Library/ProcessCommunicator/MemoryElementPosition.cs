@@ -74,6 +74,39 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             }
         }
 
+        private float[,] rotationMatrix = new float[3, 3];
+        public float[,] RotationMatrix
+        {
+            get
+            {
+                if (this.IsReal)
+                {
+                    rotationMatrix = new float[3, 3] {
+                        { GetAttributeAsFloat(56), GetAttributeAsFloat(60), GetAttributeAsFloat(64) },
+                        { GetAttributeAsFloat(68), GetAttributeAsFloat(72), GetAttributeAsFloat(76) },
+                        { GetAttributeAsFloat(80), GetAttributeAsFloat(84), GetAttributeAsFloat(88) }
+                    };
+                }
+                return rotationMatrix;
+            }
+            set
+            {
+                rotationMatrix = value;
+                if (this.IsReal)
+                {
+                    SetTargetAttribute(56, value[0,0]);
+                    SetTargetAttribute(60, value[0,1]);
+                    SetTargetAttribute(64, value[0,2]);
+                    SetTargetAttribute(68, value[1,0]);
+                    SetTargetAttribute(72, value[1,1]);
+                    SetTargetAttribute(76, value[1,2]);
+                    SetTargetAttribute(80, value[2,0]);
+                    SetTargetAttribute(84, value[2,1]);
+                    SetTargetAttribute(88, value[2,2]);
+                }
+            }
+        }
+
         public IMemoryElementPosition Clone(bool preserveTargetPointer = true, uint oldTargetPointer = 0)
         {
             Position clone = new Position(false);
@@ -88,6 +121,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             clone.X = this.X;
             clone.Y = this.Y;
             clone.Z = this.Z;
+            clone.RotationMatrix = this.RotationMatrix;
 
             return clone;
         }
@@ -151,7 +185,9 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 
         public override bool Equals(object obj)
         {
-            return this == (Position)obj;
+            if (obj is Position)
+                return this == (Position)obj;
+            return false;
         }
 
         public override int GetHashCode()

@@ -1012,10 +1012,11 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                     }
                 }
-                else if (currentTarget == null) // Shoot randomly up front
+                else if (currentTarget == null) // Cancel attack
                 {
                     List<Character> defendingCharacters = new List<Character>();
-                    this.LaunchActiveAttack(new Tuple<List<Character>, Attack>(defendingCharacters, this.currentAttack));
+                    this.CloseActiveAttack(this.currentAttack);
+                    this.ResetAttack(defendingCharacters);
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
@@ -1041,16 +1042,6 @@ namespace Module.HeroVirtualTabletop.Roster
             List<Character> defendingCharacters = tuple.Item1;
             Attack attack = tuple.Item2;
             attack.AnimateAttackSequence(attackingCharacter, defendingCharacters);
-            // Update Mouse cursor
-            Mouse.OverrideCursor = Cursors.Arrow;
-            // Hide attack icon from attacking character
-            if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
-                this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
-            if (defendingCharacters.Count == 0) // For blank shooting, need to raise the attack close event for other view models to update their controls and commands
-            {
-                Helper.GlobalVariables_IsPlayingAttack = false;
-                this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
-            }
             this.ResetAttack(defendingCharacters);
         }
 
@@ -1060,14 +1051,28 @@ namespace Module.HeroVirtualTabletop.Roster
             this.isPlayingAreaEffect = false;
             targetObserver.TargetChanged -= AttackTargetUpdated;
             this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
+
+            // Hide attack icon from attacking character
+            if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
+                this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
             this.attackingCharacter = null;
-            foreach (var defender in defenders)
+            
+            if (defenders.Count == 0) // For blank shooting, need to raise the attack close event for other view models to update their controls and commands
+            {
+                Helper.GlobalVariables_IsPlayingAttack = false;
+                this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
+            }
+            else foreach (var defender in defenders)
             {
                 defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
                 //if (!this.currentAttack.OnHitAnimation.Persistent)
                 //    this.currentAttack.OnHitAnimation.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(defender); });
                 defender.Deactivate(); // restore original costume
             }
+
+            // Update Mouse cursor
+            Mouse.OverrideCursor = Cursors.Arrow;
+
             this.currentAttack = null;
             this.fileSystemWatcher.EnableRaisingEvents = false;
             this.Commands_RaiseCanExecuteChanged();
