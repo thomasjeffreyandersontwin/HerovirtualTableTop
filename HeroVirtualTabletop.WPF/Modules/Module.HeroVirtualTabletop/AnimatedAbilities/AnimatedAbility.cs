@@ -328,8 +328,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             //AnimateAttack(direction, attackingCharacter);
             //System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
-            //this.SetAttackDirection(direction);
-            //this.SetAttackerFacing(direction, attackingCharacter);
+            this.SetAttackDirection(direction);
+            this.SetAttackerFacing(direction, attackingCharacter);
 
             SequenceElement attackSequenceElement = new SequenceElement("attackSequence", AnimationSequenceType.And);
             Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
