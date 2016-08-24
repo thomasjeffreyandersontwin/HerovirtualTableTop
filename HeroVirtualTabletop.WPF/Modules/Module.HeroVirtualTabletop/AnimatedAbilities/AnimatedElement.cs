@@ -934,7 +934,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             OnPropertyChanged("IsActive");
         }
-
+        public Dictionary<AnimationElement, Character> KeyBindAnimationTargetDictionary { get; set; }
         public override Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             List<Task> tasks = new List<Task>();
@@ -960,11 +960,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 else
                 {
-                    tasks.Add(new Task(() =>
-                    {
-                        IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                        //new PauseElement("", 500).Play();
-                    }));
+                    //tasks.Add(new Task(() =>
+                    //{
+                    //    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                    //    new PauseElement("", 500).Play();
+                    //}));
                     if (element.Type == AnimationType.Pause || element.Type == AnimationType.Sound)
                     {
                         tasks.Add(new Task(() => { element.Play(persistent); }));
@@ -996,16 +996,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             if (elementsToPlay.Last().Type == AnimationType.FX || AnimationElements.Last().Type == AnimationType.Movement)
             {
-                tasks.Add(new Task(() =>
-                {
-                    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                    //new PauseElement("", 500).Play();
-                }));
+                //tasks.Add(new Task(() =>
+                //{
+                //    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                //    new PauseElement("", 500).Play();
+                //}));
             }
             
             
             return new Task(() =>
             {
+                //tasks.Add(new Task(() =>
+                //{
+                //    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                //    new PauseElement("", 500).Play();
+                //}));
                 foreach (Task t in tasks)
                     t.RunSynchronously();
             });

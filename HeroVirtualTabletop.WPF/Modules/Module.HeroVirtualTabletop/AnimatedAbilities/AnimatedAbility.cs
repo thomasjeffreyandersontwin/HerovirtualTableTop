@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
@@ -237,6 +238,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public void AnimateAttack(AttackDirection direction, Character attacker)
         {
+            this.SetAttackDirection(direction);
+            this.SetAttackerFacing(direction, attacker);
+            base.Play(false, attacker); 
+            // Reset FX direction
+            this.SetAttackDirection(null);
+        }
+
+        private void SetAttackDirection(AttackDirection direction)
+        {
             foreach (var animation in this.AnimationElements)
             {
                 if (animation is FXEffectElement)
@@ -244,18 +254,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (animation as FXEffectElement).AttackDirection = direction;
                 }
             }
+        }
+
+        private void SetAttackerFacing(AttackDirection direction, Character attacker)
+        {
             Vector3 facingVector = new Vector3(direction.AttackDirectionX, direction.AttackDirectionY, direction.AttackDirectionZ);
             (attacker.Position as Position).SetTargetFacing(facingVector);
-            base.Play(false, attacker); 
-            // Restet FX direction
-            foreach (var animation in this.AnimationElements)
-            {
-                if (animation is FXEffectElement)
-                {
-                    (animation as FXEffectElement).AttackDirection = null;
-                }
-            }
-
         }
 
         private AnimatedAbility GetMissAbility()
@@ -322,31 +326,36 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
 
             }
-            AnimateAttack(direction, attackingCharacter);
-            System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
+            //AnimateAttack(direction, attackingCharacter);
+            //System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
+            //this.SetAttackDirection(direction);
+            //this.SetAttackerFacing(direction, attackingCharacter);
 
-            if (defendingCharacters != null && defendingCharacters.Count > 0)
+            SequenceElement attackSequenceElement = new SequenceElement("attackSequence", AnimationSequenceType.And);
+            Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
+            attackSequenceElement.AddAnimationElement(this);
+            characterAnimationMappingDictionary.Add(this, new List<Character> { attackingCharacter });
+            characterAnimationMappingDictionary.Add(new PauseElement("", 1000), new List<Character> { attackingCharacter });
+            if(defendingCharacters != null && defendingCharacters.Count > 0)
             {
-                SequenceElement attackSequenceElement = new SequenceElement("attackSequence", AnimationSequenceType.And);
-                Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
                 // Attack results
                 var hitAbility = this.GetHitAbility();
                 List<Character> hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
                 var missAbility = this.GetMissAbility();
                 List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
 
-                if(hitTargets.Count > 0)
+                if (hitTargets.Count > 0)
                 {
                     attackSequenceElement.AddAnimationElement(hitAbility);
                     characterAnimationMappingDictionary.Add(hitAbility, hitTargets);
                 }
-                    
-                if(missTargets.Count > 0)
+
+                if (missTargets.Count > 0)
                 {
                     attackSequenceElement.AddAnimationElement(missAbility);
                     characterAnimationMappingDictionary.Add(missAbility, missTargets);
                 }
-                    
+
                 // Effects
                 var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
                 List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList();
@@ -357,33 +366,38 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
                 List<Character> stunnedTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList();
 
-                if(deadTargets.Count > 0)
+                if (deadTargets.Count > 0)
                 {
                     attackSequenceElement.AddAnimationElement(globalDeadAbility);
                     characterAnimationMappingDictionary.Add(globalDeadAbility, deadTargets);
                 }
-                    
-                if(dyingTargets.Count > 0)
+
+                if (dyingTargets.Count > 0)
                 {
                     attackSequenceElement.AddAnimationElement(globalDyingAbility);
                     characterAnimationMappingDictionary.Add(globalDyingAbility, dyingTargets);
                 }
-                    
-                if(unconciousTargets.Count > 0)
+
+                if (unconciousTargets.Count > 0)
                 {
                     attackSequenceElement.AddAnimationElement(globalUnconciousAbility);
                     characterAnimationMappingDictionary.Add(globalUnconciousAbility, unconciousTargets);
                 }
-                    
-                if(stunnedTargets.Count > 0)
+
+                if (stunnedTargets.Count > 0)
                 {
                     attackSequenceElement.AddAnimationElement(globalStunnedAbility);
                     characterAnimationMappingDictionary.Add(globalStunnedAbility, stunnedTargets);
                 }
-                
-                // Finally play as chained 
-                attackSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
             }
+            
+
+            // Finally play as chained 
+            IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+            attackSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
+
+            // Reset FX direction
+            this.SetAttackDirection(null);
             attackingCharacter.Deactivate();
         }
 
