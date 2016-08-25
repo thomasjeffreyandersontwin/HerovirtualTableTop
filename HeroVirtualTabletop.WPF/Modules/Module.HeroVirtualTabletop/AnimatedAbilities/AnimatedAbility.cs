@@ -324,18 +324,30 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         direction.AttackDirectionZ = centerTargetCharacter.Position.Z + randomOffset * multiplyFactorZ;
                     }
                 }
-
             }
             //AnimateAttack(direction, attackingCharacter);
             //System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
             this.SetAttackDirection(direction);
             this.SetAttackerFacing(direction, attackingCharacter);
 
-            SequenceElement attackSequenceElement = new SequenceElement("attackSequence", AnimationSequenceType.And);
+            AnimationElement lastKeybindAnimation = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Movement || a.Type == AnimationType.FX);
+
+            SequenceElement attackSequenceMain = new SequenceElement("attackSequenceMain", AnimationSequenceType.And);
+            attackSequenceMain.Owner = attackingCharacter;
+            foreach (AnimationElement element in this.AnimationElements.Except(new List<AnimationElement> { lastKeybindAnimation }))
+            {
+                attackSequenceMain.AddAnimationElement(element);
+            }
+            attackSequenceMain.Play(false, attackingCharacter);
+
+            SequenceElement attackChainSequenceElement = new SequenceElement("attackChainSequence", AnimationSequenceType.And);
             Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
-            attackSequenceElement.AddAnimationElement(this);
-            characterAnimationMappingDictionary.Add(this, new List<Character> { attackingCharacter });
-            characterAnimationMappingDictionary.Add(new PauseElement("", 1000), new List<Character> { attackingCharacter });
+            if(lastKeybindAnimation != null)
+            {
+                attackChainSequenceElement.AddAnimationElement(lastKeybindAnimation);
+                characterAnimationMappingDictionary.Add(lastKeybindAnimation, new List<Character> { attackingCharacter });
+            }
+            
             if(defendingCharacters != null && defendingCharacters.Count > 0)
             {
                 // Attack results
@@ -346,13 +358,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
                 if (hitTargets.Count > 0)
                 {
-                    attackSequenceElement.AddAnimationElement(hitAbility);
+                    attackChainSequenceElement.AddAnimationElement(hitAbility);
                     characterAnimationMappingDictionary.Add(hitAbility, hitTargets);
                 }
 
                 if (missTargets.Count > 0)
                 {
-                    attackSequenceElement.AddAnimationElement(missAbility);
+                    attackChainSequenceElement.AddAnimationElement(missAbility);
                     characterAnimationMappingDictionary.Add(missAbility, missTargets);
                 }
 
@@ -368,25 +380,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
                 if (deadTargets.Count > 0)
                 {
-                    attackSequenceElement.AddAnimationElement(globalDeadAbility);
+                    attackChainSequenceElement.AddAnimationElement(globalDeadAbility);
                     characterAnimationMappingDictionary.Add(globalDeadAbility, deadTargets);
                 }
 
                 if (dyingTargets.Count > 0)
                 {
-                    attackSequenceElement.AddAnimationElement(globalDyingAbility);
+                    attackChainSequenceElement.AddAnimationElement(globalDyingAbility);
                     characterAnimationMappingDictionary.Add(globalDyingAbility, dyingTargets);
                 }
 
                 if (unconciousTargets.Count > 0)
                 {
-                    attackSequenceElement.AddAnimationElement(globalUnconciousAbility);
+                    attackChainSequenceElement.AddAnimationElement(globalUnconciousAbility);
                     characterAnimationMappingDictionary.Add(globalUnconciousAbility, unconciousTargets);
                 }
 
                 if (stunnedTargets.Count > 0)
                 {
-                    attackSequenceElement.AddAnimationElement(globalStunnedAbility);
+                    attackChainSequenceElement.AddAnimationElement(globalStunnedAbility);
                     characterAnimationMappingDictionary.Add(globalStunnedAbility, stunnedTargets);
                 }
             }
@@ -394,7 +406,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             // Finally play as chained 
             IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-            attackSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
+            attackChainSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
 
             // Reset FX direction
             this.SetAttackDirection(null);
