@@ -193,7 +193,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Subscribe(CheckRosterConsistency);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(InitiateRosterCharacterAttack);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Subscribe(this.LaunchActiveAttack);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttack);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CancelActiveAttack);
             this.eventAggregator.GetEvent<AddOptionEvent>().Subscribe(this.HandleCharacterOptionAddition);
 
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Subscribe((obj) =>
@@ -1014,21 +1014,25 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else if (currentTarget == null) // Cancel attack
                 {
-                    List<Character> defendingCharacters = new List<Character>();
-                    this.CloseActiveAttack(this.currentAttack);
-                    this.ResetAttack(defendingCharacters);
+                    this.CancelActiveAttack(this.currentAttack);
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
         }
 
-        private void CloseActiveAttack(object state)
+        private void CancelActiveAttack(object state)
         {
-            if (state != null && state is AnimatedAbility)
+            Action action = delegate()
             {
-                Helper.GlobalVariables_IsPlayingAttack = false;
-                Commands_RaiseCanExecuteChanged();
-            }
+                if (this.isPlayingAttack)
+                {
+                    Helper.GlobalVariables_IsPlayingAttack = false;
+                    Commands_RaiseCanExecuteChanged();
+                    List<Character> defendingCharacters = new List<Character>();
+                    this.ResetAttack(defendingCharacters); 
+                }
+            };
+            Application.Current.Dispatcher.BeginInvoke(action);
         }
 
         private void HandleCharacterOptionAddition(ICharacterOption option)

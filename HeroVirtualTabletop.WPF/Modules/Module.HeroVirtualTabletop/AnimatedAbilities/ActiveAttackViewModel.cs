@@ -183,9 +183,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void CancelActiveAttack(object state)
         {
-            // Change mouse pointer to back to bulls eye
-            Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
-            Mouse.OverrideCursor = cursor;
+            foreach(var c in this.DefendingCharacters)
+            {
+                c.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
+            }
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
         }
 
