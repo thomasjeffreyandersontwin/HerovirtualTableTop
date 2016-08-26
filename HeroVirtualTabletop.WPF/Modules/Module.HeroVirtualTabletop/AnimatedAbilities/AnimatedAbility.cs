@@ -284,6 +284,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
             AttackDirection direction = new AttackDirection();
+            //int attackDelay = 0;
+
             if (defendingCharacters == null || defendingCharacters.Count == 0)
             {
                 var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
@@ -303,6 +305,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 else
                 {
+                    //Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+                    //Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
+                    //var distance = Vector3.Distance(vAttacker, vCenterTarget);
                     if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
                     {
                         direction.AttackDirectionX = centerTargetCharacter.Position.X;
@@ -325,28 +330,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
-            //AnimateAttack(direction, attackingCharacter);
+            AnimateAttack(direction, attackingCharacter);
             //System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
-            this.SetAttackDirection(direction);
-            this.SetAttackerFacing(direction, attackingCharacter);
+            //this.SetAttackDirection(direction);
+            //this.SetAttackerFacing(direction, attackingCharacter);
 
-            AnimationElement lastKeybindAnimation = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Movement || a.Type == AnimationType.FX);
+            //AnimationElement lastKeybindAnimation = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Movement || a.Type == AnimationType.FX);
 
-            SequenceElement attackSequenceMain = new SequenceElement("attackSequenceMain", AnimationSequenceType.And);
-            attackSequenceMain.Owner = attackingCharacter;
-            foreach (AnimationElement element in this.AnimationElements.Except(new List<AnimationElement> { lastKeybindAnimation }))
-            {
-                attackSequenceMain.AddAnimationElement(element);
-            }
-            attackSequenceMain.Play(false, attackingCharacter);
+            //SequenceElement attackSequenceMain = new SequenceElement("attackSequenceMain", AnimationSequenceType.And);
+            //attackSequenceMain.Owner = attackingCharacter;
+            //foreach (AnimationElement element in this.AnimationElements.Except(new List<AnimationElement> { lastKeybindAnimation }))
+            //{
+            //    attackSequenceMain.AddAnimationElement(element);
+            //}
+            //attackSequenceMain.Play(false, attackingCharacter);
 
             SequenceElement attackChainSequenceElement = new SequenceElement("attackChainSequence", AnimationSequenceType.And);
             Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
-            if(lastKeybindAnimation != null)
-            {
-                attackChainSequenceElement.AddAnimationElement(lastKeybindAnimation);
-                characterAnimationMappingDictionary.Add(lastKeybindAnimation, new List<Character> { attackingCharacter });
-            }
+            //if(lastKeybindAnimation != null)
+            //{
+            //    attackChainSequenceElement.AddAnimationElement(lastKeybindAnimation);
+            //    characterAnimationMappingDictionary.Add(lastKeybindAnimation, new List<Character> { attackingCharacter });
+            //}
             
             if(defendingCharacters != null && defendingCharacters.Count > 0)
             {
