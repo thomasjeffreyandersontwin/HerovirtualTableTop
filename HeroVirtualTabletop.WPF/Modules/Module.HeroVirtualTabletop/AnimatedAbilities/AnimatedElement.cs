@@ -274,6 +274,74 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private bool isUnitPause;
+        public bool IsUnitPause
+        {
+            get
+            {
+                return isUnitPause;
+            }
+            set
+            {
+                isUnitPause = value;
+                OnPropertyChanged("IsUnitPause");
+            }
+        }
+
+        private int closeDistanceDelay;
+        public int CloseDistanceDelay
+        {
+            get
+            {
+                return closeDistanceDelay;
+            }
+            set
+            {
+                closeDistanceDelay = value;
+                OnPropertyChanged("CloseDistanceDelay");
+            }
+        }
+
+        private int shortDistanceDelay;
+        public int ShortDistanceDelay
+        {
+            get
+            {
+                return shortDistanceDelay;
+            }
+            set
+            {
+                shortDistanceDelay = value;
+                OnPropertyChanged("ShortDistanceDelay");
+            }
+        }
+        private int mediumDistanceDelay;
+        public int MediumDistanceDelay
+        {
+            get
+            {
+                return mediumDistanceDelay;
+            }
+            set
+            {
+                mediumDistanceDelay = value;
+                OnPropertyChanged("MediumDistanceDelay");
+            }
+        }
+        private int longDistanceDelay;
+        public int LongDistanceDelay
+        {
+            get
+            {
+                return longDistanceDelay;
+            }
+            set
+            {
+                longDistanceDelay = value;
+                OnPropertyChanged("LongDistanceDelay");
+            }
+        }
+
         public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             IsActive = true;
@@ -934,7 +1002,56 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             OnPropertyChanged("IsActive");
         }
-        public Dictionary<AnimationElement, Character> KeyBindAnimationTargetDictionary { get; set; }
+
+        public List<AnimationElement> GetFlattenedAnimationList()
+        {
+            List<AnimationElement> _list = new List<AnimationElement>();
+            foreach (AnimationElement animationElement in this.AnimationElements)
+            {
+                if (animationElement is SequenceElement)
+                {
+                    SequenceElement sequenceElement = (animationElement as SequenceElement);
+                    if (sequenceElement.AnimationElements != null && sequenceElement.AnimationElements.Count > 0)
+                        _list.AddRange(sequenceElement.GetFlattenedAnimationList());
+                }
+                else if (animationElement is ReferenceAbility)
+                {
+                    ReferenceAbility refElement = (animationElement as ReferenceAbility);
+                    if (refElement.Reference != null && refElement.Reference.AnimationElements != null && refElement.Reference.AnimationElements.Count > 0)
+                    {
+                        _list.AddRange(refElement.Reference.GetFlattenedAnimationList());
+                    }
+                }
+                _list.Add(animationElement);
+            }
+            return _list;
+        }
+
+        public void PlayFlattenedAnimationsOnTargeted(Dictionary<AnimationElement, List<Character>> characterAnimationMapping)
+        {
+            // The following algorithm does not prevail individual playwithnexts, rather chains same animation on all targets, then the next animation on all targets etc. 
+            // If needed this algorithm can be improved in future to preserve individual playwithnexts.
+            foreach (AnimationElement element in AnimationElements.OrderBy(x => x.Order))
+            {
+                List<Character> targets = characterAnimationMapping[element];
+                if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
+                {
+                    foreach (Character target in targets)
+                    {
+                        element.GetKeybind(target);
+                    }
+                    if(!element.PlayWithNext)
+                    {
+                        IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                        new PauseElement("", 500).Play();
+                    }
+
+                }
+                else
+                    element.Play(false, targets.First());
+            }
+        }
+        
         public override Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             List<Task> tasks = new List<Task>();
@@ -1006,11 +1123,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             
             return new Task(() =>
             {
-                //tasks.Add(new Task(() =>
-                //{
-                //    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                //    new PauseElement("", 500).Play();
-                //}));
+                tasks.Add(new Task(() =>
+                {
+                    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                    new PauseElement("", 500).Play();
+                }));
                 foreach (Task t in tasks)
                     t.RunSynchronously();
             });

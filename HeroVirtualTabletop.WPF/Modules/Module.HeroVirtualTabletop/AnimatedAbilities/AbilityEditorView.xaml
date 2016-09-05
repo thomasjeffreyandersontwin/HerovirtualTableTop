@@ -49,6 +49,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>
+                <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
@@ -71,13 +72,49 @@
                     </TextBox.InputBindings>
                 </TextBox>
             </Grid>
-
+            <Grid Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Visibility="{Binding ElementName=chkboxUnitPause, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Close" Foreground="White" Margin="3 2 0 0" />
+                        <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="100" Minimum="0" Value="{Binding CurrentPauseElement.CloseDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Short" Foreground="White" Margin="3 2 0 0" />
+                        <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="60" Minimum="0" Value="{Binding CurrentPauseElement.ShortDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Medium" Foreground="White"/>
+                        <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="30" Minimum="0" Value="{Binding CurrentPauseElement.MediumDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Long" Foreground="White"/>
+                        <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="20" Minimum="0" Value="{Binding CurrentPauseElement.LongDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
+                    </Grid>
+                </StackPanel>
+            </Grid>
             <Grid Grid.Row="1" Grid.Column="0" VerticalAlignment="Center">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
@@ -90,6 +127,7 @@
                 <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentAbility.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="AbilityGroup" HorizontalAlignment="Left" VerticalAlignment="Center"  Command="{Binding SaveAbilityCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"/>
                 <RadioButton Grid.Row="1" Grid.Column="1" Content="And" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=And}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center"  Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
                 <RadioButton Grid.Row="1" Grid.Column="2" Content="Or" IsChecked="{Binding Path=CurrentSequenceElement.SequenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Or}" GroupName="SequenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center"  Command="{Binding SaveSequenceCommand}" Visibility="{Binding IsSequenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                <CheckBox Grid.Row="1" Grid.Column="3" Name="chkboxUnitPause" VerticalAlignment="Center" IsChecked="{Binding CurrentPauseElement.IsUnitPause}" Visibility="{Binding IsPauseElementSelected, Converter={StaticResource BooleanToVisibilityConverter}}" IsEnabled="{Binding CurrentAttackAbility.IsAttack}" Content="Unit Pause"  HorizontalAlignment="Left" Command="{Binding ConfigureUnitPauseCommand}"/>
             </Grid>
         </Grid>
         <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">

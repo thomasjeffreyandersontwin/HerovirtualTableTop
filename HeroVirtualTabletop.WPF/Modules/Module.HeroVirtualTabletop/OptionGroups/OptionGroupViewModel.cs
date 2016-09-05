@@ -511,7 +511,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 if (selectedOption as AnimatedAbility != value as AnimatedAbility)
                 {
                     AnimatedAbility ability = selectedOption as AnimatedAbility;
-                    if (ability.IsActive && !ability.Persistent)
+                    if (ability.IsActive && !ability.Persistent) 
                         ability.Stop();
                 }
             }

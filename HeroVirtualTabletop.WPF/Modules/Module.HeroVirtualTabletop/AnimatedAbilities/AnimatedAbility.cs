@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -91,6 +92,56 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             clonedAbility.IsAttack = this.IsAttack;
             clonedAbility.Name = this.Name;
             return clonedAbility;
+        }
+
+        public static string GetAppropriateAnimationName(AnimationType animationType, List<AnimationElement> collection)
+        {
+            string name = "";
+            switch (animationType)
+            {
+                case AnimationType.Movement:
+                    name = "Mov Element";
+                    break;
+                case AnimationType.FX:
+                    name = "FX Element";
+                    break;
+                case AnimationType.Pause:
+                    name = "Pause Element";
+                    break;
+                case AnimationType.Sequence:
+                    name = "Seq Element";
+                    break;
+                case AnimationType.Sound:
+                    name = "Sound Element";
+                    break;
+                case AnimationType.Reference:
+                    name = "Ref Element";
+                    break;
+            }
+
+            string suffix = " 1";
+            string rootName = name;
+            int i = 1;
+            Regex reg = new Regex(@"\d+");
+            MatchCollection matches = reg.Matches(name);
+            if (matches.Count > 0)
+            {
+                int k;
+                Match match = matches[matches.Count - 1];
+                if (int.TryParse(match.Value.Substring(1, match.Value.Length - 2), out k))
+                {
+                    i = k + 1;
+                    suffix = string.Format(" {0}", i);
+                    rootName = name.Substring(0, match.Index).TrimEnd();
+                }
+            }
+            string newName = rootName + suffix;
+            while (collection.Where(a => a.Name == newName).FirstOrDefault() != null)
+            {
+                suffix = string.Format(" {0}", ++i);
+                newName = rootName + suffix;
+            }
+            return newName;
         }
     }
 
@@ -284,8 +335,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
             AttackDirection direction = new AttackDirection();
-            //int attackDelay = 0;
-
+            int attackDelay = 0;
+            PauseElement unitPauseElement = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Pause && (a as PauseElement).IsUnitPause) as PauseElement;
             if (defendingCharacters == null || defendingCharacters.Count == 0)
             {
                 var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
@@ -305,9 +356,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 else
                 {
-                    //Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
-                    //Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
-                    //var distance = Vector3.Distance(vAttacker, vCenterTarget);
+                    Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+                    Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
+                    var distance = Vector3.Distance(vAttacker, vCenterTarget); 
+                    if (unitPauseElement != null)
+                    {
+                        DelayManager delayManager = new DelayManager(unitPauseElement);
+                        attackDelay = (int)delayManager.GetDelayForDistance(distance);
+                    }
+                    
                     if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
                     {
                         direction.AttackDirectionX = centerTargetCharacter.Position.X;
@@ -331,29 +388,42 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
             AnimateAttack(direction, attackingCharacter);
-            //System.Threading.Thread.Sleep(1000); // Delay between attack and on hit animations
-            //this.SetAttackDirection(direction);
-            //this.SetAttackerFacing(direction, attackingCharacter);
+            System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
 
-            //AnimationElement lastKeybindAnimation = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Movement || a.Type == AnimationType.FX);
+            AnimateHitAndMiss(defendingCharacters);
+            AnimateAttackEffects(defendingCharacters);
 
-            //SequenceElement attackSequenceMain = new SequenceElement("attackSequenceMain", AnimationSequenceType.And);
-            //attackSequenceMain.Owner = attackingCharacter;
-            //foreach (AnimationElement element in this.AnimationElements.Except(new List<AnimationElement> { lastKeybindAnimation }))
-            //{
-            //    attackSequenceMain.AddAnimationElement(element);
-            //}
-            //attackSequenceMain.Play(false, attackingCharacter);
+            // Reset FX direction
+            this.SetAttackDirection(null);
+            attackingCharacter.Deactivate();
+        }
 
+        private SequenceElement GetSequenceToPlay(SequenceElement sequenceElement)
+        {
+            SequenceElement sequenceToPlay = new SequenceElement("SequenceToPlay", AnimationSequenceType.And);
+            if (sequenceElement.SequenceType == AnimationSequenceType.And)
+            {
+                foreach(AnimationElement element in sequenceElement.AnimationElements)
+                {
+                    sequenceToPlay.AddAnimationElement(element);
+                }
+            }
+                
+            else
+            {
+                var rnd = new Random();
+                int chosen = rnd.Next(0, sequenceElement.AnimationElements.Count);
+                sequenceToPlay.AddAnimationElement(sequenceElement.AnimationElements[chosen]);
+            }
+            return sequenceToPlay;
+        }
+
+        private void AnimateHitAndMissAndEffectsAsChained(List<Character> defendingCharacters)
+        {
             SequenceElement attackChainSequenceElement = new SequenceElement("attackChainSequence", AnimationSequenceType.And);
             Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
-            //if(lastKeybindAnimation != null)
-            //{
-            //    attackChainSequenceElement.AddAnimationElement(lastKeybindAnimation);
-            //    characterAnimationMappingDictionary.Add(lastKeybindAnimation, new List<Character> { attackingCharacter });
-            //}
-            
-            if(defendingCharacters != null && defendingCharacters.Count > 0)
+
+            if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
                 // Attack results
                 var hitAbility = this.GetHitAbility();
@@ -407,15 +477,189 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     characterAnimationMappingDictionary.Add(globalStunnedAbility, stunnedTargets);
                 }
             }
-            
+
 
             // Finally play as chained 
-            IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+            //IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
             attackChainSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
+        }
 
-            // Reset FX direction
-            this.SetAttackDirection(null);
-            attackingCharacter.Deactivate();
+        private void AnimateHitAndMiss(List<Character> defendingCharacters)
+        {
+            SequenceElement hitMissSequenceElement = new SequenceElement("HitMissSequence", AnimationSequenceType.And);
+            Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
+            // find the flattened list of hit and miss animations and their targets
+            var hitAbility = this.GetHitAbility();
+            var hitAbilityToPlay = this.GetSequenceToPlay(hitAbility);
+            var hitAbilityFlattened = hitAbilityToPlay.GetFlattenedAnimationList();
+            List<Character> hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
+            var missAbility = this.GetMissAbility();
+            var missAbilityToPlay = this.GetSequenceToPlay(missAbility);
+            var missAbilityFlattened = missAbilityToPlay.GetFlattenedAnimationList();
+            List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
+
+            // add all the hit animations in proper order
+            foreach(var anim in hitAbilityFlattened)
+            {
+                AnimationElement hitElement = anim.Clone();
+                hitElement.Name = GetAppropriateAnimationName(hitElement.Type, hitMissSequenceElement.AnimationElements.ToList());
+                hitMissSequenceElement.AddAnimationElement(hitElement);
+                characterAnimationMappingDictionary.Add(hitElement, hitTargets);
+            }
+            // Now inject the miss animations where appropriate
+            List<AnimationElement> prependMissAnimations = new List<AnimationElement>(); // this list will keep all the non-fx/mov elements from the miss that appear before any mov/fx in the miss
+            int missAnimationInjectCurrentPosition = -1, missAnimationInjectionInitialPosition = -1;
+            if (missTargets.Count > 0)
+            {
+                foreach (var anim in missAbilityFlattened)
+                {
+                    AnimationElement missElement = anim.Clone();
+                    missElement.Name = AnimatedAbility.GetAppropriateAnimationName(missElement.Type, hitMissSequenceElement.AnimationElements.ToList());
+                    characterAnimationMappingDictionary.Add(missElement, missTargets);
+                    if (missAnimationInjectCurrentPosition >= 0) // already found injection position, so add to the next position
+                    {
+                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
+                    }
+                    else // find appropriate position if miss animation is mov or fx, else prepend
+                    {
+                        if (missElement is MOVElement || missElement is FXEffectElement) // need to chain it to the first mov/fx of the hit
+                        {
+                            var movOrFxToChain = hitMissSequenceElement.AnimationElements.FirstOrDefault(a => a is MOVElement || a is FXEffectElement);
+                            if (movOrFxToChain != null)
+                            {
+                                if (movOrFxToChain.PlayWithNext) // chain at the end of the playwithnext sequence
+                                {
+                                    movOrFxToChain = hitMissSequenceElement.AnimationElements.FirstOrDefault(a => a.Order > movOrFxToChain.Order && !(a is MOVElement || a is FXEffectElement));
+                                    if (movOrFxToChain == null) // add at the end of the hit animations
+                                    {
+                                        movOrFxToChain = hitMissSequenceElement.AnimationElements.Last();
+                                        movOrFxToChain.PlayWithNext = true;
+                                        missAnimationInjectCurrentPosition = movOrFxToChain.Order;
+                                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
+                                        missAnimationInjectionInitialPosition = missAnimationInjectCurrentPosition;
+                                    }
+                                    else // add before this element in the hit animations
+                                    {
+                                        movOrFxToChain.PlayWithNext = true;
+                                        missAnimationInjectCurrentPosition = movOrFxToChain.Order - 1;
+                                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
+                                        missAnimationInjectionInitialPosition = missAnimationInjectCurrentPosition;
+                                    }
+
+                                }
+                                else // chain with the current mov/fx in the hit animation
+                                {
+                                    missAnimationInjectCurrentPosition = movOrFxToChain.Order;
+                                    movOrFxToChain.PlayWithNext = true;
+                                    hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
+                                    missAnimationInjectionInitialPosition = missAnimationInjectCurrentPosition;
+                                }
+                            }
+                            else // add it to first of hit animation, we don't care as there is nothing to chain
+                            {
+                                hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
+                                missAnimationInjectionInitialPosition = missAnimationInjectCurrentPosition;
+                            }
+                        }
+                        else // add it to prepend list, we'll add it later
+                        {
+                            prependMissAnimations.Add(missElement);
+                        }
+                    }
+                }
+
+                if (prependMissAnimations.Count > 0) // add these before where we appended the first miss mov/fx
+                {
+                    missAnimationInjectCurrentPosition = missAnimationInjectionInitialPosition - 1;
+                    foreach (AnimationElement anim in prependMissAnimations)
+                    {
+                        hitMissSequenceElement.AddAnimationElement(anim, ++missAnimationInjectCurrentPosition);
+                    }
+                } 
+            }
+
+            // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
+            hitMissSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
+        }
+
+        private void AnimateAttackEffects(List<Character> defendingCharacters)
+        {
+            SequenceElement attackEffectSequenceElement = new SequenceElement("AttackEffectSequence", AnimationSequenceType.And);
+            Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
+
+            var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
+            List<Character> deadTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead).ToList();
+            var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
+            List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList(); 
+            var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
+            List<Character> unconciousTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList();
+            var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
+            List<Character> stunnedTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList();
+
+            if (deadTargets.Count > 0 && globalDeadAbility != null)
+            {
+                var deadAbilityToPlay = this.GetSequenceToPlay(globalDeadAbility);
+                var deadAbilityFlattened = deadAbilityToPlay.GetFlattenedAnimationList();
+                foreach(var animation in deadAbilityFlattened)
+                {
+                    AnimationElement deadAnimation = animation.Clone();
+                    deadAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(deadAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
+                    attackEffectSequenceElement.AddAnimationElement(deadAnimation);
+                    characterAnimationMappingDictionary.Add(deadAnimation, deadTargets);
+                }
+            }
+
+            if (dyingTargets.Count > 0 && globalDyingAbility != null)
+            {
+                var dyingAbilityToPlay = this.GetSequenceToPlay(globalDyingAbility);
+                var dyingAbilityFlattened = dyingAbilityToPlay.GetFlattenedAnimationList();
+                foreach(var animation in dyingAbilityFlattened)
+                {
+                    AnimationElement dyingAnimation = animation.Clone();
+                    dyingAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(dyingAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
+                    attackEffectSequenceElement.AddAnimationElement(dyingAnimation);
+                    characterAnimationMappingDictionary.Add(dyingAnimation, dyingTargets);
+                }
+            }
+
+            if (unconciousTargets.Count > 0 && globalUnconciousAbility != null)
+            {
+                var unconciousAbilityToPlay = this.GetSequenceToPlay(globalUnconciousAbility);
+                var unconciousAbilityFlattened = unconciousAbilityToPlay.GetFlattenedAnimationList();
+                foreach(var animation in unconciousAbilityFlattened)
+                {
+                    AnimationElement unconciousAnimation = animation.Clone();
+                    unconciousAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(unconciousAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
+                    attackEffectSequenceElement.AddAnimationElement(unconciousAnimation);
+                    characterAnimationMappingDictionary.Add(unconciousAnimation, unconciousTargets);
+                }
+                
+            }
+
+            if (stunnedTargets.Count > 0 && globalStunnedAbility != null)
+            {
+                var stunnedAbilityToPlay = this.GetSequenceToPlay(globalStunnedAbility);
+                var stunnedAbilityFlattened = stunnedAbilityToPlay.GetFlattenedAnimationList();
+                foreach (var animation in stunnedAbilityFlattened)
+                {
+                    AnimationElement stunnedAnimation = animation.Clone();
+                    stunnedAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(stunnedAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
+                    attackEffectSequenceElement.AddAnimationElement(stunnedAnimation);
+                    characterAnimationMappingDictionary.Add(stunnedAnimation, stunnedTargets);
+                }
+            }
+
+            // now make all MOVs and FXs to play with next, except the last one so that they play together
+            AnimationElement lastMovOrFx = null;
+            foreach(var movOrFxElement in attackEffectSequenceElement.AnimationElements.Where(a => a.Type == AnimationType.FX || a.Type == AnimationType.Movement))
+            {
+                movOrFxElement.PlayWithNext = true;
+                lastMovOrFx = movOrFxElement;
+            }
+            if (lastMovOrFx != null)
+                lastMovOrFx.PlayWithNext = false;
+
+            attackEffectSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
         }
 
         public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)

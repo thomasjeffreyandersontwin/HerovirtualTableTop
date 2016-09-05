@@ -462,7 +462,7 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 var updatedAbilityResources = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
                 var currentAbilityResources = referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>;
-                var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null);
+                var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Reference.Owner != null && a.Reference.Owner != null && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null);
                 if (addedResources.Count() > 0)
                 {
                     foreach (var addedResource in addedResources)
@@ -472,12 +472,12 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
                 else
                 {
-                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => a.Name == ca.Name && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null));
+                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => a.Name == ca.Name && ca.Reference.Owner != null && a.Reference.Owner != null && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null));
                     if (deletedResources.Count() > 0)
                     {
                         foreach (var deletedResource in deletedResources)
                         {
-                            var resourceToDelete = (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).First(ar => ar.Name == deletedResource.Name && ar.Reference.Owner.Name == deletedResource.Reference.Owner.Name);
+                            var resourceToDelete = (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).First(ar => ar.Name == deletedResource.Name && ar.Reference.Owner != null && deletedResource.Reference.Owner != null && ar.Reference.Owner.Name == deletedResource.Reference.Owner.Name);
                             (referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>).Remove(resourceToDelete);
                         }
                     }
