@@ -571,8 +571,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void StopOption(object state)
         {
+            AnimatedAbility abilityToStop = state as AnimatedAbility;
             AnimatedAbility ability = selectedOption as AnimatedAbility;
-            if (ability != null)
+            if (ability != null && abilityToStop != null && ability == abilityToStop)
                 StopAnimatedAbility(ability);
         }
 
