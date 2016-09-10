@@ -74,7 +74,7 @@
             </Grid>
             <Grid Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Visibility="{Binding ElementName=chkboxUnitPause, Path=IsChecked, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Grid>
+                    <Grid ToolTip="Delay for 10 unit distance">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="Auto"/>
@@ -82,7 +82,7 @@
                         <TextBlock Text="Close" Foreground="White" Margin="3 2 0 0" />
                         <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="100" Minimum="0" Value="{Binding CurrentPauseElement.CloseDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
                     </Grid>
-                    <Grid>
+                    <Grid ToolTip="Delay for 20 unit distance">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="Auto"/>
@@ -90,7 +90,7 @@
                         <TextBlock Text="Short" Foreground="White" Margin="3 2 0 0" />
                         <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="60" Minimum="0" Value="{Binding CurrentPauseElement.ShortDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
                     </Grid>
-                    <Grid>
+                    <Grid ToolTip="Delay for 50 unit distance">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="Auto"/>
@@ -98,7 +98,7 @@
                         <TextBlock Text="Medium" Foreground="White"/>
                         <xctk:IntegerUpDown Grid.Column="1" Increment="1" DefaultValue="30" Minimum="0" Value="{Binding CurrentPauseElement.MediumDistanceDelay}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveAbilityCommand}"/>
                     </Grid>
-                    <Grid>
+                    <Grid ToolTip="Delay for 100 unit distance">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition/>
                             <ColumnDefinition Width="Auto"/>

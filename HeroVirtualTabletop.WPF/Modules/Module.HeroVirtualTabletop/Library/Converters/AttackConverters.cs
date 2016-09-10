@@ -12,8 +12,8 @@ namespace Module.HeroVirtualTabletop.Library.Converters
 {
     /*
          fa-ambulance [&#xf0f9;] - dying
-         fa-power-off [&#xf011;] - unconcious
-         fa-bed [&#xf236;] - dead
+         fa-power-off [&#xf011;] - dead
+         fa-bed [&#xf236;] - unconcious
          fa-bullseye [&#xf140;] - defend?
          fa-frown-o [&#xf119;] - stunned
          fa-bolt [&#xf0e7;] - attack
@@ -31,13 +31,13 @@ namespace Module.HeroVirtualTabletop.Library.Converters
                     iconText = "\uf119";
                     break;
                 case Enumerations.AttackEffectOption.Unconcious:
-                    iconText = "\uf011";
+                    iconText = "\uf236";
                     break;
                 case Enumerations.AttackEffectOption.Dying:
                     iconText = "\uf0f9";
                     break;
                 case Enumerations.AttackEffectOption.Dead:
-                    iconText = "\uf236";
+                    iconText = "\uf011";
                     break;
             }
             return iconText;
