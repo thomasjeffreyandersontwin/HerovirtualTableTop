@@ -166,9 +166,7 @@ namespace Module.HeroVirtualTabletop.Library
             if (!directoryExists)
                 SetGameDirectory();
 
-            Process[] Processes = Process.GetProcessesByName(Constants.GAME_PROCESSNAME);
-
-            IconInteractionUtility.RunCOHAndLoadDLL();
+            IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
 
             LoadRequiredKeybinds();
 

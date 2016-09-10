@@ -44,62 +44,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        //private bool isStunnedSelected;
-        //public bool IsStunnedSelected
-        //{
-        //    get
-        //    {
-        //        return isStunnedSelected;
-        //    }
-        //    set
-        //    {
-        //        isStunnedSelected = value;
-        //        OnPropertyChanged("IsStunnedSelected");
-        //    }
-        //}
-
-        //private bool isUnconciousSelected;
-        //public bool IsUnconciousSelected
-        //{
-        //    get
-        //    {
-        //        return isUnconciousSelected;
-        //    }
-        //    set
-        //    {
-        //        isUnconciousSelected = value;
-        //        OnPropertyChanged("IsUnconciousSelected");
-        //    }
-        //}
-
-        //private bool isDyingSelected;
-        //public bool IsDyingSelected
-        //{
-        //    get
-        //    {
-        //        return isDyingSelected;
-        //    }
-        //    set
-        //    {
-        //        isDyingSelected = value;
-        //        OnPropertyChanged("IsDyingSelected");
-        //    }
-        //}
-
-        //private bool isDeadSelected;
-        //public bool IsDeadSelected
-        //{
-        //    get
-        //    {
-        //        return isDeadSelected;
-        //    }
-        //    set
-        //    {
-        //        isDeadSelected = value;
-        //        OnPropertyChanged("IsDeadSelected");
-        //    }
-        //}
-
         private ObservableCollection<Character> defendingCharacters;
         public ObservableCollection<Character> DefendingCharacters
         {
@@ -173,6 +117,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void SetActiveAttack(object state)
         {
+            foreach(Character ch in this.DefendingCharacters)
+            {
+                SetAttackEffect(ch);
+            }
             // Change mouse pointer to back to bulls eye
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
             Mouse.OverrideCursor = cursor;
@@ -180,7 +128,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.ActiveAttack);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
         }
-
+        private void SetAttackEffect(Character ch)
+        {
+            if (ch.ActiveAttackConfiguration.IsDead)
+                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dead;
+            else if (ch.ActiveAttackConfiguration.IsDying)
+                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dying;
+            else if (ch.ActiveAttackConfiguration.IsUnconcious)
+                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Unconcious;
+            else if (ch.ActiveAttackConfiguration.IsStunned)
+                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
+            else
+                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
+        }
         private void CancelActiveAttack(object state)
         {
             foreach(var c in this.DefendingCharacters)

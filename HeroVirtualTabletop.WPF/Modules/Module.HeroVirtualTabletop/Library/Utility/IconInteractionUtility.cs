@@ -15,7 +15,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
     public static class IconInteractionUtility
     {
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        private delegate bool InitGame(IntPtr hWnd);
+        //private delegate bool InitGame(IntPtr hWnd);
+        private delegate bool InitGame(int x, [MarshalAs(UnmanagedType.LPStr)]string gamePath);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate bool CloseGame(IntPtr hWnd);
@@ -35,6 +36,9 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         [UnmanagedFunctionPointer(CallingConvention.Winapi, CharSet = CharSet.Ansi)]
         private delegate IntPtr GetMouseXYZInGame();
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate bool CheckIfGameLoaded();
+
         private static IntPtr dllHandle;
         private static InitGame initGame;
         private static CloseGame closeGame;
@@ -42,14 +46,13 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         private static ExecuteCommand executeCmd;
         private static GetHoveredNPCInfo getHoveredNPCInfo;
         private static GetMouseXYZInGame getMouseXYZInGame;
+        private static CheckIfGameLoaded checkIfGameLoaded;
 
 
         static IconInteractionUtility()
         {
-            //string outPutDirectory = Application.ExecutablePath;
-            //outPutDirectory = outPutDirectory.Substring(0, outPutDirectory.IndexOf("Shell"));
-            //string iconPath = Path.Combine(outPutDirectory, @"Modules\Module.HeroVirtualTabletop\Resources\");
             dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "HookCostume.dll"));
+            //dllHandle = WindowsUtilities.LoadLibrary("HookCostume.dll");
             if (dllHandle != null)
             {
                 IntPtr initGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "InitGame");
@@ -87,13 +90,26 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     getMouseXYZInGame = (GetMouseXYZInGame)(Marshal.GetDelegateForFunctionPointer(getMouseXYZInGameAddress, typeof(GetMouseXYZInGame)));
                 }
+
+                IntPtr checkGameDoneAddress = WindowsUtilities.GetProcAddress(dllHandle, "CheckGameDone");
+                if (checkGameDoneAddress != IntPtr.Zero)
+                {
+                    checkIfGameLoaded = (CheckIfGameLoaded)(Marshal.GetDelegateForFunctionPointer(checkGameDoneAddress, typeof(CheckIfGameLoaded)));
+                }
             }
         }
 
-        public static void RunCOHAndLoadDLL()
+        public static void RunCOHAndLoadDLL(string path)
         {
-            initGame(IntPtr.Zero);
-            MessageBox.Show("Please wait for COH to initialize and close this message");
+            initGame(1, path);
+            while(true)
+            {
+                bool gameLoaded = checkIfGameLoaded();
+                if (gameLoaded)
+                    break;
+                else
+                    System.Threading.Thread.Sleep(1000);
+            }
             setUserHWnd(IntPtr.Zero);
         }
 

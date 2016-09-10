@@ -291,7 +291,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        new PauseElement("", 500).Play();
+                        new PauseElement("", 1000).Play();
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
                         if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                         {

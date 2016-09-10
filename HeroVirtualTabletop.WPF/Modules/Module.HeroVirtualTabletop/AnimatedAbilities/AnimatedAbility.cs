@@ -758,6 +758,62 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("AttackEffectOption");
             }
         }
+
+        private bool isStunned;
+        public bool IsStunned
+        {
+            get
+            {
+                return isStunned;
+            }
+            set
+            {
+                isStunned = value;
+                OnPropertyChanged("IsStunned");
+            }
+        }
+
+        private bool isUnconcious;
+        public bool IsUnconcious
+        {
+            get
+            {
+                return isUnconcious;
+            }
+            set
+            {
+                isUnconcious = value;
+                OnPropertyChanged("IsUnconcious");
+            }
+        }
+
+        private bool isDying;
+        public bool IsDying
+        {
+            get
+            {
+                return isDying;
+            }
+            set
+            {
+                isDying = value;
+                OnPropertyChanged("IsDying");
+            }
+        }
+
+        private bool isDead;
+        public bool IsDead
+        {
+            get
+            {
+                return isDead;
+            }
+            set
+            {
+                isDead = value;
+                OnPropertyChanged("IsDead");
+            }
+        }
     }
     public class AttackDirection
     {
