@@ -1084,34 +1084,77 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ResetCharacterState(object state)
         {
-            if (state != null && this.Participants != null)
+            if (state != null && state is object[] && this.Participants != null)
             {
-                string charName = state.ToString();
+                object[] characterState = state as object[];
+
+                string charName = characterState[0].ToString();
+                string effect = characterState[1].ToString();
+                AttackEffectOption effectToReset = GetEffectToReset(effect);
                 Character defendingCharacter = this.Participants.FirstOrDefault(p => p.Name == charName) as Character;
                 if (defendingCharacter != null && defendingCharacter.ActiveAttackConfiguration != null)
                 {
-                    // If he is just stunned make him normal
-                    if(defendingCharacter.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned)
+                    bool fullReset = false;
+                    if ((int)effectToReset >= (int)defendingCharacter.ActiveAttackConfiguration.AttackEffectOption)
+                        fullReset = true;
+
+                    if (effectToReset == AttackEffectOption.Stunned)
+                        defendingCharacter.ActiveAttackConfiguration.IsStunned = false;
+                    else if (effectToReset == AttackEffectOption.Unconcious)
+                        defendingCharacter.ActiveAttackConfiguration.IsUnconcious = defendingCharacter.ActiveAttackConfiguration.IsStunned = false;                      
+                    else if (effectToReset == AttackEffectOption.Dying)
+                        defendingCharacter.ActiveAttackConfiguration.IsDying = defendingCharacter.ActiveAttackConfiguration.IsUnconcious = defendingCharacter.ActiveAttackConfiguration.IsStunned = false; 
+                    else if (effectToReset == AttackEffectOption.Dead)
+                        defendingCharacter.ActiveAttackConfiguration.IsDead = defendingCharacter.ActiveAttackConfiguration.IsDying = defendingCharacter.ActiveAttackConfiguration.IsUnconcious = defendingCharacter.ActiveAttackConfiguration.IsStunned = false;
+                    if (fullReset)
                     {
-                        KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                        defendingCharacter.Target(false);
-                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
-                        keyBindsGenerator.CompleteEvent();
-                    }
-                    // Else make him stand up 
-                    else if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
-                    {
-                        var globalStandUpAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.STANDUP_ABILITY_NAME);
-                        if (globalStandUpAbility != null && globalStandUpAbility.AnimationElements != null && globalStandUpAbility.AnimationElements.Count > 0)
+                        // If he is just stunned make him normal
+                        if (defendingCharacter.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned)
                         {
-                            globalStandUpAbility.Play(false, defendingCharacter);
+                            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            defendingCharacter.Target(false);
+                            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
+                            keyBindsGenerator.CompleteEvent();
+                            fullReset = true;
                         }
+                        // Else make him stand up 
+                        else if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+                        {
+                            var globalStandUpAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.STANDUP_ABILITY_NAME);
+                            if (globalStandUpAbility != null && globalStandUpAbility.AnimationElements != null && globalStandUpAbility.AnimationElements.Count > 0)
+                            {
+                                globalStandUpAbility.Play(false, defendingCharacter);
+                            }
+                        }
+
+                        // Update icons in Roster
+                        defendingCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackEffectOption = AttackEffectOption.None, AttackMode = AttackMode.None };
+                        this.isCharacterReset = true;
                     }
-                    // Update icons in Roster
-                    defendingCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackEffectOption = AttackEffectOption.None, AttackMode = AttackMode.None };
-                    this.isCharacterReset = true;
+                    
                 }
             }
+        }
+
+        private AttackEffectOption GetEffectToReset(string effect)
+        {
+            AttackEffectOption option = AttackEffectOption.None;
+            switch(effect)
+            {
+                case "Stunned":
+                    option = AttackEffectOption.Stunned;
+                    break;
+                case "Unconcious":
+                    option = AttackEffectOption.Unconcious;
+                    break;
+                case "Dying":
+                    option = AttackEffectOption.Dying;
+                    break;
+                case "Dead":
+                    option = AttackEffectOption.Dead;
+                    break;
+            }
+            return option;
         }
 
         private void TargetCharacterForAreaAttack(object state)

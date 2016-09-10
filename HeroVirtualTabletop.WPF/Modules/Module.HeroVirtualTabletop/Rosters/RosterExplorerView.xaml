@@ -24,6 +24,7 @@
             <localconverters:ActiveAttackModeToVisibilityConverter x:Key="ActiveAttackModeToVisibilityConverter"/>
             <localconverters:ActiveAttackModeToAnimationIconTextConverter x:Key="ActiveAttackModeToAnimationIconTextConverter"/>
             <localconverters:ActiveAttackEffectToVisibilityConverter x:Key="ActiveAttackEffectToVisibilityConverter"/>
+            <localconverters:AttackEffectResetMultiValueConverter x:Key="AttackEffectResetMultiValueConverter"/>
             <CollectionViewSource 
                 x:Key="ParticipantsView" 
                 Source="{Binding DataContext.Participants, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type roster:RosterExplorerView}}}">
@@ -195,24 +196,52 @@
                             </TextBlock.InputBindings>
                         </TextBlock>-->
                         <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsStunned, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf119;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Name="txtBlockStunned" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsStunned, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf119;" Tag="Stunned" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" MouseAction="LeftClick">
+                                        <MouseBinding.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource AttackEffectResetMultiValueConverter}">
+                                                <Binding ElementName="txtBlockCharacterName" Path="Text"/>
+                                                <Binding ElementName="txtBlockStunned" Path="Tag"/>
+                                            </MultiBinding>
+                                        </MouseBinding.CommandParameter>
+                                    </MouseBinding>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsUnconcious, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf236;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Name="txtBlockUnconcious" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsUnconcious, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf236;" Tag="Unconcious" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" MouseAction="LeftClick">
+                                        <MouseBinding.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource AttackEffectResetMultiValueConverter}">
+                                                <Binding ElementName="txtBlockCharacterName" Path="Text"/>
+                                                <Binding ElementName="txtBlockUnconcious" Path="Tag"/>
+                                            </MultiBinding>
+                                        </MouseBinding.CommandParameter>
+                                    </MouseBinding>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsDying, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf0f9;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Name="txtBlockDying" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsDying, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf0f9;" Tag="Dying" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" MouseAction="LeftClick">
+                                        <MouseBinding.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource AttackEffectResetMultiValueConverter}">
+                                                <Binding ElementName="txtBlockCharacterName" Path="Text"/>
+                                                <Binding ElementName="txtBlockDying" Path="Tag"/>
+                                            </MultiBinding>
+                                        </MouseBinding.CommandParameter>
+                                    </MouseBinding>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsDead, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf011;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock Name="txtBlockDead" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsDead, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf011;" Tag="Dead" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" MouseAction="LeftClick">
+                                        <MouseBinding.CommandParameter>
+                                            <MultiBinding Converter="{StaticResource AttackEffectResetMultiValueConverter}">
+                                                <Binding ElementName="txtBlockCharacterName" Path="Text"/>
+                                                <Binding ElementName="txtBlockDead" Path="Tag"/>
+                                            </MultiBinding>
+                                        </MouseBinding.CommandParameter>
+                                    </MouseBinding>
                                 </TextBlock.InputBindings>
                             </TextBlock>
                         </StackPanel>
