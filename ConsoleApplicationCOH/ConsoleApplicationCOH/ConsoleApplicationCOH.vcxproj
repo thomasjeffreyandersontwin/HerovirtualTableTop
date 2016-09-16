@@ -73,7 +73,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+<<<<<<< HEAD
     <OutDir>..\..\..</OutDir>
+=======
+    <OutDir>..\..\Game</OutDir>
+>>>>>>> 7264aaa145fcaff4fcdf141e1ef43ca0afd92205
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
