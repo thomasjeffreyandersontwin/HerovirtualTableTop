@@ -327,11 +327,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return ability;
         }
 
-        public void AnimateKnockBack(List<Character> targets)
-        {
-
-        }
-
         public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
             AttackDirection direction = new AttackDirection();
@@ -392,6 +387,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             AnimateHitAndMiss(defendingCharacters);
             AnimateAttackEffects(defendingCharacters);
+            AnimateKnockBack(attackingCharacter, defendingCharacters);
 
             // Reset FX direction
             this.SetAttackDirection(null);
@@ -662,6 +658,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             attackEffectSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
         }
 
+        private void AnimateKnockBack(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            foreach(Character character in defendingCharacters.Where(c => c.ActiveAttackConfiguration != null && c.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit && c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+            {
+                int knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance;
+                if(knockbackDistance > 0)
+                {
+                    Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+                    Vector3 vTarget = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
+                    Vector3 directionVector = vTarget - vAttacker;
+                    directionVector.Normalize();
+                    var destX = vTarget.X + directionVector.X * knockbackDistance;
+                    var destY = vTarget.Y + directionVector.Y * knockbackDistance;
+                    var destZ = vTarget.Z + directionVector.Z * knockbackDistance;
+                    var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
+                }
+            }
+        }
         public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
             if (this.IsAttack)
@@ -756,6 +770,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 attackEffectOption = value;
                 OnPropertyChanged("AttackEffectOption");
+            }
+        }
+
+        private int knockBackDistance;
+        public int KnockBackDistance
+        {
+            get
+            {
+                return knockBackDistance;
+            }
+            set
+            {
+                knockBackDistance = value;
+                OnPropertyChanged("KnockBackDistance");
             }
         }
 

@@ -176,6 +176,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     if (optionToLoad != null)
                     {
                         ShowOptions = true;
+                        this.SelectedOption = optionToLoad;
                         this.TogglePlayOption(optionToLoad);
                     }
                 }
@@ -605,7 +606,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 StopOption(SelectedOption);
             }
 
-            SelectedOption = (T)obj;
+            //SelectedOption = (T)obj;
             if (SelectedOption is AnimatedAbility)
             {
                 AnimatedAbility ability = obj as AnimatedAbility;

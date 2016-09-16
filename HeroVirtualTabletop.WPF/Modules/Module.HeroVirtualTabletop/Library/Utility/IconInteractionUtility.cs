@@ -39,6 +39,9 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate bool CheckIfGameLoaded();
 
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private delegate IntPtr DetectCollision(float sourceX, float sourceY, float sourceZ, float destX, float destY, float destZ);
+
         private static IntPtr dllHandle;
         private static InitGame initGame;
         private static CloseGame closeGame;
@@ -47,12 +50,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         private static GetHoveredNPCInfo getHoveredNPCInfo;
         private static GetMouseXYZInGame getMouseXYZInGame;
         private static CheckIfGameLoaded checkIfGameLoaded;
+        private static DetectCollision detectCollision;
 
 
         static IconInteractionUtility()
         {
             dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "HookCostume.dll"));
-            //dllHandle = WindowsUtilities.LoadLibrary("HookCostume.dll");
             if (dllHandle != null)
             {
                 IntPtr initGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "InitGame");
@@ -96,12 +99,18 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     checkIfGameLoaded = (CheckIfGameLoaded)(Marshal.GetDelegateForFunctionPointer(checkGameDoneAddress, typeof(CheckIfGameLoaded)));
                 }
+
+                IntPtr detectCollisionAddress = WindowsUtilities.GetProcAddress(dllHandle, "CollisionDetection");
+                if (checkGameDoneAddress != IntPtr.Zero)
+                {
+                    detectCollision = (DetectCollision)(Marshal.GetDelegateForFunctionPointer(detectCollisionAddress, typeof(DetectCollision)));
+                }
             }
         }
 
         public static void RunCOHAndLoadDLL(string path)
         {
-            initGame(1, path);
+            initGame(0, path);
             while(true)
             {
                 bool gameLoaded = checkIfGameLoaded();
@@ -147,6 +156,11 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static string GetMouseXYZFromGame()
         {
             return Marshal.PtrToStringAnsi(getMouseXYZInGame());
+        }
+
+        public static string GetCollisionInfo(float sourceX, float sourceY, float sourceZ, float destX, float destY, float destZ)
+        {
+            return Marshal.PtrToStringAnsi(detectCollision(sourceX, sourceY, sourceZ, destX, destY, destZ));
         }
     }
 }
