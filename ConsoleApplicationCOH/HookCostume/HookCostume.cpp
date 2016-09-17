@@ -30,29 +30,31 @@ END_MESSAGE_MAP()
 
 static BOOL		GameStarted = false;
 
-static int		ManagerWND=0;							// Manager WND
+static int		ManagerWND = 0;							// Manager WND
 
 //Mouse information
 static DWORD	M_X = 0, M_Y = 0;						// mouse x,y
-static float	B_X=0,B_Y=0,B_Z=0,B_D=0;				// game  x,y,z
+static float	B_X = 0, B_Y = 0, B_Z = 0, B_D = 0;				// game  x,y,z
 static char		m_Mouse_Information[1024] = "";
 
 //NPC  information
 static int		NPC_NO = 0;
-static int		NPC_Flag = 0;							
+static int		NPC_Flag = 0;
 static float	N_X = 0, N_Y = 0, N_Z = 0, N_D = 0;		// NPC info x,y,z
 static char		m_NPC_Information[1024] = "";
+
 
 // Command invoke
 static DWORD    Export_CommandBuff_Realloc = 0;
 
 // Collision detection
 static DWORD	Export_Collision_Detection = 0; //Exported function
-static float	SOURCEXYZ[3] = { 0,0,0 };
-static float	DESTINATIONXYZ[3] = { 0,0,0 };
+static float	SOURCEXYZ[3] = { 0, 0, 0 };
+static float	DESTINATIONXYZ[3] = { 0, 0, 0 };
 static int		COLLISION_RESULT = 0;
-static float	TEMPXYZ1[0x10] = { 0,0,0 };
-static float	TEMPXYZ2[0x10] = { 0,0,0 };
+static char		m_Collision_Info[1024] = "";
+static float	TEMPXYZ1[0x10] = { 0, 0, 0 };
+static float	TEMPXYZ2[0x10] = { 0, 0, 0 };
 #pragma data_seg()
 
 #pragma comment(linker, "/section:.JOE,rws")
@@ -70,7 +72,8 @@ __declspec(dllexport) char * __cdecl GetHoveredNPCInfo();
 __declspec(dllexport) char * __cdecl GetMouseXYZInGame();
 
 __declspec(dllexport) int __cdecl ExecuteCommand(char *cmdstring);
-__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
+//__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
+__declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z);
 
 void CollisionDetect()
 {
@@ -87,8 +90,8 @@ void CollisionDetect()
 
 		lea		ecx, COLLISION_RESULT;
 		lea		eax, DESTINATIONXYZ;
-		
-		mov     edx, 0x4CD300;	
+
+		mov     edx, 0x4CD300;
 		call    edx;
 		add		esp, 0x0C;
 
@@ -99,7 +102,7 @@ void CommandBuff_Realloc()
 {
 	_asm {
 
-		mov		ebx,0x110;
+		mov		ebx, 0x110;
 		push	ebx;
 
 		mov		ebx, 0xF0D7F4;	//command buff
@@ -109,17 +112,17 @@ void CommandBuff_Realloc()
 		SUB		ebx, 0xE;
 		push	ebx; void *
 
-		mov		ebx, 0xB24C98;
+			mov		ebx, 0xB24C98;
 		mov		ebx, [ebx];
 		call    ebx; //realloc
 		mov		ebx, 0x100;
-		mov		[eax + 4], ebx;
-		add     esp, 8; 
+		mov[eax + 4], ebx;
+		add     esp, 8;
 		add     eax, 0Eh;
 
 		mov		ebx, 0xF0D7F4;	//command buff
 		mov     ebx, [ebx];
-		mov		[ebx + 0x18], eax;
+		mov[ebx + 0x18], eax;
 
 		/////
 		mov		ebx, 0x110;
@@ -132,17 +135,17 @@ void CommandBuff_Realloc()
 		SUB		ebx, 0xE;
 		push	ebx; void *
 
-		mov		ebx, 0xB24C98;
+			mov		ebx, 0xB24C98;
 		mov		ebx, [ebx];
 		call    ebx; //realloc
 
 		mov		ebx, 0x100;
-		mov		[eax + 4], ebx;
+		mov[eax + 4], ebx;
 		add     esp, 8;
 		add     eax, 0Eh;
 		mov		ebx, 0xF0D7F4;	//command buff
 		mov     ebx, [ebx];
-		mov		[ebx + 0x1C], eax;
+		mov[ebx + 0x1C], eax;
 
 	}
 }
@@ -168,7 +171,7 @@ HINSTANCE	hInstance;
 BOOL		PowerHook();
 
 #include "COHDialog.h"
-HANDLE		m_HookDLGThread=NULL;
+HANDLE		m_HookDLGThread = NULL;
 DWORD		m_HookDLGThreadID;
 COHDialog	m_HookDLG;
 
@@ -176,15 +179,16 @@ int HookDLGThread()
 {
 	TCHAR bb[1024];
 	wsprintf(bb, _T("%x"), ManagerWND);
-//	AfxMessageBox(bb);
-	
+	//	AfxMessageBox(bb);
+
 	/*TCHAR buf[100];
 	_stprintf_s(buf, _T("%d"), ManagerWND);
 	MessageBox(0, buf, _T("HookDLG"), MB_OK);*/
-	if (ManagerWND==0) {
+	if (ManagerWND == 0) {
 		Sleep(1000);
 		m_HookDLG.DoModal();
-	}else {
+	}
+	else {
 		while (1) {
 			Sleep(50);
 			NPC_Flag = 0;
@@ -198,14 +202,14 @@ BOOL CHookCostumeApp::InitInstance()
 {
 	CWinApp::InitInstance();
 
-//	hInstance = hModule;
+	//	hInstance = hModule;
 	DWORD pid = GetCurrentProcessId();
 	HINSTANCE handle;
 
 	char fname[1024];
 	handle = GetModuleHandle(NULL);
 	::GetModuleFileNameA(handle, fname, 1024);
-	
+
 	if (strstr(fname, "cityofheroes.exe") != NULL) {
 		//MessageBox(0, _T("found"), _T("HookDLG"), MB_OK);
 		PowerHook();
@@ -213,7 +217,8 @@ BOOL CHookCostumeApp::InitInstance()
 		Export_Collision_Detection = (DWORD)CollisionDetect;
 		return true;
 
-	} else {
+	}
+	else {
 		// Commenting the following line as, when loaded from an external application, the HookDLGThread is initialized before ManagerWND variable is initialized, 
 		// which causes a problem and always shows the hook dialog because it finds the ManagerWND = 0
 		// Therefore, we should rather initialize this thread from InitGame method after ManagerWND variable has been initialized.
@@ -229,7 +234,7 @@ void SendToUser(DWORD NPC_no)
 	NPC_NO = NPC_no;
 
 	NPC_Info mNpcInfo;
-//	mNpcInfo = getHoverNPCMemInfo(NPC_NO);
+	//	mNpcInfo = getHoverNPCMemInfo(NPC_NO);
 	DWORD NPCSelected;
 	memcpy(&NPCSelected, (char *)0xF14FB0, 4);
 
@@ -269,7 +274,7 @@ void SendToUserXYZ(DWORD m_x, DWORD m_y, float s_x, float s_y, float s_z, float 
 
 	sprintf_s(m_Mouse_Information, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", B_X, B_Y, B_Z, B_D);
 
-//	PostMessage(ManagerWND, WM_USER + 102, m_x, m_y);
+	//	PostMessage(ManagerWND, WM_USER + 102, m_x, m_y);
 }
 
 void SetXYZ()	// DWORD x, DWORD y)
@@ -284,13 +289,14 @@ void SetXYZ()	// DWORD x, DWORD y)
 	m_HookDLG.m_stagepos.SetWindowText(A2W(buff));
 }
 
-void SetNPC()	
+void SetNPC()
 {
 	if (NPC_Flag == 1){// && NPC_NO!=-1) {
 		strcpy_s(t_NPC_Information, m_NPC_Information);
 		USES_CONVERSION;
 		m_HookDLG.m_NPCINFO.SetWindowText(A2W(t_NPC_Information));
-	} else {
+	}
+	else {
 		m_HookDLG.m_NPCINFO.SetWindowText(_T(""));
 	}
 	NPC_Flag = 0;
@@ -318,13 +324,13 @@ extern DWORD gamePID;
 
 __declspec(dllexport) int __cdecl CloseGame(HWND hWnd)
 {
-//	if (m_HookDLGThread != NULL) {
-//		TerminateThread(m_HookDLGThread, 0);
-//	}
+	//	if (m_HookDLGThread != NULL) {
+	//		TerminateThread(m_HookDLGThread, 0);
+	//	}
 	m_HookDLG.PostMessage(WM_CLOSE, 0, 0);
 	Sleep(1000);
 
-//	TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID), 0);
+	//	TerminateProcess(OpenProcess(PROCESS_ALL_ACCESS, FALSE, gamePID), 0);
 	return FALSE;
 }
 
@@ -336,21 +342,64 @@ __declspec(dllexport) BOOL __cdecl CheckGameDone()
 //SetUserHWND
 __declspec(dllexport) int __cdecl SetUserHWND(HWND hWnd)
 {
-/*
+	/*
 	if (hWnd == NULL) {
-		ManagerWND = m_HookDLG.m_hWnd;
+	ManagerWND = m_HookDLG.m_hWnd;
 	}else{
-		ManagerWND = hWnd;
+	ManagerWND = hWnd;
 	}
-*/
+	*/
 	return FALSE;
 }
 
-__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d)
+//__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d)
+//{
+//	SOURCEXYZ[0] = s_x;	SOURCEXYZ[1] = s_y;	SOURCEXYZ[2] = s_z;
+//	DESTINATIONXYZ[0] = d_x; DESTINATIONXYZ[1] = d_y; DESTINATIONXYZ[2] = d_z;
+//	COLLISION_RESULT = 0;
+//	memset(TEMPXYZ1, 0, 0x40);
+//	memset(TEMPXYZ2, 0, 0x40);
+//	TEMPXYZ1[0] = s_x; TEMPXYZ1[1] = s_y; TEMPXYZ1[2] = s_z;
+//	TEMPXYZ2[0] = s_x; TEMPXYZ2[1] = s_y; TEMPXYZ2[2] = s_z;
+//
+//	if (Export_Collision_Detection == NULL)return 0;
+//	DWORD dwPID = gamePID;// GetCurrentProcessId();
+//	HANDLE m_hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
+//
+//	//Disable Thread
+//	SuspendThread(m_hTargetProcess);
+//	{
+//		HANDLE hRemoteThread = NULL;
+//		hRemoteThread = CreateRemoteThread(m_hTargetProcess, NULL, 0, (LPTHREAD_START_ROUTINE)Export_Collision_Detection, NULL, 0, NULL);
+//		WaitForSingleObject(hRemoteThread, INFINITE);
+//		CloseHandle(hRemoteThread);
+//		*c_x = TEMPXYZ2[0x9];
+//		*c_y = TEMPXYZ2[0xA];
+//		*c_z = TEMPXYZ2[0xB];
+//		float sum = 0;
+//		if (*c_x == 0 && *c_y == 0 && *c_z == 0) {
+//			sum= (s_x - d_x) * (s_x - d_x) + (s_y - d_y) * (s_y - d_y) + (s_z - d_z) * (s_z - d_z);
+//			*c_d = sqrt(sum);
+//		} else {
+//			sum = (s_x - *c_x) * (s_x - *c_x) + (s_y - *c_y) * (s_y - *c_y) + (s_z - *c_z) * (s_z - *c_z);
+//			*c_d = sqrt(sum);
+//		}
+//		sprintf_s(m_Mouse_Information, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", B_X, B_Y, B_Z, B_D);
+//	}
+//	//Resume Thread
+//	while (ResumeThread(m_hTargetProcess) != -1);
+//
+//	//Result process
+//
+//	return COLLISION_RESULT;
+//}
+
+__declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z)
 {
 	SOURCEXYZ[0] = s_x;	SOURCEXYZ[1] = s_y;	SOURCEXYZ[2] = s_z;
 	DESTINATIONXYZ[0] = d_x; DESTINATIONXYZ[1] = d_y; DESTINATIONXYZ[2] = d_z;
 	COLLISION_RESULT = 0;
+	float c_x, c_y, c_z, c_d;
 	memset(TEMPXYZ1, 0, 0x40);
 	memset(TEMPXYZ2, 0, 0x40);
 	TEMPXYZ1[0] = s_x; TEMPXYZ1[1] = s_y; TEMPXYZ1[2] = s_z;
@@ -367,24 +416,26 @@ __declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float
 		hRemoteThread = CreateRemoteThread(m_hTargetProcess, NULL, 0, (LPTHREAD_START_ROUTINE)Export_Collision_Detection, NULL, 0, NULL);
 		WaitForSingleObject(hRemoteThread, INFINITE);
 		CloseHandle(hRemoteThread);
-		*c_x = TEMPXYZ2[0x9];
-		*c_y = TEMPXYZ2[0xA];
-		*c_z = TEMPXYZ2[0xB];
+		c_x = TEMPXYZ2[0x9];
+		c_y = TEMPXYZ2[0xA];
+		c_z = TEMPXYZ2[0xB];
 		float sum = 0;
-		if (*c_x == 0 && *c_y == 0 && *c_z == 0) {
-			sum= (s_x - d_x) * (s_x - d_x) + (s_y - d_y) * (s_y - d_y) + (s_z - d_z) * (s_z - d_z);
-			*c_d = sqrt(sum);
-		} else {
-			sum = (s_x - *c_x) * (s_x - *c_x) + (s_y - *c_y) * (s_y - *c_y) + (s_z - *c_z) * (s_z - *c_z);
-			*c_d = sqrt(sum);
+		if (c_x == 0 && c_y == 0 && c_z == 0) {
+			sum = (s_x - d_x) * (s_x - d_x) + (s_y - d_y) * (s_y - d_y) + (s_z - d_z) * (s_z - d_z);
+			c_d = sqrt(sum);
 		}
+		else {
+			sum = (s_x - c_x) * (s_x - c_x) + (s_y - c_y) * (s_y - c_y) + (s_z - c_z) * (s_z - c_z);
+			c_d = sqrt(sum);
+		}
+		sprintf_s(m_Mouse_Information, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", c_x, c_y, c_z, c_d);
 	}
 	//Resume Thread
 	while (ResumeThread(m_hTargetProcess) != -1);
 
 	//Result process
 
-	return COLLISION_RESULT;
+	return m_Mouse_Information;
 }
 
 __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)
@@ -471,8 +522,8 @@ __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)
 	buff = 1;
 	WriteProcessMemory(m_hTargetProcess, (void *)0xF0D7F0, &buff, 1, NULL);
 
-	char b[2] = { 0x74,0x0c };	//jz      short loc_63CFF3;
-	char r[2] = { 0x90,0x90 };	//nop;nop;
+	char b[2] = { 0x74, 0x0c };	//jz      short loc_63CFF3;
+	char r[2] = { 0x90, 0x90 };	//nop;nop;
 
 	WriteProcessMemory(m_hTargetProcess, (void *)0x063CFE5, &r, 2, NULL);
 
@@ -512,7 +563,7 @@ __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)
 
 __declspec(dllexport) char * __cdecl GetHoveredNPCInfo()
 {
-	
+
 	t_NPC_Information[0] = 0;
 	if (NPC_Flag != 0) {
 		strcpy_s(t_NPC_Information, m_NPC_Information);
@@ -537,7 +588,7 @@ int CHookCostumeApp::ExitInstance()
 	if (m_HookDLGThread != NULL) {
 		m_HookDLG.SendMessage(WM_CLOSE, 0, 0);
 		Sleep(1000);
-//		TerminateThread(m_HookDLGThread, 0);
+		//		TerminateThread(m_HookDLGThread, 0);
 	}
 	return CWinApp::ExitInstance();
 }

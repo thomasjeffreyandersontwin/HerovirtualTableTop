@@ -39,6 +39,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool Persistent { get; }
 
         void Play(bool persistent = false, Character Target = null, bool forcePlay = false);
+        void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null);
         Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, bool persistent = false);
         string GetKeybind(Character Target = null);
         void Stop(Character Target = null);
@@ -195,12 +196,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
+        public virtual void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
+        {
+            Play(persistent, Target);
+        }
+
         public virtual Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             return new Task(() =>
             {
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                foreach(AnimationElement element in characterAnimationMapping.Keys)
+                foreach (AnimationElement element in characterAnimationMapping.Keys)
                 {
                     List<Character> targets = characterAnimationMapping[element];
                     foreach (Character target in targets)
@@ -208,7 +214,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         GetKeybind(target);
                     }
                 }
-                
+
                 IconInteractionUtility.ExecuteCmd(keyBindsGenerator.GetEvent());
             });
         }
@@ -348,7 +354,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             System.Timers.Timer timer = new System.Timers.Timer();
             timer.Interval = Time;
             bool done = false;
-            timer.Elapsed += delegate (object sender, System.Timers.ElapsedEventArgs e) { done = true; };
+            timer.Elapsed += delegate(object sender, System.Timers.ElapsedEventArgs e) { done = true; };
             timer.Start();
             while (!done)
             {
@@ -723,6 +729,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = true;
         }
 
+        public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
+        {
+            if (!string.IsNullOrEmpty(costume))
+            {
+                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, costume);
+                keyBindsGenerator.CompleteEvent();
+                Play(persistent, Target);
+            }
+        }
+
         public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
@@ -732,7 +749,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 fileLock.EnterWriteLock();
                 try
                 {
-                     reloadOriginalCostumeFile(target.ActiveIdentity.Surface);
+                    reloadOriginalCostumeFile(target.ActiveIdentity.Surface);
                 }
                 finally
                 {
@@ -859,7 +876,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     public class SequenceElement : AnimationElement
     {
         [JsonConstructor]
-        private SequenceElement() : base(string.Empty)
+        private SequenceElement()
+            : base(string.Empty)
         {
             Initialize();
         }
@@ -988,7 +1006,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //    IsActive = true;
             if (SequenceType == AnimationSequenceType.And)
             {
-                //animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
                     item.Play(this.Persistent || persistent, Target ?? this.Owner);
@@ -999,6 +1016,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
                 AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
+            }
+            OnPropertyChanged("IsActive");
+        }
+
+        public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
+        {
+            Stop(Target ?? this.Owner);
+            //if (this.Persistent || persistent)
+            //    IsActive = true;
+            if (SequenceType == AnimationSequenceType.And)
+            {
+                foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
+                {
+                    item.PlayOnLoad(this.Persistent || persistent, Target ?? this.Owner, costume);
+                }
+            }
+            else
+            {
+                var rnd = new Random();
+                int chosen = rnd.Next(0, AnimationElements.Count);
+                AnimationElements[chosen].PlayOnLoad(this.Persistent || persistent, Target ?? this.Owner, costume);
             }
             OnPropertyChanged("IsActive");
         }
@@ -1040,7 +1078,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         element.GetKeybind(target);
                     }
-                    if(!element.PlayWithNext)
+                    if (!element.PlayWithNext)
                     {
                         IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
                         new PauseElement("", 500).Play();
@@ -1051,7 +1089,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     element.Play(false, targets.First());
             }
         }
-        
+
         public override Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
             List<Task> tasks = new List<Task>();
@@ -1096,11 +1134,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         }
                         tasks.Add(new Task(() => { element.PlayGrouped(charAnimMappingInner, persistent).RunSynchronously(); }));
                     }
-                    else if(element.Type == AnimationType.Reference)
+                    else if (element.Type == AnimationType.Reference)
                     {
                         Dictionary<AnimationElement, List<Character>> charAnimMappingInner = new Dictionary<AnimationElement, List<Character>>();
                         ReferenceAbility refElem = element as ReferenceAbility;
-                        if(refElem.Reference != null && refElem.Reference.AnimationElements != null)
+                        if (refElem.Reference != null && refElem.Reference.AnimationElements != null)
                         {
                             foreach (AnimationElement elem in refElem.Reference.AnimationElements)
                             {
@@ -1119,8 +1157,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //    new PauseElement("", 500).Play();
                 //}));
             }
-            
-            
+
+
             return new Task(() =>
             {
                 tasks.Add(new Task(() =>

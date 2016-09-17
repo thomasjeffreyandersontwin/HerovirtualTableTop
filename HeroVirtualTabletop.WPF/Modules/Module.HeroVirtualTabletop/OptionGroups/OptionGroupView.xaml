@@ -68,12 +68,12 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                
+
                 <Expander Name="ExpanderOptionGroup" Grid.RowSpan="2" Grid.Column="1" Style="{StaticResource ExpanderWithoutToggleButtonStyle}"
                   OverridesDefaultStyle="True" IsExpanded="{Binding ShowOptions}" VerticalAlignment="Top"
                   >
                     <Grid VerticalAlignment="Top">
-                        <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
+                        <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption}"
                             DefaultOption="{Binding Path=DefaultOption}"
                             ActiveOption="{Binding Path=ActiveOption}"
                             HorizontalAlignment="Left" VerticalAlignment="Center"

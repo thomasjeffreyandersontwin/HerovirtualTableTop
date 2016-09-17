@@ -273,7 +273,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 ability = this.OnHitAnimation;
             }
-            else 
+            else
             {
                 if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
                 {
@@ -291,7 +291,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.SetAttackDirection(direction);
             this.SetAttackerFacing(direction, attacker);
-            base.Play(false, attacker); 
+            base.Play(false, attacker);
             // Reset FX direction
             this.SetAttackDirection(null);
         }
@@ -327,11 +327,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return ability;
         }
 
-        public void AnimateKnockBack(List<Character> targets)
-        {
-
-        }
-
         public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
             AttackDirection direction = new AttackDirection();
@@ -360,7 +355,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 else
                 {
                     Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
-                    Vector3 vCenterTarget  = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
+                    Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
                     distance = Vector3.Distance(vAttacker, vCenterTarget);
 
                     if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
@@ -385,7 +380,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
- 
+
             if (unitPauseElement != null)
             {
                 DelayManager delayManager = new DelayManager(unitPauseElement);
@@ -396,6 +391,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             AnimateHitAndMiss(defendingCharacters);
             AnimateAttackEffects(defendingCharacters);
+            AnimateKnockBack(attackingCharacter, defendingCharacters);
 
             // Reset FX direction
             this.SetAttackDirection(null);
@@ -406,7 +402,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             float minDistance = 0;
             Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
-            foreach(Character defendingCharacter in defendingCharacters)
+            foreach (Character defendingCharacter in defendingCharacters)
             {
                 Vector3 vDefender = new Vector3(defendingCharacter.Position.X, defendingCharacter.Position.Y, defendingCharacter.Position.Z);
                 var distance = Vector3.Distance(vAttacker, vDefender);
@@ -421,12 +417,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             SequenceElement sequenceToPlay = new SequenceElement("SequenceToPlay", AnimationSequenceType.And);
             if (sequenceElement.SequenceType == AnimationSequenceType.And)
             {
-                foreach(AnimationElement element in sequenceElement.AnimationElements)
+                foreach (AnimationElement element in sequenceElement.AnimationElements)
                 {
                     sequenceToPlay.AddAnimationElement(element);
                 }
             }
-                
+
             else
             {
                 var rnd = new Random();
@@ -517,7 +513,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
 
             // add all the hit animations in proper order
-            foreach(var anim in hitAbilityFlattened)
+            foreach (var anim in hitAbilityFlattened)
             {
                 AnimationElement hitElement = anim.Clone();
                 hitElement.Name = GetAppropriateAnimationName(hitElement.Type, hitMissSequenceElement.AnimationElements.ToList());
@@ -593,7 +589,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         hitMissSequenceElement.AddAnimationElement(anim, ++missAnimationInjectCurrentPosition);
                     }
-                } 
+                }
             }
 
             // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
@@ -608,7 +604,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
             List<Character> deadTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead).ToList();
             var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
-            List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList(); 
+            List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList();
             var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
             List<Character> unconciousTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList();
             var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
@@ -618,7 +614,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 var deadAbilityToPlay = this.GetSequenceToPlay(globalDeadAbility);
                 var deadAbilityFlattened = deadAbilityToPlay.GetFlattenedAnimationList();
-                foreach(var animation in deadAbilityFlattened)
+                foreach (var animation in deadAbilityFlattened)
                 {
                     AnimationElement deadAnimation = animation.Clone();
                     deadAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(deadAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
@@ -631,7 +627,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 var dyingAbilityToPlay = this.GetSequenceToPlay(globalDyingAbility);
                 var dyingAbilityFlattened = dyingAbilityToPlay.GetFlattenedAnimationList();
-                foreach(var animation in dyingAbilityFlattened)
+                foreach (var animation in dyingAbilityFlattened)
                 {
                     AnimationElement dyingAnimation = animation.Clone();
                     dyingAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(dyingAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
@@ -644,14 +640,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 var unconciousAbilityToPlay = this.GetSequenceToPlay(globalUnconciousAbility);
                 var unconciousAbilityFlattened = unconciousAbilityToPlay.GetFlattenedAnimationList();
-                foreach(var animation in unconciousAbilityFlattened)
+                foreach (var animation in unconciousAbilityFlattened)
                 {
                     AnimationElement unconciousAnimation = animation.Clone();
                     unconciousAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(unconciousAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
                     attackEffectSequenceElement.AddAnimationElement(unconciousAnimation);
                     characterAnimationMappingDictionary.Add(unconciousAnimation, unconciousTargets);
                 }
-                
+
             }
 
             if (stunnedTargets.Count > 0 && globalStunnedAbility != null)
@@ -669,7 +665,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             // now make all MOVs and FXs to play with next, except the last one so that they play together
             AnimationElement lastMovOrFx = null;
-            foreach(var movOrFxElement in attackEffectSequenceElement.AnimationElements.Where(a => a.Type == AnimationType.FX || a.Type == AnimationType.Movement))
+            foreach (var movOrFxElement in attackEffectSequenceElement.AnimationElements.Where(a => a.Type == AnimationType.FX || a.Type == AnimationType.Movement))
             {
                 movOrFxElement.PlayWithNext = true;
                 lastMovOrFx = movOrFxElement;
@@ -680,6 +676,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             attackEffectSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
         }
 
+        private void AnimateKnockBack(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            foreach (Character character in defendingCharacters.Where(c => c.ActiveAttackConfiguration != null && c.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit && c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+            {
+                int knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance;
+                if (knockbackDistance > 0)
+                {
+                    Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+                    Vector3 vTarget = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
+                    Vector3 directionVector = vTarget - vAttacker;
+                    directionVector.Normalize();
+                    var destX = vTarget.X + directionVector.X * knockbackDistance;
+                    var destY = vTarget.Y + directionVector.Y * knockbackDistance;
+                    var destZ = vTarget.Z + directionVector.Z * knockbackDistance;
+                    var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
+                }
+            }
+        }
         public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
             if (this.IsAttack)
@@ -774,6 +788,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 attackEffectOption = value;
                 OnPropertyChanged("AttackEffectOption");
+            }
+        }
+
+        private int knockBackDistance;
+        public int KnockBackDistance
+        {
+            get
+            {
+                return knockBackDistance;
+            }
+            set
+            {
+                knockBackDistance = value;
+                OnPropertyChanged("KnockBackDistance");
             }
         }
 

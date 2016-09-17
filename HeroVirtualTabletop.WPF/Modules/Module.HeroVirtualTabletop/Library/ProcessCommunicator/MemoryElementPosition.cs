@@ -94,15 +94,15 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
                 rotationMatrix = value;
                 if (this.IsReal)
                 {
-                    SetTargetAttribute(56, value[0,0]);
-                    SetTargetAttribute(60, value[0,1]);
-                    SetTargetAttribute(64, value[0,2]);
-                    SetTargetAttribute(68, value[1,0]);
-                    SetTargetAttribute(72, value[1,1]);
-                    SetTargetAttribute(76, value[1,2]);
-                    SetTargetAttribute(80, value[2,0]);
-                    SetTargetAttribute(84, value[2,1]);
-                    SetTargetAttribute(88, value[2,2]);
+                    SetTargetAttribute(56, value[0, 0]);
+                    SetTargetAttribute(60, value[0, 1]);
+                    SetTargetAttribute(64, value[0, 2]);
+                    SetTargetAttribute(68, value[1, 0]);
+                    SetTargetAttribute(72, value[1, 1]);
+                    SetTargetAttribute(76, value[1, 2]);
+                    SetTargetAttribute(80, value[2, 0]);
+                    SetTargetAttribute(84, value[2, 1]);
+                    SetTargetAttribute(88, value[2, 2]);
                 }
             }
         }
@@ -154,6 +154,14 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             return new Vector3(px, py, pz);
         }
 
+        public void MoveTarget(Vector3 direction, float units)
+        {
+            direction.Normalize();
+            X = X + direction.X * units;
+            Y = Y + direction.Y * units;
+            Z = Z + direction.Z * units;
+        }
+
         public void SetTargetFacing(Vector3 facingDirectionVector)
         {
             Vector3 currentPositionVector = new Vector3(this.X, this.Y, this.Z);
@@ -163,6 +171,8 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             SetTargetAttribute(80, newRotationMatrix.M31);
             SetTargetAttribute(88, -1 * newRotationMatrix.M33);
         }
+
+
 
         #region Equality Comparer and Operator Overloading
         public static bool operator ==(Position a, Position b)

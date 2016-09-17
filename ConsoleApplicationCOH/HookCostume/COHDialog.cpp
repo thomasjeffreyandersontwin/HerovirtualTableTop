@@ -11,9 +11,9 @@
 IMPLEMENT_DYNAMIC(COHDialog, CDialogEx)
 
 COHDialog::COHDialog(CWnd* pParent /*=NULL*/)
-	: CDialogEx(IDD_DIALOG1, pParent)
+: CDialogEx(IDD_DIALOG1, pParent)
 {
-//	WM_MOUSEMOVE
+	//	WM_MOUSEMOVE
 }
 
 COHDialog::~COHDialog()
@@ -77,13 +77,13 @@ BOOL COHDialog::OnInitDialog()
 	m_SourceXYZ.SetWindowText(_T("X:[137.5] Y:[8.5] Z:[-112.0]"));
 	m_DestXYZ.SetWindowText(_T("X:[137.5] Y:[8.5] Z:[-150.0]"));
 
-//	char buff[1024];
-//	sprintf_s(buff, "%x", gamePID);
-//	USES_CONVERSION;
-//	SetWindowText(A2W(buff));
-//	ManagerWND = this.m_hWnd;
+	//	char buff[1024];
+	//	sprintf_s(buff, "%x", gamePID);
+	//	USES_CONVERSION;
+	//	SetWindowText(A2W(buff));
+	//	ManagerWND = this.m_hWnd;
 	return TRUE;  // return TRUE unless you set the focus to a control
-				  // EXCEPTION: OCX Property Pages should return FALSE
+	// EXCEPTION: OCX Property Pages should return FALSE
 }
 
 void SetNPC();
@@ -91,16 +91,16 @@ void SetXYZ();
 LRESULT COHDialog::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message) {
-		case WM_USER+101:
-//			KillTimer(1);
-			//NPC hovering display
-//			SetNPCNo(wParam);
-//			SetTimer(1, 100, NULL);
-			break;
-		case WM_USER + 102:
-			//Mouse Pos X,Y,Z
-			SetXYZ();// wParam, lParam);
-			break;
+	case WM_USER + 101:
+		//			KillTimer(1);
+		//NPC hovering display
+		//			SetNPCNo(wParam);
+		//			SetTimer(1, 100, NULL);
+		break;
+	case WM_USER + 102:
+		//Mouse Pos X,Y,Z
+		SetXYZ();// wParam, lParam);
+		break;
 	}
 
 	return CDialogEx::WindowProc(message, wParam, lParam);
@@ -109,15 +109,15 @@ LRESULT COHDialog::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 
 void COHDialog::OnTimer(UINT_PTR nIDEvent)
 {
-	switch(nIDEvent){
-		case 1:
-			//NPC hovering display
-			SetNPC();
-			break;
-		case 2:
-			//Mouse Pos X,Y,Z
-			SetXYZ();// wParam, lParam);
-			break;
+	switch (nIDEvent){
+	case 1:
+		//NPC hovering display
+		SetNPC();
+		break;
+	case 2:
+		//Mouse Pos X,Y,Z
+		SetXYZ();// wParam, lParam);
+		break;
 
 	}
 
@@ -126,7 +126,7 @@ void COHDialog::OnTimer(UINT_PTR nIDEvent)
 
 void GetStringXYZ(char *buff, float *x, float *y, float *z)
 {
-	char *xstr=strstr(buff, "X:[");
+	char *xstr = strstr(buff, "X:[");
 	char *ystr = strstr(buff, "Y:[");
 	char *zstr = strstr(buff, "Z:[");
 	if (xstr != NULL) {
@@ -155,34 +155,35 @@ void GetStringXYZ(char *buff, float *x, float *y, float *z)
 	}
 
 }
-__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
+//__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
+__declspec(dllexport) char* __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z);
 float c_x = 0, c_y = 0, c_z = 0, c_d = 0;
 void COHDialog::OnBnClickedButton1()
 {
 	//Collision detection from source x,y,z to destination x,y,z
-	float s_x=0, s_y=0, s_z=0;
-	float d_x=0, d_y=0, d_z=0;
+	float s_x = 0, s_y = 0, s_z = 0;
+	float d_x = 0, d_y = 0, d_z = 0;
 
 	TCHAR sourceXYZ[1024];
 	TCHAR destXYZ[1024];
 	char buff[1024];
 
-	m_SourceXYZ.GetWindowText(sourceXYZ,1024);
+	m_SourceXYZ.GetWindowText(sourceXYZ, 1024);
 	USES_CONVERSION;
 	sprintf_s(buff, "%s", W2A(sourceXYZ));
-	GetStringXYZ(buff, &s_x, &s_y,&s_z);
+	GetStringXYZ(buff, &s_x, &s_y, &s_z);
 
-	m_DestXYZ.GetWindowText(destXYZ,1024);
+	m_DestXYZ.GetWindowText(destXYZ, 1024);
 	sprintf_s(buff, "%s", W2A(destXYZ));
 	GetStringXYZ(buff, &d_x, &d_y, &d_z);
 
-	int res = CollisionDetection(s_x, s_y, s_z, d_x, d_y, d_z, &c_x, &c_y, &c_z,&c_d);
+	char* res = CollisionDetection(s_x, s_y, s_z, d_x, d_y, d_z);
 	buff[0] = 0;
-//	if (res != 0) {
-		sprintf_s(buff, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", c_x, c_y, c_z, c_d);
-//	} else {
-//		sprintf_s(buff, "No collision");
-//	}
+	//	if (res != 0) {
+	sprintf_s(buff, res);
+	//	} else {
+	//		sprintf_s(buff, "No collision");
+	//	}
 	m_CollisionXYZ.SetWindowText(A2W(buff));
 
 }
