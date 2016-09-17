@@ -155,8 +155,7 @@ void GetStringXYZ(char *buff, float *x, float *y, float *z)
 	}
 
 }
-//__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
-__declspec(dllexport) char* __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z);
+__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
 float c_x = 0, c_y = 0, c_z = 0, c_d = 0;
 void COHDialog::OnBnClickedButton1()
 {
@@ -177,10 +176,10 @@ void COHDialog::OnBnClickedButton1()
 	sprintf_s(buff, "%s", W2A(destXYZ));
 	GetStringXYZ(buff, &d_x, &d_y, &d_z);
 
-	char* res = CollisionDetection(s_x, s_y, s_z, d_x, d_y, d_z);
+	int res = CollisionDetection(s_x, s_y, s_z, d_x, d_y, d_z, &c_x, &c_y, &c_z,&c_d);
 	buff[0] = 0;
 //	if (res != 0) {
-		sprintf_s(buff, res);
+		sprintf_s(buff, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", c_x, c_y, c_z, c_d);
 //	} else {
 //		sprintf_s(buff, "No collision");
 //	}

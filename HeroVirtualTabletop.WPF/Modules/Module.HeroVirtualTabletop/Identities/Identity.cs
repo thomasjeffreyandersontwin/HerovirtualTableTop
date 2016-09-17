@@ -116,13 +116,7 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 if (AnimationOnLoad != null)
-                {
-                    if (Type == IdentityType.Costume)
-                        AnimationOnLoad.PlayOnLoad(false, null, Surface);
-                    else
-                        AnimationOnLoad.Play();
-                }
-                    
+                    AnimationOnLoad.Play();
                 new PauseElement("pause", 2000).Play();
             }
             switch (Type)

@@ -21,8 +21,7 @@ void ExecuteCommand(char *commandline);
 char *GetHoveredNPCInfo();
 char *GetMouseXYZInGame();
 void SetHWND();
-//int GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
-char* GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z);
+int GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
 
 ////////////////////////////////
 
@@ -78,25 +77,23 @@ int main(int argc, char **argv)
 	cin.ignore(numeric_limits<streamsize>::max(), '\n');
 
 	float s_x=137.5, s_y=8.25, s_z=-112.0;	//start position (137.5, 8.25, -112.0)
-	float d_x=137.5, d_y=8.25, d_z=-150.0;	//destination position (137.5, 8.25, -150.0)
+	float d_x=137.5, d_y=8.25, d_z=-1500.0;	//destination position (137.5, 8.25, -150.0)
 	float c_x, c_y, c_z, c_d;				//collison point (c_x,x_y,c_z) & distance(c_d)
 	char  dispstr[1024];
 
 	for (int i = 0; i < 400; i++) {
 
-		//GetCollisionBetween(s_x, s_y+i, s_z, d_x, d_y+i, d_z, &c_x, &c_y, &c_z, &c_d);
-		char* xyzd = GetCollisionBetween(s_x, s_y + i, s_z, d_x, d_y + i, d_z);
-		sprintf_s(dispstr, xyzd);
-		cout << dispstr << endl;
-		//if (c_x == 0 && c_y == 0 && c_z == 0) {
-		//	//No colission
-		//	//sprintf_s(dispstr, "from (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) to (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) No collison distance D:[%1.2f]", s_x, s_y + i, s_z, d_x, d_y + i, d_z, c_d);
-		//	cout << dispstr << endl;
-		//}
-		//else {
-		//	sprintf_s(dispstr, "from (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) to (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) collison point X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", s_x, s_y + i, s_z, d_x, d_y + i, d_z, c_x, c_y, c_z, c_d);
-		//	cout << dispstr << endl;
-		//}
+		GetCollisionBetween(s_x, s_y+i, s_z, d_x, d_y+i, d_z, &c_x, &c_y, &c_z, &c_d);
+
+		if (c_x == 0 && c_y == 0 && c_z == 0) {
+			//No colission
+			sprintf_s(dispstr, "from (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) to (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) No collison distance D:[%1.2f]", s_x, s_y + i, s_z, d_x, d_y + i, d_z, c_d);
+			cout << dispstr << endl;
+		}
+		else {
+			sprintf_s(dispstr, "from (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) to (X:[%1.2f] Y:[%1.2f] Z:[%1.2f]) collison point X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", s_x, s_y + i, s_z, d_x, d_y + i, d_z, c_x, c_y, c_z, c_d);
+			cout << dispstr << endl;
+		}
 	}
 
 	cout << "Get mouse hovering or target NPC information 3 time " << endl;
@@ -170,8 +167,7 @@ typedef BOOL SetUserHWND(HWND hWnd);
 typedef int  Execute_CMD(char *commandline);
 typedef char *TGetHoveredNPCInfo();
 typedef char *TGetMouseXYZInGame();
-//typedef int TCollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
-typedef char *TCollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z);
+typedef int TCollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
 typedef BOOL CheckGameDone();
 
 //////////////////////////////////////
@@ -275,21 +271,7 @@ char *GetMouseXYZInGame()
 	return "";
 }
 
-//int GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d)
-//{
-//	dllhandle = ::LoadLibraryA("HookCostume.dll");
-//
-//	TCollisionDetection *Func_CollisionDetection;
-//	if (dllhandle != NULL) {
-//		Func_CollisionDetection = (TCollisionDetection *)GetProcAddress(dllhandle, "CollisionDetection");
-//		if (Func_CollisionDetection != NULL) {
-//			return (Func_CollisionDetection)(s_x, s_y, s_z, d_x, d_y, d_z, c_x, c_y, c_z, c_d);
-//		}
-//	}
-//	return 0;
-//}
-
-char* GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z)
+int GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d)
 {
 	dllhandle = ::LoadLibraryA("HookCostume.dll");
 
@@ -297,7 +279,7 @@ char* GetCollisionBetween(float s_x, float s_y, float s_z, float d_x, float d_y,
 	if (dllhandle != NULL) {
 		Func_CollisionDetection = (TCollisionDetection *)GetProcAddress(dllhandle, "CollisionDetection");
 		if (Func_CollisionDetection != NULL) {
-			return (Func_CollisionDetection)(s_x, s_y, s_z, d_x, d_y, d_z);
+			return (Func_CollisionDetection)(s_x, s_y, s_z, d_x, d_y, d_z, c_x, c_y, c_z, c_d);
 		}
 	}
 	return 0;

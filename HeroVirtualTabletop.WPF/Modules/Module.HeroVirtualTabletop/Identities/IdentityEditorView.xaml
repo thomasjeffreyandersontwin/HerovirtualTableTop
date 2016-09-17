@@ -125,14 +125,10 @@
             </ListBox>
         </Grid>
         <Grid Grid.Row="2" Margin="5">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition/>
-                </Grid.RowDefinitions>
+            <StackPanel>
                 <Label Foreground="White">Animation On Load:</Label>
-                <ListBox x:Name="listBoxAnimations" Grid.Row="1"
-                Width="300" ScrollViewer.VerticalScrollBarVisibility="Visible"
+                <ListBox x:Name="listBoxAnimations" 
+                Width="300" ScrollViewer.VerticalScrollBarVisibility="Auto"
                 SelectionMode="Single" IsEnabled="{Binding CanEditIdentityOptions}"
                 ItemsSource="{Binding AbilitiesCVS.View}"
                 SelectedItem="{Binding Path=EditedIdentity.AnimationOnLoad, Mode=TwoWay}"
@@ -153,7 +149,7 @@
                         </Style>
                     </ListBox.Resources>
                 </ListBox>
-            </Grid>
+            </StackPanel>
         </Grid>
     </Grid>
 </UserControl>

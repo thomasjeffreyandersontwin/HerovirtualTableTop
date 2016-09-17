@@ -39,7 +39,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool Persistent { get; }
 
         void Play(bool persistent = false, Character Target = null, bool forcePlay = false);
-        void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null);
         Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, bool persistent = false);
         string GetKeybind(Character Target = null);
         void Stop(Character Target = null);
@@ -194,11 +193,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public virtual void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
 
-        }
-
-        public virtual void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
-        {
-            Play(persistent, Target);
         }
 
         public virtual Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
@@ -729,17 +723,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = true;
         }
 
-        public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
-        {
-            if(!string.IsNullOrEmpty(costume))
-            {
-                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, costume);
-                keyBindsGenerator.CompleteEvent();
-                Play(persistent, Target);
-            }
-        }
-
         public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
@@ -1005,6 +988,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //    IsActive = true;
             if (SequenceType == AnimationSequenceType.And)
             {
+                //animationElements.Sort(System.ComponentModel.ListSortDirection.Ascending, x => x.Order);
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
                     item.Play(this.Persistent || persistent, Target ?? this.Owner);
@@ -1015,27 +999,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
                 AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
-            }
-            OnPropertyChanged("IsActive");
-        }
-
-        public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
-        {
-            Stop(Target ?? this.Owner);
-            //if (this.Persistent || persistent)
-            //    IsActive = true;
-            if (SequenceType == AnimationSequenceType.And)
-            {
-                foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
-                {
-                    item.PlayOnLoad(this.Persistent || persistent, Target ?? this.Owner, costume);
-                }
-            }
-            else
-            {
-                var rnd = new Random();
-                int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].PlayOnLoad(this.Persistent || persistent, Target ?? this.Owner, costume);
             }
             OnPropertyChanged("IsActive");
         }

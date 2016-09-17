@@ -43,7 +43,6 @@ static int		NPC_Flag = 0;
 static float	N_X = 0, N_Y = 0, N_Z = 0, N_D = 0;		// NPC info x,y,z
 static char		m_NPC_Information[1024] = "";
 
-
 // Command invoke
 static DWORD    Export_CommandBuff_Realloc = 0;
 
@@ -52,7 +51,6 @@ static DWORD	Export_Collision_Detection = 0; //Exported function
 static float	SOURCEXYZ[3] = { 0,0,0 };
 static float	DESTINATIONXYZ[3] = { 0,0,0 };
 static int		COLLISION_RESULT = 0;
-static char		m_Collision_Info[1024] = "";
 static float	TEMPXYZ1[0x10] = { 0,0,0 };
 static float	TEMPXYZ2[0x10] = { 0,0,0 };
 #pragma data_seg()
@@ -72,8 +70,7 @@ __declspec(dllexport) char * __cdecl GetHoveredNPCInfo();
 __declspec(dllexport) char * __cdecl GetMouseXYZInGame();
 
 __declspec(dllexport) int __cdecl ExecuteCommand(char *cmdstring);
-//__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
-__declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z);
+__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d);
 
 void CollisionDetect()
 {
@@ -349,54 +346,11 @@ __declspec(dllexport) int __cdecl SetUserHWND(HWND hWnd)
 	return FALSE;
 }
 
-//__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d)
-//{
-//	SOURCEXYZ[0] = s_x;	SOURCEXYZ[1] = s_y;	SOURCEXYZ[2] = s_z;
-//	DESTINATIONXYZ[0] = d_x; DESTINATIONXYZ[1] = d_y; DESTINATIONXYZ[2] = d_z;
-//	COLLISION_RESULT = 0;
-//	memset(TEMPXYZ1, 0, 0x40);
-//	memset(TEMPXYZ2, 0, 0x40);
-//	TEMPXYZ1[0] = s_x; TEMPXYZ1[1] = s_y; TEMPXYZ1[2] = s_z;
-//	TEMPXYZ2[0] = s_x; TEMPXYZ2[1] = s_y; TEMPXYZ2[2] = s_z;
-//
-//	if (Export_Collision_Detection == NULL)return 0;
-//	DWORD dwPID = gamePID;// GetCurrentProcessId();
-//	HANDLE m_hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
-//
-//	//Disable Thread
-//	SuspendThread(m_hTargetProcess);
-//	{
-//		HANDLE hRemoteThread = NULL;
-//		hRemoteThread = CreateRemoteThread(m_hTargetProcess, NULL, 0, (LPTHREAD_START_ROUTINE)Export_Collision_Detection, NULL, 0, NULL);
-//		WaitForSingleObject(hRemoteThread, INFINITE);
-//		CloseHandle(hRemoteThread);
-//		*c_x = TEMPXYZ2[0x9];
-//		*c_y = TEMPXYZ2[0xA];
-//		*c_z = TEMPXYZ2[0xB];
-//		float sum = 0;
-//		if (*c_x == 0 && *c_y == 0 && *c_z == 0) {
-//			sum= (s_x - d_x) * (s_x - d_x) + (s_y - d_y) * (s_y - d_y) + (s_z - d_z) * (s_z - d_z);
-//			*c_d = sqrt(sum);
-//		} else {
-//			sum = (s_x - *c_x) * (s_x - *c_x) + (s_y - *c_y) * (s_y - *c_y) + (s_z - *c_z) * (s_z - *c_z);
-//			*c_d = sqrt(sum);
-//		}
-//		sprintf_s(m_Mouse_Information, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", B_X, B_Y, B_Z, B_D);
-//	}
-//	//Resume Thread
-//	while (ResumeThread(m_hTargetProcess) != -1);
-//
-//	//Result process
-//
-//	return COLLISION_RESULT;
-//}
-
-__declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z)
+__declspec(dllexport) int __cdecl CollisionDetection(float s_x, float s_y, float s_z, float d_x, float d_y, float d_z, float *c_x, float *c_y, float *c_z, float *c_d)
 {
 	SOURCEXYZ[0] = s_x;	SOURCEXYZ[1] = s_y;	SOURCEXYZ[2] = s_z;
 	DESTINATIONXYZ[0] = d_x; DESTINATIONXYZ[1] = d_y; DESTINATIONXYZ[2] = d_z;
 	COLLISION_RESULT = 0;
-	float c_x, c_y, c_z, c_d;
 	memset(TEMPXYZ1, 0, 0x40);
 	memset(TEMPXYZ2, 0, 0x40);
 	TEMPXYZ1[0] = s_x; TEMPXYZ1[1] = s_y; TEMPXYZ1[2] = s_z;
@@ -413,26 +367,24 @@ __declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, fl
 		hRemoteThread = CreateRemoteThread(m_hTargetProcess, NULL, 0, (LPTHREAD_START_ROUTINE)Export_Collision_Detection, NULL, 0, NULL);
 		WaitForSingleObject(hRemoteThread, INFINITE);
 		CloseHandle(hRemoteThread);
-		c_x = TEMPXYZ2[0x9];
-		c_y = TEMPXYZ2[0xA];
-		c_z = TEMPXYZ2[0xB];
+		*c_x = TEMPXYZ2[0x9];
+		*c_y = TEMPXYZ2[0xA];
+		*c_z = TEMPXYZ2[0xB];
 		float sum = 0;
-		if (c_x == 0 && c_y == 0 && c_z == 0) {
-			sum = (s_x - d_x) * (s_x - d_x) + (s_y - d_y) * (s_y - d_y) + (s_z - d_z) * (s_z - d_z);
-			c_d = sqrt(sum);
+		if (*c_x == 0 && *c_y == 0 && *c_z == 0) {
+			sum= (s_x - d_x) * (s_x - d_x) + (s_y - d_y) * (s_y - d_y) + (s_z - d_z) * (s_z - d_z);
+			*c_d = sqrt(sum);
+		} else {
+			sum = (s_x - *c_x) * (s_x - *c_x) + (s_y - *c_y) * (s_y - *c_y) + (s_z - *c_z) * (s_z - *c_z);
+			*c_d = sqrt(sum);
 		}
-		else {
-			sum = (s_x - c_x) * (s_x - c_x) + (s_y - c_y) * (s_y - c_y) + (s_z - c_z) * (s_z - c_z);
-			c_d = sqrt(sum);
-		}
-		sprintf_s(m_Mouse_Information, "X:[%1.2f] Y:[%1.2f] Z:[%1.2f] D:[%1.2f]", c_x, c_y, c_z, c_d);
 	}
 	//Resume Thread
 	while (ResumeThread(m_hTargetProcess) != -1);
 
 	//Result process
 
-	return m_Mouse_Information;
+	return COLLISION_RESULT;
 }
 
 __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)

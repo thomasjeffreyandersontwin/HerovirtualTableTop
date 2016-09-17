@@ -73,7 +73,7 @@
                   OverridesDefaultStyle="True" IsExpanded="{Binding ShowOptions}" VerticalAlignment="Top"
                   >
                     <Grid VerticalAlignment="Top">
-                        <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption}"
+                        <local:OptionListBox x:Name="optionListBox" ItemsSource="{Binding Path=OptionGroup}" SelectedItem="{Binding Path=SelectedOption, Mode=TwoWay}"
                             DefaultOption="{Binding Path=DefaultOption}"
                             ActiveOption="{Binding Path=ActiveOption}"
                             HorizontalAlignment="Left" VerticalAlignment="Center"
