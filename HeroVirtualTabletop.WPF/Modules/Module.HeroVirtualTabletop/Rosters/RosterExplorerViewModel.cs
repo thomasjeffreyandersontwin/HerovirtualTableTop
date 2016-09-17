@@ -1029,7 +1029,9 @@ namespace Module.HeroVirtualTabletop.Roster
                     Helper.GlobalVariables_IsPlayingAttack = false;
                     Commands_RaiseCanExecuteChanged();
                     List<Character> defendingCharacters = new List<Character>();
-                    this.ResetAttack(defendingCharacters); 
+                    if(state is List<Character>)
+                        defendingCharacters = state as List<Character>;
+                    this.CancelAttack(defendingCharacters); 
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
@@ -1045,7 +1047,22 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             List<Character> defendingCharacters = tuple.Item1;
             Attack attack = tuple.Item2;
+            foreach (var defender in defendingCharacters)
+            {
+                defender.Deactivate(); // restore original costume
+            }
             attack.AnimateAttackSequence(attackingCharacter, defendingCharacters);
+            this.ResetAttack(defendingCharacters);
+        }
+
+        private void CancelAttack(List<Character> defendingCharacters)
+        {
+            if (this.attackingCharacter != null)
+                this.attackingCharacter.Deactivate();
+            foreach (var defender in defendingCharacters)
+            {
+                defender.Deactivate(); // restore original costume
+            }
             this.ResetAttack(defendingCharacters);
         }
 
@@ -1060,18 +1077,15 @@ namespace Module.HeroVirtualTabletop.Roster
             if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
                 this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
             this.attackingCharacter = null;
-            
-            if (defenders.Count == 0) // For blank shooting, need to raise the attack close event for other view models to update their controls and commands
-            {
-                Helper.GlobalVariables_IsPlayingAttack = false;
-                this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
-            }
-            else foreach (var defender in defenders)
+
+            Helper.GlobalVariables_IsPlayingAttack = false;
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack); 
+            foreach (var defender in defenders)
             {
                 defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
                 //if (!this.currentAttack.OnHitAnimation.Persistent)
                 //    this.currentAttack.OnHitAnimation.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(defender); });
-                defender.Deactivate(); // restore original costume
+                //defender.Deactivate(); // restore original costume
             }
 
             // Update Mouse cursor

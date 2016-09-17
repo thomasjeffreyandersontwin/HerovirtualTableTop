@@ -331,6 +331,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             AttackDirection direction = new AttackDirection();
             int attackDelay = 0;
+            float distance = 0;
             PauseElement unitPauseElement = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Pause && (a as PauseElement).IsUnitPause) as PauseElement;
             if (defendingCharacters == null || defendingCharacters.Count == 0)
             {
@@ -348,18 +349,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     direction.AttackDirectionX = targetInFacingDirection.X;
                     direction.AttackDirectionY = targetInFacingDirection.Y;
                     direction.AttackDirectionZ = targetInFacingDirection.Z;
+
+                    distance = GetClosestTargetDistance(attackingCharacter, defendingCharacters);
                 }
                 else
                 {
                     Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
-                    Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
-                    var distance = Vector3.Distance(vAttacker, vCenterTarget); 
-                    if (unitPauseElement != null)
-                    {
-                        DelayManager delayManager = new DelayManager(unitPauseElement);
-                        attackDelay = (int)delayManager.GetDelayForDistance(distance);
-                    }
-                    
+                    Vector3 vCenterTarget  = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
+                    distance = Vector3.Distance(vAttacker, vCenterTarget);
+
                     if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
                     {
                         direction.AttackDirectionX = centerTargetCharacter.Position.X;
@@ -382,6 +380,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
+ 
+            if (unitPauseElement != null)
+            {
+                DelayManager delayManager = new DelayManager(unitPauseElement);
+                attackDelay = (int)delayManager.GetDelayForDistance(distance);
+            }
             AnimateAttack(direction, attackingCharacter);
             System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
 
@@ -392,6 +396,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             // Reset FX direction
             this.SetAttackDirection(null);
             attackingCharacter.Deactivate();
+        }
+
+        private float GetClosestTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            float minDistance = 0;
+            Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+            foreach(Character defendingCharacter in defendingCharacters)
+            {
+                Vector3 vDefender = new Vector3(defendingCharacter.Position.X, defendingCharacter.Position.Y, defendingCharacter.Position.Z);
+                var distance = Vector3.Distance(vAttacker, vDefender);
+                minDistance = minDistance == 0 ? distance : distance < minDistance ? distance : minDistance;
+            }
+
+            return minDistance;
         }
 
         private SequenceElement GetSequenceToPlay(SequenceElement sequenceElement)

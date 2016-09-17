@@ -147,7 +147,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 c.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
             }
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
+            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.DefendingCharacters.ToList());
+            //this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
         }
 
         #endregion
