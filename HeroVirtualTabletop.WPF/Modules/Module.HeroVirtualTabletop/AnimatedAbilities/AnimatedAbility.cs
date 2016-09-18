@@ -690,7 +690,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     var destX = vTarget.X + directionVector.X * knockbackDistance;
                     var destY = vTarget.Y + directionVector.Y * knockbackDistance;
                     var destZ = vTarget.Z + directionVector.Z * knockbackDistance;
+                    if (Math.Abs(vTarget.X - destX) < 1)
+                        destX = vTarget.X;
+                    if (Math.Abs(vTarget.Y - destY) < 1)
+                        destY = vTarget.Y;
+                    if (Math.Abs(vTarget.Z - destZ) < 1)
+                        destZ = vTarget.Z;
                     var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
+                    Vector3 targetPosition = GetCollisionPoint(collisionInfo);
+                    if(targetPosition.X == 0 && targetPosition.Y == 0 && targetPosition.Z == 0)
+                    {
+                        character.Position.X = destX;
+                        character.Position.Y = destY;
+                        character.Position.Z = destZ;
+                    }
+                    else
+                    {
+                        character.Position.X = targetPosition.X;
+                        character.Position.Y = targetPosition.Y;
+                        character.Position.Z = targetPosition.Z;
+                    }
                 }
             }
         }
@@ -700,6 +719,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.InitiateAttack(persistent, target);
             else
                 base.Play(persistent, target, forcePlay);
+        }
+
+        //X:[126.30] Y:[-0.50] Z:[-60.09] D:[0.00]
+        private Vector3 GetCollisionPoint(string collisionInfo)
+        {
+            int indexXStart = collisionInfo.IndexOf("[");
+            int indexXEnd = collisionInfo.IndexOf("]");
+            string xStr = collisionInfo.Substring(indexXStart + 1, indexXEnd - indexXStart - 1);
+            float X = float.Parse(xStr);
+
+            int indexYStart = collisionInfo.IndexOf("[", indexXEnd);
+            int indexYEnd = collisionInfo.IndexOf("]", indexYStart);
+            string yStr = collisionInfo.Substring(indexYStart + 1, indexYEnd - indexYStart - 1);
+            float Y = float.Parse(yStr);
+
+            int indexZStart = collisionInfo.IndexOf("[", indexYEnd);
+            int indexZEnd = collisionInfo.IndexOf("]", indexZStart);
+            string zStr = collisionInfo.Substring(indexZStart + 1, indexZEnd - indexZStart - 1);
+            float Z = float.Parse(zStr);
+
+            return new Vector3(X, Y, Z);
         }
 
         public override AnimationElement Clone()
