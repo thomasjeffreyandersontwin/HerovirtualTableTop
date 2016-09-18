@@ -122,8 +122,6 @@ namespace Module.HeroVirtualTabletop.Identities
                     else
                         AnimationOnLoad.Play();
                 }
-
-                new PauseElement("pause", 2000).Play();
             }
             switch (Type)
             {
