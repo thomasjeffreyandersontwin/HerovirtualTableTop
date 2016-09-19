@@ -125,7 +125,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return isActive;
             }
-            protected set
+            set
             {
                 isActive = value;
                 OnPropertyChanged("IsActive");
@@ -664,7 +664,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string newFolder = Path.Combine(location, name);
             string FXName = ParseFXName(Effect);
             string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, FXName, Constants.GAME_COSTUMES_EXT));
-            fileLock.EnterWriteLock();
+            //fileLock.EnterWriteLock();
             try
             {
                 if (!Directory.Exists(newFolder))
@@ -685,7 +685,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     if (Persistent || persistent)
                     {
                         archiveOriginalCostumeFileAndSwapWithModifiedFile(name, newFile);
-                        fxCostume = origFile;
+                        fxCostume = name;
                     }
 
                     string fireCoOrdinates = null;
@@ -705,7 +705,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             finally
             {
-                fileLock.ExitWriteLock();
+                //fileLock.ExitWriteLock();
             }
             return string.Empty;
         }
@@ -1176,9 +1176,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character target = Target ?? this.Owner;
             //if (IsActive)
             //    IsActive = false;
-            foreach (IAnimationElement item in AnimationElements.Where(x => x.IsActive))
+            if (target != null)
             {
-                item.Stop(target);
+                bool otherPersistentAbilityActive = target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null;
+                var animationsToStop = AnimationElements.Where(x => x.IsActive);
+                if (otherPersistentAbilityActive)
+                {
+                    animationsToStop = animationsToStop.Where(x => !(x is FXEffectElement));
+                    foreach (var fxAnimation in AnimationElements.Where(x => (x is FXEffectElement) && x.IsActive))
+                        fxAnimation.IsActive = false;
+                }
+                foreach (IAnimationElement item in animationsToStop)
+                {
+                    item.Stop(target);
+                }
             }
             OnPropertyChanged("IsActive");
         }

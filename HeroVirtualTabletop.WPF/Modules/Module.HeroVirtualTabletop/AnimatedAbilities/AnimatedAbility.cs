@@ -240,7 +240,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return isActive || base.IsActive;
             }
-            protected set
+            set
             {
                 isActive = value;
                 OnPropertyChanged("IsActive");
@@ -431,7 +431,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return sequenceToPlay;
         }
-
+        [Obsolete]
         private void AnimateHitAndMissAndEffectsAsChained(List<Character> defendingCharacters)
         {
             SequenceElement attackChainSequenceElement = new SequenceElement("attackChainSequence", AnimationSequenceType.And);

@@ -148,12 +148,12 @@
                                                             </DataTrigger.Binding>
                                                             <Setter Property="Visibility" Value="Visible"></Setter>
                                                         </DataTrigger>
-                                                        <!--<DataTrigger Value="True">
+                                                        <DataTrigger Value="True">
                                                             <DataTrigger.Binding>
                                                                 <Binding RelativeSource="{RelativeSource Self}" Path="DataContext.IsActive"></Binding>
                                                             </DataTrigger.Binding>
                                                             <Setter Property="Visibility" Value="Visible"></Setter>
-                                                        </DataTrigger>-->
+                                                        </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </Ellipse.Style>
