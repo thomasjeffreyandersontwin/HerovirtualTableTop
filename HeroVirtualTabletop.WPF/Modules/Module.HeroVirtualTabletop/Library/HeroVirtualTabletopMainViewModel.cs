@@ -271,17 +271,17 @@ namespace Module.HeroVirtualTabletop.Library
         private void LoadSoundFiles()
         {
             string folderPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_SOUND_FOLDERNAME);
-            if (Directory.Exists(folderPath)) //&& Directory.GetFiles(folderPath, "*.ogg", SearchOption.AllDirectories).Count() >= 6218)
+            if (Directory.Exists(folderPath)) 
             {
                 return;
             }
             else
             {
-                Uri uri = new Uri("/Resources/sound.zip", UriKind.Relative);
-                StreamResourceInfo data = Application.GetContentStream(uri);
+                //Uri uri = new Uri("/Resources/sound.zip", UriKind.Relative);
+                //StreamResourceInfo data = Application.GetContentStream(uri);
 
-                ZipArchive archive = new ZipArchive(data.Stream);
-                archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+                //ZipArchive archive = new ZipArchive(data.Stream);
+                //archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
             }
         }
 

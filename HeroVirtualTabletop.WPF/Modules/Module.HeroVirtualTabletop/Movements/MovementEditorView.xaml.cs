@@ -36,7 +36,7 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             ComboBox comboBox = sender as ComboBox;
             Grid grid = comboBox.Parent as Grid;
-            TextBox textBox = grid.Children[1] as TextBox;
+            TextBox textBox = grid.Children[2] as TextBox;
             textBox.Visibility = Visibility.Visible;
             textBox.Focus();
             textBox.SelectAll();

@@ -701,6 +701,8 @@ namespace Module.HeroVirtualTabletop.Characters
             if (this.ActiveIdentity.Type != IdentityType.Costume)
                 return;
 
+            bool persistentAbilityActive = this.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive).FirstOrDefault() != null || (this.ActiveIdentity.AnimationOnLoad != null && this.ActiveIdentity.AnimationOnLoad.Persistent);
+
             string archFile = Path.Combine(
                 Settings.Default.CityOfHeroesGameDirectory,
                 Constants.GAME_COSTUMES_FOLDERNAME,
@@ -709,7 +711,24 @@ namespace Module.HeroVirtualTabletop.Characters
                 Settings.Default.CityOfHeroesGameDirectory,
                 Constants.GAME_COSTUMES_FOLDERNAME,
                 ActiveIdentity.Surface + Constants.GAME_COSTUMES_EXT);
-            if (File.Exists(archFile))
+            // Load persistent fx if present
+            if (persistentAbilityActive)
+            {
+                string persistentCostumeFile = Path.Combine(
+                    Settings.Default.CityOfHeroesGameDirectory,
+                    Constants.GAME_COSTUMES_FOLDERNAME,
+                    this.ActiveIdentity.Surface + "_persistent" + Constants.GAME_COSTUMES_EXT);
+                if (File.Exists(persistentCostumeFile))
+                {
+                    Target(false);
+                    File.Copy(persistentCostumeFile, origFile, true);
+                    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, ActiveIdentity.Surface);
+                    keyBindsGenerator.CompleteEvent();
+                }
+                
+            } // Otherwise load default costume
+            else if (File.Exists(archFile))
             {
                 Target(false);
                 File.Copy(archFile, origFile, true);
@@ -724,12 +743,14 @@ namespace Module.HeroVirtualTabletop.Characters
             if (this.ActiveIdentity.Type != IdentityType.Costume)
                 return;
 
+            bool persistentAbilityActive = this.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive).FirstOrDefault() != null || (this.ActiveIdentity.AnimationOnLoad != null && this.ActiveIdentity.AnimationOnLoad.Persistent);
+
             string name = ActiveIdentity.Surface;
             string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
             string file = name + Constants.GAME_COSTUMES_EXT;
             string origFile = Path.Combine(location, file);
 
-            //Archive original file
+            // Archive original file
             string archFile = Path.Combine(
             Settings.Default.CityOfHeroesGameDirectory,
             Constants.GAME_COSTUMES_FOLDERNAME,
@@ -737,6 +758,16 @@ namespace Module.HeroVirtualTabletop.Characters
             if (!File.Exists(archFile))
             {
                 File.Copy(origFile, archFile, true);
+            }
+            // Archive persistent fx
+            if(persistentAbilityActive)
+            {
+                string persistentCostumeFile = Path.Combine(
+                    Settings.Default.CityOfHeroesGameDirectory,
+                    Constants.GAME_COSTUMES_FOLDERNAME,
+                    this.ActiveIdentity.Surface + "_persistent" + Constants.GAME_COSTUMES_EXT);
+
+                File.Copy(origFile, persistentCostumeFile, true);
             }
 
             string newFolder = Path.Combine(location, name);

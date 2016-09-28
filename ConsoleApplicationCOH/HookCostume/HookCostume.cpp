@@ -413,9 +413,16 @@ __declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, fl
 	SuspendThread(m_hTargetProcess);
 	{
 		HANDLE hRemoteThread = NULL;
+
+		char olds[6];
+		ReadProcessMemory(m_hTargetProcess, olds, (void *)0x04CD32F, 5, NULL);
+		char nops[6] = "\x90\x90\x90\x90\x90";
+		WriteProcessMemory(m_hTargetProcess, (void *)0x04CD32F, nops, 5, NULL);
+
 		hRemoteThread = CreateRemoteThread(m_hTargetProcess, NULL, 0, (LPTHREAD_START_ROUTINE)Export_Collision_Detection, NULL, 0, NULL);
 		WaitForSingleObject(hRemoteThread, INFINITE);
 		CloseHandle(hRemoteThread);
+		WriteProcessMemory(m_hTargetProcess, (void *)0x04CD32F, olds, 5, NULL);
 		c_x = TEMPXYZ2[0x9];
 		c_y = TEMPXYZ2[0xA];
 		c_z = TEMPXYZ2[0xB];

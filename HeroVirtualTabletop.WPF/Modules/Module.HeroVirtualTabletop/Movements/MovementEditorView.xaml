@@ -45,16 +45,17 @@
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="60"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Row="0" Grid.Column="0" MinWidth="120" IsEnabled="{Binding CanEditMovementOptions}"
-                          Name="comboBoxMovements" ItemsSource="{Binding CurrentCharacter.Movements}" DisplayMemberPath="Name" SelectedValue="{Binding CurrentMovement}">
+            <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default" Margin="3,1, 0, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
+            <ComboBox Grid.Row="1" Grid.Column="0" MinWidth="120" IsEnabled="{Binding CanEditMovementOptions}" Margin="3, 1, 0, 0"
+                          Name="comboBoxMovements" ItemsSource="{Binding AvailableMovements}" DisplayMemberPath="Name" SelectedValue="{Binding CurrentMovement}">
                 <ComboBox.InputBindings>
                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterMovementEditModeCommand}" CommandParameter="{Binding ElementName=comboBoxMovements}"/>
                 </ComboBox.InputBindings>
             </ComboBox>
-            <TextBox Name="textBoxName" Grid.Row="0" Grid.Column="0" Visibility="Hidden" Text="{Binding Path=CurrentMovement.Name, UpdateSourceTrigger=Explicit}">
+            <TextBox Name="textBoxName" Grid.Row="1" Grid.Column="0" Visibility="Hidden" Text="{Binding Path=CurrentMovement.Name, UpdateSourceTrigger=Explicit}" Margin="3,1, 0, 0">
                 <behaviors:CommandBehaviorCollection.Behaviors>
                     <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.SubmitMovementRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                 </behaviors:CommandBehaviorCollection.Behaviors>
@@ -63,19 +64,18 @@
                     <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.CancelMovementEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                 </TextBox.InputBindings>
             </TextBox>
-            <CheckBox Grid.Row="1" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
             <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Right">
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
                 <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement" Command="{Binding DemoMovementCommand}" />
             </StackPanel>
-            <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" >
-                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement" Command="{Binding AddMovementCommand}"/>
+            <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" Margin="0, 0, 5, 0">
+                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement" Command="{Binding AddMovementCommand}" />
                 <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Movement" Command="{Binding RemoveMovementCommand}"/>
             </StackPanel>
         </Grid>
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="2" Margin="3, 1, 0 0">
             <ListBox ItemsSource="{Binding CurrentMovement.MovementMembers}"
                     Background="Transparent" TextElement.Foreground="White" 
                      SelectedItem="{Binding SelectedMovementMember}">
@@ -83,17 +83,13 @@
                     <DataTemplate>
                         <Grid HorizontalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="360"/>
-                                <ColumnDefinition Width="20"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Grid.Column="0" FontFamily="{StaticResource FontFamily_FontAwesome}" Cursor="Hand" Text="{Binding MovementDirection, Converter={StaticResource MovementDirectionToIconTextConverter}}" HorizontalAlignment="Left" VerticalAlignment="Center">
-                                <TextBlock.InputBindings>
-                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.LoadAbilityEditorCommand}" MouseAction="LeftClick"/>
-                                </TextBlock.InputBindings>
-                            </TextBlock>
-                            <TextBlock Grid.Column="1" Text="{Binding MemberAbility.DisplayName}" TextTrimming="CharacterEllipsis" Style="{StaticResource TextBlockDefaultStyle}"/>
-                            <Button Grid.Column="2" Background="Transparent" Foreground="Green" FontFamily="{StaticResource FontFamily_FontAwesome}" Content="&#xf04b;" ToolTip="Play" Command="{Binding DemoDirectionalMoveCommand}" HorizontalAlignment="Right" />
+                            <Button Grid.Column="0" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="{Binding MovementDirection, Converter={StaticResource MovementDirectionToIconTextConverter}}" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.LoadAbilityEditorCommand}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding MemberAbility.DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{StaticResource TextBlockDefaultStyle}"/>
+                            <Button Grid.Column="2" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="&#xf04b;" ToolTip="Play" Command="{Binding DemoDirectionalMoveCommand}" HorizontalAlignment="Right" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -105,14 +101,14 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="5"
+            <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="3, 1, 0, 0"
                      Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
             <DataGrid Grid.Row="1" x:Name="dataGridAbilityReferences"
                           MaxWidth="400"
-                          Background="Transparent" RowBackground="Transparent" Margin="5" BorderBrush="#FF1144FF"
+                          Background="Transparent" RowBackground="Transparent"  BorderBrush="#FF1144FF"
                           ItemsSource="{Binding ReferenceAbilitiesCVS.View}"
                           SelectionUnit="FullRow" AutoGenerateColumns="False" IsEnabled="{Binding CanEditMovementOptions}"
-                          SelectionMode="Single" CanUserResizeRows="False"
+                          SelectionMode="Single" CanUserResizeRows="False" 
                           SelectedValue="{Binding SelectedMovementMember.MemberAbility.Resource}"
                             IsSynchronizedWithCurrentItem="True" 
                       >

@@ -18,7 +18,8 @@
     <FontFamily x:Key="FontFamily_FontAwesome">/Module.Shared;Component/Resources/Fonts/#FontAwesome</FontFamily>
     <FontFamily x:Key="MontDemiBold">/Module.Shared;Component/Resources/Fonts/#Montreal DemiBold</FontFamily>
     <FontFamily x:Key="ParagonCity">/Module.Shared;Component/Resources/Fonts/#Paragon City</FontFamily>
-    <System:Double x:Key="FontSize_Small">10</System:Double>
+    <System:Double x:Key="FontSize_ExtraSmall">10</System:Double>
+    <System:Double x:Key="FontSize_Small">12</System:Double>
     <System:Double x:Key="FontSize_Normal">13.5</System:Double>
     <System:Double x:Key="FontSize_Medium">14.5</System:Double>
     <System:Double x:Key="FontSize_Large">16</System:Double>
@@ -341,6 +342,13 @@
         <Setter Property="Width" Value="35"/>
     </Style>
 
+    <Style x:Key="IconButtonSmall" TargetType="{x:Type Button}" BasedOn="{StaticResource HeroVirtualTabletopButton}">
+        <Setter Property="FontFamily" Value="{StaticResource FontFamily_FontAwesome}"/>
+        <Setter Property="FontSize" Value="{StaticResource FontSize_Small}"/>
+        <Setter Property="Width" Value="21"/>
+        <Setter Property="Height" Value="18"/>
+    </Style>
+
     <Style x:Key="SearchBox" TargetType="{x:Type Border}">
         <Style.Resources>
             <ElasticEase x:Key="EaseInEase" EasingMode="EaseOut" Oscillations="2" Springiness="7"/>
@@ -658,7 +666,7 @@
                                           Padding="1.5,0">
                                 <ToggleButton.Content>
                                     <TextBlock Text="{Binding Path=Header, 
-                                                        RelativeSource={RelativeSource TemplatedParent}}" FontFamily="{DynamicResource ParagonCity}" FontSize="{DynamicResource FontSize_Small}">
+                                                        RelativeSource={RelativeSource TemplatedParent}}" FontFamily="{DynamicResource ParagonCity}" FontSize="{DynamicResource FontSize_ExtraSmall}">
                                         <TextBlock.LayoutTransform>
                                             <TransformGroup>
                                                 <RotateTransform Angle="90"/>
@@ -1396,7 +1404,7 @@
         <Setter Property="SnapsToDevicePixels" Value="true" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
-        <Setter Property="FontSize" Value="{StaticResource FontSize_Small}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize_ExtraSmall}" />
         <Setter Property="FontFamily" Value="{StaticResource MontDemiBold}" />
         <Setter Property="OverridesDefaultStyle" Value="true"/>
         <Setter Property="Template">
@@ -1486,7 +1494,7 @@
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="ScrollViewer.CanContentScroll" Value="true"/>
-        <Setter Property="FontSize" Value="{StaticResource FontSize_Small}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize_ExtraSmall}" />
         <Setter Property="FontFamily" Value="{StaticResource MontDemiBold}" />
         <Setter Property="MaxDropDownHeight" Value="240"/>
         <!--<Setter Property="MinWidth" Value="50"/>

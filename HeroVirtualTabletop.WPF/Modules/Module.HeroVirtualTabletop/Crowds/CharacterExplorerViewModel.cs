@@ -25,6 +25,7 @@ using System.Windows;
 using System.IO;
 using System.Reflection;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Movements;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -229,6 +230,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Subscribe(this.CloneLinkCharacter);
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
+            this.eventAggregator.GetEvent<NeedMovementCollectionRetrievalEvent>().Subscribe(this.GetMovementCollection);
         }
 
         #endregion
@@ -1339,8 +1341,21 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Retrieve Ability Collection
         private void GetAbilityCollection(object state)
         {
-            var abilityCollection = new ObservableCollection<AnimatedAbilities.AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
+            var abilityCollection = new ObservableCollection<AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
+        }
+
+        #endregion
+
+        #region Retrieve Movement Collection
+        private void GetMovementCollection(object state)
+        {
+            Action<ObservableCollection<Movement>> getMovementCollectionCallback = state as Action<ObservableCollection<Movement>>;
+            if(getMovementCollectionCallback != null)
+            {
+                var movementCollection = new ObservableCollection<Movement>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).Movements; }).Distinct());
+                getMovementCollectionCallback(movementCollection);
+            }
         }
 
         #endregion

@@ -110,7 +110,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static void RunCOHAndLoadDLL(string path)
         {
-            initGame(0, path);
+            initGame(1, path);
             while (true)
             {
                 bool gameLoaded = checkIfGameLoaded();

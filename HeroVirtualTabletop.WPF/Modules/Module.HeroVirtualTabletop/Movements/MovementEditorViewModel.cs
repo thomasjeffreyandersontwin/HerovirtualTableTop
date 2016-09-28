@@ -260,12 +260,12 @@ namespace Module.HeroVirtualTabletop.Movements
             this.IsShowingMovementEditor = true;
             this.CurrentCharacter = tuple.Item2;
             this.CurrentMovement = tuple.Item1;
-            this.AvailableMovements = new ObservableCollection<Movement>(this.CurrentCharacter.Movements);
+            this.eventAggregator.GetEvent<NeedMovementCollectionRetrievalEvent>().Publish(this.LoadAvailableMovements);
         }
 
-        private void LoadMovement(Movement movement)
+        private void LoadAvailableMovements(ObservableCollection<Movement> movements)
         {
-            this.CurrentMovement = movement;
+            this.AvailableMovements = movements;
         }
 
         #endregion

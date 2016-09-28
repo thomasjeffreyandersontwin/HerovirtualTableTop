@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ApplicationShell.Properties {
+namespace HeroVirtualTabletop.Shell.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

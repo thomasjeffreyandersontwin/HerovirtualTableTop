@@ -1,4 +1,5 @@
-﻿using Module.HeroVirtualTabletop.Characters;
+﻿using Microsoft.Xna.Framework;
+using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
@@ -37,8 +38,38 @@ namespace Module.HeroVirtualTabletop.Identities
             return base.Render(completeEvent);
         }
 
-        protected internal static Position position = new Position(false, 1696336);
-        public static Position Position { get { return position; } }
+        private Position position = new Position(false, 1696336);
+
+        private void ReInitializePosition(Position position)
+        {
+            position = new Position(false, 1696336);
+        }
+        public Vector3 GetPositionVector() 
+        {
+            Position position = null;
+            float x, y, z;
+            int numberOfReInitialize = 0;
+            while (true)
+            {
+                position = new Position(false, 1696336);
+                if (Math.Abs(position.X) < 0.01f || Math.Abs(position.Y) < 0.01f || Math.Abs(position.Z) < 0.01f)
+                {
+                    ReInitializePosition(position);
+                    numberOfReInitialize++;
+                }
+                else
+                {
+                    x = position.X;
+                    y = position.Y;
+                    z = position.Z;
+                    if (Math.Abs(x) >= 0.01f && Math.Abs(y) >= 0.01f && Math.Abs(z) >= 0.01f)
+                        break;
+                }
+                    
+            }
+
+            return new Vector3(x, y, z); 
+        }
 
         private static Identity skin;
 

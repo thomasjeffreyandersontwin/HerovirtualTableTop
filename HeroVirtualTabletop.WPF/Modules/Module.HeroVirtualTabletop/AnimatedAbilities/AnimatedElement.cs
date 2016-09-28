@@ -24,6 +24,9 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using System.Runtime.Serialization;
+using IrrKlang;
+using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+//using IrrKlang;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -406,65 +409,51 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("SoundFile");
             }
         }
-
-        private SoundEffect soundEffect;
-        private SoundEffectInstance soundEffectInstance;
-        private Task setVolumeTask;
-        private CancellationTokenSource tokenSrc;
+        ISoundEngine engine;
 
         public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Character target = Target ?? this.Owner;
             Stop(target);
-            if (((string)SoundFile) == null) //|| !File.Exists(SoundFile)
+            string soundFileName = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_SOUND_FOLDERNAME) + (string)SoundFile;
+            if (soundFileName == null) 
             {
                 return;
             }
-            if (soundEffect == null)
-            {
-                using (FileStream s = File.OpenRead(SoundFile))
-                    soundEffect = SoundEffect.FromStream(s);//gm.Content.Load<SoundEffect>(SoundFile);
-                soundEffectInstance = soundEffect.CreateInstance();
-            }
-            tokenSrc = new CancellationTokenSource();
+            if(engine == null)
+                engine = new ISoundEngine();
 
-            float dist = 0;
-            float volume = 1.0f;
-            target.Position.IsWithin(0, Camera.Position, out dist);
-            if (dist > 100)
-                volume = 0;
-            else
-                volume = (100 - dist) / 100;
-            if (float.IsNaN(volume))
-                volume = 1.0f;
-
-            soundEffectInstance.Volume = 1.0f;
-
-            //setVolumeTask = Task.Run(delegate ()
-            //{
-            //    PauseElement pause = new PauseElement("pasue", time: 500);
-            //    while (true)
-            //    {
-            //        float dist = 0;
-            //        float volume = 1.0f;
-            //        target.Position.IsWithin(0, Camera.Position, out dist);
-            //        if (dist > 100)
-            //            volume = 0;
-            //        else
-            //            volume = (100 - dist) / 100;
-            //        if (soundEffectInstance == null || float.IsNaN(volume))
-            //            break;
-            //        soundEffectInstance.Volume = volume;
-            //        pause.Play();
-            //    }
-            //}, tokenSrc.Token);
-
+            Position targetPosition = target.Position as Position;
+            Vector3 targetPositionVector = new Vector3 { X = targetPosition.X, Y = targetPosition.Y, Z = targetPosition.Z };
+            Vector3 camPositionVector = new Camera().GetPositionVector();
+            
+            bool playLooped = false;
+            
             if (this.Persistent || persistent)
             {
-                soundEffectInstance.IsLooped = true;
+                playLooped = true;
                 IsActive = true;
             }
-            Task.Factory.StartNew(() => { soundEffectInstance.Play(); }, tokenSrc.Token);
+            engine.SetListenerPosition(camPositionVector.X, camPositionVector.Y, camPositionVector.Z, 0, 0, 1);
+            engine.Default3DSoundMinDistance = 10f;
+            ISound music = engine.Play3D(soundFileName,
+                                         targetPositionVector.X, targetPositionVector.Y, targetPositionVector.Z, playLooped);
+            if(playLooped)
+            {
+                CancellationToken tokenSrc = new CancellationToken();
+                Task.Factory.StartNew(() => 
+                {
+                    PauseElement pause = new PauseElement("pause", time: 500);
+                    while (true)
+                    {
+                        Vector3 camPositionVector2 = new Camera().GetPositionVector();
+                        engine.SetListenerPosition(camPositionVector2.X, camPositionVector2.Y, camPositionVector2.Z, 0, 0, 1);
+                        pause.Play();
+                    }
+                }, tokenSrc);
+
+            }
+            
         }
 
         public override void Stop(Character Target = null)
@@ -474,17 +463,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 IsActive = false;
             }
-
-            if (soundEffectInstance != null)
-            {
-                tokenSrc.Cancel();
-                if (soundEffectInstance.State == SoundState.Playing)
-                    soundEffectInstance.Stop();
-                soundEffect.Dispose();
-                soundEffectInstance.Dispose();
-                soundEffect = null;
-                soundEffectInstance = null;
-            }
+            if (engine != null)
+                engine.StopAllSounds();
         }
 
         protected override AnimationResource GetResource()
@@ -1178,7 +1158,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //    IsActive = false;
             if (target != null)
             {
-                bool otherPersistentAbilityActive = target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null;
+                bool otherPersistentAbilityActive = target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null || (target.ActiveIdentity.AnimationOnLoad != null && target.ActiveIdentity.AnimationOnLoad.Persistent);
                 var animationsToStop = AnimationElements.Where(x => x.IsActive);
                 if (otherPersistentAbilityActive)
                 {

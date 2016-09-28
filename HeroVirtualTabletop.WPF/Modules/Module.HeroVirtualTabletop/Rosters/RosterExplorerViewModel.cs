@@ -1071,7 +1071,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.isPlayingAttack = false;
             this.isPlayingAreaEffect = false;
             targetObserver.TargetChanged -= AttackTargetUpdated;
-            this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
+            //this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
+            this.currentAttack.Stop();
 
             // Hide attack icon from attacking character
             if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)

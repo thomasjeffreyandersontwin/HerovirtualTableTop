@@ -136,6 +136,10 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             {
                 isWithinDistance = true;
             }
+            if(calculatedDistance > 100)
+            {
+
+            }
 
             return isWithinDistance;
         }
