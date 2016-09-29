@@ -296,7 +296,7 @@ namespace Module.UnitTest.Characters
             character.ActiveIdentity = new Identity("Spyder", HeroVirtualTabletop.Library.Enumerations.IdentityType.Costume);
 
             character.Position = new Mock<Position>(false, (uint)0).Object;
-            Camera.position = new Mock<Position>(false, (uint)0).Object;
+            //Camera.position = new Mock<Position>(false, (uint)0).Object;
 
             character.ToggleManueveringWithCamera();
 
@@ -310,7 +310,7 @@ namespace Module.UnitTest.Characters
         {
             CrowdMemberModel character = new CrowdMemberModel("Character");
             character.Position = new Mock<Position>(false, (uint)0).Object;
-            Camera.position = new Mock<Position>(false, (uint)0).Object;
+            //Camera.position = new Mock<Position>(false, (uint)0).Object;
 
             character.ToggleManueveringWithCamera();
 
@@ -325,7 +325,7 @@ namespace Module.UnitTest.Characters
             CrowdMemberModel character = new CrowdMemberModel("Spyder");
 
             character.Position = new Mock<Position>(false, (uint)0).Object;
-            Camera.position = new Mock<Position>(false, (uint)0).Object;
+            //Camera.position = new Mock<Position>(false, (uint)0).Object;
 
             character.ToggleManueveringWithCamera();
             character.ToggleManueveringWithCamera();
