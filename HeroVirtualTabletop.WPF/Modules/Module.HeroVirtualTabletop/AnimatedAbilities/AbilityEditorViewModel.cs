@@ -1055,11 +1055,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return true;
             }
             bool caseReferences = false;
-            if (animationRes.Reference != null)
+            if (animationRes.Reference != null && animationRes.Reference.Owner != null)
             {
-                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name);
+                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Owner.Name);
             }
-            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || caseReferences;
+            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Name) || caseReferences;
         }
 
         #endregion

@@ -1,4 +1,4 @@
-﻿using Module.Shared.Events;
+﻿ using Module.Shared.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -52,7 +52,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private void viewModel_MovementAdded(object sender, CustomEventArgs<bool> e)
         {
-
+            this.viewModel.EnterMovementEditModeCommand.Execute(this.comboBoxMovements);
         }
     }
 }

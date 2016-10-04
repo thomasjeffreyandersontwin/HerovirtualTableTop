@@ -6,6 +6,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Prism.Events;
 using System;
@@ -123,8 +124,8 @@ namespace Module.HeroVirtualTabletop.Roster
                             new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
-                        case OptionType.Movement:
-                            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Movements.Movement>>(
+                        case OptionType.CharacterMovement:
+                            OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterMovement>>(
                             new ParameterOverride("optionGroup", group), 
                             new ParameterOverride("owner", character),
                             new PropertyOverride("IsReadOnlyMode", true),

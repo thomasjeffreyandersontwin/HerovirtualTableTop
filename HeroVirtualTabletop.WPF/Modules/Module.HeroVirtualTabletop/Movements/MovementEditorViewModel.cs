@@ -5,8 +5,10 @@ using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared;
 using Module.Shared.Events;
 using Module.Shared.Messages;
 using Prism.Events;
@@ -29,6 +31,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
+        private Character defaultCharacter;
 
         #endregion
 
@@ -60,37 +63,37 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #region Public Properties
 
-        private Character currentCharacter;
-        public Character CurrentCharacter
-        {
-            get
-            {
-                return currentCharacter;
-            }
-            set
-            {
-                currentCharacter = value;
-                OnPropertyChanged("CurrentCharacter");
-            }
-        }
+        //private Character currentCharacter;
 
-        private Movement currentMovement;
-        public Movement CurrentMovement
+        //public Character CurrentCharacter
+        //{
+        //    get
+        //    {
+        //        return currentCharacter;
+        //    }
+        //    set
+        //    {
+        //        currentCharacter = value;
+        //        OnPropertyChanged("CurrentCharacter");
+        //    }
+        //}
+
+        private CharacterMovement currentCharacterMovement;
+        public CharacterMovement CurrentCharacterMovement
         {
             get
             {
-                return currentMovement;
+                return currentCharacterMovement;
             }
             set
             {
-                currentMovement = value;
-                if (currentMovement != null && this.CurrentCharacter != null && this.CurrentCharacter.DefaultMovement == currentMovement)
+                currentCharacterMovement = value;
+                if (currentCharacterMovement != null && this.currentCharacterMovement.Character != null && this.currentCharacterMovement.Character.DefaultMovement == currentCharacterMovement)
                     this.IsDefaultMovementLoaded = true;
                 else
                     this.IsDefaultMovementLoaded = false;
                 OnPropertyChanged("CurrentMovement");
                 this.SaveMovementCommand.RaiseCanExecuteChanged();
-                this.RemoveMovementCommand.RaiseCanExecuteChanged();
                 this.SetDefaultMovementCommand.RaiseCanExecuteChanged();
             }
         }
@@ -126,6 +129,32 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 availableMovements = value;
                 OnPropertyChanged("AvailableMovements");
+            }
+        }
+
+        private Movement selectedMovement;
+        public Movement SelectedMovement
+        {
+            get
+            {
+                return selectedMovement;
+            }
+            set
+            {
+                selectedMovement = value;
+                if (selectedMovement != null && this.CurrentCharacterMovement != null)
+                {
+                    if (this.CurrentCharacterMovement.Character != this.defaultCharacter)
+                    {
+                        this.CurrentCharacterMovement.Movement = selectedMovement;
+                        string prevName = this.CurrentCharacterMovement.Name;
+                        this.CurrentCharacterMovement.Name = selectedMovement.Name;
+                        this.CurrentCharacterMovement.Character.Movements.UpdateKey(prevName, selectedMovement.Name);
+                    }
+                }
+                this.SaveMovement(null);
+                OnPropertyChanged("SelectedMovement");
+                this.RemoveMovementCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -205,6 +234,8 @@ namespace Module.HeroVirtualTabletop.Movements
         public DelegateCommand<object> RemoveMovementCommand { get; private set; }
         public DelegateCommand<object> LoadResourcesCommand { get; private set; }
         public DelegateCommand<object> SetDefaultMovementCommand { get; private set; }
+        public DelegateCommand<object> DemoDirectionalMoveCommand { get; private set; }
+        public DelegateCommand<object> LoadAbilityEditorCommand { get; private set; }
 
         #endregion
 
@@ -233,19 +264,20 @@ namespace Module.HeroVirtualTabletop.Movements
             this.CloseEditorCommand = new DelegateCommand<object>(this.CloseEditor);
             this.SubmitMovementRenameCommand = new DelegateCommand<object>(this.SubmitMovementRename);
             this.SaveMovementCommand = new DelegateCommand<object>(this.SaveMovement, this.CanSaveMovement);
-            this.EnterMovementEditModeCommand = new DelegateCommand<object>(this.EnterMovementditMode);
+            this.EnterMovementEditModeCommand = new DelegateCommand<object>(this.EnterMovementEditMode);
             this.CancelMovementEditModeCommand = new DelegateCommand<object>(this.CancelMovementEditMode);
             this.AddMovementCommand = new DelegateCommand<object>(this.AddMovement, this.CanAddMovement);
             this.RemoveMovementCommand = new DelegateCommand<object>(this.RemoveMovement, this.CanRemoveMovement);
             this.SubmitMovementRenameCommand = new DelegateCommand<object>(this.SubmitMovementRename);
             this.SetDefaultMovementCommand = new DelegateCommand<object>(this.SetDefaultMovement, this.CanSetDefaultMovement);
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
+            this.DemoDirectionalMoveCommand = new DelegateCommand<object>(this.DemoDirectionalMovement, this.CanDemoDirectionalMovement);
+            this.LoadAbilityEditorCommand = new DelegateCommand<object>(this.LoadAbilityEditor, this.CanLoadAbilityEditor);
         }
 
         private void InitializeMovementSelections()
         {
-            this.CurrentMovement = null;
-            this.CurrentCharacter = null;
+            this.CurrentCharacterMovement = null;
         }
 
         #endregion
@@ -254,33 +286,40 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #region Load Movement
 
-        private void LoadMovement(Tuple<Movement, Character> tuple)
+        private void LoadMovement(CharacterMovement characterMovement)
         {
             this.InitializeMovementSelections();
             this.IsShowingMovementEditor = true;
-            this.CurrentCharacter = tuple.Item2;
-            this.CurrentMovement = tuple.Item1;
-            this.eventAggregator.GetEvent<NeedMovementCollectionRetrievalEvent>().Publish(this.LoadAvailableMovements);
+            this.CurrentCharacterMovement = characterMovement;
+            this.eventAggregator.GetEvent<NeedDefaultCharacterRetrievalEvent>().Publish(this.LoadAvailableMovements);
+            this.SelectedMovement = characterMovement.Movement;
         }
 
-        private void LoadAvailableMovements(ObservableCollection<Movement> movements)
+        private void LoadAvailableMovements(Character defaultCharacter)
         {
-            this.AvailableMovements = movements;
+            this.defaultCharacter = defaultCharacter;
+            string currentMovementName = this.CurrentCharacterMovement.Movement != null ? this.CurrentCharacterMovement.Movement.Name : "";
+            var allMovements = defaultCharacter.Movements.Select((cm) => { return cm.Movement; }).Where(m => m != null).Distinct();
+            var editingCharacterMovements = this.CurrentCharacterMovement.Character.Movements.Select((cm) => { return cm.Movement; }).Where(m => m != null && m.Name != currentMovementName).Distinct();
+            this.AvailableMovements = new ObservableCollection<Movement>(allMovements.Except(editingCharacterMovements));
         }
 
         #endregion
 
         #region Rename Movement
 
-        private void EnterMovementditMode(object state)
+        private void EnterMovementEditMode(object state)
         {
-            this.OriginalName = CurrentMovement.Name;
-            OnEditModeEnter(state, null);
+            if(SelectedMovement != null)
+            {
+                this.OriginalName = SelectedMovement.Name;
+                OnEditModeEnter(state, null);
+            }
         }
 
         private void CancelMovementEditMode(object state)
         {
-            CurrentMovement.Name = this.OriginalName;
+            SelectedMovement.Name = this.OriginalName;
             OnEditModeLeave(state, null);
         }
 
@@ -292,7 +331,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
                 bool duplicateName = false;
                 if (updatedName != this.OriginalName)
-                    duplicateName = this.CurrentCharacter.Movements.ContainsKey(updatedName);
+                    duplicateName = this.defaultCharacter.Movements.FirstOrDefault(m => m.Name == updatedName) != null; //this.CurrentCharacterMovement.Character.Movements.ContainsKey(updatedName);
 
                 if (!duplicateName)
                 {
@@ -315,9 +354,19 @@ namespace Module.HeroVirtualTabletop.Movements
                 OriginalName = null;
                 return;
             }
-            CurrentMovement.Name = updatedName;
+            SelectedMovement.Name = updatedName;
+            this.CurrentCharacterMovement.Movement = SelectedMovement;
+            this.CurrentCharacterMovement.Name = updatedName;
+            this.CurrentCharacterMovement.Character.Movements.UpdateKey(OriginalName, updatedName);
             // TODO: need to update each character that has this movement to use the updated name
-            this.CurrentCharacter.Movements.UpdateKey(OriginalName, updatedName);
+            CharacterMovement cmDefault = this.defaultCharacter.Movements.FirstOrDefault(m => m.Name == OriginalName);
+            if(cmDefault != null)
+            {
+                cmDefault.Name = updatedName;
+                this.defaultCharacter.Movements.UpdateKey(OriginalName, updatedName);
+            }
+            
+            
             OriginalName = null;
         }
 
@@ -332,15 +381,51 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private void AddMovement(object state)
         {
-            Movement movement = new Movement("");
-            this.AddMovement(movement);
+            if (this.AvailableMovements == null)
+                this.AvailableMovements = new ObservableCollection<Movement>();
+
+            string validMovementName = GetNewValidMovementName();
+            Movement movement = new Movement(validMovementName);
+
+            if(this.CurrentCharacterMovement.Character != this.defaultCharacter || (this.CurrentCharacterMovement.Character == this.defaultCharacter && this.CurrentCharacterMovement.Movement != null))
+            {
+                CharacterMovement cmDefault = new CharacterMovement(movement.Name, this.defaultCharacter);
+                cmDefault.Movement = movement;
+                this.defaultCharacter.Movements.Add(cmDefault);
+
+                if (this.CurrentCharacterMovement.Character == this.defaultCharacter)
+                {
+                    this.CurrentCharacterMovement = cmDefault;
+                    this.AvailableMovements = new ObservableCollection<Movement> { movement };
+                }
+                else
+                {
+                    this.CurrentCharacterMovement.Movement = movement;
+                    this.AvailableMovements.Add(movement);
+                }
+            }
+            else
+            {
+                this.CurrentCharacterMovement.Movement = movement;
+                this.AvailableMovements.Add(movement);
+            }
+
+            this.SelectedMovement = movement;
+
             OnMovementAdded(movement, null);
+
             this.SaveMovement(null);
         }
 
-        private void AddMovement(Movement movement)
+        public string GetNewValidMovementName(string name = "Movement")
         {
-            
+            string suffix = string.Empty;
+            int i = 0;
+            while ((this.defaultCharacter.Movements.Any((CharacterMovement cm) => { return cm.Movement != null && cm.Movement.Name == name + suffix; })))
+            {
+                suffix = string.Format(" ({0})", ++i);
+            }
+            return string.Format("{0}{1}", name, suffix).Trim();
         }
 
         #endregion
@@ -349,13 +434,21 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private bool CanRemoveMovement(object state)
         {
-            return this.CurrentMovement != null && !Helper.GlobalVariables_IsPlayingAttack;
+            return this.SelectedMovement != null && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void RemoveMovement(object state)
         {
-            // TODO: Remove current movement from all characters
+            this.eventAggregator.GetEvent<RemoveMovementEvent>().Publish(this.SelectedMovement.Name);
+            //if (this.CurrentCharacterMovement.Character.Name != Constants.DEFAULT_CHARACTER_NAME)
+            //{
+            //    if (this.CurrentCharacterMovement.Character.DefaultMovement != null && this.CurrentCharacterMovement.Character.DefaultMovement.Name == this.SelectedMovement.Name)
+            //        this.CurrentCharacterMovement.Character.DefaultMovement = null;
+            //    if (this.CurrentCharacterMovement.Character.ActiveMovement != null && this.CurrentCharacterMovement.Character.ActiveMovement.Name == this.SelectedMovement.Name)
+            //        this.CurrentCharacterMovement.Character.ActiveMovement = null;
+            //}
             this.SaveMovement(null);
+            this.CloseEditor();
         }
 
         #endregion
@@ -377,13 +470,64 @@ namespace Module.HeroVirtualTabletop.Movements
         #region Close Editor
         private void CloseEditor(object state = null)
         {
-            this.CurrentMovement = null;
-            this.CurrentCharacter = null;
+            this.CurrentCharacterMovement = null;
             this.IsShowingMovementEditor = false;
         }
         #endregion
 
-        #region Demo Movement
+        #region Demo Movement/Animations
+
+        private bool CanDemoDirectionalMovement(object state)
+        {
+            MovementMember member = state as MovementMember;
+            return member != null && member.MemberAbility != null && member.MemberAbility.Reference != null;
+        }
+
+        private void DemoDirectionalMovement(object state)
+        {
+            MovementMember member = state as MovementMember;
+            member.MemberAbility.Reference.Play(false, this.CurrentCharacterMovement.Character);
+        }
+
+        private void GetDirectionalAbility(MovementDirection direction)
+        {
+            AnimatedAbility ability = null;
+            MovementMember movementMember = null;
+            switch(direction)
+            {
+                case MovementDirection.Left:
+                   movementMember  = SelectedMovement.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Left);
+                   ability = movementMember.MemberAbility.Reference;
+                    break;
+                case MovementDirection.Right:
+                    break;
+                case MovementDirection.Forward:
+                    break;
+                case MovementDirection.Backward:
+                    break;
+                case MovementDirection.Upward:
+                    break;
+                case MovementDirection.Downward:
+                    break;
+                case MovementDirection.Still:
+                    break;
+            }
+        }
+
+        #endregion
+
+        #region Load Ability Editor
+
+        private bool CanLoadAbilityEditor(object state)
+        {
+            return !Helper.GlobalVariables_IsPlayingAttack;
+        }
+
+        private void LoadAbilityEditor(object state)
+        {
+            MovementMember member = state as MovementMember;
+            eventAggregator.GetEvent<EditAbilityEvent>().Publish(new Tuple<AnimatedAbility, Character>(member.MemberAbility.Reference, this.defaultCharacter));
+        }
 
         #endregion
 
@@ -415,18 +559,18 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private bool CanSetDefaultMovement(object state)
         {
-            return this.CurrentMovement != null && !Helper.GlobalVariables_IsPlayingAttack;
+            return this.CurrentCharacterMovement != null && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void SetDefaultMovement(object state)
         {
             if(this.IsDefaultMovementLoaded)
             {
-                this.CurrentCharacter.DefaultMovement = this.CurrentMovement;
+                this.CurrentCharacterMovement.Character.DefaultMovement = this.CurrentCharacterMovement;
             }
             else
             {
-                this.CurrentCharacter.DefaultMovement = null;
+                this.CurrentCharacterMovement.Character.DefaultMovement = null;
             }
             this.SaveMovement(null);
         }
@@ -496,9 +640,9 @@ namespace Module.HeroVirtualTabletop.Movements
             }
 
             bool caseReferences = false;
-            if (animationRes.Reference != null)
+            if (animationRes.Reference != null && animationRes.Reference.Owner != null)
             {
-                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name);
+                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Owner.Name);
             }
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || caseReferences;
         }

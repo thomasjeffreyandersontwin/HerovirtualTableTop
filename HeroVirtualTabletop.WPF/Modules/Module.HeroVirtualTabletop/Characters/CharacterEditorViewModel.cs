@@ -8,6 +8,7 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using Prism.Events;
@@ -162,8 +163,8 @@ namespace Module.HeroVirtualTabletop.Characters
                                 new ParameterOverride("owner", character)
                                 ));
                                 break;
-                            case OptionType.Movement:
-                                OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Movements.Movement>>(
+                            case OptionType.CharacterMovement:
+                                OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterMovement>>(
                                 new ParameterOverride("optionGroup", group),
                                 new ParameterOverride("owner", character)
                                 ));

@@ -15,7 +15,30 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Movements
 {
-    public class Movement: CharacterOption
+    public class CharacterMovement: CharacterOption
+    {
+        [JsonConstructor]
+        private CharacterMovement() { }
+
+        public CharacterMovement(string name, Character owner = null)
+        {
+            this.Name = name;
+            this.Character = owner;
+        }
+
+        public Character Character
+        {
+            get;
+            set;
+        }
+
+        public Movement Movement
+        {
+            get;
+            set;
+        }
+    }
+    public class Movement : NotifyPropertyChanged
     {
         [JsonConstructor]
         private Movement() { }
@@ -24,6 +47,20 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             this.Name = name;
             this.AddDefaultMemberAbilities();
+        }
+
+        private string name;
+        public string Name
+        {
+            get
+            {
+                return name;
+            }
+            set
+            {
+                name = value;
+                OnPropertyChanged("Name");
+            }
         }
 
         private ObservableCollection<MovementMember> movmementMembers;
@@ -71,34 +108,34 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 this.MovementMembers = new ObservableCollection<MovementMember>();
 
-                MovementMember movementMemberRight = new MovementMember { MovementDirection = MovementDirection.Right, MemberName = "Move Right" };
-                movementMemberRight.MemberAbility = new ReferenceAbility("Move Right", null);
-                movementMemberRight.MemberAbility.DisplayName = "Move Right";
-                this.MovementMembers.Add(movementMemberRight);
-
-                MovementMember movementMemberLeft = new MovementMember { MovementDirection = MovementDirection.Left, MemberName = "Move Left" };
-                movementMemberLeft.MemberAbility = new ReferenceAbility("Move Left", null);
-                movementMemberLeft.MemberAbility.DisplayName = "Move Left";
+                MovementMember movementMemberLeft = new MovementMember { MovementDirection = MovementDirection.Left, MemberName = "Left" };
+                movementMemberLeft.MemberAbility = new ReferenceAbility("Left", null);
+                movementMemberLeft.MemberAbility.DisplayName = "Left";
                 this.MovementMembers.Add(movementMemberLeft);
 
-                MovementMember movementMemberForward = new MovementMember { MovementDirection = MovementDirection.Forward, MemberName = "Move Forward" };
-                movementMemberForward.MemberAbility = new ReferenceAbility("Move Forward", null);
-                movementMemberForward.MemberAbility.DisplayName = "Move Forward";
+                MovementMember movementMemberRight = new MovementMember { MovementDirection = MovementDirection.Right, MemberName = "Right" };
+                movementMemberRight.MemberAbility = new ReferenceAbility("Right", null);
+                movementMemberRight.MemberAbility.DisplayName = "Right";
+                this.MovementMembers.Add(movementMemberRight);
+
+                MovementMember movementMemberForward = new MovementMember { MovementDirection = MovementDirection.Forward, MemberName = "Forward" };
+                movementMemberForward.MemberAbility = new ReferenceAbility("Forward", null);
+                movementMemberForward.MemberAbility.DisplayName = "Forward";
                 this.MovementMembers.Add(movementMemberForward);
 
-                MovementMember movementMemberBackward = new MovementMember { MovementDirection = MovementDirection.Backward, MemberName = "Move Backward" };
-                movementMemberBackward.MemberAbility = new ReferenceAbility("Move Backward", null);
-                movementMemberBackward.MemberAbility.DisplayName = "Move Backward";
+                MovementMember movementMemberBackward = new MovementMember { MovementDirection = MovementDirection.Backward, MemberName = "Back" };
+                movementMemberBackward.MemberAbility = new ReferenceAbility("Back", null);
+                movementMemberBackward.MemberAbility.DisplayName = "Back";
                 this.MovementMembers.Add(movementMemberBackward);
 
-                MovementMember movementMemberUpward = new MovementMember { MovementDirection = MovementDirection.Upward, MemberName = "Move Up" };
-                movementMemberUpward.MemberAbility = new ReferenceAbility("Move Up", null);
-                movementMemberUpward.MemberAbility.DisplayName = "Move Up";
+                MovementMember movementMemberUpward = new MovementMember { MovementDirection = MovementDirection.Upward, MemberName = "Up" };
+                movementMemberUpward.MemberAbility = new ReferenceAbility("Up", null);
+                movementMemberUpward.MemberAbility.DisplayName = "Up";
                 this.MovementMembers.Add(movementMemberUpward);
 
-                MovementMember movementMemberDownward = new MovementMember { MovementDirection = MovementDirection.Downward, MemberName = "Move Down" };
-                movementMemberDownward.MemberAbility = new ReferenceAbility("Move Down", null);
-                movementMemberDownward.MemberAbility.DisplayName = "Move Down";
+                MovementMember movementMemberDownward = new MovementMember { MovementDirection = MovementDirection.Downward, MemberName = "Down" };
+                movementMemberDownward.MemberAbility = new ReferenceAbility("Down", null);
+                movementMemberDownward.MemberAbility.DisplayName = "Down";
                 this.MovementMembers.Add(movementMemberDownward);
 
                 MovementMember movementMemberStill = new MovementMember { MovementDirection = MovementDirection.Still, MemberName = "Still" };

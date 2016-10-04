@@ -18,7 +18,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
     {
         Identity,
         Ability,
-        Movement,
+        CharacterMovement,
         Mixed
     }
 
@@ -45,8 +45,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 case "AnimatedAbility":
                     Type = OptionType.Ability;
                     break;
-                case "Movement":
-                    Type = OptionType.Movement;
+                case "CharacterMovement":
+                    Type = OptionType.CharacterMovement;
                     break;
                 case "CharacterOption":
                     Type = OptionType.Mixed;

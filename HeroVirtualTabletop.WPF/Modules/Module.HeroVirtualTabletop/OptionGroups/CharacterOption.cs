@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.OptionGroups
 {
-    public interface ICharacterOption: INotifyPropertyChanged
+    public interface ICharacterOption
     {
         string Name { get; set; }
     }

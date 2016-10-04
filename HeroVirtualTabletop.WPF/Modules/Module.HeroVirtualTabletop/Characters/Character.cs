@@ -288,9 +288,9 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private Movement defaultMovement;
+        private CharacterMovement defaultMovement;
         [JsonProperty(Order = 3)]
-        public Movement DefaultMovement
+        public CharacterMovement DefaultMovement
         {
             get
             {
@@ -303,9 +303,9 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private Movement activeMovement;
+        private CharacterMovement activeMovement;
         [JsonProperty(Order = 4)]
-        public Movement ActiveMovement
+        public CharacterMovement ActiveMovement
         {
             get
             {
@@ -314,11 +314,11 @@ namespace Module.HeroVirtualTabletop.Characters
             set
             {
                 activeMovement = value;
-                //Deactivate all active persistent abilities on Identity Change
-                AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
-                //Deactive any effect activated as a result of former Identity loading
-                if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
-                    activeIdentity.AnimationOnLoad.Stop();
+                ////Deactivate all active persistent abilities on Identity Change
+                //AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
+                ////Deactive any effect activated as a result of former Identity loading
+                //if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
+                //    activeIdentity.AnimationOnLoad.Stop();
                 Movements.UpdateIndices();
                 if (value != null && !Movements.ContainsKey(value.Name))
                 {
@@ -658,14 +658,14 @@ namespace Module.HeroVirtualTabletop.Characters
         }
 
         [JsonIgnore]
-        public OptionGroup<Movement> Movements
+        public OptionGroup<CharacterMovement> Movements
         {
             get
             {
-                OptionGroup<Movement> movements = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == Constants.MOVEMENT_OPTION_GROUP_NAME; }) as OptionGroup<Movement>;
+                OptionGroup<CharacterMovement> movements = optionGroups.DefaultIfEmpty(null).FirstOrDefault((optg) => { return optg != null && optg.Name == Constants.MOVEMENT_OPTION_GROUP_NAME; }) as OptionGroup<CharacterMovement>;
                 if (movements == null)
                 {
-                    movements = new OptionGroup<Movement>(Constants.MOVEMENT_OPTION_GROUP_NAME);
+                    movements = new OptionGroup<CharacterMovement>(Constants.MOVEMENT_OPTION_GROUP_NAME);
                     optionGroups.Add(movements);
                 }
                 return movements;

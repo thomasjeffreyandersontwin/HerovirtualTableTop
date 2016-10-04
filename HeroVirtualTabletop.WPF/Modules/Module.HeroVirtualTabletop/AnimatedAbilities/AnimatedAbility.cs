@@ -275,9 +275,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             else
             {
-                if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
+                if (Helper.GlobalCombatAbilities != null && Helper.GlobalCombatAbilities.Count > 0)
                 {
-                    var globalHitAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.HIT_ABITIY_NAME);
+                    var globalHitAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.HIT_ABITIY_NAME);
                     if (globalHitAbility != null && globalHitAbility.AnimationElements != null && globalHitAbility.AnimationElements.Count > 0)
                     {
                         ability = globalHitAbility;

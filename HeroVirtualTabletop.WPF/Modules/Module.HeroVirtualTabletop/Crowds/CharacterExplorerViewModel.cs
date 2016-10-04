@@ -230,7 +230,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Subscribe(this.CloneLinkCharacter);
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
-            this.eventAggregator.GetEvent<NeedMovementCollectionRetrievalEvent>().Subscribe(this.GetMovementCollection);
+            this.eventAggregator.GetEvent<NeedDefaultCharacterRetrievalEvent>().Subscribe(this.GetDefaultCharacter);
+            this.eventAggregator.GetEvent<RemoveMovementEvent>().Subscribe(this.DeleteMovement);
         }
 
         #endregion
@@ -1347,14 +1348,32 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #endregion
 
-        #region Retrieve Movement Collection
-        private void GetMovementCollection(object state)
+        #region Movements
+        private void GetDefaultCharacter(object state)
         {
-            Action<ObservableCollection<Movement>> getMovementCollectionCallback = state as Action<ObservableCollection<Movement>>;
+            Action<Character> getMovementCollectionCallback = state as Action<Character>;
             if(getMovementCollectionCallback != null)
             {
-                var movementCollection = new ObservableCollection<Movement>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).Movements; }).Distinct());
-                getMovementCollectionCallback(movementCollection);
+                var defaultCharacter = this.AllCharactersCrowd.CrowdMemberCollection.Where(cm => cm.Name == Constants.DEFAULT_CHARACTER_NAME).FirstOrDefault() as Character;
+                getMovementCollectionCallback(defaultCharacter);
+            }
+        }
+
+        private void DeleteMovement(object state)
+        {
+            string movementName = state as string;
+            if(!string.IsNullOrEmpty(movementName))
+            {
+                var characterList = this.AllCharactersCrowd.CrowdMemberCollection.Where(c => (c as Character).Movements.FirstOrDefault(m => m.Name == movementName) != null).ToList();
+                foreach(Character character in characterList)
+                {
+                    CharacterMovement cm = character.Movements.FirstOrDefault(m => m.Name == movementName);
+                    character.Movements.Remove(cm);
+                    if (character.DefaultMovement != null && character.DefaultMovement.Name == movementName)
+                        character.DefaultMovement = null;
+                    if (character.ActiveMovement != null && character.ActiveMovement.Name == movementName)
+                        character.ActiveMovement = null;
+                }
             }
         }
 

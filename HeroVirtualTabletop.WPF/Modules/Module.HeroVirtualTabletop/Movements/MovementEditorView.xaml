@@ -31,7 +31,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -44,18 +43,18 @@
                 <RowDefinition/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="300"/>
-                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="172"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default" Margin="3,1, 0, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
-            <ComboBox Grid.Row="1" Grid.Column="0" MinWidth="120" IsEnabled="{Binding CanEditMovementOptions}" Margin="3, 1, 0, 0"
-                          Name="comboBoxMovements" ItemsSource="{Binding AvailableMovements}" DisplayMemberPath="Name" SelectedValue="{Binding CurrentMovement}">
+            <ComboBox Grid.Row="1" Grid.Column="0" MinWidth="60" IsEnabled="{Binding CanEditMovementOptions}" Margin="3, 1, 0, 0"
+                          Name="comboBoxMovements" ItemsSource="{Binding AvailableMovements}" DisplayMemberPath="Name" SelectedValue="{Binding SelectedMovement}">
                 <ComboBox.InputBindings>
                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterMovementEditModeCommand}" CommandParameter="{Binding ElementName=comboBoxMovements}"/>
                 </ComboBox.InputBindings>
             </ComboBox>
-            <TextBox Name="textBoxName" Grid.Row="1" Grid.Column="0" Visibility="Hidden" Text="{Binding Path=CurrentMovement.Name, UpdateSourceTrigger=Explicit}" Margin="3,1, 0, 0">
+            <TextBox Name="textBoxName" Grid.Row="1" Grid.Column="0" Visibility="Hidden" Text="{Binding Path=SelectedMovement.Name, UpdateSourceTrigger=Explicit}" Margin="3,1, 0, 0">
                 <behaviors:CommandBehaviorCollection.Behaviors>
                     <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.SubmitMovementRenameCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                 </behaviors:CommandBehaviorCollection.Behaviors>
@@ -67,7 +66,7 @@
             <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Right">
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
-                </StackPanel.Resources>
+                </StackPanel.Resources> 
                 <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement" Command="{Binding DemoMovementCommand}" />
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" Margin="0, 0, 5, 0">
@@ -75,36 +74,41 @@
                 <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Movement" Command="{Binding RemoveMovementCommand}"/>
             </StackPanel>
         </Grid>
-        <Grid Grid.Row="2" Margin="3, 1, 0 0">
-            <ListBox ItemsSource="{Binding CurrentMovement.MovementMembers}"
-                    Background="Transparent" TextElement.Foreground="White" 
+        <Grid Grid.Row="2" Margin="3, 1, 0, 0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <ListBox ItemsSource="{Binding SelectedMovement.MovementMembers}"
+                    Background="Transparent" TextElement.Foreground="White" BorderBrush="{StaticResource MainBlueThemeColorBrush}"
                      SelectedItem="{Binding SelectedMovementMember}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid HorizontalAlignment="Stretch">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="360"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <Button Grid.Column="0" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="{Binding MovementDirection, Converter={StaticResource MovementDirectionToIconTextConverter}}" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.LoadAbilityEditorCommand}" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                            <TextBlock Grid.Column="1" Text="{Binding MemberAbility.DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{StaticResource TextBlockDefaultStyle}"/>
-                            <Button Grid.Column="2" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="&#xf04b;" ToolTip="Play" Command="{Binding DemoDirectionalMoveCommand}" HorizontalAlignment="Right" />
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid HorizontalAlignment="Stretch">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Button Grid.Column="0" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="{Binding MovementDirection, Converter={StaticResource MovementDirectionToIconTextConverter}}" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.LoadAbilityEditorCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{Binding MemberAbility.DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{StaticResource TextBlockDefaultStyle}" ToolTip="{Binding MemberAbility.DisplayName}"/>
+                                <Button Grid.Column="2" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="&#xf04b;" ToolTip="Play Ability" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.DemoDirectionalMoveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" HorizontalAlignment="Right" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
 
-            </ListBox>
+                </ListBox>
             </Grid>
-        <Grid Grid.Row="3">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="3, 1, 0, 0"
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="3, 1, 0, 0"
                      Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
-            <DataGrid Grid.Row="1" x:Name="dataGridAbilityReferences"
-                          MaxWidth="400"
+                <DataGrid Grid.Row="1" x:Name="dataGridAbilityReferences"
+                          MaxWidth="400" HorizontalAlignment="Stretch"
                           Background="Transparent" RowBackground="Transparent"  BorderBrush="#FF1144FF"
                           ItemsSource="{Binding ReferenceAbilitiesCVS.View}"
                           SelectionUnit="FullRow" AutoGenerateColumns="False" IsEnabled="{Binding CanEditMovementOptions}"
@@ -112,24 +116,26 @@
                           SelectedValue="{Binding SelectedMovementMember.MemberAbility.Resource}"
                             IsSynchronizedWithCurrentItem="True" 
                       >
-                <i:Interaction.Behaviors>
-                    <behaviors:ScrollIntoViewForDataGrid />
-                </i:Interaction.Behaviors>
-                <DataGrid.Resources>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Foreground" Value="White"></Setter>
-                        <Style.Triggers>
-                            <Trigger Property="DataGridCell.IsSelected" Value="True">
-                                <Setter Property="Background" Value="#FF1144FF" />
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.Resources>
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto"></DataGridTextColumn>
-                    <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*"></DataGridTextColumn>
-                </DataGrid.Columns>
-            </DataGrid>
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForDataGrid />
+                    </i:Interaction.Behaviors>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                            <Style.Triggers>
+                                <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#FF1144FF" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
         </Grid>
+        
     </Grid>
 </UserControl>

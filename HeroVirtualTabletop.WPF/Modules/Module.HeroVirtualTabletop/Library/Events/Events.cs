@@ -26,7 +26,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class CreateCrowdFromModelsEvent : PubSubEvent<CrowdModel> { };
     public class ActivateCharacterEvent : PubSubEvent<Tuple<Character, string, string>> { };
     public class NeedAbilityCollectionRetrievalEvent : PubSubEvent<object> { };
-    public class NeedMovementCollectionRetrievalEvent : PubSubEvent<Action<ObservableCollection<Movement>>> { };
+    public class NeedDefaultCharacterRetrievalEvent : PubSubEvent<Action<Character>> { };
     public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbility>> { };
     public class StopAllActiveAbilitiesEvent : PubSubEvent<object> { };
     public class ListenForTargetChanged : PubSubEvent<object> { };
@@ -44,6 +44,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     #endregion
 
     #region Movement Events
-    public class EditMovementEvent : PubSubEvent<Tuple<Movement, Character>> { };
+    public class EditMovementEvent : PubSubEvent<CharacterMovement> { };
+    public class RemoveMovementEvent : PubSubEvent<String> { };
     #endregion
 }

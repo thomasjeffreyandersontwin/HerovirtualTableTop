@@ -112,7 +112,7 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<OptionGroupViewModel<Identity>, OptionGroupViewModel<Identity>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty));
             this.container.RegisterType<OptionGroupViewModel<AnimatedAbility>, OptionGroupViewModel<AnimatedAbility>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty));
-            this.container.RegisterType<OptionGroupViewModel<Movement>, OptionGroupViewModel<Movement>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty));
+            this.container.RegisterType<OptionGroupViewModel<CharacterMovement>, OptionGroupViewModel<CharacterMovement>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty));
             this.container.RegisterType<OptionGroupViewModel<CharacterOption>, OptionGroupViewModel<CharacterOption>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty));
         }
 
