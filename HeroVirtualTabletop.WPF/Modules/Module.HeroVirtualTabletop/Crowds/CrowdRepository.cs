@@ -70,27 +70,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                 (new WaitCallback(
                     delegate (object state)
                         {
-                            AutoResetEvent e = new AutoResetEvent(false);
-                            events.Add(e);
-                            if (mutexes.Count > 0)
-                                try
-                                {
-                                    Mutex.WaitAll(mutexes.ToArray());
-                                }
-                                catch (Exception ex)
-                                {
-                                }
-                            Mutex m = new Mutex(true);
-                            mutexes.Add(m);
-
                             Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
                             
                             this.saveCrowdCollectionCompleted();
-
-                            mutexes.Remove(m);
-                            m.ReleaseMutex();
-                            events.Remove(e);
-                            e.Set();
                         }));
         }
 
