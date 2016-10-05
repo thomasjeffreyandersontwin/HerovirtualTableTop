@@ -525,14 +525,21 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private bool CanPlayOption(object arg)
         {
-            return (selectedOption is AnimatedAbility && !Helper.GlobalVariables_IsPlayingAttack);
+            return ((selectedOption is AnimatedAbility) || (selectedOption is CharacterMovement) && !Helper.GlobalVariables_IsPlayingAttack);
         }
 
         private void PlayOption(object state)
         {
-            AnimatedAbility ability = selectedOption as AnimatedAbility;
-            if (ability != null)
-                PlayAnimatedAbility(ability);
+            if(selectedOption is AnimatedAbility)
+            {
+                AnimatedAbility ability = selectedOption as AnimatedAbility;
+                if (ability != null)
+                    PlayAnimatedAbility(ability);
+            }
+            else
+            {
+
+            }
         }
 
         private void PlayAnimatedAbility(AnimatedAbility ability)
@@ -564,10 +571,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void StopOption(object state)
         {
-            AnimatedAbility abilityToStop = state as AnimatedAbility;
-            AnimatedAbility ability = selectedOption as AnimatedAbility;
-            if (ability != null && abilityToStop != null && ability == abilityToStop)
-                StopAnimatedAbility(ability);
+            if(selectedOption is AnimatedAbility)
+            {
+                AnimatedAbility abilityToStop = state as AnimatedAbility;
+                AnimatedAbility ability = selectedOption as AnimatedAbility;
+                if (ability != null && abilityToStop != null && ability == abilityToStop)
+                    StopAnimatedAbility(ability);
+            }
         }
 
         private void StopAnimatedAbility(AnimatedAbility ability)

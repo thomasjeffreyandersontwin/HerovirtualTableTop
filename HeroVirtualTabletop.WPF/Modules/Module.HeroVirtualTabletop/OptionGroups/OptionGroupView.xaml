@@ -23,7 +23,7 @@
                 <MenuItem Header="Set as Default" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SetDefaultOptionCommand}"></MenuItem>
                 <MenuItem Header="Edit" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditOptionCommand}"></MenuItem>
                 <MenuItem Header="Play" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlayOptionCommand}"></MenuItem>
-                <MenuItem Header="Stop/Remove" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.StopOptionCommand}"></MenuItem>
+                <MenuItem Header="Stop" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.StopOptionCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
