@@ -330,7 +330,8 @@ namespace Module.HeroVirtualTabletop.Characters
                     if (HasBeenSpawned)
                     {
                         Target(false);
-                        //activeMovement.Move();
+                        //if(activeMovement.Movement != null)
+                            //activeMovement.ActivateMovement();
                     }
 
                 }

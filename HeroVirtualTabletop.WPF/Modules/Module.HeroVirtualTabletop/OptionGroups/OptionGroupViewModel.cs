@@ -538,7 +538,11 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else
             {
-
+                CharacterMovement characterMovement = selectedOption as CharacterMovement;
+                if(characterMovement != null && characterMovement.Movement != null && !characterMovement.IsActive)
+                {
+                    //characterMovement.ActivateMovement();
+                }
             }
         }
 
@@ -577,6 +581,14 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 AnimatedAbility ability = selectedOption as AnimatedAbility;
                 if (ability != null && abilityToStop != null && ability == abilityToStop)
                     StopAnimatedAbility(ability);
+            }
+            else
+            {
+                CharacterMovement characterMovement = selectedOption as CharacterMovement;
+                if (characterMovement != null && characterMovement.Movement != null && characterMovement.IsActive)
+                {
+                    characterMovement.DeactivateMovement();
+                }
             }
         }
 

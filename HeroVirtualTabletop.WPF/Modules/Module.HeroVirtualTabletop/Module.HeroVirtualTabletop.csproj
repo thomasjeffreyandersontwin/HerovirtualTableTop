@@ -323,6 +323,8 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Fasm.NET.xml" />
+    <EmbeddedResource Include="Resources\enable_camera.txt" />
+    <EmbeddedResource Include="Resources\disable_camera.txt" />
     <EmbeddedResource Include="Resources\areaattack.mnu" />
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />

@@ -402,7 +402,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.containerWindowName = Helper.GetContainerWindowName(state);
             if(!crowdCollectionLoaded)
             {
-                this.BusyService.ShowBusy(new string[] { containerWindowName });
+                //this.BusyService.ShowBusy(new string[] { containerWindowName });
                 this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
             }
         }
@@ -920,7 +920,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void SaveCrowdCollection(object o = null)
         {
-            //this.BusyService.ShowBusy(new string[] { containerWindowName});
+            this.BusyService.ShowBusy(new string[] { containerWindowName});
             this.crowdRepository.SaveCrowdCollection(this.SaveCrowdCollectionCallback, this.CrowdCollection.ToList());
         }
 
@@ -930,7 +930,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             Action d =
                delegate()
                {
-                   //this.BusyService.HideBusy();
+                   this.BusyService.HideBusy();
                    this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Publish(null);
                };
             Application.Current.Dispatcher.BeginInvoke(d);

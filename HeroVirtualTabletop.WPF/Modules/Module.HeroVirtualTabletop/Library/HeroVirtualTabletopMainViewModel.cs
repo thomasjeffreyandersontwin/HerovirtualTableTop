@@ -314,6 +314,44 @@ namespace Module.HeroVirtualTabletop.Library
             }
         }
 
+        private void CreateCameraFilesIfNotExists()
+        {
+            string dirData = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
+
+            string enableCameraFile = Path.Combine(dirData, Constants.GAME_ENABLE_CAMERA_FILENAME);
+            string disableCameraFile = Path.Combine(dirData, Constants.GAME_DISABLE_CAMERA_FILENAME);
+
+            var assembly = Assembly.GetExecutingAssembly();
+
+            if (!File.Exists(enableCameraFile))
+            {
+                var resourceName = "Module.HeroVirtualTabletop.Resources.enable_camera.txt";
+
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string result = reader.ReadToEnd();
+                    File.AppendAllText(
+                        enableCameraFile, result
+                        );
+                }
+            }
+
+            if (!File.Exists(disableCameraFile))
+            {
+                var resourceName = "Module.HeroVirtualTabletop.Resources.disable_camera.txt";
+
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string result = reader.ReadToEnd();
+                    File.AppendAllText(
+                        disableCameraFile, result
+                        );
+                }
+            }
+        }
+
         private void ClearTempFilesFromDataFolder()
         {
             string dirPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
