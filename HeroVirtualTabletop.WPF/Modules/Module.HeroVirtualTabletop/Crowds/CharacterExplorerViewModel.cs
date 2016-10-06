@@ -402,7 +402,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.containerWindowName = Helper.GetContainerWindowName(state);
             if(!crowdCollectionLoaded)
             {
-                //this.BusyService.ShowBusy(new string[] { containerWindowName });
+                this.BusyService.ShowBusy(new string[] { containerWindowName });
                 this.crowdRepository.GetCrowdCollection(this.LoadCrowdCollectionCallback);
             }
         }
