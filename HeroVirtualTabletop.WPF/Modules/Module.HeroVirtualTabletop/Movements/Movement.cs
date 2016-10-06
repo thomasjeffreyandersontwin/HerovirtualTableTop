@@ -119,6 +119,8 @@ namespace Module.HeroVirtualTabletop.Movements
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
                         || Process.GetCurrentProcess().Id == wndProcId)
                     {
+                        var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+
                         while(Keyboard.IsKeyDown(Key.W))
                         {
 
