@@ -1,0 +1,30 @@
+﻿Car 1: 
+	characterName: Car 1
+	crowd: Car
+	Facing: 90
+	Pitch: 0
+	Relative: true
+	SourceFacing: 90
+	x: 0.343139648
+	y: 0.000000000
+	z: 6.999877929
+car 3: 
+	characterName: car 3
+	crowd: Car
+	Facing: 90
+	Pitch: 0
+	Relative: true
+	SourceFacing: 90
+	x: 34.548095703
+	y: 0.000000000
+	z: -6.341308594
+car 4: 
+	characterName: car 4
+	crowd: Car
+	Facing: 90
+	Pitch: 0
+	Relative: true
+	SourceFacing: 90
+	x: -19.121337891
+	y: 0.000365973
+	z: -5.935974122

@@ -1,0 +1,16 @@
+CRABPACK_FIRERIGH: 
+	movs: 
+		- CRABPACK_FIRERIGHT
+	NumKey: 0
+	Sequence: 
+Darkness: 
+	movs: 
+		- Darkness:
+ 
+EMOTE_JUGGLE_FIRE_CYCL:EMOTE_JUGGLE_FIRE_CYCLE
+FFF:EMOTE_COSTUMECHANGE_VILLAINLAUGH
+
+FBoltHit:Fireball
+ContinuousFlame:Floating_Fire
+Hellion_Window_Fire
+MassiveFire:Giant_Robot_Jets

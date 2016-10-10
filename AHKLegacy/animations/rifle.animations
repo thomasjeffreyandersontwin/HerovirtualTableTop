@@ -1,0 +1,96 @@
+﻿BEAMRIFLE_CHARGEDSHO: 
+	movs: 
+		- 	
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_CHARGEDSHOT_DRA: 
+	movs: 
+		- BEAMRIFLE_CHARGEDSHOT_DRAW
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_CHARGEDSHOT_POS: 
+	movs: 
+		- BEAMRIFLE_CHARGEDSHOT_POST
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_CUTTINGBEA: 
+	movs: 
+		- BEAMRIFLE_CUTTINGBEAM
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_CUTTINGBEAM_ATTAC: 
+	movs: 
+		- BEAMRIFLE_CUTTINGBEAM_ATTACK
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_CUTTINGBEAM_DRA: 
+	movs: 
+		- BEAMRIFLE_CUTTINGBEAM_DRAW
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_CUTTINGBEAM_POS: 
+	movs: 
+		- BEAMRIFLE_CUTTINGBEAM_POST
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_DISINTEGRAT: 
+	movs: 
+		- BEAMRIFLE_DISINTEGRATE
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_GUNBRAWL_DRA: 
+	movs: 
+		- BEAMRIFLE_GUNBRAWL_DRAW
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_GUNPUNC: 
+	movs: 
+		- BEAMRIFLE_GUNPUNCH
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_OVERCHARG: 
+	movs: 
+		- BEAMRIFLE_OVERCHARGE
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_OVERCHARGE_BLAS: 
+	movs: 
+		- BEAMRIFLE_OVERCHARGE_BLAST
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_PENETRATINGRAY_SNIPERWINDU: 
+	movs: 
+		- BEAMRIFLE_PENETRATINGRAY_SNIPERWINDUP
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_READ: 
+	movs: 
+		- BEAMRIFLE_READY
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_RUNBACKCYCL: 
+	movs: 
+		- BEAMRIFLE_RUNBACKCYCLE
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_RUNCYCL: 
+	movs: 
+		- BEAMRIFLE_RUNCYCLE
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_RUNLEFTCYCL: 
+	movs: 
+		- BEAMRIFLE_RUNLEFTCYCLE
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_RUNLEFTPR: 
+	movs: 
+		- BEAMRIFLE_RUNLEFTPRE
+	NumKey: 0
+	Sequence: 
+BEAMRIFLE_RUNRIGHTCYCL: 
+	movs: 
+		- BEAMRIFLE_RUNRIGHTCYCLE
+	NumKey: 0
+	Sequence: 
+data\\rifle.animation: data\\rifle.animations

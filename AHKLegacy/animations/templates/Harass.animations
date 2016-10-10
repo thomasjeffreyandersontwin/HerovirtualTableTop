@@ -1,0 +1,7 @@
+Harrass: 
+	movs: 
+		- THREAT_A
+		- THREAT_B
+		- THREAT_C
+		- THREATEN_CYCLE_ONE
+	Sequence: OR

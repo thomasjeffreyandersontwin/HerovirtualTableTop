@@ -1,0 +1,34 @@
+Attack: 
+	movs: 
+		- MON__RUNCYCLE
+		- 
+			pause: 2000
+		- /Weapons/Custom_TitanWeapon/Fem_TitanWeapon_Concrete_Mallet.fx
+		- SWEEPING_STRIKE_FASt
+	NumKey: 3
+	Sequence: AND
+Jump: 
+	movs: 
+		- MON_JUMPAPEX
+	NumKey: 4
+	Sequence: 
+Punch: 
+	movs: 
+		- SUPERPUNCH_L
+	NumKey: 2
+	Sequence: 
+Ready: 
+	movs: 
+		- PRE_MONSTER_READY
+	NumKey: 5
+	Sequence: 
+Smash!: 
+	movs: 
+		- SHIELD_JUMPSMASH
+	NumKey: 1
+	Sequence: 
+SWEEPING_STRIKE_FAS: 
+	movs: 
+		- SWEEPING_STRIKE_FASt
+	NumKey: 0
+	Sequence: 

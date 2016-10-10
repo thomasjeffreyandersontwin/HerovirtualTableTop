@@ -1,0 +1,27 @@
+ElHit: ELECTROSTUN_HIT
+ElHoldHit: CAPTURED_TALONSOFVENGEANCE_CYCLE
+LightningHit: 
+	movs: 
+		- EMOTE_MALE_READY_TO_REACT
+		- 
+			pause: 1600
+		- JUMPJETPACK_DAMAGE
+		- 
+			pause: 1600
+		- JUMPJETPACK_DAMAGE	
+		- 
+			pause: 1600
+		- JUMPJETPACK_DAMAGE
+		- 
+			pause: 1600
+		- JUMPJETPACK_DAMAGE
+		- 
+			pause: 1600
+		- JUMPJETPACK_DAMAGE
+		- 
+			pause: 1600
+		- JUMPJETPACK_DAMAGE
+	sequence: AND
+ElFF:EMOTE_COSTUMECHANGE_PEACEBRINGER
+ElAreaHit2:Lightning_Bolt
+- Activate

@@ -1,0 +1,76 @@
+
+- ARC_OF_DESTRUCTION_SLOW
+BlastHit2: 
+	movs: 
+		- CAPTURED_PENELOPE_CYCLE
+		- 
+			pause: 1500
+		- PLAYERKNOCKBACK_IMPACT
+	sequence: AND
+BlastHit3: 
+	movs: 
+		- CAPTURED_RIKTIENERGY_CYCLE
+		- 
+			pause: 1500
+		- PLAYERKNOCKBACK_IMPACT
+	sequence: AND
+CAPTURED_PENELOPE_CYCL: 
+	movs: 
+		- CAPTURED_PENELOPE_CYCLE
+	NumKey: 0
+	Sequence: 
+CAPTURED_RIKTIENERGY_CYCL: 
+	movs: 
+		- CAPTURED_RIKTIENERGY_CYCLE
+	NumKey: 0
+	Sequence: 
+carni: 
+	movs: 
+		- carniv
+	NumKey: 0
+	Sequence: 
+da160: 
+	movs: 
+		- SWORDTAUNT
+	NumKey: 0
+	Sequence: 
+da5: 
+	movs: 
+		- 
+	NumKey: 0
+	Sequence: 
+da6: 
+	movs: 
+		- SWEEPING_STRIKE_SLOW_PRE
+	NumKey: 0
+	Sequence: 
+da67: 
+	movs: 
+		- ARC_OF_DESTRUCTION_SLOW_DRAW
+	NumKey: 0
+	Sequence: 
+da68: 
+	movs: 
+		- ARC_OF_DESTRUCTION_SLOW_PRE
+	NumKey: 0
+	Sequence: 
+DarkCapture: 
+	movs: 
+		- CAPTURED_APPARITIONS_CYCLE
+		- 
+			pause: 1500
+		- PLAYERKNOCKBACK_IMPACT
+	sequence: AND
+data\\Hammer.animation: data\\Hammer.animations
+Energy BlastHit: 
+	movs: 
+		- EMOTE_FEM_HIT_TO_FLOAT
+		- 
+			pause: 1500
+		- PLAYERKNOCKBACK_IMPACT
+	sequence: AND
+Hammer: 
+	movs: 
+		- SWEEPING_STRIKE_FAST
+	sequence: OR
+ARC_OF_DESTRUCTION_SLO: ARC_OF_DESTRUCTION_SLOW

@@ -1,0 +1,6 @@
+Draw:
+	Sequence:AND
+	NumKey:
+	movs:
+		- BURST_DRAW
+

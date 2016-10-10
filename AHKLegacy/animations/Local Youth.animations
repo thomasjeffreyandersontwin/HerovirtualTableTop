@@ -1,0 +1,137 @@
+Brawling:
+	Sequence:AND
+	NumKey:
+	movs:
+		- MELEE_FISTS_A
+		- MELEE_FISTS_B2
+		- MELEE_FISTS_C
+		- MELEE_FISTS_C2
+		- MELEE_FISTS_D
+		- BRAWLCYCLE
+		- MELEE_FISTS_A
+FancyBoyPunch:
+	Sequence:OR
+	NumKey:2
+	movs:
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- MA_ASSASSINS_BLOW_ALT1_WINDUP
+				- 
+					pause:2000
+				- MA_ASSASSINS_BLOW_ALT1
+		- 
+			Sequence:AND
+			NumKey:
+			movs:
+				- KINETIC_ASSASSINS_WINDUP
+				- 
+					pause:2000
+				- KINETIC_ASSASSINS_STRIKE
+GroundKick:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GROUND_KICK_CYCLE_KICK_FOUR
+		- GROUND_KICK_CYCLE_KICK_ONE
+		- GROUND_KICK_CYCLE_KICK_THREE
+		- GROUND_KICK_CYCLE_KICK_TWO
+		- GROUND_KICK_CYCLE_PRE
+		- GROUND_KICK_CYCLE_PRE
+		- GROUND_KICK_CYCLE_STAND_THREE
+		- GROUND_KICK_CYCLE_STAND_TWO
+		- GROUND_KICK_CYCLE_STOMP_ONE
+		- GROUND_KICK_CYCLE_STOMP_TWO
+GroundKickHit:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_FOUR
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_ONE
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_THREE
+		- GROUND_KICK_RECEIVE_CYCLE_KICK_TWO
+		- GROUND_KICK_RECEIVE_CYCLE_PRE
+		- GROUND_KICK_RECEIVE_CYCLE_STAND_ONE
+		- GROUND_KICK_RECEIVE_CYCLE_STAND_THREE
+		- GROUND_KICK_RECEIVE_CYCLE_STAND_TWO
+		- GROUND_KICK_RECEIVE_CYCLE_STOMP_ONE
+		- GROUND_KICK_RECEIVE_CYCLE_STOMP_TWO
+GroundPunch:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GROUND_PUNCH
+GroundPunchHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- GROUND_PUNCH_HIT
+		- GROUND_PUNCH_HIT_B
+Haymaker:
+	Sequence:OR
+	NumKey:3
+	movs:
+		- CRUSHING_BLOW_FAST
+		- CRUSHING_UPPERCUT
+		- ASSASSINS_STRIKE
+		- WINDUPCUT
+		- MA_TIER9_ALT1
+		- SS_TIER6_ALT1
+Knock it out of the Air:
+	Sequence:OR
+	NumKey:4
+	movs:
+		- 1H_SWIPE_L
+		- 2H_SWIPE
+Slam Ground:
+	Sequence:AND
+	NumKey:
+	movs:
+		- A_EMOTE_SHIELD_COSTUMECHANGE_DRINKFORMULA_POSTCYCLE
+strike options:
+	Sequence:OR
+	NumKey:
+	movs:
+		- GUTPUNCH
+		- SUPERPUNCH_L
+		- 
+			pause:1000
+		- 1H_SWIPE
+		- 
+			pause:1000
+		- 2H_SWIPE
+		- GUTPUNCH
+		- SS_TIER2_ALT1_LEFT
+StrikeHit:
+	Sequence:OR
+	NumKey:
+	movs:
+		- MELEE_FISTS_REACT_HIT
+		- HITQUICK
+		- 
+			pause:1000
+		- MELEE_FISTS_REACT_HIT_MID
+		- KUNGFUSPEED_REACT2
+		- KUNGFUSPEED_REACT3
+		- SHIELD_HITQUICK
+Strike:
+	Sequence:AND
+	NumKey:1
+	movs:
+		- 
+			Sequence:OR
+			NumKey:
+			movs:
+				- GUTPUNCH
+				- SUPERPUNCH_L
+				- 
+					pause:1000
+				- 1H_SWIPE
+				- 
+					pause:1000
+				- 2H_SWIPE
+				- GUTPUNCH
+				- SS_TIER2_ALT1_LEFT
+		- combat\Whoosh_05.wav
+

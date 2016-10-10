@@ -1,0 +1,647 @@
+#Include InstanceManager.ahk
+#Include Logger.ahk
+#Include Movement.ahk
+#Include TargetedModel.ahk
+#Include HeroVirtualDesktopGraphicalInterface.ahk
+
+Class CharacterModel{
+	MemoryInstance:=""
+	_CurrStun:=0
+	_MaxStun:=0
+	_CurrEndurance:=0
+	_MaxEndurance:=0
+	
+
+			
+	Location{
+		Get{
+			if (this.MemoryInstance==""){
+				t:= new Target()
+				this.MemoryInstance:= t
+			}
+			x:=this.MemoryInstance.X
+			Y:=this.MemoryInstance.Y
+			z:=this.MemoryInstance.Z
+			pitch:=this.MemoryInstance.pitch
+			facing:=this.MemoryInstance.facing
+			return {x:x, y:y, z:z, pitch:pitch, facing:facing}
+		}
+	}
+	UpdateStatusBars(){
+		temp:=this.CurrStun
+		temp:=this.MaxStun
+		temp:=this.CurrEndurance
+		temp:=this.MaxEndurance
+		
+	}
+	CurrStun{
+		Get{
+			player:= new Player()
+			player.CurrStun:= this._CurrStun
+			return this._CurrStun
+		}
+		Set{
+			player:= new Player()
+			player.CurrStun:= value
+			this._CurrStun:= value
+		}
+	}
+	MaxStun{
+		Get{
+			player:= new Player()
+			player.MaxStun:= this._MaxStun
+			return this._MaxStun
+		}
+		Set{
+			player:= new Player()
+			this.Player.MaxStun:= value
+			this._MaxStun:= value
+		}
+	}
+	CurrEndurance{
+		Get{
+			player:= new Player()
+			player.CurrEndurance:= this._CurrEndurance
+			return this._CurrEndurance
+		}
+		Set{
+			player:= new Player()
+			player.CurrEndurance:= value
+			this._CurrEndurance:= value
+		}
+	}
+	MaxEndUrance{
+		Get{
+			player:= new Player()
+			player.MaxEndurance:= this._MaxEndurance
+			return this._MaxEndurance
+		}
+		Set{
+			player:= new Player()
+			player.MaxEndurance:= value
+			this._MaxEndurance:= value
+		}
+	}
+			
+	_name:=""
+	Costume:=""
+	Mob:=""
+	Model:=""
+	Crowd:={name:""}
+	X:=0
+	Y:=0
+	Z:=0
+	Name{
+		Set{
+			this._name:=value
+		}
+		Get{
+			return this._name . " [" this.crowd.Name "]"
+		}
+	}
+	CamOut{
+		Get{
+			val:= StrObj("data\\camOut.char") 
+			return val.camout
+		}
+		Set{
+			
+			cam:="camout:" . value
+			 StrObj( cam,"data\\camOut.char") 
+		}
+		
+	}
+	static DefaultModel:="Longbow_Male_Group_01_Minion_01"
+	
+	BuildValidCharacterFromTarget(value){
+		if(value.TargetChanged==true){
+			return this.BuildValidCharacter(t)
+		}
+		else{
+			return Target.CurrentTarget.Name
+		}
+	}
+	BuildValidCharacter(value){
+		;Determine name based on complex or value object
+		if(value._name<>"")
+			name:= value._name
+		else
+			name:= value.Name
+		
+		;extract crowd name based
+		;refactor to function
+		pos :=InStr(name, "[",0)
+		if(pos >0){
+			crowdName:=SubStr(name, pos+1, (StrLen(name) - pos)-1)
+			name:= SubStr(name, 1 , pos-2)
+		}
+		else{
+			if(value.crowd.name<>""){
+				crowdName:=value.crowd.name
+			}
+		}
+	
+		model:= new CharacterModel(name,value.model,crowdName,value.costume)
+		if(value.Crowd.Name<>""){
+			model.Crowd:=value.Crowd
+		}
+		model._currStun:= value.CurrStun
+		model._MaxStun:= value.MaxStun
+		model._currEndurance:= value.CurrEndurance
+		model._MaxEndurance:= value.MaxEndurance
+		return model
+	}
+	__New(name,model,crowd,costume=""){
+		this.name:=name
+		;if character is part of a mob we can determine costume by hacking trailing number of the name
+		if (costume =="" and model == ""){
+			mobNumPos := RegExMatch(name, "\(\d+\)" , mobIdentifier = "")
+			if(mobNumPos> 0){
+				costume:= Trim(Substr(name, 1, mobNumPos -1 ))
+			}
+			else
+				costume:=name
+		}
+		;add a default model if none
+		if(model=""){
+			model:="FemaleNPC_56"
+		}
+		this.Model:=model
+		this.costume:=costume
+		this.crowd.name:=crowd
+		
+	}
+
+	FaceCamera(){
+		positioner:= new 3DPositioner()
+		facing:= positioner.FacingTowardsCamera
+		this.MemoryInstance.Facing := facing
+	}
+}
+
+Class CharacterManager extends InstanceManager{
+	_characters:={}
+	ActiveCharacter:=""
+	CharacterBeingMoved:=""
+	static DefaultModel:="Longbow_Male_Group_01_Minion_01"
+	Directory:="crowds\\"
+	_targetedCharacter:=""
+	animationManager:=animationManager.GetInstance()
+	
+	DataType{
+		Get{
+			return "crowd"
+		}
+	}
+	NewInstance{
+		Get{
+			return new CharacterManager
+		}
+	}
+	Init(){
+		this.file:="SpawnedCharacters"
+		this.Camout:="true"
+		this.CommandParser.DeleteHistory()
+	}
+	
+	;Character Memory and Instance management
+	UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo){
+		existingInfo:= this._instanceData[characterInfo.Name]
+		if(existingInfo == ""){
+			this._instanceData[characterInfo.Name]:= characterInfo
+			this.WriteToFile()S
+			existingInfo:=characterInfo
+			return this.LoadCharacter(existingInfo.Name)
+		}
+		else{
+			if(characterInfo.Costume<> "" and characterInfo.Costume <> existingInfo.Costume){
+				existingInfo.Costume:=characterInfo.Costume
+				changed:=true
+			}
+			if(characterInfo.model<> "" and characterInfo.Model <> existingInfo.Model){
+				existingInfo.model:=characterInfo.model
+				changed:=true
+			}
+			if(characterInfo.CurrEndurance <> "" and characterInfo.CurrEndurance <> existingInfo.CurrEndurance){
+				existingInfo.CurrEndurance:=characterInfo.CurrEndurance
+				changed:=true
+			}
+			if(characterInfo.CurrStun <> "" and characterInfo.CurrStun <> existingInfo.CurrStun){
+				existingInfo.CurrStun:=characterInfo.CurrStun
+				changed:=true
+			}
+			if(characterInfo.MaxStun <> "" and characterInfo.MaxStun <> existingInfo.MaxStun){
+				existingInfo.MaxStun:=characterInfo.MaxStun
+				changed:=true
+			}
+			if(characterInfo.MaxEndurance <> "" and characterInfo.MaxEndurance <> existingInfo.MaxEndurance){
+				existingInfo.MaxEndurance:=characterInfo.MaxEndurance
+			}
+			if(characterInfo.DefaultMovement <> "" and characterInfo.DefaultMovement <> existingInfo.DefaultMovement){
+				existingInfo.DefaultMovement:=characterInfo.DefaultMovement
+				changed:=true
+			}
+
+			if(characterInfo.crowd<> "" and characterInfo.crowd.name <> existingInfo.crowd.Name){
+				existingInfo.crowd:={Name: characterInfo.crowd.name }
+				changed:=true
+			}
+			
+			
+			this._instanceData[characterInfo.Name]:= existingInfo
+			this.writeToFile()
+			if(changed==true){
+				return this.LoadCharacter(existingInfo.Name)
+			}
+			else{
+				return this.characters[existingInfo.Name]
+			}
+		}
+		
+		
+		
+	}
+	Characters[key]{
+		Set{
+			this._characters[key]:=value
+			if(value.Name==""){
+				value:=CharacterModel.BuildValidCharacter(value)
+			}
+			this._characters[key]:=value
+		}
+			
+		Get{
+			if(this._characters[key]==""){
+				this.LoadCharacter(key)
+			}
+			return this._characters[key]
+		}
+	}
+	ActivateTargetedCharacter{
+		Get{
+			t:= new Target()
+			name:=t.Name
+			if(name == this._targetedCharacter.Name or name==""){
+				return this._targetedCharacter
+			}
+			;refactor to just get the name + crowd name
+			characterWithValidName:=CharacterModel.BuildValidCharacter(t)
+			
+			;get the targetcharacter object from the manager
+			targetedCharacter:= this.Characters[characterWithValidName._Name] 
+			
+			;if character doesnt exist than we need to build one based on the model we have selected
+			if(targetedCharacter==""){
+				this._instanceData[characterWithValidName._name]:= characterWithValidName
+				targetedCharacter:= this.LoadCharacter(characterWithValidName._name)
+			}
+			;if we changed target than assign memory and update status bars the character
+			if(targetedCharacter <> this._targetedCharacter){
+				targetedCharacter:=this.ActivateCharacter(targetedCharacter)
+			}
+			
+			return targetedCharacter
+		}
+	}
+	ActivateCharacter(targetedCharacter){
+		SoundPlay sound\N_CharPageScroll.wav
+		targetedCharacter:=this.AssignMemoryInstanceOfTargetedModelToCharacter(targetedCharacter)
+		targetedCharacter.UpdateStatusBars()
+		return targetedCharacter
+	}
+	AssignMemoryInstanceOfTargetedModelToCharacter(targetedCharacter){
+		t:= new Target()
+		targetedCharacter.MemoryInstance:= t
+		
+		this._targetedCharacter:= targetedCharacter
+		this.Characters[targetedCharacter._Name]:=targetedCharacter
+		return targetedCharacter
+	}
+	LastTargetedCharacter{
+		Get{
+			
+			return this._targetedCharacter
+		}
+	}
+	LoadCharacter(characterName){
+		this.LoadData() 
+		characterInfo:= this._instanceData[characterName]
+		character:=CharacterModel.BuildValidCharacter(characterInfo)
+		Movement.BuildMovementForCharacter(characterInfo, character)
+		this._characters[characterName]:=character
+		return character
+	}
+
+	;Move Characters and Crowds to targeted destination
+	JumpModelToCameraBasedOnInfo(characterInfo=""){
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		this.JumpModelToCharacter(character)
+	}
+	JumpModelToCharacter(character){
+		character.FaceCamera()
+		
+		p:= new Player()
+		destination:= p.GetValueObject()
+		
+		movement:= character.ActiveMovement
+		movement.TravelToLocation(destination)
+
+		this.CommandParser.MarkCommandComplete()
+	}
+	buildJumpCommand(character){
+		this.buildTargetCharacterCommand(character)
+		this.CommandParser.Build("MoveNPC",[])
+		this.CommandParser.SubmitCommand()
+	}
+	
+	JumpCrowdToCameraInFormationBasedOnInfo(characterInfo=""){
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		this.JumpCrowdToCameraInFormation(character)
+	}
+	JumpCrowdToCameraInFormation(character){
+		character.FaceCamera()
+		
+		p:= new Player()
+		destination:= p.GetValueObject()
+
+		movement:= character.ActiveMovement
+		movement.TravelCharactersInCrowdToLocation(destination)
+	}
+	MoveToTargetBasedOnInfo(characterInfo){ 
+		movingCharacter:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		CrowdManager.GetInstance().LoadCrowdForCharacter(movingCharacter)
+		
+		targetCharacter:= this.ActivateTargetedCharacter
+		destination:= this.ActivateTargetedCharacter.location
+
+		this.TargetCharacter(movingCharacter)
+		crowdMode:=CrowdManager.GetInstance().CrowdMode
+		if(crowdMode == false){
+			movingCharacter.ActiveMovement.TravelToLocation(destination)
+		}
+		else{
+			movingCharacter.ActiveMovement.TravelCharactersInCrowdToLocation(destination)
+		}
+	}
+	;Character Model Management Commands
+	RenameCharacterBasedOnInfo(characterInfo){
+		newName:=characterInfo.Name
+		characterInfo.Name:=characterInfo.OldName
+		this.DeleteModel(characterInfo)
+		characterInfo.Name:=newName
+		this.SpawnCharacterBasedOnInfoToDesktop(characterInfo)
+		CrowdManager.GetInstance().LoadModelsForCrowdBasedOnInfo(characterInfo.Crowd)
+	}
+	SpawnCharacterBasedOnNameToDesktop(characterName){
+		character:=this.Characters[characterName]
+		return this.SpawnCharacterToDesktop(character)
+	}
+	SpawnCharacterBasedOnPlacementToDesktop(placementInfo){
+		;get the character and set the crowd
+		character:=this.Characters[placementInfo.CharacterName]
+		character.Crowd:={name: placementInfo.Crowd}
+		
+		;now spawn
+		return this.SpawnCharacterToDesktop(character)
+	}
+	SpawnCharacterBasedOnInfoToDesktop(characterInfo){
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		character:=this.SpawnCharacterToDesktop(character)
+		CrowdManager.GetInstanc().LoadModelsForCrowdBasedOnInfo(characterInfo.Crowd)
+		return character
+	}
+	SpawnCharacterToDesktop(character){
+		this.TargetCharacter(character)
+		this.CommandParser.Build("DeleteNPC", [])
+		this.buildJustTheSpawnCharacterCommand(character) 
+		this.CommandParser.SubmitCommand()
+		SLEEP 400
+		
+		;as character will be targeted we should load bind files, add memory instance
+		character:=this.ActivateCharacter(character)
+		
+		this.ActiveCharacter:=character
+		this.CommandParser.MarkCommandComplete()
+		return character
+	}
+	buildSpawnCharacterCommand(character){
+		Logger.log("buildSpawnCharacterCommand", {name:""})
+		this.buildDeleteCharacterCommand(character)
+		this.CommandParser.SubmitCommand() ; test
+		this.CommandParser.Build("TargetEnemyNear",[])
+		this.buildJustTheSpawnCharacterCommand(character)
+		
+		
+	}
+	buildJustTheSpawnCharacterCommand(character){
+		this.CommandParser.BuildSpawn(character)
+		if(character.Costume <> "none"){
+			this.CommandParser.BuildLoadTheCostume(character)
+		}
+		else{
+			this.TargetCharacter(character,true)
+		}
+	}
+	
+	TargetNoOne(){
+		this.CommandParser.Build("TargetEnemyNear",[])
+		this.CommandParser.SubmitCommand()
+	}
+	TargetCharacterBasedOnName(characterName, dontUseMemory:= false){
+		character:=this.Characters[characterName]
+		this.TargetCharacter(character, dontUseMemory)
+	}
+	TargetCharacterBasedOnInfo(characterInfo, dontUseMemory:= false){
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		this.TargetCharacter(character, dontUseMemory)
+	}
+	TargetCharacter(character, dontUseMemory:= false){
+		if(dontUseMemory <> ""){
+			if(this.DontUseMemoryWhenTargeting <> ""){
+				dontUseMemory:=this.DontUseMemoryWhenTargeting
+			}
+		}
+		if(dontUseMemory == true){
+			this.buildTargetCharacterCommand(character)
+			this.CommandParser.SubmitCommand()
+			;sleep 800 ;optimize
+			this.ActivateTargetedCharacter()
+			return
+		}
+		memoryInstance:= character.MemoryInstance
+		if(memoryInstance== null){
+			this.buildTargetCharacterCommand(character)
+			this.CommandParser.SubmitCommand()
+			;sleep 800 ;optimize
+			this.ActivateTargetedCharacter()
+		}
+		else{
+			
+			memoryInstance.TargetMe()
+			sleep 100
+			memName:=memoryInstance.Name
+			charName:=character.Name
+			if( memName<> charName){
+				this.CommandParser.Build("TargetEnemyNear",[])
+				this.CommandParser.SubmitCommand()
+			}
+		}
+		character.UpdateStatusBars()
+		this.CommandParser.AppendHistory("Target " . character.Name)
+	}
+	buildTargetCharacterCommand(character){
+		Logger.log("buildTargetCharacterCommand", {name:""})
+		this.CommandParser.Build("TargetEnemyNear",[])
+		this.CommandParser.Build("TargetName",[character.Name])
+		
+	}
+	
+	TargetAndFollowBasedOnCharacterInfo(characterInfo){
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		this.TargetAndFollow(character)
+	}
+	TargetAndFollow(character){
+		this.TargetCharacter(character)
+		memoryInstance:=character.MemoryInstance
+		loc:=memoryInstance.GetValueObject()
+		player:= new Player()
+		this.CommandParser.Build("Follow")
+		this.CommandParser.SubmitCommand()	
+		;player.x := loc.x
+		;player.Y := loc.y
+		;player.z := loc.z
+		loop{
+			
+			if(lastx == player.x and lasty == player.y and lastz == player.z){ 
+				still++
+			}
+			else{
+				still = 0
+			}
+			if (still > 50){
+				break
+			}
+			if(abs( loc.y - player.y)  <= 15 and abs( loc.z - player.z) <= 15 and abs( loc.x - player.x) <= 15 ){
+					break
+			}
+			
+			lastX:= player.X
+			lastZ:= player.Z
+			lasty:=player.y
+		}
+		this.CommandParser.MarkCommandComplete()
+	}
+	TargetAndFollowBasedOnInfo(characterInfo){
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		
+		this.TargetAndFollow(character)
+		this.CommandParser.SubmitCommand()
+	}
+	buildTargetAndFollowCommand(character){
+		this.buildTargetCharacterCommand(character)
+		this.CommandParser.Build("Follow")
+	}
+	
+
+	LoadCostumeBasedOnInfo(characterInfo){
+		if((characterInfo.Model <> ""  and characterInfo.Model <> "none") and (characterInfo.Costume = "none" or characterInfo.Costume = "")){
+			;this.CharacterManager.TargetCharacterBasedOnInfo(submittedeEvent.Character)
+			;this.CharacterManager.ActivateTargetedCharacter
+		
+			character:= this.Characters[characterInfo.Name]
+			location:= character.MemoryInstance.GetValueObject()
+			
+			this.SpawnCharacterBasedOnInfoToDesktop(characterInfo)
+			character:= this.Characters[characterInfo.Name]
+			
+			character.MemoryInstance:=""
+			this.TargetCharacter(character)
+			
+			this.ActivateCharacter(character)
+			character.MemoryInstance.MoveTo(location)
+
+		}
+		if(characterInfo.Ability  <> ""){
+			character:=this.Characters[characterInfo.Name]
+			AnimationManager.GetInstance().PlayAnimationFor(character ,characterInfo.Ability)
+			
+		}
+		character:=this.UpdateCharacterInfoIfItIsAlreadyBeingManaged(characterInfo)
+		character:=this.LoadCostume(character)
+		;now we can spawn
+		return character
+	}
+	LoadCostume(character){
+		this.TargetCharacter(character)
+		
+		this.CommandParser.Build("LoadCostume",[character.Costume])
+		this.CommandParser.SubmitCommand()
+		SLEEP 400
+		
+		;as character will be targeted we should load bind files, add memory instance
+		character:=this.ActivateCharacter(character)
+		
+		this.ActiveCharacter:=character
+		this.CommandParser.MarkCommandComplete()
+		return character
+	}
+	
+	TurnCharacterIntoCamera(character){
+		this.buildTransformToCameraCommand(character)
+		this.buildJustTheSpawnCharacterCommand(character)
+		this.CommandParser.SubmitCommand()
+		sleep 1000
+		this.Camout:="true"
+		this.CharacterBeingMoved:=""
+		;this.CommandParser.Execute("mov", ["ENCOUNTER_HIDENOW"])
+		this.CommandParser.SubmitCommand()
+		this.CommandParser.MarkCommandComplete()
+	}
+	TurnCharacterIntoCameraBasedOnInfo(characterInfo){
+		character:=this.Characters(characterInfo.Name)
+		this.TurnCharacterIntoCamera(character)
+	}
+	buildTransformToCameraCommand(character){
+		this.CommandParser.Build("TargetEnemyNear",[])
+		this.CommandParser.Build("BeNPC", ["V_Arachnos_Security_Camera"])
+	}
+	
+	TurnCameraIntoCharacter(character){
+		this.TargetAndFollow(character)
+		
+		this.buildDeleteCharacterCommand(character)
+		this.CommandParser.SubmitCommand()
+		
+		this.CommandParser.Build("TargetEnemyNear",[])
+		this.buildTransformCameraIntoNPCCommand(character)
+		this.CommandParser.SubmitCommand()
+		sleep 1000
+		
+		this.Camout:="false" i
+		
+		this.CharacterBeingMoved:=character
+		this.ActiveCharacter:=character
+		this.CommandParser.MarkCommandComplete()
+		return character
+	}
+	TurnCameraIntoCharacterBasedOnInfo(characterInfo){
+		character:=this.Characters[characterInfo.Name]
+		return this.TurnCameraIntoCharacter(character)
+	}
+	buildTransformCameraIntoNPCCommand(character){
+		this.CommandParser.BuildTransformCameraToCharacter(character)
+	}
+	
+	DeleteModel(character){
+		this.TargetCharacterBasedOnInfo(character) ;test
+		this.CommandParser.Build("DeleteNPC", [])
+		this.CommandParser.SubmitCommand()
+		this.CommandParser.MarkCommandComplete()
+		
+	}	
+	buildDeleteCharacterCommand(character){
+		Logger.log("buildDeleteCharacterCommand", {name:""})
+		this.buildTargetCharacterCommand(character)
+		this.CommandParser.Build("DeleteNPC", [])
+	}
+}

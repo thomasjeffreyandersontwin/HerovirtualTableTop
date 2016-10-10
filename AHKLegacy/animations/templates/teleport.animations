@@ -1,0 +1,44 @@
+TAway1: CARNIVALOFLIGHT_TELEPORTOUT
+TAway2: 
+	movs: 
+		- FAERIEWARP_RUNOUT
+		- 
+			pause: 500
+		- R_VANISH_DEATH
+	NumKey: 0
+	Sequence: AND
+TAway3: 
+	movs: 
+		- TELEPORT_HIDE
+	NumKey: 0
+	Sequence: 
+Tin5: 
+	movs: 
+		- TELEPORT_SPAWN
+	NumKey: 0
+	Sequence: 
+TIn1: FAERIEWARP_RUNIN
+TIn2: 5THCOLUMNPORTAL_WARPOUT
+TIn3: CarnivalOfLight_TeleportIn
+TIn4: BANESPIDERTP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,49 @@
+ElBoltHit: ELECTROSTUN_HIT
+ElHoldHit: CAPTURED_TALONSOFVENGEANCE_CYCLE
+ElBolt: PSIONICLIGHTNING
+ElFF:EMOTE_COSTUMECHANGE_PEACEBRINGER
+ElAreaHit:Lightning_Bolt
+WPower: EMOTE_COSTUMECHANGE_LIGHTNING
+Wteleport: 
+	movs: 
+		- LIGHTNING_TELEPORT_2
+	NumKey: 0
+	Sequence: 
+Lightning:ZEUS_LIGHTNING
+LightningHit: 
+	movs: 
+		- EMOTE_MALE_READY_TO_REACT
+		- 
+			pause: 15000
+		- JUMPJETPACK_DAMAGE
+	sequence: AND
+StormHit:Storm_Vortex
+WindVortex:Time_Stop
+electricitysuit:V_CapAuDiable_Gremlin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

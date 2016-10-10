@@ -1,0 +1,78 @@
+﻿citizens\tough1: 
+	model: Citizen_FirstWard_01
+	name: citizens\tough1
+citizens\tough10: 
+	model: Citizen_FirstWard_08
+	name: citizens\tough10
+citizens\tough11: 
+	model: Citizen_FirstWard_08
+	name: citizens\tough11
+citizens\tough12: 
+	model: 
+	name: citizens\tough12
+citizens\tough13: 
+	model: Citizen_FirstWard_10
+	name: citizens\tough13
+citizens\tough14: 
+	model: Citizen_FirstWard_11
+	name: citizens\tough14
+citizens\tough15: 
+	model: Citizen_FirstWard_Fem_01
+	name: citizens\tough15
+citizens\tough16: 
+	model: Citizen_FirstWard_Fem_02
+	name: citizens\tough16
+citizens\tough17: 
+	model: Citizen_FirstWard_Fem_03
+	name: citizens\tough17
+citizens\tough18: 
+	model: Citizen_FirstWard_Fem_04
+	name: citizens\tough18
+citizens\tough19: 
+	model: Citizen_FirstWard_Fem_05
+	name: citizens\tough19
+citizens\tough2: 
+	model: Citizen_FirstWard_02
+	name: citizens\tough2
+citizens\tough20: 
+	model: Citizen_FirstWard_Fem_06
+	name: citizens\tough20
+citizens\tough21: 
+	model: Citizen_FirstWard_Fem_07
+	name: citizens\tough21
+citizens\tough22: 
+	model: Citizen_FirstWard_Fem_08
+	name: citizens\tough22
+citizens\tough23: 
+	model: Citizen_FirstWard_Fem_09
+	name: citizens\tough23
+citizens\tough24: 
+	model: test
+	name: citizens\tough24
+citizens\tough25: 
+	model: Civil_War_Boss_01
+	name: citizens\tough25
+citizens\tough26: 
+	model: Talons_MisguidedCitizen_01
+	name: citizens\tough26
+citizens\tough3: 
+	model: Citizen_FirstWard_01
+	name: citizens\tough3
+citizens\tough4: 
+	model: Citizen_FirstWard_02
+	name: citizens\tough4
+citizens\tough5: 
+	model: Citizen_FirstWard_03
+	name: citizens\tough5
+citizens\tough6: 
+	model: Citizen_FirstWard_04
+	name: citizens\tough6
+citizens\tough7: 
+	model: Citizen_FirstWard_05
+	name: citizens\tough7
+citizens\tough8: 
+	model: Citizen_FirstWard_06
+	name: citizens\tough8
+citizens\tough9: 
+	model: Citizen_FirstWard_07
+	name: citizens\tough9

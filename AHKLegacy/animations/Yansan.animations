@@ -1,0 +1,6 @@
+Transform:
+	Sequence:AND
+	NumKey:
+	movs:
+		- EMOTE_REICHSMAN_ATTACK
+

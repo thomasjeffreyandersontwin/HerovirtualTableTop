@@ -1,0 +1,55 @@
+2HLARGE_ICESLIDE_WEAPO: 
+	movs: 
+		- 2HLARGE_ICESLIDE_WEAPON
+	NumKey: 0
+	Sequence: 
+A_SHATTER_ARMOR_SLOW_DRA: 
+	movs: 
+		- A_SHATTER_ARMOR_SLOW_DRAW
+	NumKey: 0
+	Sequence: 
+data\\templates\sword.animation: data\\templates\sword.animations
+SHATTER_ARMOR_FAS: 
+	movs: 
+		- SHATTER_ARMOR_FAST
+	NumKey: 0
+	Sequence: 
+SHATTER_ARMOR_FAST_DRA: 
+	movs: 
+		- SHATTER_ARMOR_FAST_DRAW
+	NumKey: 0
+	Sequence: 
+SHATTER_ARMOR_SLO: 
+	movs: 
+		- SHATTER_ARMOR_SLOW
+	NumKey: 0
+	Sequence: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

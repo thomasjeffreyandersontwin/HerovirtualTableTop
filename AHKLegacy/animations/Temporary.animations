@@ -1,0 +1,17 @@
+﻿RAGDOLL_BELL: 
+	movs: 
+		- RAGDOLL_BELLY
+	NumKey: 0
+	Sequence: 
+stunned: 
+	movs: 
+		- 
+			movs: 
+				- stun
+				- BODY_COLLAPSE_IN
+				- BARF
+				- BROKEN
+			Sequence: OR
+		- 
+			pause: 100
+	Sequence: AND

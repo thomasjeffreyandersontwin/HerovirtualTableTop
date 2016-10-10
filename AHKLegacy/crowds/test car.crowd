@@ -1,0 +1,16 @@
+﻿Car 1: 
+	characterName: Car 1
+	crowd: test car
+	Facing: 90
+	Pitch: 0
+	x: 
+	y: 
+	z: 
+car 2: 
+	characterName: car 2
+	crowd: test car
+	Facing: 180
+	Pitch: 0
+	x: -3110.420654297
+	y: -71.728576660
+	z: 404.601745605

@@ -1,0 +1,117 @@
+﻿police\swat0: 
+	model: Swat_Officer_01
+	name: police\swat0
+police\swat1: 
+	model: Swat_Officer_01
+	name: police\swat1
+police\swat10: 
+	model: Swat_Grenadier
+	name: police\swat10
+police\swat11: 
+	model: Swat_Officer_01
+	name: police\swat11
+police\swat12: 
+	model: Swat_Officer_01
+	name: police\swat12
+police\swat13: 
+	model: Swat_Officer_01
+	name: police\swat13
+police\swat14: 
+	model: Swat_Officer_02
+	name: police\swat14
+police\swat15: 
+	model: Swat_Officer_02
+	name: police\swat15
+police\swat16: 
+	model: Swat_Officer_02
+	name: police\swat16
+police\swat17: 
+	model: Swat_Officer_02
+	name: police\swat17
+police\swat18: 
+	model: Swat_Officer_02
+	name: police\swat18
+police\swat19: 
+	model: Swat_Officer_03
+	name: police\swat19
+police\swat2: 
+	model: Swat_Officer_02
+	name: police\swat2
+police\swat20: 
+	model: Swat_Officer_03
+	name: police\swat20
+police\swat21: 
+	model: Swat_Officer_03
+	name: police\swat21
+police\swat22: 
+	model: Swat_Officer_03
+	name: police\swat22
+police\swat23: 
+	model: Swat_Operative
+	name: police\swat23
+police\swat24: 
+	model: Swat_Operative
+	name: police\swat24
+police\swat25: 
+	model: Swat_Operative
+	name: police\swat25
+police\swat26: 
+	model: Swat_Sergeant_01
+	name: police\swat26
+police\swat27: 
+	model: Swat_Sergeant_02
+	name: police\swat27
+police\swat28: 
+	model: Swat_Sergeant_03
+	name: police\swat28
+police\swat29: 
+	model: Swat_Sergeant_03
+	name: police\swat29
+police\swat3: 
+	model: Swat_Officer_03
+	name: police\swat3
+police\swat30: 
+	model: Swat_Grenadier
+	name: police\swat30
+police\swat31: 
+	model: Swat_Grenadier
+	name: police\swat31
+police\swat32: 
+	model: Swat_Grenadier
+	name: police\swat32
+police\swat33: 
+	model: Swat_Equalizer
+	name: police\swat33
+police\swat34: 
+	model: Swat_Equalizer
+	name: police\swat34
+police\swat35: 
+	model: Swat_Officer_02
+	name: police\swat35
+police\swat36: 
+	model: Swat_Officer_01
+	name: police\swat36
+police\swat37: 
+	model: Swat_Grenadier
+	name: police\swat37
+police\swat38: 
+	model: Swat_Grenadier
+	name: police\swat38
+police\swat39: 
+	model: Swat_Grenadier
+	name: police\swat39
+police\swat4: 
+	model: Swat_Sergeant_03
+	name: police\swat4
+police\swat6: 
+	model: police\swat
+	name: police\swat6
+police\swat7: 
+	model: Swat_Officer_03
+	name: police\swat7
+police\swat8: 
+	model: Swat_Grenadier
+	name: police\swat8
+police\swat9: 
+	model: Swat_Grenadier
+	name: police\swat9

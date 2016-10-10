@@ -1,0 +1,64 @@
+strike:
+	Sequence:OR
+	NumKey:
+	movs:
+		- SS_TIER1_ALT1
+		- SS_TIER2_ALT1_LEFT
+		- SS_TIER2_ALT1_RIGHT
+		- 2H_SWIPE
+		- 
+			pause:1000
+		- MA_TIER2_ALT1
+		- 
+			pause:1000
+		- 1H_SWIPE
+		- 
+			pause:1000
+		- 
+			FX:/powers/ItemsAndTempPowers/CorrosiveAcid/CorrosiveAcid_Attack.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:1000
+Haymaker:
+	Sequence:OR
+	NumKey:
+	movs:
+		- SS_TIER3_ALT1_RIGHT
+		- SS_TIER6_ALT1
+		- MA_TIER9_ALT1
+		- WINDUPCUT
+		- ASSASSINS_STRIKE
+		- CRUSHING_UPPERCUT
+Boxing:
+	Sequence:OR
+	NumKey:
+	movs:
+		- INITIAL_STRIKE_C
+		- INITIAL_STRIKE_B
+		- INITIAL_STRIKE
+Slam Ground:
+	Sequence:AND
+	NumKey:
+	movs:
+		- SS_TIER9_ALT1
+:
+	Sequence:AND
+	NumKey:
+	movs:
+		- SS_TIER2_ALT1_RIGHT
+

@@ -1,0 +1,6 @@
+police_car 2: 
+	model: Cars_PPD
+	name: police_car 2
+police_car 3: 
+	model: Cars_PPD
+	name: police_car 3

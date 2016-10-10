@@ -1,0 +1,290 @@
+Black Crystal Encasement:
+	Sequence:AND
+	NumKey:1
+	movs:
+		- Kobold.Grenade Throw
+Black Crystal EncasementHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/IceArmor/Hibernate.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- FREEZESTUN_CYCLE
+		- powers\Ice7.wav
+Black Energy:
+	Sequence:AND
+	NumKey:2
+	movs:
+		- Kobold.Grenade Throw
+		- 
+			pause:1
+Black EnergyHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- PRE_MA_BLAZINGBOLT
+		- 
+			FX:/Explosions/medium/Enc_Expolsion_med.fx
+			color1:
+				red:0
+				green:0
+				blue:255
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- HITQUICK
+		- powers\LegacyBlastHit2.wav
+Black Fire:
+	Sequence:AND
+	NumKey:3
+	movs:
+		- Kobold.Grenade Throw
+Black FireHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/Firecontrol/FireAura.fx
+			color1:
+				red:7
+				green:5
+				blue:190
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- HITQUICK
+		- powers\Firehand_loop.wav
+		- 
+			pause:2000
+dark matter claw:
+	Sequence:AND
+	NumKey:5
+	movs:
+		- 
+			FX:/powers/Claws/ClawsEviscerateB.fx
+			color1:
+				red:255
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- A_VICIOUS_SLASH
+		- powers\clawswipe5.wav
+		- 
+			pause:900
+		- A_CLAWSREADY
+dark matter claw draw:
+	Sequence:AND
+	NumKey:4
+	movs:
+		- 
+			FX:/V_COV/Weapons/Arachnos_Claws.fx
+			color1:
+				red:249
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			FX:/Auras/Huge/DarkMatter/DarkMatter_Fists.fx
+			color1:
+				red:0
+				green:0
+				blue:5
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- A_CLAWS_DRAW
+		- powers\Claw1b.wav
+Demonic Shriek:
+	Sequence:AND
+	NumKey:6
+	movs:
+		- Kobold.Grenade Throw
+Demonic ShriekHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- 
+			FX:/powers/SonicControl/Blasts/HeadSonicWaves.fx
+			color1:
+				red:0
+				green:0
+				blue:255
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- SONICSTUN_HIT
+		- powers\Sonic3.wav
+		- 
+			pause:3000
+		- READY
+Evil Shrowd:
+	Sequence:AND
+	NumKey:
+	movs:
+		- Kobold.Grenade Throw
+Evil ShrowdHit:
+	Sequence:AND
+	NumKey:7
+	movs:
+		- 
+			FX:/powers/StormSummoning/SSFog.fx
+			color1:
+				red:0
+				green:0
+				blue:35
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- powers\fog2.wav
+Grenade Throw:
+	Sequence:AND
+	NumKey:1
+	movs:
+		- 
+			FX:/powers/ItemsAndTempPowers/GREG_PacificationGrenade/PacificationGrenade_Attack.fx
+			color1:
+				red:0
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- A_D_THROWBRAWL
+		- 
+			pause:800
+		- weapons\Throw3.wav
+Jet Pack:
+	Sequence:AND
+	NumKey:8
+	movs:
+		- 
+			FX:/powers/ItemsAndTempPowers/SteamPack/SteamPack_Takeoff.fx
+			color1:
+				red:0
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			FX:/powers/ItemsAndTempPowers/JumpPack/JumpPackThruster.fx
+			color1:
+				red:0
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- FAKE_CFLYREADY
+		- powers\WW_JumpJet_01.wav
+

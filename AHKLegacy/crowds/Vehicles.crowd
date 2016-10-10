@@ -1,0 +1,155 @@
+﻿Car 1: 
+	characterName: Car 1
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3115.965332031
+	y: -84.500000000
+	z: 94.266998291
+car 10: 
+	characterName: car 10
+	crowd: Vehicles
+	Facing: 90
+	Pitch: 0
+	x: 
+	y: 
+	z: 
+car 11: 
+	characterName: car 11
+	crowd: Vehicles
+	Facing: 180
+	Pitch: 0
+	x: -3156.616210938
+	y: -84.500061035
+	z: -11.925687790
+car 12: 
+	characterName: car 12
+	crowd: Vehicles
+	Facing: 180
+	Pitch: 0
+	x: -3141.864501953
+	y: -84.500000000
+	z: 6.795143127
+car 13: 
+	characterName: car 13
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3128.968750000
+	y: -84.500061035
+	z: 137.852493286
+car 14: 
+	characterName: car 14
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3115.965332031
+	y: -84.500000000
+	z: 94.266998291
+car 15: 
+	characterName: car 15
+	crowd: Vehicles
+	Facing: 270
+	Pitch: 0
+	x: -3068.659423828
+	y: -84.500000000
+	z: 198.397369385
+car 16: 
+	characterName: car 16
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3130.873535156
+	y: -84.500061035
+	z: 54.608833313
+car 17: 
+	characterName: car 17
+	crowd: Vehicles
+	Facing: 90
+	Pitch: 0
+	x: -3012.351074219
+	y: -84.500000000
+	z: 186.637268066
+car 18: 
+	characterName: car 18
+	crowd: Vehicles
+	Facing: 270
+	Pitch: 0
+	x: -3067.472656250
+	y: -84.499938965
+	z: 169.893310547
+car 19: 
+	characterName: car 19
+	crowd: Vehicles
+car 2: 
+	characterName: car 2
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3125.798095703
+	y: -84.500061035
+	z: 258.628997803
+car 20: 
+	characterName: car 20
+	crowd: Vehicles
+	Facing: 180
+	Pitch: 0
+	x: -3157.104736328
+	y: -84.500061035
+	z: 347.598571777
+car 3: 
+	characterName: car 3
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3128.968750000
+	y: -84.500061035
+	z: 137.852493286
+car 4: 
+	characterName: car 4
+	crowd: Vehicles
+	Facing: 180
+	Pitch: 0
+	x: -3155.458251953
+	y: -84.500061035
+	z: 273.447723389
+car 5: 
+	characterName: car 5
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3131.518798828
+	y: -84.500000000
+	z: -1.015485168
+car 6: 
+	characterName: car 6
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3113.734130859
+	y: -84.500000000
+	z: -24.088832855
+Car 7: 
+	characterName: Car 7
+	crowd: Vehicles
+	Facing: 180
+	Pitch: 0
+	x: -3140.816406250
+	y: -84.500000000
+	z: -107.082061768
+car 8: 
+	characterName: car 8
+	crowd: Vehicles
+	Facing: 270
+	Pitch: 0
+	x: -3179.202636719
+	y: -84.500061035
+	z: -326.180938721
+car 9: 
+	characterName: car 9
+	crowd: Vehicles
+	Facing: 360
+	Pitch: 0
+	x: -3127.673828125
+	y: -84.500000000
+	z: -130.474472046

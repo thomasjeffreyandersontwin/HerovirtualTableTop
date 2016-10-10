@@ -1,0 +1,28 @@
+Recovery: HIT_BOOST_D
+Draw Weapon: DRAW_GUNSLINGER
+Dodge:C_Dodge_L
+strike:SUPERPUNCH_R
+Haymaker:
+	movs: 
+		- A_CRUSHING_UPPERCUT 
+		- CRUSHING_BLOW_FAST
+	NumKey: 0
+	Sequence: OR
+Prone: DUALWIELD_KNEEL
+Move By:
+Move Through:
+Grab:
+Disarm:AXE_CHOP
+Throw:W_THROWBRAWL
+Block:block_r
+Set: SHIELD_KNEEL
+Sweep:DEFENSIVE_SWEEP_FAST
+Rapid Fire:rapid
+jump:HOP2
+stand up:GETUP_BACK
+miss:C_DODGE_L
+Hit:C_SPINNING_STRIKE_HIT
+
+
+
+

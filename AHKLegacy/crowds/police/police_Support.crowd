@@ -1,0 +1,30 @@
+﻿police\police_Support10: 
+	model: P_PPD_STDVan
+	name: police\police_Support10
+police\police_Support6: 
+	model: Cars_PPD
+	name: police\police_Support6
+police\police_Support7: 
+	model: Cars_PPD
+	name: police\police_Support7
+police\police_Support8: 
+	model: Cars_PPD
+	name: police\police_Support8
+police\police_Support9: 
+	model: Cars_PPD
+	name: police\police_Support9
+police_car 1: 
+	model: Cars_PPD
+	name: police_car 1
+police_car 2: 
+	model: Cars_PPD
+	name: police_car 2
+police_car 3: 
+	model: Cars_PPD
+	name: police_car 3
+Police_Drone: 
+	model: Police_Drone
+	name: Police_Drone
+Police_Van: 
+	model: P_PPD_STDVan
+	name: Police_Van

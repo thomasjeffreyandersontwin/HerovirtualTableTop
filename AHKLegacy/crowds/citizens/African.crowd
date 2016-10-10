@@ -1,0 +1,156 @@
+test10: 
+	model: MaleNPC_94
+	name: test10
+
+test12: 
+	model: MaleNPC_96
+	name: test12
+test15: 
+	model: MaleNPC_99
+	name: test15
+test16: 
+	model: MaleNPC_98
+	name: test16
+	
+test3: 
+	model: FemaleNPC_03
+	name: test3
+test28: 
+	model: MaleNPC_69
+	name: test28
+test29: 
+	model: MaleNPC_70
+	name: test29
+test6: 
+	model: FemaleNPC_06
+	name: test6
+test31: 
+	model: MaleNPC_72
+	name: test31
+test28: 
+	model: MaleNPC_69
+	name: test28
+test35: 
+	model: MaleNPC_76
+	name: test35
+test36: 
+	model: MaleNPC_77
+	name: test36
+test37: 
+	model: MaleNPC_78
+	name: test37
+test30: 
+	model: MaleNPC_71
+	name: test30
+test34: 
+	model: MaleNPC_75
+	name: test34
+test38: 
+	model: MaleNPC_79
+	name: test38
+test39: 
+	model: MaleNPC_80
+	name: test39
+test40: 
+	model: MaleNPC_80
+	name: test40
+test42: 
+	model: MaleNPC_82
+	name: test42
+test45: 
+	model: MaleNPC_85
+	name: test45
+test46: 
+	model: MaleNPC_86
+	name: test46
+test53: 
+	model: MaleNPC_93
+	name: test53
+test18: 
+	model: MaleNPC_61
+	name: test18
+test19: 
+	model: MaleNPC_62
+	name: test19
+
+test21: 
+	model: MaleNPC_63
+	name: test21
+test22: 
+	model: MaleNPC_64
+	name: test22
+test9: 
+	model: MaleNPC_93
+	name: test9
+
+test54: 
+	model: FemaleNPC_62
+	name: test54
+test55: 
+	model: FemaleNPC_63
+	name: test55
+test56: 
+	model: FemaleNPC_63
+	name: test56
+test57: 
+	model: 
+	name: test57
+test59: 
+	model: 
+	name: test59
+test6: 
+	model: FemaleNPC_06
+	name: test6
+
+test61: 
+	model: FemaleNPC_66
+	name: test61
+test62: 
+	model: FemaleNPC_67
+	name: test62
+
+test64: 
+	model: FemaleNPC_69
+	name: test64
+test65: 
+	model: FemaleNPC_70
+	name: test65
+
+test67: 
+	model: FemaleNPC_72
+	name: test67
+
+test70: 
+	model: FemaleNPC_74
+	name: test70
+test71: 
+	model: 
+	name: test71
+test72: 
+	model: FemaleNPC_74
+	name: test72
+
+test74f: 
+	model: FemaleNPC_75
+	name: test74f
+test77f: 
+	model: FemaleNPC_78
+	name: test77f
+test78f: 
+	model: FemaleNPC_79
+	name: test78f 
+test79f: 
+	model: FemaleNPC_79
+	name: test79
+test8f: 
+	model: MaleNPC_92
+	name: test8f
+test80: 
+	model: 
+	name: test80
+test81: 
+	model: FemaleNPC_80
+	name: test81
+test9f: 
+	model: MaleNPC_93
+	name: test9f

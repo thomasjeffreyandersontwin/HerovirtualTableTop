@@ -1,0 +1,248 @@
+﻿: 
+	characterName: car 59
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 
+	y: 
+	z: 
+Car 1: 
+	characterName: Car 1
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -331.039855957
+	y: 0.000000000
+	z: 300.272735596
+car 10: 
+	characterName: car 10
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -187.861968994
+	y: 0.000000000
+	z: 311.697082520
+car 11: 
+	characterName: car 11
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -89.657943726
+	y: -0.500335455
+	z: 300.299468994
+car 12: 
+	characterName: car 12
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 18.881223679
+	y: -0.500335455
+	z: 313.994384766
+car 19: 
+	characterName: car 19
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -134.242614746
+	y: -0.500335455
+	z: 299.797363281
+car 20: 
+	characterName: car 20
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -24.737257004
+	y: -0.500335455
+	z: 300.020355225
+car 23: 
+	characterName: car 23
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: -242.522644043
+	y: -0.500335455
+	z: 313.082641602
+car 24: 
+	characterName: car 24
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: -35.473091125
+	y: -0.500335455
+	z: 328.397979736
+car 25: 
+	characterName: car 25
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -391.757385254
+	y: -0.499847412
+	z: 326.619445801
+car 26: 
+	characterName: car 25
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 
+	y: 
+	z: 
+Car 27: 
+	characterName: car 25
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 
+	y: 
+	z: 
+car 28: 
+	characterName: car 28
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -103.320663452
+	y: 0.000000000
+	z: 314.527160645
+car 33: 
+	characterName: car 33
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: 53.135189056
+	y: -0.500335455
+	z: 339.425659180
+car 34: 
+	characterName: car 34
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: 40.300685883
+	y: -0.500335455
+	z: 328.106658936
+car 35: 
+	characterName: car 35
+	crowd: NPCTest
+	Facing: 292
+	Pitch: 0
+	x: -394.939147949
+	y: -0.499847412
+	z: 299.915344238
+car 36: 
+	characterName: car 36
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -79.532051086
+	y: -0.500335455
+	z: 339.825714111
+Car 37: 
+	characterName: Car 37
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -120.075965881
+	y: -0.500335455
+	z: 325.783416748
+car 38: 
+	characterName: car 38
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: -174.659439087
+	y: -0.500335455
+	z: 299.496582031
+car 39: 
+	characterName: car 39
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -56.934463501
+	y: -0.500335455
+	z: 311.267089844
+car 43: 
+	characterName: car 43
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 94.148406982
+	y: -0.500335455
+	z: 330.312530518
+car 44: 
+	characterName: car 44
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: 61.204895020
+	y: -0.500335455
+	z: 313.935913086
+car 45: 
+	characterName: car 45
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 126.987655640
+	y: -0.500335455
+	z: 311.198516846
+car 46: 
+	characterName: car 46
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: -130.016387939
+	y: -0.500335455
+	z: 339.638549805
+Car 47: 
+	characterName: Car 47
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: -83.139556885
+	y: -0.500335455
+	z: 326.280517578
+car 49: 
+	characterName: car 49
+	crowd: NPCTest
+	Facing: 270
+	Pitch: 0
+	x: -26.128194809
+	y: -0.500335455
+	z: 311.535400391
+car 54: 
+	characterName: car 54
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 29.396974564
+	y: -0.500335455
+	z: 299.993469238
+car 55: 
+	characterName: car 55
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -402.032257080
+	y: -0.499847412
+	z: 339.825195313
+car 56: 
+	characterName: car 56
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -30.488206863
+	y: -0.500335455
+	z: 340.566680908
+Car 57: 
+	characterName: Car 57
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: -182.589218140
+	y: -0.500335455
+	z: 337.929779053
+car 59: 
+	characterName: car 59
+	crowd: NPCTest
+	Facing: 90
+	Pitch: 0
+	x: 1.271374345
+	y: -0.500335455
+	z: 326.804626465

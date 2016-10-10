@@ -1,0 +1,7 @@
+﻿data\\Entangle.animation: data\\Entangle.animations
+EntangleHit: 
+	movs: 
+		- LASSOSTUN_CYCLE
+		- LOCKDOWN_HIT
+		- ENC_PLANTTRAP_C
+	sequence: OR

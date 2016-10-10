@@ -1,0 +1,31 @@
+Smoke Grenade:EMOTE_COSTUMECHANGE_SMOKEFLASH
+
+SLeft: 
+	movs: 
+		- NINJA_LEFTHANDWEP_LEFT
+		- NINJA_LEFT_CYCLE
+	NumKey: 0
+	Sequence: OR
+SReady: 
+	movs: 
+		- NINJA_LEFTHANDWEP_LEFT_POST
+		- NINJA_RIGHTWEPCOMBAT_BACK_POST
+SRight: 
+	movs: 
+		- NINJA_LEFTHANDWEP_RIGHT
+		- NINJA_RIGHT
+		
+	NumKey: 0
+	Sequence: OR
+SRight: 
+	movs: 
+		- NINJA_LEFTHANDWEP_LEFT
+		- NINJA_LEFT
+		
+	NumKey: 0
+	Sequence: OR
+SBack: SNEAKBACK
+STurn: NINJA_RIGHTWEPCOMBAT_BACK
+SForward: NINJA_RIGHTWEPCOMBAT_FORWARD
+	
+Presence AttackHit: EMOTE_FEAR

@@ -1,0 +1,21 @@
+﻿data\\templates\monster.animation: data\\templates\monster.animations
+EMOTE_COSTUMECHANGE_DRINKFORMUL: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_DRINKFORMULA
+	NumKey: 0
+	Sequence: 
+EMOTE_COSTUMECHANGE_FUR_EXPLOD: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_FUR_EXPLODE
+	NumKey: 0
+	Sequence: 
+EMOTE_COSTUMECHANGE_INJECTSERU: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_INJECTSERUM
+	NumKey: 0
+	Sequence: 
+STOM: 
+	movs: 
+		- STOMP
+	NumKey: 0
+	Sequence: 

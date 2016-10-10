@@ -1,0 +1,57 @@
+GetSet: 
+	movs: 
+		- TWOHANDEDLARGE_KNEEL_PRE
+	NumKey: 0
+	Sequence: OR
+RapidPunch: 
+	movs: 
+		- FLURRY
+		- CLAWS_SPEED
+	NumKey: 1
+	sequence: OR
+RapidPunchHit: 
+	movs: 
+		- CLAWSSPEED_REACT
+		- STAFF_SPEEDHIT
+	sequence: OR
+Run: 
+	movs: 
+		- RUNCYCLE
+		- SLIDE_RUNFALL
+	NumKey: 2
+	sequence: OR
+RunBack: 
+	movs: 
+		- RUN_BACK_CYCLE
+	NumKey: 5
+	Sequence: AND
+RunLeft: 
+	movs: 
+		- RUN_LEFT_CYCLE
+	NumKey: 3
+	sequence: AND
+RunRight: 
+	movs: 
+		- RUN_RIGHT_CYCLE
+	NumKey: 4
+	sequence: AND
+SpeedPunc: 
+	movs: 
+		- BURST_OF_SPEED
+		- BURST_OF_SPEED_2
+	NumKey: 0
+	Sequence: OR
+Spin: 
+	movs: 
+		- SPIN_QUICK
+	NumKey: 0
+	Sequence: OR
+SpinFlash: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_SPIN_PRE
+	Sequence: OR
+SpeedPush: 
+	movs: 
+		- F_RUNCYCLE_B
+	NumKey: 0
+	Sequence: 

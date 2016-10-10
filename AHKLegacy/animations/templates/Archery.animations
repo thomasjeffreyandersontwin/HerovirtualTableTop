@@ -1,0 +1,18 @@
+bbrawl: ARCHERY_KICKBRAWL
+bshoot2: BOW
+bshoot1: Bow (Bow)
+bshootup: BOW_ARC
+BOW_BIT: BOW_BITE
+BOW_CON: BOW_CONE
+BOW_HAL: BOW_HALF
+bquick: BOW_QUICK
+bmedium: BOW_MID
+bheavy: BOW_HEAVY
+blookout: BOW_LOOKOUT_C
+bready: BOW_READY
+bsniper2: BOWSNIPER_POST
+bsniper1: BOWSNIPER_SHOOT
+bsniper3: BOWSNIPERWINDUP_CYCLE
+bquick2:   M_TRAINBOW_CONE 
+bheavy2:   M_TRAINBOW_HEAVY 
+bmedium2:   M_TRAINBOW_MID 

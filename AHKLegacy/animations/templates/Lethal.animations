@@ -1,0 +1,6 @@
+DBlastHit: 
+	movs: 
+		- SOULGIVE_SLEEP
+	NumKey: 0
+	Sequence: OR
+DFF:5THCOLUMNPORTAL_WARPIN

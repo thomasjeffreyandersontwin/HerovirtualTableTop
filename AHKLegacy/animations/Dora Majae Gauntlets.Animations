@@ -1,0 +1,92 @@
+Continuous Brawl:MELEE_FISTS_B
+Send Them Flying:
+	- 
+		Sequence: OR
+		movs:
+			- 2HPOWERTHRUST_PRE
+			- BBPUNCH
+			- CRUSHING_BLOW_SLOW
+			- CRUSHING_UPPERCUT
+			- SWEEPING_STRIKE_FAST
+
+
+Send Them FlyingHit:P_PUSHDOWN
+
+Up Close And Personal:
+	- 
+		Sequence: OR
+		movs:
+			- EMOTE_SMACK
+			- HEAVYBLOW
+			- HEAVYBLOW_B
+			- GUTPUNCH
+			- 2H_SWIPE
+			- SHIELD_UPPERCUT
+Strength Of The Nation: 
+	-	
+		Sequence: OR
+		movs:
+			- SHORTTOSS_SQUAT
+			- SHORTLIFT
+Draw A Weapon: 
+Set: 
+
+Patriotic Cheer: ALIGNMENTPOWER_JUSTICE
+Readying Stance: ALT_PSIONICS_SLOWCAST
+Protective Sphere: EMOTE_COSTUMECHANGE_INNERWILL
+Grapple Gun It Like MIcheal Keaton: DUALWIELD_JUMPAPEX
+Martial Disarm:AXE_CHOP
+Defensive Block:
+	-
+		Sequence:OR
+		movs:
+			- APPARITION_POSSESSOR
+			- APPARITION_POSSESSOR
+			- KATANA_PARRY
+			- KNIFE_PARRYW
+Protective Sphere: EMOTE_COSTUMECHANGE_INNERWILL
+Force Field: EMOTE_COSTUMECHANGE_INNERWILL
+Acrobatics: 
+	-
+		Sequence:OR
+		movs:
+			- EMOTE_BACKFLIP
+			- NINJA_CLAWS_FALL2
+
+Breakfall: SHIELD_CLAWS_SPIN_LAND
+Dodge: NINJA_CLAWS_FALL2
+Activate:Activate: BOW_LOOKOUT_C
+
+Martial Strike: 
+	-
+		Sequence: OR
+		movs:
+			- 2HPOWERTHRUST_PRE
+			- BBPUNCH
+			- CRUSHING_BLOW_SLOW
+			- CRUSHING_UPPERCUT
+			- SWEEPING_STRIKE_FAST
+Sacrifice Strike: 
+	-
+		Sequence: OR
+		movs:
+			- EMOTE_SMACK
+			- HEAVYBLOW
+			- HEAVYBLOW_B
+			- GUTPUNCH
+			- 2H_SWIPE
+			- SHIELD_UPPERCUT
+
+Defensive Block:
+	-
+		Sequence:OR
+		movs:
+			- COMBATBLOCK_L
+			- COMBATBLOCK_R
+
+			- APPARITION_POSSESSOR
+
+			- KATANA_PARRY
+			- KNIFE_PARRY
+			- NINJATO_PARRY_DRAW
+			- NINJATO_PARRY_DRAW

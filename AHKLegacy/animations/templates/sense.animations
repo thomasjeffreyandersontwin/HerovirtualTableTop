@@ -1,0 +1,8 @@
+﻿Danger Sense: 
+	movs: 
+		- SURROUNDED_A
+		- SURROUNDED_A2
+		- SURROUNDED_A3
+		- SURROUNDED_A4
+	Sequence: OR
+data\\templates\sense.animation: data\\templates\sense.animations

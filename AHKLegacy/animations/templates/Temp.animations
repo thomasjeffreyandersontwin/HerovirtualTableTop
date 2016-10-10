@@ -1,0 +1,531 @@
+﻿A_SAVAGE_STRIK: 
+	movs: 
+		- A_SAVAGE_STRIKE
+	NumKey: 0
+	Sequence: 
+A_SS_TIER2_ALT1_RIGH: 
+	movs: 
+		- A_SS_TIER2_ALT1_RIGHT
+	NumKey: 0
+	Sequence: 
+BAT_ATTACK: BAT_ATTACK3
+BAT_ATTACK1_POSTCYCL: BAT_ATTACK1_POSTCYCLE
+BlastHit4: 
+	movs: 
+		- A_EMOTE_COSTUMECHANGE_POD_PERSON_PRE
+		- 
+			pause: 1500
+		- STATES_LAND
+	sequence: AND
+BOOSTAUR: BOOSTAURA
+BOOSTAURA: BOOSTAURA3
+BOOSTAURA_NOROO: BOOSTAURA_NOROOT
+BOOSTU: BOOSTUP
+BOOSTUP_ATTAC: BOOSTUP_ATTACK
+BOWING_: BOWING_B
+BOX_READ: BOX_READY
+BOXREAD: BOXREADY
+BOXSNEAK_POS: BOXSNEAK_POST
+BOXSNEAK_PR: BOXSNEAK_PRE
+BS_STIN: BS_STING
+BUILD_FI: BUILD_FIX
+BUILD_FIX: BUILD_FIX2
+BUILD_REPAI: BUILD_REPAIR
+CALL_HAW: CALL_HAWK
+CAPTURED_PENELOPE_CYCL: 
+	movs: 
+		- CAPTURED_PENELOPE_CYCLE
+	NumKey: 0
+	Sequence: 
+da3222: 
+	movs: 
+		- 
+	NumKey: 0
+	Sequence: 
+da3224: 
+	movs: 
+		- 
+	NumKey: 0
+	Sequence: 
+da3230: 
+	movs: 
+		- 
+	NumKey: 0
+	Sequence: 
+da3233: 
+	movs: 
+		- 
+	NumKey: 0
+	Sequence: 
+Document6.tx: 
+	movs: 
+		- Document6.txt
+	NumKey: 0
+	Sequence: 
+EBlast: 
+	movs: 
+		- SPECTRUM_COVER
+		- 
+			pause: 1000
+		- BURSTPOST
+	sequence: AND
+EBlastHit: 
+	movs: 
+		- A_EMOTE_COSTUMECHANGE_POD_PERSON_PRE
+		- 
+			pause: 1500
+		- JUMPJETPACK_DAMAGE
+	sequence: AND
+EDrainHit: 
+	movs: 
+		- CAPTURED_PENELOPE_CYCLE
+		- 
+			pause: 5000
+		- CAPTURED_PENELOPE_FALL
+	NumKey: 0
+	Sequence: AND
+EMOTE_COSTUMECHANGE_LIGHTMAGI: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_LIGHTMAGIC
+	NumKey: 0
+	Sequence: 
+EMOTE_COSTUMECHANGE_PEACEBRINGE: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_PEACEBRINGER
+	NumKey: 0
+	Sequence: 
+EWall: 
+	movs: 
+		- PPD_GAUNTLET_COVER_LOOK_LEFT
+		- SPECTRUM_COVER
+	sequence: OR
+INVENTION_CYCL: INVENTION_CYCLE
+JAUN: JAUNT
+MANACLES_POSE: MANACLES_POSE3
+POWDE: POWDER
+PPD_GAUNTLET_COVER_LOOK_LEF: 
+	movs: 
+		- PPD_GAUNTLET_COVER_LOOK_LEFT
+	NumKey: 0
+	Sequence: 
+PPD_GAUNTLET_TYP: PPD_GAUNTLET_TYPE
+SAVAGE_LEA: 
+	movs: 
+		- SAVAGE_LEAP
+	NumKey: 0
+	Sequence: 
+SAVAGE_STRIK: 
+	movs: 
+		- SAVAGE_STRIKE
+	NumKey: 0
+	Sequence: 
+SAVAGE_STRIKE_: 
+	movs: 
+		- SAVAGE_STRIKE_B
+	NumKey: 0
+	Sequence: 
+SCHEM: 
+	movs: 
+		- SCHEME
+	NumKey: 0
+	Sequence: 
+SCIENTIFI: 
+	movs: 
+		- SCIENTIFIC
+	NumKey: 0
+	Sequence: 
+SCROL: 
+	movs: 
+		- SCROLL
+	NumKey: 0
+	Sequence: 
+SEER_JUDGEMEN: 
+	movs: 
+		- SEER_JUDGEMENT
+	NumKey: 0
+	Sequence: 
+SEER_TELEPORTING_I: 
+	movs: 
+		- SEER_TELEPORTING_IN
+	NumKey: 0
+	Sequence: 
+SEER_TELEPORTING_OU: 
+	movs: 
+		- SEER_TELEPORTING_OUT
+	NumKey: 0
+	Sequence: 
+SERPENT_REAC: 
+	movs: 
+		- SERPENT_REACH
+	NumKey: 0
+	Sequence: 
+SERPENT_REACH_DRA: 
+	movs: 
+		- SERPENT_REACH_DRAW
+	NumKey: 0
+	Sequence: 
+SG_DUC: 
+	movs: 
+		- SG_DUCK
+	NumKey: 0
+	Sequence: 
+SG_GROUND_T_AI: 
+	movs: 
+		- SG_GROUND_T_AIR
+	NumKey: 0
+	Sequence: 
+SG_HITQUIC: 
+	movs: 
+		- SG_HITQUICK
+	NumKey: 0
+	Sequence: 
+SG_POPU: 
+	movs: 
+		- SG_POPUP
+	NumKey: 0
+	Sequence: 
+SG_POPUP_SNIPER_QUIC: 
+	movs: 
+		- SG_POPUP_SNIPER_QUICK
+	NumKey: 0
+	Sequence: 
+SG_RU: 
+	movs: 
+		- SG_RUN
+	NumKey: 0
+	Sequence: 
+SHAK: 
+	movs: 
+		- SHAKE
+	NumKey: 0
+	Sequence: 
+SHAKE_REAC: 
+	movs: 
+		- SHAKE_REACT
+	NumKey: 0
+	Sequence: 
+SHATTER_ARMOR_FAS: 
+	movs: 
+		- SHATTER_ARMOR_FAST
+	NumKey: 0
+	Sequence: 
+SHIN_BREAKE: 
+	movs: 
+		- SHIN_BREAKER
+	NumKey: 0
+	Sequence: 
+SHORTTOSS_SQUA: 
+	movs: 
+		- SHORTTOSS_SQUAT
+	NumKey: 0
+	Sequence: 
+SHOTGUNLOOKOU: 
+	movs: 
+		- SHOTGUNLOOKOUT
+	NumKey: 0
+	Sequence: 
+SHOTGUNOBSERV: 
+	movs: 
+		- SHOTGUNOBSERVE
+	NumKey: 0
+	Sequence: 
+SHOTPATROL_CYCLE_0: 
+	movs: 
+		- SHOTPATROL_CYCLE_03
+	NumKey: 0
+	Sequence: 
+SHRE: 
+	movs: 
+		- SHRED
+	NumKey: 0
+	Sequence: 
+SIGNATURE_TELEPOR: 
+	movs: 
+		- SIGNATURE_TELEPORT
+	NumKey: 0
+	Sequence: 
+SKY_SPLITTE: 
+	movs: 
+		- SKY_SPLITTER
+	NumKey: 0
+	Sequence: 
+SKYSUMMON_NOROO: 
+	movs: 
+		- SKYSUMMON_NOROOT
+	NumKey: 0
+	Sequence: 
+SLA: 
+	movs: 
+		- SLAB
+	NumKey: 0
+	Sequence: 
+SLASH_CON: 
+	movs: 
+		- SLASH_CONE
+	NumKey: 0
+	Sequence: 
+SLEDGE_SMAS: 
+	movs: 
+		- SLEDGE_SMASH
+	NumKey: 0
+	Sequence: 
+SLEDGE_UPCU: 
+	movs: 
+		- SLEDGE_UPCUT
+	NumKey: 0
+	Sequence: 
+SLEE: 
+	movs: 
+		- SLEEP
+	NumKey: 0
+	Sequence: 
+SLID: 
+	movs: 
+		- SLIDE
+	NumKey: 0
+	Sequence: 
+SLIDE_DUAL_BAC: 
+	movs: 
+		- SLIDE_DUAL_BACK
+	NumKey: 0
+	Sequence: 
+SLIDE_DUAL_LEF: 
+	movs: 
+		- SLIDE_DUAL_LEFT
+	NumKey: 0
+	Sequence: 
+SLIDE_DUAL_RIGH: 
+	movs: 
+		- SLIDE_DUAL_RIGHT
+	NumKey: 0
+	Sequence: 
+SMASHINGBLO: 
+	movs: 
+		- SMASHINGBLOW
+	NumKey: 0
+	Sequence: 
+SONIC_REAC: 
+	movs: 
+		- SONIC_REACT
+	NumKey: 0
+	Sequence: 
+SONICDEAT: 
+	movs: 
+		- SONICDEATH
+	NumKey: 0
+	Sequence: 
+SONICDEATH: 
+	movs: 
+		- SONICDEATH3
+	NumKey: 0
+	Sequence: 
+SONICMOUT: 
+	movs: 
+		- SONICMOUTH
+	NumKey: 0
+	Sequence: 
+SONICSPI: 
+	movs: 
+		- SONICSPIT
+	NumKey: 0
+	Sequence: 
+SONICSTUN_HI: 
+	movs: 
+		- SONICSTUN_HIT
+	NumKey: 0
+	Sequence: 
+SONICYEL: 
+	movs: 
+		- SONICYELL
+	NumKey: 0
+	Sequence: 
+SPAW: 
+	movs: 
+		- SPAWN
+	NumKey: 0
+	Sequence: 
+SPAWN: 
+	movs: 
+		- SPAWN2
+	NumKey: 0
+	Sequence: 
+SPAWN_GHOS: 
+	movs: 
+		- SPAWN_GHOST
+	NumKey: 0
+	Sequence: 
+SPELLCASTFEA: 
+	movs: 
+		- SPELLCASTFEAR
+	NumKey: 0
+	Sequence: 
+SPIN_CYCL: 
+	movs: 
+		- SPIN_CYCLE
+	NumKey: 0
+	Sequence: 
+SPIN_QUIC: 
+	movs: 
+		- SPIN_QUICK
+	NumKey: 0
+	Sequence: 
+SPINCOCOON_IDL: 
+	movs: 
+		- SPINCOCOON_IDLE
+	NumKey: 0
+	Sequence: 
+SPINNING_STRIK: 
+	movs: 
+		- SPINNING_STRIKE
+	NumKey: 0
+	Sequence: 
+SS_TIER1_ALT: 
+	movs: 
+		- SS_TIER1_ALT1
+	NumKey: 0
+	Sequence: 
+SS_TIER2_ALT1_LEF: 
+	movs: 
+		- SS_TIER2_ALT1_LEFT
+	NumKey: 0
+	Sequence: 
+SS_TIER2_ALT1_RIGH: 
+	movs: 
+		- SS_TIER2_ALT1_RIGHT
+	NumKey: 0
+	Sequence: 
+SS_TIER3_ALT1_RIGH: 
+	movs: 
+		- SS_TIER3_ALT1_RIGHT
+	NumKey: 0
+	Sequence: 
+SS_TIER6_ALT: 
+	movs: 
+		- SS_TIER6_ALT1
+	NumKey: 0
+	Sequence: 
+SS_TIER9_ALT: 
+	movs: 
+		- SS_TIER9_ALT1
+	NumKey: 0
+	Sequence: 
+STATES_FAL: 
+	movs: 
+		- STATES_FALL
+	NumKey: 0
+	Sequence: 
+STATES_LAN: 
+	movs: 
+		- STATES_LAND
+	NumKey: 0
+	Sequence: 
+STATESSHACKLE_: 
+	movs: 
+		- STATESSHACKLE_B
+	NumKey: 0
+	Sequence: 
+STEA: 
+	movs: 
+		- STEAL
+	NumKey: 0
+	Sequence: 
+STO: 
+	movs: 
+		- STOP
+	NumKey: 0
+	Sequence: 
+STOM: 
+	movs: 
+		- STOMP
+	NumKey: 0
+	Sequence: 
+STOMP: 
+	movs: 
+		- STOMP2
+	NumKey: 0
+	Sequence: 
+Stomp (Stomp: 
+	movs: 
+		- Stomp (Stomp)
+	NumKey: 0
+	Sequence: 
+STOMPE: 
+	movs: 
+		- STOMPED
+	NumKey: 0
+	Sequence: 
+STONEARMOR: 
+	movs: 
+		- STONEARMOR2
+	NumKey: 0
+	Sequence: 
+STUMBL: 
+	movs: 
+		- STUMBLE
+	NumKey: 0
+	Sequence: 
+SYNAPSE_SPI: 
+	movs: 
+		- SYNAPSE_SPIN
+	NumKey: 0
+	Sequence: 
+TELEPORT_HID: 
+	movs: 
+		- TELEPORT_HIDE
+	NumKey: 0
+	Sequence: 
+TELEPORT_SPAW: 
+	movs: 
+		- TELEPORT_SPAWN
+	NumKey: 0
+	Sequence: 
+TOTAL_FOCU: 
+	movs: 
+		- TOTAL_FOCUS
+	NumKey: 0
+	Sequence: 
+TRANSFORM_KHELDIA: 
+	movs: 
+		- TRANSFORM_KHELDIAN
+	NumKey: 0
+	Sequence: 
+TV_WARP_I: 
+	movs: 
+		- TV_WARP_IN
+	NumKey: 0
+	Sequence: 
+TV_WARP_OU: 
+	movs: 
+		- TV_WARP_OUT
+	NumKey: 0
+	Sequence: 
+TWIR: 
+	movs: 
+		- TWIRL
+	NumKey: 0
+	Sequence: 
+WHIRLING_SLICE_FAS: 
+	movs: 
+		- WHIRLING_SLICE_FAST
+	NumKey: 0
+	Sequence: 
+WINDUPCU: 
+	movs: 
+		- WINDUPCUT
+	NumKey: 0
+	Sequence: 
+WING_BACKFLYCYCL: 
+	movs: 
+		- WING_BACKFLYCYCLE
+	NumKey: 0
+	Sequence: 
+WING_FLYCYCL: 
+	movs: 
+		- WING_FLYCYCLE
+	NumKey: 0
+	Sequence: 
+WING_FLYUPCYCL: 
+	movs: 
+		- WING_FLYUPCYCLE
+	NumKey: 0
+	Sequence: 

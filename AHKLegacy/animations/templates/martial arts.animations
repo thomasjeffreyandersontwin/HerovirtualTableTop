@@ -1,0 +1,130 @@
+choke hold: MA_PALMSTUN
+choke holdhit: CHOKE_REACT
+Defensive Strike: 
+	movs: 
+		- KINETIC_ASSASSINS_STRIKE
+		- MA_KICK
+		- QUICK_STRIKE_B
+		- MA_ASSASSINS_BLOW_ALT1
+		- MA_TIER1_ALT1
+	Sequence: OR
+Hold Action: MARTWINDUP
+Killing Strike: 
+	movs: 
+		- MA_PALMSTUN
+		- MARTBACKSTAB
+	sequence: OR
+legsweep: MA_SWEEPKICK
+Martial Block: PARRY
+Martial Disarm: 
+	movs: 
+		- SHIELD_CHOP
+Martial Dodge: 
+	movs: 
+		- 
+			movs: 
+				- EMOTE_COSTUMECHANGE_NINJA_JUMP
+				- EMOTE_BACKFLIP
+				- 
+					movs: 
+						- EMOTE_COSTUMECHANGE_NINJA_JUMP
+						- EMOTE_BACKFLIP
+					Sequence: AND
+			sequence: OR
+		- 
+			pause: 1000
+		- WEAVE_CYCLE
+	sequence: AND
+Martial Escape: 
+	movs: 
+		- ALIGNMENTPOWER_JUSTICE
+	NumKey: 0
+	Sequence: 
+Martial Grab: 
+Martial Strike: 
+	movs: 
+		- HEAVYBLOW
+		- SAVAGE_STRIKE
+		- ASSASSINS_STRIKE_B
+		- MA_TIER5_ALT1
+		- MA_IRONKICK
+		- MA_TIER3_ALT1
+		- 
+			movs: 
+				- KINETIC_ASSASSINS_WINDUP
+				- 
+					pause: 2000
+				- KINETIC_ASSASSINS_STRIKE
+			NumKey: 0
+			sequence: AND
+		- 
+			movs: 
+				- MA_ASSASSINS_BLOW_ALT1_WINDUP
+				- 
+					pause: 2000
+				- MA_ASSASSINS_BLOW_ALT1
+			NumKey: 0
+			sequence: AND
+	sequence: OR
+Martial Throw:MASTERFUL_THROW
+Nerve Strike: 
+	movs: 
+		- MA_PALMSTUN
+		- MARTBACKSTAB
+	sequence: OR
+Offensive Strike: 
+	sequence:AND
+	movs:
+		-
+			sequence:AND
+			movs:
+				- MA_ASSASSINS_BLOW_ALT1_WINDUP
+				-
+					pause:1500
+		- 
+			Sequence: OR
+			movs:	
+				- MA_HOBBLEKICK
+				- MA_ROUNDHOUSE
+				- VORPAL_JUDGEMENT
+				- MA_TIER2_ALT1
+				- MA_TIER7_ALT1_RIGHT
+				- ASSASSINS_PSI_BLADE
+	
+PSI_BLADE_GREA: 
+	movs: 
+		- PSI_BLADE_GREAT
+	NumKey: 0
+	Sequence: 
+Sacrifice Strike: 
+	movs: 
+		- SPINNING_STRIKE
+		- SPINNING_STRIKE
+		- MA_STUNKICK
+		- MA_TIER9_ALT1 
+		- MARTIALASSUALT_SPINNINGKICK
+	sequence: OR
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

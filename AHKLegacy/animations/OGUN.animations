@@ -1,0 +1,304 @@
+Become Ogun!:
+	Sequence:AND
+	NumKey:
+	movs:
+		- GROUNDSUMMON_NOROOT
+		- powers\Antimatter_Ray.wav
+		- 
+			FX:/V_COV/powers/Robotics/Scaffolding.fx
+			color1:
+				red:255
+				green:255
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			pause:1500
+		- 
+			FX:/powers/ForceField/ForceBubbleHands.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+Force Field:
+	Sequence:AND
+	NumKey:5
+	movs:
+		- A_POWERANALYZE
+		- 
+			pause:200
+		- powers\ClockworkLoyalists_Idle_FixArmBeep1.wav
+		- 
+			pause:100
+		- powers\ClockworkLoyalists_Idle_FixArmBeep2.wav
+		- 
+			pause:100
+		- powers\ClockworkLoyalists_Idle_FixArmBeep3.wav
+		- 
+			pause:100
+		- powers\ClockworkLoyalists_Idle_FixArmBeep1.wav
+		- 
+			pause:100
+		- 
+			FX:/V_COV/powers/ForceControl/PowerArmor_Forcefield.fx
+			color1:
+				red:255
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			Persistent:True
+		- powers\forcefield18_loop.wav
+Haymaker:
+	Sequence:AND
+	NumKey:4
+	movs:
+		- powers\TW_ShatterArmor_AttackSlow_01.wav
+		- 
+			Sequence:OR
+			NumKey:
+			movs:
+				- ARC_OF_DESTRUCTION_SLOW
+				- ARC_OF_DESTRUCTION_FAST
+				- A_SHATTER_ARMOR_SLOW
+				- A_SHATTER_ARMOR_FAST
+				- A_GUARD_SPIN
+Haymaker Options:
+	Sequence:OR
+	NumKey:
+	movs:
+		- ARC_OF_DESTRUCTION_SLOW
+		- ARC_OF_DESTRUCTION_FAST
+		- A_SHATTER_ARMOR_SLOW
+		- A_SHATTER_ARMOR_FAST
+		- A_GUARD_SPIN
+Heads Up Display:
+	Sequence:AND
+	NumKey:6
+	movs:
+		- A_IRGOGGL_ACTIVATE
+		- 
+			pause:200
+		- powers\BAF_TargetingReticle_01.wav
+		- 
+			FX:/powers/ItemsAndTempPowers/SecondaryMutation/SecondaryMutation_AcuteSenses_Child.fx
+			color1:
+				red:0
+				green:0
+				blue:248
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+Invent Something:
+	Sequence:AND
+	NumKey:7
+	movs:
+		- A_POWERANALYZE
+		- A_INVENTION_PRE
+		- 
+			pause:5000
+		- A_INVENTION_EXAMINE
+Invisibility:
+	Sequence:AND
+	NumKey:8
+	movs:
+		- powers\invisible1.wav
+		- A_POWERANALYZE_PRE
+		- 
+			FX:/powers/DensityControl/Intangibility.fx
+			color1:
+				red:127
+				green:123
+				blue:127
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+			Persistent:True
+Loa Blast:
+	Sequence:AND
+	NumKey:2
+	movs:
+		- 2HLARGE_CAST
+		- 
+			FX:/CustomizeablePowers/EnergyBlast/CustAnim_Mega.fx
+			color1:
+				red:0
+				green:0
+				blue:255
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- powers\energytorrent.wav
+Loa Strike:
+	Sequence:AND
+	NumKey:1
+	movs:
+		- 
+			FX:/CustomizeablePowers/BeamRifle/BeamRifle_PenetratingRay_ChargeUp.fx
+			color1:
+				red:0
+				green:0
+				blue:254
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+		- 
+			Sequence:OR
+			NumKey:
+			movs:
+				- A_MERCURIAL_BLOW_D
+				- A_MERCURIAL_BLOW_C
+				- A_MERCURIAL_BLOW_B
+				- A_MERCURIAL_BLOW_A
+		- powers\TW_CrushingBlow_AttackFast_01.wav
+Loa Strike Options:
+	Sequence:OR
+	NumKey:
+	movs:
+		- A_MERCURIAL_BLOW_D
+		- A_MERCURIAL_BLOW_C
+		- A_MERCURIAL_BLOW_B
+		- A_MERCURIAL_BLOW_A
+Send Them Flying:
+	Sequence:AND
+	NumKey:3
+	movs:
+		- A_BLINDING
+		- 
+			pause:1000
+		- powers\nova3.wav
+		- 
+			FX:/powers/EnergyBlast/ZERO_NovaBlast.fx
+			color1:
+				red:0
+				green:4
+				blue:255
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+Send Them FlyingHit:
+	Sequence:AND
+	NumKey:
+	movs:
+		- LEV_STUN_HITQUICK
+		- powers\PunchHit1.wav
+		- 
+			FX:/Explosions/medium/Enc_Expolsion_med.fx
+			color1:
+				red:0
+				green:0
+				blue:209
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+Tunneling:
+	Sequence:AND
+	NumKey:9
+	movs:
+		- powers\Energyhit2.wav
+		- A_TWIRL
+		- 
+			FX:/Explosions/MetalExplosion/AlluminumMetalPartsFireExplosion.fx
+			color1:
+				red:0
+				green:0
+				blue:0
+			color2:
+				red:0
+				green:0
+				blue:0
+			color3:
+				red:0
+				green:0
+				blue:0
+			color4:
+				red:0
+				green:0
+				blue:0
+

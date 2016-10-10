@@ -1,0 +1,74 @@
+Activate: 2HLARGE_THROWBRAWL
+Recovery: HIT_BOOST_D
+Stun Recovery:
+Pass Turn:EMOTE_GOAWAY
+Half Phase Action:
+Hold Action: BEAST_CLAWS_READY_FAST_ONE
+Draw Weapon: DRAW_GUNSLINGER
+
+Choke Hold: DEFENSIVE_SWEEP_FAST_DRAW
+Martial Block:COMBATBLOCK_L
+Martial Disarm:SHIELD_CHOP
+Martial Dodge:
+	- 
+	sequence:OR
+	movs:
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_BACKFLIP
+		- NINJA_CLAWS_FALL2
+Martial Escape: ALIGNMENTPOWER_JUSTICE
+Martial Strike:
+	- 
+		sequence:OR
+		movs:
+			- 1H_POUND
+			- 1H_SWIPE
+			- GUTPUNCH
+			- 2H_SWIPE
+			- HEAVYBLOW
+			- INITIAL_STRIKE
+			- ONEHANDSMASH_LEFT
+			- SAVAGE_STRIKE
+			- SUPERPUNCH_R
+			- SUPERPUNCH_L
+Martial Throw: DEFENSIVE_SWEEP_FAST_DRAW
+Nerve Strike: 
+	- 
+		sequence:OR
+		movs:
+			- 1H_POUND
+			- 1H_SWIPE
+			- GUTPUNCH
+			- 2H_SWIPE
+			- HEAVYBLOW
+			- INITIAL_STRIKE
+			- ONEHANDSMASH_LEFT
+			- SAVAGE_STRIKE
+			- SUPERPUNCH_R
+			- SUPERPUNCH_L
+Sacrifice Strike: 
+	-
+		sequence:OR
+		movs:
+			- CRUSHING_UPPERCUT
+			- ALTREADY_XARMS_LOOK
+			- RECLUSE_KNOCKUP
+			- SPINNING_STRIKE
+Killing Strike: 
+	-
+		sequence:OR
+		movs:
+			- CRUSHING_UPPERCUT
+			- ALTREADY_XARMS_LOOK
+			- RECLUSE_KNOCKUP
+
+Brawling:
+	- 
+		sequence:OR
+		movs:
+			- MELEE_FISTS_B
+			- MELEE_FISTS_B2
+			- MELEE_FISTS_A
+			- MELEE_FISTS_C
+			- MELEE_FISTS_C2
+			- MELEE_FISTS_D

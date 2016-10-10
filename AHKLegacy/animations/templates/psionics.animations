@@ -1,0 +1,37 @@
+PAttackHit:EMOTE_FEM_STAND_TO_REACT
+PAttack: 
+	movs:
+		- OPPRESSOR_PSIONICBLAST
+		- ALT_PSIBLAST_POST
+	sequence: OR
+ 
+PHoldHit:APPARITION_POSSESSOR
+MControl:Ball_of_Light
+MControlHit:ZOMBIE_READY
+PAreaAttack:Witch_Rift
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

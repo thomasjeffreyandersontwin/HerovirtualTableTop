@@ -1,0 +1,238 @@
+#include ManagedCharacter.ahk
+#Include Yunit\Yunit.ahk
+#Include Yunit\Window.ahK
+#Include Yunit\StdOut.ahk
+#Include TestHelper.ahk
+
+Class ManagedCharacterTestSuite{
+	Class SpawnCharacterTest{
+		Begin(){
+			this.testCharacter:= new ManagedCharacter("TestCharacter", "model_Statesman", "Model")
+			this.testCharacter.Crowd:={Name:"TestCrowd"}
+		}
+		TestGeneratesDeleteKeybindIfCharExistsAndSpawnModelKeybindIfSkinISAModel(){
+			helper:= new SpawnTestHelper()
+			helper.SpawnTestCharacter()
+			keybind:=this.testCharacter.Spawn()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validSpawnText:=helper.BuildValidDeleteSpawnText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"" . validSpawnText, keybind)
+		}
+		TestLoadCostumesKeybindIfSkinIsACostume(){
+			this.testCharacter:= new ManagedCharacter("TestCharacter", "Spyder", "Costume")
+			this.testCharacter.Crowd:={Name:"TestCrowd"}
+			keybind:=this.testCharacter.Spawn()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			helper.AssertBindParametersMatchKeybindString("Y ""113""", strlen(keybind))
+			
+			
+		}
+		TestDoesNotGenerateDeleteKeybindIfCharDoesNotExists(){
+			keybind:=this.testCharacter.Spawn()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validSpawnFile:=helper.BuildValidSpawnText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"" . validSpawnFile , keybind)
+		}
+		TestCharacterIsSpawnedAndTargeted(){
+			this.testCharacter.Spawn()	
+			helper:= new Targeter()
+			
+			Yunit.AssertEquals(this.TestCharacter.Label, helper.Label)
+			
+		}
+		End(){
+			generator:= ImmediateLoadingKeyBindGenerator.GetInstance()
+			generator.GenerateKeyBindsForEvent("ClearNPC")
+			generator.CompleteEvent()
+		}
+	}
+	Class ChangeSkinTest{
+		begin(){
+			this.TestCharacter:= new SpawnTestHelper().SpawnTestCharacter()
+		}
+		TestSkinWithCostumeSurfaceGeneratesLoadCostumeKeybind(){
+			skin:=new CharacterSkin(this.TestCharacter, "Spyder", "Costume")
+			keybindSkin:=this.TestCharacter.Skin:=skin
+			keybindTarget:=this.TestCharacter.Generator.LastKeybindGenerated
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validSkinText:=helper.BuildValidSkinCostumeText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"load_costume Spyder""""",keybindSkin)
+		}
+		TestSkinWithModelSurfaceGeneratesSpawnModelKeybind(){
+			skin:=new CharacterSkin(this.TestCharacter, "Longbow_Male_Group_01_Minion_01", "Model")
+			keybindSkin:=this.TestCharacter.Skin:=skin
+			keybindTarget:=this.TestCharacter.Generator.LastKeybindGenerated
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validSkinText:=helper.BuildValidSkinModelText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"" . validSkinText . """""",keybindSkin)
+		}
+		End(){
+			generator:= ImmediateLoadingKeyBindGenerator.GetInstance()
+			generator.GenerateKeyBindsForEvent("ClearNPC")
+			generator.CompleteEvent()
+		}
+	}
+	Class TargetTest{
+		Begin(){
+			helper:= new SpawnTestHelper()
+			helper.SpawnTestCharacter()
+			this.testCharacter:= new ManagedCharacter("TestCharacter")
+			this.testCharacter.Crowd:={Name:"TestCrowd"}
+		}
+		TestGeneratesTargetKeybindIfNoCOHPlayerLoaded(){
+			this.testCharacter.Target()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validKeybind:=helper.BuildValidTargetText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """ . validKeybind . """", this.testCharacter.Generator.LastFunction, this.testCharacter.Label)
+			
+		}
+		TestUsesCHOPlayerIfLoaded(){
+			this.testCharacter.COHPlayer:=new COHPlayerStub()
+			this.testCharacter.Target()
+			Yunit.AssertEquals(true, this.testCharacter.COHPlayer.TargetCalled)
+		}
+		TestAssignsCOHPLayerToCharacter(){
+			this.testCharacter.Target()
+			actual:=this.testCharacter.COHPlayer.Label
+			Yunit.AssertEquals("TestCharacter [TestCrowd]", actual)
+		}
+		TestCharacterIsTargeted(){
+			this.testCharacter.Target()
+			valid:=this.TestCharacter.Label
+			
+			actual:= new Targeter().Label
+			Yunit.AssertEquals(valid,actual)
+		}
+		TestUntargetCharacterIsNotTargeted(){
+			this.testCharacter.Target()
+			this.testCharacter.UnTarget()
+			Yunit.AssertEquals(false,this.testCharacter.Targeted)
+		}
+		TestTargetedReturnsTrueIfCharIsTargetedFalseIfNot(){
+			this.testCharacter.Target()
+			
+			
+			actual:=this.TestCharacter.Targeted
+			Yunit.AssertEquals(true,actual)
+			
+			generator:= ImmediateLoadingKeyBindGenerator.GetInstance()
+			generator.GenerateKeyBindsForEvent("TargetEnemyNear","")
+			generator.CompleteEvent()
+			sleep 100
+			actual:=this.TestCharacter.Targeted
+			Yunit.AssertEquals(false,actual)
+			
+		}
+		TestCharacterLabel(){
+			validLabel:=this.testCharacter.Label
+			actualLabel:= "TestCharacter [TestCrowd]"
+			Yunit.AssertEquals(validLabel, actualLabel)
+		}
+		End(){
+			generator:= ImmediateLoadingKeyBindGenerator.GetInstance()
+			generator.GenerateKeyBindsForEvent("ClearNPC")
+			generator.CompleteEvent()
+		}			
+	}
+	Class TargetAndMoveCameraToCharacterTest{
+		Begin(){
+			helper:= new SpawnTestHelper()
+			helper.SpawnTestCharacter()
+			this.testCharacter:= new ManagedCharacter("TestCharacter")
+			this.testCharacter.Crowd:={Name:"TestCrowd"}
+		}
+		TestGeneratesTargetAndFollowKeybindIfNoCOHPlayerLoaded(){
+			keybind:=this.testCharacter.TargetAndMoveCameraToCharacter()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validKeyBind:=helper.BuildValidTargetFollowText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """ . validKeybind . """""", keybind)
+		}
+		TestCharacterIsTargeted(){
+			this.testCharacter.TargetAndMoveCameraToCharacter()
+			Yunit.AssertEquals(true,this.TestCharacter.Targeted)
+		}
+		TestGeneratesFollowKeybindIfCOHPlayerLoaded(){
+			this.testCharacter.Targeted:=true
+			this.testCharacter.Targeted:=false
+			keybind:=this.testCharacter.TargetAndMoveCameraToCharacter()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			helper.AssertBindParametersMatchKeybindString("Y """"follow " . """""", keybind)
+		}
+		End(){
+			generator:= ImmediateLoadingKeyBindGenerator.GetInstance()
+			generator.GenerateKeyBindsForEvent("ClearNPC")
+			generator.CompleteEvent()
+		}
+	}
+	Class ManueveringWithCameraTest{
+		Begin(){
+			helper:= new SpawnTestHelper()
+			this.testCharacter:= helper.SpawnTestCharacter()
+			this.TestCharacter.Forward(5)
+		}
+		TestGeneratesTargetFollowDeleteAndCameraWearsCharactersSkinKeybindsIfManuverModeEnabled(){
+			keybinds:=this.testCharacter.ManueveringWithCamera:=true
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validKeyBind:=helper.BuildValidTargetFollowText2(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"" . validKeyBind . """""", keybinds[0])
+			validKeyBind:=helper.BuildValidTargetDeleteSkinModelText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"" . validKeybind . """""", keybinds[1])
+		}
+		TestGeneratesCameraWearsCameraSkinandSpawnCharacterIfManueverIsDisabled(){
+			this.testCharacter.ManueveringWithCamera:=true
+			keybinds:=this.testCharacter.ManueveringWithCamera:=false
+			camera:=Camera.GetInstance()
+			helper:=new CityOfHeroesKeybindTestHelper()
+			validKeybind:= helper.BuildValidSpawnText(this.testCharacter)
+			helper.AssertBindParametersMatchKeybindString("Y """"benpc V_Arachnos_Security_Camera""""" , keybinds[0])
+			helper.AssertBindParametersMatchKeybindString("Y """"" . validKeyBind .  "", keybinds[1])
+		}
+		TestCharacterIsDeletedIFManueverModeIsEnabled(){
+			this.testCharacter.ManueveringWithCamera:=true
+			this.testCharacter.Target()
+			helper:= new Targeter()
+			Yunit.AssertEquals("", helper.Label)
+		}
+		TestCharacterIsSpawnedIfManueverModeIsFalse(){
+			this.testCharacter.ManueveringWithCamera:=true
+			this.testCharacter.ManueveringWithCamera:=false
+			this.testCharacter.Target()
+			helper:= new Targeter()
+			Yunit.AssertEquals(this.TestCharacter.Label, helper.Label)
+		}
+		TestCameraIsCloseToCharacterPositionIfManueverModeEnabled(){
+			camera:= Camera.GetInstance()
+			camera.Location:= new LocationMock()
+			this.testCharacter.Location:= new LocationMock()
+			this.testCharacter.ManueveringWithCamera:=true
+			actual:=camera.Location.IsWithin(2, this.testCharacter.Location)
+			Yunit.AssertEquals(true, actual)
+		}
+		end(){
+			generator:= ImmediateLoadingKeyBindGenerator.GetInstance()
+			generator.GenerateKeyBindsForEvent("ClearNPC")
+			generator.CompleteEvent()
+		}
+	}
+}
+class LocationMock{
+	_distanceCounter:=0
+	IsWithin(distance, destination){
+		if(this._distanceCounter== distance){
+			return  true
+		}
+		else{
+			this._distanceCounter++
+			return false 
+		}
+	}
+}
+class COHPlayerStub{
+	TargetCalled:=false
+	Target(){
+		this.targetCalled:=true
+	}
+}
+
+
+Yunit.Use(YunitStdOut).Test(ManagedCharacterTestSuite)
