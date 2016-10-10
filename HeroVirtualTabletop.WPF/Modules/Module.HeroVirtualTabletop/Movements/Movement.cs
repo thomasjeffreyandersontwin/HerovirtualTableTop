@@ -17,6 +17,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -76,30 +77,39 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("Movement");
             }
         }
-
-
         public void DeactivateMovement()
         {
             // Reset Active
             this.IsActive = false;
+            // Back to still move
+            this.Movement.MoveStill(this.Character);
+            // Reset MovementInstruction
+            this.Character.MovementInstruction = null;
             // Enable Camera Control
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_ENABLE_CAMERA_FILENAME);
+            keyBindsGenerator.CompleteEvent();
             // Unload Keyboard Hook
             KeyBoardHook.UnsetHook(hookID);
+            this.Movement.StopMovement();
         }
 
         public void ActivateMovement()
         {
             // Deactivate Current Movement
-            CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm.IsActive);
+            CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm != this && cm.IsActive);
             if (activeCharacterMovement != null)
                 activeCharacterMovement.DeactivateMovement();
             // Set Active
             this.IsActive = true;
+            // Set the still Move
+            this.Movement.MoveStill(this.Character);
+            // Initialize MovementInstruction
+            this.Character.MovementInstruction = new MovementInstruction();
             // Disable Camera Control
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_DISABLE_CAMERA_FILENAME);
+            keyBindsGenerator.CompleteEvent();
             // Load Keyboard Hook
             hookID = KeyBoardHook.SetHook(this.PlayMovementByKeyProc);
         }
@@ -116,28 +126,60 @@ namespace Module.HeroVirtualTabletop.Movements
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                     uint wndProcId;
                     uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || Process.GetCurrentProcess().Id == wndProcId)
+                    var cohWindow = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (foregroundWindow == cohWindow
+                        || currentProcId == wndProcId)
                     {
-                        var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-
-                        while(Keyboard.IsKeyDown(Key.W))
+                        //if(!this.Movement.IsPlaying)
                         {
-
+                            var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                            MovementDirection direction = GetMovementDirectionFromKey(inputKey);
+                            if(direction != MovementDirection.Still && this.Character.MovementInstruction.CurrentDirection != direction)
+                            {
+                                this.Character.MovementInstruction.LastDirection = this.Character.MovementInstruction.CurrentDirection;
+                                this.Character.MovementInstruction.CurrentDirection = direction;
+                                this.Movement.StartMovment(this.Character);
+                            } 
                         }
-                        //if (this.Character.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
-                        //{
-                        //    this.Character.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode).Play();
-                        //}
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);
                 }
             }
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
+
+        private MovementDirection GetMovementDirectionFromKey(Key key)
+        {
+            MovementDirection movementDirection = MovementDirection.Still;
+            switch(key)
+            {
+                case Key.A:
+                    movementDirection = MovementDirection.Left;
+                    break;
+                case Key.W:
+                    movementDirection = MovementDirection.Forward;
+                    break;
+                case Key.S:
+                    movementDirection = MovementDirection.Backward;
+                    break;
+                case Key.D:
+                    movementDirection = MovementDirection.Right;
+                    break;
+                case Key.Space:
+                    movementDirection = MovementDirection.Upward;
+                    break;
+                case Key.Z:
+                    movementDirection = MovementDirection.Downward;
+                    break;
+
+            }
+            return movementDirection;
+        }
     }
     public class Movement : NotifyPropertyChanged
     {
+        private System.Threading.Timer timer;
         [JsonConstructor]
         private Movement() { }
 
@@ -146,6 +188,8 @@ namespace Module.HeroVirtualTabletop.Movements
             this.Name = name;
             this.AddDefaultMemberAbilities();
         }
+
+        public bool IsPlaying { get; set; }
 
         private string name;
         public string Name
@@ -175,17 +219,83 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        public void Move(MovementDirection direction, double distance, Character target)
+        public void Move(MovementDirection direction, double distance, Character target) 
         {
 
         }
 
-        public void MoveBasedOnKey(Key key, Character target)
+        public void StopMovement()
         {
-            MovementMember movementMember = this.GetMovementMemberByKey(key);
-            if(movementMember != null && movementMember.MemberAbility != null)
+            this.IsPlaying = false;
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
+        }
+
+        public void StartMovment(Character target)
+        {
+            this.IsPlaying = true;
+            timer = new System.Threading.Timer(timer_Elapsed, target, 1, Timeout.Infinite);
+        }
+
+        private void timer_Elapsed(object state)
+        {
+            Action d = delegate()
             {
-                movementMember.MemberAbility.Play(false, target);
+                Character target = state as Character;
+                if (target.MovementInstruction != null)
+                {
+                    MovementMember movementMember = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.CurrentDirection);
+                    // if last direction is current direction, increment position
+                    if (target.MovementInstruction.CurrentDirection == target.MovementInstruction.LastDirection)
+                    {
+                        target.MovementInstruction.LastDirection = target.MovementInstruction.CurrentDirection;
+                        Key key = movementMember.AssociatedKey;
+                        if (Keyboard.IsKeyDown(key))
+                        {
+                            //  
+                            double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentDirection);
+                            Vector3 rotationVector = (target.Position as Position).GetRotationVector(rotationAngle);
+                            (target.Position as Position).MoveTarget(rotationVector, 2);
+                        }
+                        else
+                        {
+                            MoveStill(target);
+                            target.MovementInstruction.CurrentDirection = MovementDirection.Still;
+                        }
+                        if(this.IsPlaying)
+                            timer.Change(50, Timeout.Infinite);
+                    }
+                    else // else change direction and increment position
+                    {
+                        // Play movement
+                        PlayMovementMember(movementMember, target);
+                        target.MovementInstruction.LastDirection = target.MovementInstruction.CurrentDirection;
+                        if (this.IsPlaying)
+                            timer.Change(1, Timeout.Infinite);
+                    } 
+                }
+            };
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
+            
+        }
+
+        public void MoveStill(Character target)
+        {
+            MovementMember stillMovement = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Still);
+            PlayMovementMember(stillMovement, target);
+        }
+
+        public void PlayMovementMember(MovementMember movementMember, Character target)
+        {
+            if (movementMember != null)
+            {
+                if (movementMember.MemberAbility != null && !movementMember.MemberAbility.IsActive)
+                {
+                    foreach (var mm in this.MovementMembers.Where(mm => mm != movementMember && mm.MemberAbility.IsActive))
+                    {
+                        mm.MemberAbility.Stop(target);
+                    }
+                    movementMember.MemberAbility.Play(false, target);
+                }
             }
         }
 
@@ -247,31 +357,32 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        private MovementMember GetMovementMemberByKey(Key key)
+        private double GetRotationAngle(MovementDirection direction)
         {
-            MovementMember movementMember = null;
-            switch(key)
+            double rotationAngle = 0d;
+            switch(direction)
             {
-                case Key.W:
-                    movementMember = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Forward);
+                case MovementDirection.Still:
+                case MovementDirection.Forward:
+                    rotationAngle = 0d;
                     break;
-                case Key.A:
-                    movementMember = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Left);
+                case MovementDirection.Backward:
+                    rotationAngle = 180d;
                     break;
-                case Key.S:
-                    movementMember = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Backward);
+                case MovementDirection.Left:
+                    rotationAngle = 270d;
                     break;
-                case Key.D:
-                    movementMember = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Right);
+                case MovementDirection.Right:
+                    rotationAngle = 90d;
                     break;
-                case Key.Space:
-                    movementMember = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Upward);
+                case MovementDirection.Upward:
+                    rotationAngle = -90d;
                     break;
-                case Key.Z:
-                    movementMember = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Downward);
+                case MovementDirection.Downward:
+                    rotationAngle = 90d;
                     break;
             }
-            return movementMember;
+            return rotationAngle;
         }
     }
 
@@ -318,6 +429,39 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("MovementDirection");
             }
         }
+        [JsonIgnore]
+        public Key AssociatedKey
+        {
+            get
+            {
+                Key key = Key.None;
+                switch (MovementDirection)
+                {
+                    case MovementDirection.Forward:
+                        key = Key.W;
+                        break;
+                    case MovementDirection.Backward:
+                        key = Key.S;
+                        break;
+                    case MovementDirection.Left:
+                        key = Key.A;
+                        break;
+                    case MovementDirection.Right:
+                        key = Key.D;
+                        break;
+                    case MovementDirection.Upward:
+                        key = Key.Space;
+                        break;
+                    case MovementDirection.Downward:
+                        key = Key.Z;
+                        break;
+                    case MovementDirection.Still:
+                        key = Key.X;
+                        break;
+                }
+                return key;
+            }
+        }
     }
 
     public class MovementInstruction
@@ -328,38 +472,37 @@ namespace Module.HeroVirtualTabletop.Movements
         public List<IMemoryElementPosition> IncrementalPositions { get; set; }
         public MovementDirection CurrentDirection { get; set; }
         public MovementDirection LastDirection { get; set; }
-        public Character MovableCharacter { get; set; }
     }
 
     public class MovementProcessor
     {
-        public IMemoryElementPosition IncrementPosition(MovementDirection direction, IMemoryElementPosition currentPosition, double distance)
+        public static IMemoryElementPosition IncrementPosition(MovementDirection direction, IMemoryElementPosition currentPosition, double distance)
         {
             return new Position();
         }
 
-        public List<IMemoryElementPosition> CalculateIncrementalPositions(MovementDirection direction, Vector3 facing, Vector3 pitch)
+        public static List<IMemoryElementPosition> CalculateIncrementalPositions(MovementDirection direction, Vector3 facing, Vector3 pitch)
         {
             return new List<IMemoryElementPosition>();
         }
 
-        public IMemoryElementPosition IncrementPositionFromInstruction(MovementInstruction instruction, IMemoryElementPosition currentPosition, double distance)
+        public static IMemoryElementPosition IncrementPositionFromInstruction(MovementInstruction instruction, IMemoryElementPosition currentPosition, double distance)
         {
             return new Position();
         }
-        public Vector3 CalculateNewFacingPitch(IMemoryElementPosition currentPosition, IMemoryElementPosition destination)
+        public static Vector3 CalculateNewFacingPitch(IMemoryElementPosition currentPosition, IMemoryElementPosition destination)
         {
             return new Vector3();
         }
-        public bool ArePositionsBesideEachOther(IMemoryElementPosition currentPosition, IMemoryElementPosition destination)
+        public static bool ArePositionsBesideEachOther(IMemoryElementPosition currentPosition, IMemoryElementPosition destination)
         {
             return false;
         }
-        public Vector3 CalculateTurn(IMemoryElementPosition currentPosition, IMemoryElementPosition destination)
+        public static Vector3 CalculateTurn(IMemoryElementPosition currentPosition, IMemoryElementPosition destination)
         {
             return new Vector3();
         }
-        public Vector3 CalculateCameraDistance(IMemoryElementPosition cameraPosition, IMemoryElementPosition characterPosition)
+        public static Vector3 CalculateCameraDistance(IMemoryElementPosition cameraPosition, IMemoryElementPosition characterPosition)
         {
             return new Vector3();
         }

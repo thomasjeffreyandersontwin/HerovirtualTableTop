@@ -169,7 +169,7 @@ namespace Module.HeroVirtualTabletop.Library
             IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
 
             LoadRequiredKeybinds();
-
+            CreateCameraFilesIfNotExists();
             CreateAreaAttackPopupMenuIfNotExists();
         }
 

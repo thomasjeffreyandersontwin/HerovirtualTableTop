@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ADodge: 
 	- 
 	movs: 
@@ -51,3 +52,58 @@ Hit Everyone I Can See!:
 		- FLURRY
 	NumKey: 1
 	sequence: AND
+=======
+ADodge: 
+	- 
+	movs: 
+		- FLIPBOOST_PRE
+		- EMOTE_COSTUMECHANGE_NINJA_JUMP
+		- EMOTE_BACKFLIP
+		- NINJA_RIGHTWEPCOMBAT_HOP_APEX
+		- SPRINGATTACK_PRE
+		- TWIRL
+	sequence: OR
+Agile Jump: 
+	movs: 
+		- TRUCK_JUMP_IN
+		- 
+			pause: 2000
+		- JUMP_APEX
+	sequence: AND
+Boost: 
+	movs: 
+		- RUNCYCLE
+		- SLIDE_RUNFALL
+	NumKey: 2
+	sequence: OR
+boost bac: 
+	movs: 
+		- RUN_BACK_CYCLE
+	NumKey: 5
+	Sequence: AND
+boost left: 
+	movs: 
+		- RUN_LEFT_CYCLE
+	NumKey: 3
+	sequence: AND
+boost right: 
+	movs: 
+		- RUN_RIGHT_CYCLE
+	NumKey: 4
+	sequence: AND
+change: 
+	movs: 
+		- EMOTE_COSTUMECHANGE_SPIN_PRE
+	NumKey: 6
+	sequence: OR
+Flurry: 
+	movs: 
+		- FLURRY
+	NumKey: 1
+	sequence: AND
+Hit Everyone I Can See!: 
+	movs: 
+		- FLURRY
+	NumKey: 1
+	sequence: AND
+>>>>>>> 68fdcebd8c83dbcfdbac1d97e85345c9412bacd6

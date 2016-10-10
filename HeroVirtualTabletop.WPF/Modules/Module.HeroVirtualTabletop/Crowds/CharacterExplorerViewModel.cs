@@ -1371,8 +1371,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                     character.Movements.Remove(cm);
                     if (character.DefaultMovement != null && character.DefaultMovement.Name == movementName)
                         character.DefaultMovement = null;
-                    if (character.ActiveMovement != null && character.ActiveMovement.Name == movementName)
-                        character.ActiveMovement = null;
+                    //if (character.ActiveMovement != null && character.ActiveMovement.Name == movementName)
+                    //    character.ActiveMovement = null;
                 }
             }
         }
