@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // POPMENU File for Character
 //
 Menu "Character"
@@ -12,19 +11,4 @@ Option "Manuever with Camera" "bind_save_file manueverwithcamera.txt"
 Option "Clear from Desktop" "bind_save_file clear.txt"
 Option "Activate" "bind_save_file activate.txt"
 Option "Clone and Link" "bind_save_file clonelink.txt"
-=======
-// POPMENU File for Character
-//
-Menu "Character"
-{
-Option "Spawn" "bind_save_file spawn.txt"
-Option "Place" "bind_save_file place.txt"
-Option "Save Position" "bind_save_file saveposition.txt"
-Option "Move Camera to Target" "bind_save_file movecamera.txt"
-Option "Move Target to Camera" "bind_save_file movetarget.txt"
-Option "Manuever with Camera" "bind_save_file manueverwithcamera.txt"
-Option "Clear from Desktop" "bind_save_file clear.txt"
-Option "Activate" "bind_save_file activate.txt"
-Option "Clone and Link" "bind_save_file clonelink.txt"
->>>>>>> 68fdcebd8c83dbcfdbac1d97e85345c9412bacd6
 }

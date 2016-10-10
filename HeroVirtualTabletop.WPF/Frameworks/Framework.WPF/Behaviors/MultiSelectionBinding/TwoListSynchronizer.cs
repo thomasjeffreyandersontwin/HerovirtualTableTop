@@ -3,11 +3,7 @@ using System.Collections;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
-<<<<<<< HEAD
 
-=======
-
->>>>>>> 68fdcebd8c83dbcfdbac1d97e85345c9412bacd6
 namespace Framework.WPF.Behaviors
 {
     /// <summary>
