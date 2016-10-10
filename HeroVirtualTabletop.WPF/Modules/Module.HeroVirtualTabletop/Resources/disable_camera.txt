@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Space /nop
 a /nop
 d /nop
@@ -7,4 +8,15 @@ z /nop
 Left /NOP
 right /NOP
 down /nop
+=======
+Space /nop
+a /nop
+d /nop
+s /nop
+w /nop
+z /nop
+Left /NOP
+right /NOP
+down /nop
+>>>>>>> 68fdcebd8c83dbcfdbac1d97e85345c9412bacd6
 up /nop

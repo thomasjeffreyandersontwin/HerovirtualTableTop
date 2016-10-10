@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 Space "+up"
 a "+left"
 d "+right"
@@ -8,4 +9,16 @@ z "+down"
 Left "+TurnLeft"
 right "+TurnRight"
 down "+LookUp"
+=======
+Space "+up"
+a "+left"
+d "+right"
+s "+backward"
+w "+forward"
+z "+down"
+
+Left "+TurnLeft"
+right "+TurnRight"
+down "+LookUp"
+>>>>>>> 68fdcebd8c83dbcfdbac1d97e85345c9412bacd6
 up "+LookDown"

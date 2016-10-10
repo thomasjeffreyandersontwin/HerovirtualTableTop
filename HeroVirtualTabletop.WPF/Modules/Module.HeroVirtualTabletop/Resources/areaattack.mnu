@@ -1,7 +1,16 @@
+<<<<<<< HEAD
 // POPMENU File for Area Attack
 //
 Menu "AreaAttack"
 {
 	Option "Target" "bind_save_file bindsavetarget.txt"
 	Option "Target and Execute" "bind_save_file bindsavetargetexecute.txt"
+=======
+// POPMENU File for Area Attack
+//
+Menu "AreaAttack"
+{
+	Option "Target" "bind_save_file bindsavetarget.txt"
+	Option "Target and Execute" "bind_save_file bindsavetargetexecute.txt"
+>>>>>>> 68fdcebd8c83dbcfdbac1d97e85345c9412bacd6
 }
