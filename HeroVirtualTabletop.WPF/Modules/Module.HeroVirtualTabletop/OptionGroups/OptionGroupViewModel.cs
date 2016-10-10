@@ -459,7 +459,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else if (this.OptionGroup.Type == OptionType.CharacterMovement)
             {
-                activeOption = (T)Convert.ChangeType(owner.ActiveMovement, typeof(T));
+                activeOption = (T)Convert.ChangeType(owner.ActiveCharacterMovement, typeof(T));
             }
             else if (this.OptionGroup.Type == OptionType.Mixed)
             {
@@ -469,7 +469,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
                 else if (SelectedOption is CharacterMovement)
                 {
-                    activeOption = (T)Convert.ChangeType(owner.ActiveMovement, typeof(CharacterMovement));
+                    activeOption = (T)Convert.ChangeType(owner.ActiveCharacterMovement, typeof(CharacterMovement));
                 }
                 else if (SelectedOption is AnimatedAbility)
                 {
@@ -486,10 +486,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
-            else if (this.OptionGroup.Type == OptionType.CharacterMovement)
-            {
-                owner.ActiveMovement = (CharacterMovement)Convert.ChangeType(value, typeof(CharacterMovement));
-            }
+            //else if (this.OptionGroup.Type == OptionType.CharacterMovement)
+            //{
+            //    owner.ActiveMovement = (CharacterMovement)Convert.ChangeType(value, typeof(CharacterMovement));
+            //}
         }
 
         private T GetSelectedOption()
@@ -508,6 +508,15 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                         ability.Stop();
                 }
             }
+            else if (selectedOption != null && selectedOption is CharacterMovement)
+            {
+                if (selectedOption as CharacterMovement != value as CharacterMovement)
+                {
+                    CharacterMovement characterMovement = selectedOption as CharacterMovement;
+                    if (characterMovement.IsActive)
+                        characterMovement.DeactivateMovement();
+                }
+            }
             selectedOption = value;
             if (value is Identity)
             {
@@ -515,12 +524,12 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     this.SpawnAndTargetOwnerCharacter();
                 owner.ActiveIdentity = (Identity)Convert.ChangeType(value, typeof(Identity));
             }
-            else if (value is CharacterMovement)
-            {
-                if (!this.Owner.HasBeenSpawned)
-                    this.SpawnAndTargetOwnerCharacter();
-                owner.ActiveMovement = (CharacterMovement)Convert.ChangeType(value, typeof(CharacterMovement));
-            }
+            //else if (value is CharacterMovement)
+            //{
+            //    if (!this.Owner.HasBeenSpawned)
+            //        this.SpawnAndTargetOwnerCharacter();
+            //    owner.ActiveMovement = (CharacterMovement)Convert.ChangeType(value, typeof(CharacterMovement));
+            //}
         }
 
         private bool CanPlayOption(object arg)
@@ -538,11 +547,13 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else
             {
+                this.SpawnAndTargetOwnerCharacter();
                 CharacterMovement characterMovement = selectedOption as CharacterMovement;
                 if(characterMovement != null && characterMovement.Movement != null && !characterMovement.IsActive)
                 {
-                    //characterMovement.ActivateMovement();
+                    characterMovement.ActivateMovement();
                 }
+                this.Owner.ActiveCharacterMovement = characterMovement;
             }
         }
 
@@ -584,6 +595,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             else
             {
+                this.Owner.ActiveCharacterMovement = null;
                 CharacterMovement characterMovement = selectedOption as CharacterMovement;
                 if (characterMovement != null && characterMovement.Movement != null && characterMovement.IsActive)
                 {
@@ -619,12 +631,28 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 StopOption(SelectedOption);
             }
+            else if (SelectedOption != null && SelectedOption is CharacterMovement && !(obj is CharacterMovement))
+            {
+                StopOption(SelectedOption);
+            }
 
             //SelectedOption = (T)obj;
             if (SelectedOption is AnimatedAbility)
             {
                 AnimatedAbility ability = obj as AnimatedAbility;
                 if (!ability.IsActive)
+                {
+                    PlayOption(obj);
+                }
+                else
+                {
+                    StopOption(obj);
+                }
+            }
+            else if(SelectedOption is CharacterMovement)
+            {
+                CharacterMovement characterMovement = obj as CharacterMovement;
+                if (!characterMovement.IsActive)
                 {
                     PlayOption(obj);
                 }
@@ -682,8 +710,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             CharacterMovement characterMovement = SelectedOption as CharacterMovement;
             if (this.Owner.DefaultMovement == characterMovement)
                 this.Owner.DefaultMovement = null;
-            if (this.Owner.ActiveMovement == characterMovement)
-                this.Owner.ActiveMovement = null;
+            //if (this.Owner.ActiveMovement == characterMovement)
+            //    this.Owner.ActiveMovement = null;
             optionGroup.Remove(SelectedOption);
         }
         private Identity GetNewIdentity()
