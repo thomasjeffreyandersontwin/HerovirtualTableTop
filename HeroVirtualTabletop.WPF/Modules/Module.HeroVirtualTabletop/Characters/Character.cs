@@ -303,45 +303,45 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private CharacterMovement activeMovement;
-        [JsonProperty(Order = 4)]
-        public CharacterMovement ActiveMovement
-        {
-            get
-            {
-                return activeMovement;
-            }
-            set
-            {
-                activeMovement = value;
-                ////Deactivate all active persistent abilities on Identity Change
-                //AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
-                ////Deactive any effect activated as a result of former Identity loading
-                //if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
-                //    activeIdentity.AnimationOnLoad.Stop();
-                Movements.UpdateIndices();
-                if (value != null && !Movements.ContainsKey(value.Name))
-                {
-                    Movements.Add(value);
-                }
-                if (value != null)
-                {
-                    activeMovement = Movements[value.Name];
-                    if (HasBeenSpawned)
-                    {
-                        Target(false);
-                        //if (activeMovement.Movement != null)
-                        //    activeMovement.ActivateMovement();
-                    }
+        //private CharacterMovement activeMovement;
+        //[JsonProperty(Order = 4)]
+        //public CharacterMovement ActiveMovement
+        //{
+        //    get
+        //    {
+        //        return activeMovement;
+        //    }
+        //    set
+        //    {
+        //        activeMovement = value;
+        //        ////Deactivate all active persistent abilities on Identity Change
+        //        //AnimatedAbilities.Where((ab) => { return ab.IsActive; }).ToList().ForEach((ab) => { ab.Stop(); });
+        //        ////Deactive any effect activated as a result of former Identity loading
+        //        //if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
+        //        //    activeIdentity.AnimationOnLoad.Stop();
+        //        Movements.UpdateIndices();
+        //        if (value != null && !Movements.ContainsKey(value.Name))
+        //        {
+        //            Movements.Add(value);
+        //        }
+        //        if (value != null)
+        //        {
+        //            activeMovement = Movements[value.Name];
+        //            if (HasBeenSpawned)
+        //            {
+        //                Target(false);
+        //                //if (activeMovement.Movement != null)
+        //                //    activeMovement.ActivateMovement();
+        //            }
 
-                }
-                else
-                {
-                    activeMovement = null;
-                }
-                OnPropertyChanged("ActiveMovement");
-            }
-        }
+        //        }
+        //        else
+        //        {
+        //            activeMovement = null;
+        //        }
+        //        OnPropertyChanged("ActiveMovement");
+        //    }
+        //}
 
         private MovementInstruction movementInstruction;
         [JsonIgnore]
@@ -400,6 +400,21 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("ActiveIdentity");
             }
         }
+        private CharacterMovement activeMovement;
+        [JsonIgnore]
+        public CharacterMovement ActiveMovement
+        {
+            get
+            {
+                return activeMovement;
+            }
+            set
+            {
+                activeMovement = value;
+                OnPropertyChanged("ActiveMovement");
+            }
+        }
+
         private AnimatedAbility activeAbility;
         [JsonIgnore]
         public AnimatedAbility ActiveAbility

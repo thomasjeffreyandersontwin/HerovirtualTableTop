@@ -227,7 +227,8 @@ namespace Module.HeroVirtualTabletop.Movements
         public void StopMovement()
         {
             this.IsPlaying = false;
-            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            if(timer != null)
+                timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         public void StartMovment(Character target)
@@ -254,7 +255,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             //  
                             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentDirection);
                             Vector3 rotationVector = (target.Position as Position).GetRotationVector(rotationAngle);
-                            (target.Position as Position).MoveTarget(rotationVector, 2);
+                            (target.Position as Position).MoveTarget(rotationVector, 0.15f);
                         }
                         else
                         {
@@ -262,7 +263,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             target.MovementInstruction.CurrentDirection = MovementDirection.Still;
                         }
                         if(this.IsPlaying)
-                            timer.Change(50, Timeout.Infinite);
+                            timer.Change(5, Timeout.Infinite);
                     }
                     else // else change direction and increment position
                     {

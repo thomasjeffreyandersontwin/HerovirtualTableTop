@@ -174,19 +174,20 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             Vector3 vCurrent = GetPositionVector();
             Vector3 directionVector = vTarget;
             directionVector.Normalize();
-            var destX = vTarget.X + directionVector.X * units;
-            var destY = vTarget.Y + directionVector.Y * units;
-            var destZ = vTarget.Z + directionVector.Z * units;
-            if (Math.Abs(vTarget.X - destX) < 1)
-                destX = vTarget.X;
-            if (Math.Abs(vTarget.Y - destY) < 1)
-                destY = vTarget.Y;
-            if (Math.Abs(vTarget.Z - destZ) < 1)
-                destZ = vTarget.Z;
+            var destX = vCurrent.X + directionVector.X * units;
+            var destY = vCurrent.Y + directionVector.Y * units;
+            var destZ = vCurrent.Z + directionVector.Z * units;
+            //if (Math.Abs(vCurrent.X - destX) < 1)
+            //    destX = vCurrent.X;
+            //if (Math.Abs(vCurrent.Y - destY) < 1)
+            //    destY = vCurrent.Y;
+            //if (Math.Abs(vCurrent.Z - destZ) < 1)
+            //    destZ = vCurrent.Z;
 
             X = destX;
             Y = destY;
             Z = destZ;
+
             //var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
             //Vector3 targetPosition = GetCollisionPoint(collisionInfo);
             //if (targetPosition.X == 0 && targetPosition.Y == 0 && targetPosition.Z == 0)
@@ -236,9 +237,10 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             //c3 = (t(r) * Z * Z) + cos (r)
             var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
 
-            var vX = (float)(a1 * X + a2 * Y + a3 * Z);
-            var vY = (float)(b1 * X + b2 * Y + b3 * Z);
-            var vZ = (float)(c1 * X + c2 * Y + c3 * Z);
+            Vector3 facingVector = GetFacingVector();
+            var vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
+            var vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);
+            var vZ = (float)(c1 * facingVector.X + c2 * facingVector.Y + c3 * facingVector.Z);
 
             return new Vector3(vX, vY, vZ);
         }

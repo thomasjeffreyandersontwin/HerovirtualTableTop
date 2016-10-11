@@ -541,7 +541,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 CharacterMovement characterMovement = selectedOption as CharacterMovement;
                 if(characterMovement != null && characterMovement.Movement != null && !characterMovement.IsActive)
                 {
-                    //characterMovement.ActivateMovement();
+                    owner.ActiveMovement = characterMovement;
+                    characterMovement.ActivateMovement();
                 }
             }
         }
@@ -588,6 +589,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 if (characterMovement != null && characterMovement.Movement != null && characterMovement.IsActive)
                 {
                     characterMovement.DeactivateMovement();
+                    owner.ActiveMovement = null;
                 }
             }
         }
@@ -625,6 +627,18 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 AnimatedAbility ability = obj as AnimatedAbility;
                 if (!ability.IsActive)
+                {
+                    PlayOption(obj);
+                }
+                else
+                {
+                    StopOption(obj);
+                }
+            }
+            else if (SelectedOption is CharacterMovement)
+            {
+                CharacterMovement characterMovement = obj as CharacterMovement;
+                if (!characterMovement.IsActive)
                 {
                     PlayOption(obj);
                 }
@@ -682,8 +696,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             CharacterMovement characterMovement = SelectedOption as CharacterMovement;
             if (this.Owner.DefaultMovement == characterMovement)
                 this.Owner.DefaultMovement = null;
-            if (this.Owner.ActiveMovement == characterMovement)
-                this.Owner.ActiveMovement = null;
             optionGroup.Remove(SelectedOption);
         }
         private Identity GetNewIdentity()

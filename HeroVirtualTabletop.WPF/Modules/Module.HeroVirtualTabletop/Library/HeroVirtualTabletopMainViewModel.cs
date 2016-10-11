@@ -1,5 +1,4 @@
-﻿using AutoItX3Lib;
-using Framework.WPF.Library;
+﻿using Framework.WPF.Library;
 using Framework.WPF.Library.Enumerations;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.PopupService;
