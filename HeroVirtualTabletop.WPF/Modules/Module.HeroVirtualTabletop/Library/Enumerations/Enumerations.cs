@@ -81,6 +81,7 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Backward,
         Upward,
         Downward,
-        Still
+        Still,
+        None
     }
 }

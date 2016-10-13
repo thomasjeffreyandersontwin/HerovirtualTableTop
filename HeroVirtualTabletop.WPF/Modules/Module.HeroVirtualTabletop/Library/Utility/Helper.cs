@@ -15,6 +15,7 @@ using Module.HeroVirtualTabletop.OptionGroups;
 using System.Reflection;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
+using Microsoft.Xna.Framework;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -56,7 +57,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             set;
         }
 
-        public static Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
+        public static System.Windows.Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
         public static string GlobalVariables_DraggingOptionGroupName { get; set; }
 
         #endregion
@@ -314,6 +315,29 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             return null;
         }
 
+        #endregion
+
+        #region Collision Info
+        //X:[126.30] Y:[-0.50] Z:[-60.09] D:[0.00]
+        public static Vector3 GetCollisionVector(string collisionInfo)
+        {
+            int indexXStart = collisionInfo.IndexOf("[");
+            int indexXEnd = collisionInfo.IndexOf("]");
+            string xStr = collisionInfo.Substring(indexXStart + 1, indexXEnd - indexXStart - 1);
+            float X = float.Parse(xStr);
+
+            int indexYStart = collisionInfo.IndexOf("[", indexXEnd);
+            int indexYEnd = collisionInfo.IndexOf("]", indexYStart);
+            string yStr = collisionInfo.Substring(indexYStart + 1, indexYEnd - indexYStart - 1);
+            float Y = float.Parse(yStr);
+
+            int indexZStart = collisionInfo.IndexOf("[", indexYEnd);
+            int indexZEnd = collisionInfo.IndexOf("]", indexZStart);
+            string zStr = collisionInfo.Substring(indexZStart + 1, indexZEnd - indexZStart - 1);
+            float Z = float.Parse(zStr);
+
+            return new Vector3(X, Y, Z);
+        }
         #endregion
     }
 }

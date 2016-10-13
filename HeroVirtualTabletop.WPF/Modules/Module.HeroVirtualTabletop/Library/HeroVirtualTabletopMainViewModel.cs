@@ -66,6 +66,10 @@ namespace Module.HeroVirtualTabletop.Library
 
             LoadModelsFile();
 
+            LoadCostumeFiles();
+
+            LoadSoundFiles();
+
             ClearTempFilesFromDataFolder();
 
             //LoadSoundFiles();
@@ -241,6 +245,10 @@ namespace Module.HeroVirtualTabletop.Library
             if (!directoryExists)
                 SetGameDirectory();
 
+            string dataDir = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME);
+            if (!Directory.Exists(dataDir))
+                Directory.CreateDirectory(dataDir);
+
             string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_FILENAME);
             if (!File.Exists(filePath))
             {
@@ -276,11 +284,36 @@ namespace Module.HeroVirtualTabletop.Library
             }
             else
             {
-                //Uri uri = new Uri("/Resources/sound.zip", UriKind.Relative);
-                //StreamResourceInfo data = Application.GetContentStream(uri);
+                //var resourceName = "Module.HeroVirtualTabletop.Resources.sound.zip";
+                //var assembly = Assembly.GetExecutingAssembly();
+                //using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                //using (StreamReader reader = new StreamReader(stream))
+                //{
+                //    ZipArchive archive = new ZipArchive(reader.BaseStream);
+                //    archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+                //}
+            }
+        }
 
-                //ZipArchive archive = new ZipArchive(data.Stream);
-                //archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+        private void LoadCostumeFiles()
+        {
+            string folderPath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
+            if (Directory.Exists(folderPath))
+            {
+                return;
+            }
+            else
+            {
+                var resourceName = "Module.HeroVirtualTabletop.Resources.costumes.zip";
+                var assembly = Assembly.GetExecutingAssembly();
+                using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    ZipArchive archive = new ZipArchive(reader.BaseStream);
+                    archive.ExtractToDirectory(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+                }
+
+                
             }
         }
 

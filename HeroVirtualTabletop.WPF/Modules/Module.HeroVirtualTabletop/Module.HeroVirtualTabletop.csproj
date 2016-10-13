@@ -316,6 +316,7 @@
     <EmbeddedResource Include="Resources\FXElements.csv" />
     <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />
     <EmbeddedResource Include="Resources\character.mnu" />
+    <EmbeddedResource Include="Resources\costumes.zip" />
     <None Include="Resources\Models.txt" />
   </ItemGroup>
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Newtonsoft.Json;
 using System;
@@ -169,39 +170,11 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             return new Vector3(X, Y, Z);
         }
 
-        public void MoveTarget(Vector3 vTarget, float units)
+        public void SetPosition(Vector3 positionVector)
         {
-            Vector3 vCurrent = GetPositionVector();
-            Vector3 directionVector = vTarget;
-            directionVector.Normalize();
-            var destX = vCurrent.X + directionVector.X * units;
-            var destY = vCurrent.Y + directionVector.Y * units;
-            var destZ = vCurrent.Z + directionVector.Z * units;
-            //if (Math.Abs(vCurrent.X - destX) < 1)
-            //    destX = vCurrent.X;
-            //if (Math.Abs(vCurrent.Y - destY) < 1)
-            //    destY = vCurrent.Y;
-            //if (Math.Abs(vCurrent.Z - destZ) < 1)
-            //    destZ = vCurrent.Z;
-
-            X = destX;
-            Y = destY;
-            Z = destZ;
-
-            //var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
-            //Vector3 targetPosition = GetCollisionPoint(collisionInfo);
-            //if (targetPosition.X == 0 && targetPosition.Y == 0 && targetPosition.Z == 0)
-            //{
-            //    X = destX;
-            //    Y = destY;
-            //    Z = destZ;
-            //}
-            //else
-            //{
-            //    X = targetPosition.X;
-            //    Y = targetPosition.Y;
-            //    Z = targetPosition.Z;
-            //}
+            X = positionVector.X;
+            Y = positionVector.Y;
+            Z = positionVector.Z;
         }
 
         public void SetTargetFacing(Vector3 facingDirectionVector)
@@ -214,40 +187,6 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             SetTargetAttribute(88, -1 * newRotationMatrix.M33);
         }
 
-        public Vector3 GetRotationVector(double rotaionAngle, double rotationAxisX = 0, double rotationAxisY = 1, double rotationAxisZ = 0)
-        {
-            double rotationAngleRadian = GetRadianAngle(rotaionAngle);
-            double tr = 1 - Math.Sin(rotationAngleRadian);
-            //a1 = (t(r) * X * X) + cos(r)
-            var a1 = tr * rotationAxisX * rotationAxisX + Math.Cos(rotationAngleRadian);
-            //a2 = (t(r) * X * Y) - (sin(r) * Z)
-            var a2 = tr * rotationAxisX * rotationAxisY - Math.Sin(rotationAngleRadian) * rotationAxisZ;
-            //a3 = (t(r) * X * Z) + (sin(r) * Y)
-            var a3 = tr * rotationAxisX * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisY;
-            //b1 = (t(r) * X * Y) + (sin(r) * Z)
-            var b1 = tr * rotationAxisX * rotationAxisY + Math.Sin(rotationAngleRadian) * rotationAxisZ;
-            //b2 = (t(r) * Y * Y) + cos(r)
-            var b2 = tr * rotationAxisY * rotationAxisY + Math.Cos(rotationAngleRadian);
-            //b3 = (t(r) * Y * Z) - (sin(r) * X)
-            var b3 = tr * rotationAxisY * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisX;
-            //c1 = (t(r) * X * Z) - (sin(r) * Y)
-            var c1 = tr * rotationAxisX * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisY;
-            //c2 = (t(r) * Y * Z) + (sin(r) * X)
-            var c2 = tr * rotationAxisY * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisX;
-            //c3 = (t(r) * Z * Z) + cos (r)
-            var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
-
-            Vector3 facingVector = GetFacingVector();
-            var vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
-            var vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);
-            var vZ = (float)(c1 * facingVector.X + c2 * facingVector.Y + c3 * facingVector.Z);
-
-            return new Vector3(vX, vY, vZ);
-        }
-        public double GetRadianAngle(double angle)
-        {
-            return (Math.PI / 180) * angle;
-        }
         #region Equality Comparer and Operator Overloading
         public static bool operator ==(Position a, Position b)
         {

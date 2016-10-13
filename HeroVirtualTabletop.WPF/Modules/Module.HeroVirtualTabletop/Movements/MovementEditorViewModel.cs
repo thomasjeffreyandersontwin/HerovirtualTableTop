@@ -95,6 +95,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("CurrentMovement");
                 this.SaveMovementCommand.RaiseCanExecuteChanged();
                 this.SetDefaultMovementCommand.RaiseCanExecuteChanged();
+                this.DemoMovementCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -235,6 +236,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public DelegateCommand<object> LoadResourcesCommand { get; private set; }
         public DelegateCommand<object> SetDefaultMovementCommand { get; private set; }
         public DelegateCommand<object> DemoDirectionalMoveCommand { get; private set; }
+        public DelegateCommand<object> DemoMovementCommand { get; private set; }
         public DelegateCommand<object> LoadAbilityEditorCommand { get; private set; }
 
         #endregion
@@ -273,6 +275,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.DemoDirectionalMoveCommand = new DelegateCommand<object>(this.DemoDirectionalMovement, this.CanDemoDirectionalMovement);
             this.LoadAbilityEditorCommand = new DelegateCommand<object>(this.LoadAbilityEditor, this.CanLoadAbilityEditor);
+            this.DemoMovementCommand = new DelegateCommand<object>(this.DemoMovement, this.CanDemoMovement);
         }
 
         private void InitializeMovementSelections()
@@ -511,6 +514,20 @@ namespace Module.HeroVirtualTabletop.Movements
                     break;
                 case MovementDirection.Still:
                     break;
+            }
+        }
+
+        private bool CanDemoMovement(object state)
+        {
+            return this.CurrentCharacterMovement != null && this.CurrentCharacterMovement.Movement != null && !this.CurrentCharacterMovement.IsActive;
+        }
+
+        private void DemoMovement(object state)
+        {
+            if (this.CurrentCharacterMovement != null && this.CurrentCharacterMovement.Movement != null && !this.CurrentCharacterMovement.IsActive)
+            {
+                this.CurrentCharacterMovement.Character.ActiveMovement = this.CurrentCharacterMovement;
+                this.CurrentCharacterMovement.ActivateMovement();
             }
         }
 

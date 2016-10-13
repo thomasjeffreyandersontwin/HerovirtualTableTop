@@ -134,13 +134,21 @@ namespace Module.HeroVirtualTabletop.Movements
                         //if(!this.Movement.IsPlaying)
                         {
                             var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                            MovementDirection direction = GetMovementDirectionFromKey(inputKey);
-                            if(direction != MovementDirection.Still && this.Character.MovementInstruction.CurrentDirection != direction)
+                            if(inputKey == Key.Escape)
                             {
-                                this.Character.MovementInstruction.LastDirection = this.Character.MovementInstruction.CurrentDirection;
-                                this.Character.MovementInstruction.CurrentDirection = direction;
-                                this.Movement.StartMovment(this.Character);
-                            } 
+                                DeactivateMovement();
+                                this.Character.ActiveMovement = null;
+                            }
+                            else
+                            {
+                                MovementDirection direction = GetMovementDirectionFromKey(inputKey);
+                                if (direction != MovementDirection.None && this.Character.MovementInstruction.CurrentDirection != direction)
+                                {
+                                    this.Character.MovementInstruction.LastDirection = this.Character.MovementInstruction.CurrentDirection;
+                                    this.Character.MovementInstruction.CurrentDirection = direction;
+                                    this.Movement.StartMovment(this.Character);
+                                } 
+                            }
                         }
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);
@@ -151,7 +159,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private MovementDirection GetMovementDirectionFromKey(Key key)
         {
-            MovementDirection movementDirection = MovementDirection.Still;
+            MovementDirection movementDirection = MovementDirection.None;
             switch(key)
             {
                 case Key.A:
@@ -171,6 +179,9 @@ namespace Module.HeroVirtualTabletop.Movements
                     break;
                 case Key.Z:
                     movementDirection = MovementDirection.Downward;
+                    break;
+                case Key.X:
+                    movementDirection = MovementDirection.Still;
                     break;
 
             }
@@ -219,9 +230,19 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        public void Move(MovementDirection direction, double distance, Character target) 
+        public void Move(Vector3 destinationVector, Character target) 
         {
+            Vector3 currentPositionVector = (target.Position as Position).GetPositionVector();
+            var collisionInfo = IconInteractionUtility.GetCollisionInfo(currentPositionVector.X, currentPositionVector.Y + 7, currentPositionVector.Z, destinationVector.X, destinationVector.Y + 7, destinationVector.Z);
+            Vector3 collisionVector = Helper.GetCollisionVector(collisionInfo);
+            if(collisionVector.X == 0f && collisionVector.Y == 0f && collisionVector.Z == 0f)
+            {
+                (target.Position as Position).SetPosition(destinationVector);
+            }
+            else
+            {
 
+            }
         }
 
         public void StopMovement()
@@ -254,14 +275,15 @@ namespace Module.HeroVirtualTabletop.Movements
                         {
                             //  
                             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentDirection);
-                            Vector3 rotationVector = (target.Position as Position).GetRotationVector(rotationAngle);
-                            (target.Position as Position).MoveTarget(rotationVector, 0.15f);
+                            Vector3 directionVector = GetDirectionVector(rotationAngle, target);
+                            Vector3 destinationVector = GetDestinationVector(directionVector, 0.15f, target);
+                            Move(destinationVector, target);
                         }
-                        else
-                        {
-                            MoveStill(target);
-                            target.MovementInstruction.CurrentDirection = MovementDirection.Still;
-                        }
+                        //else
+                        //{
+                        //    MoveStill(target);
+                        //    target.MovementInstruction.CurrentDirection = MovementDirection.Still;
+                        //}
                         if(this.IsPlaying)
                             timer.Change(5, Timeout.Infinite);
                     }
@@ -277,6 +299,70 @@ namespace Module.HeroVirtualTabletop.Movements
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
             
+        }
+
+        private Vector3 GetDestinationVector(Vector3 directionVector, float units, Character target)
+        {
+            Vector3 vCurrent = (target.Position as Position).GetPositionVector();
+            directionVector.Normalize();
+            var destX = vCurrent.X + directionVector.X * units;
+            var destY = vCurrent.Y + directionVector.Y * units;
+            var destZ = vCurrent.Z + directionVector.Z * units;
+            return new Vector3(destX, destY, destZ);
+        }
+
+
+        public Vector3 GetDirectionVector(double rotaionAngle, Character target)
+        {
+            MovementDirection direction = target.MovementInstruction.CurrentDirection;
+            float vX, vY, vZ;
+            double rotationAxisX = 0, rotationAxisY = 1, rotationAxisZ = 0;
+            if (direction == MovementDirection.Upward)
+            {
+                vX = 0;
+                vY = 1;
+                vZ = 0;
+            }
+            else if (direction == MovementDirection.Downward)
+            {
+                vX = 0;
+                vY = -1;
+                vZ = 0;
+            }
+            else
+            {
+                double rotationAngleRadian = GetRadianAngle(rotaionAngle);
+                double tr = 1 - Math.Sin(rotationAngleRadian);
+                //a1 = (t(r) * X * X) + cos(r)
+                var a1 = tr * rotationAxisX * rotationAxisX + Math.Cos(rotationAngleRadian);
+                //a2 = (t(r) * X * Y) - (sin(r) * Z)
+                var a2 = tr * rotationAxisX * rotationAxisY - Math.Sin(rotationAngleRadian) * rotationAxisZ;
+                //a3 = (t(r) * X * Z) + (sin(r) * Y)
+                var a3 = tr * rotationAxisX * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisY;
+                //b1 = (t(r) * X * Y) + (sin(r) * Z)
+                var b1 = tr * rotationAxisX * rotationAxisY + Math.Sin(rotationAngleRadian) * rotationAxisZ;
+                //b2 = (t(r) * Y * Y) + cos(r)
+                var b2 = tr * rotationAxisY * rotationAxisY + Math.Cos(rotationAngleRadian);
+                //b3 = (t(r) * Y * Z) - (sin(r) * X)
+                var b3 = tr * rotationAxisY * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisX;
+                //c1 = (t(r) * X * Z) - (sin(r) * Y)
+                var c1 = tr * rotationAxisX * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisY;
+                //c2 = (t(r) * Y * Z) + (sin(r) * X)
+                var c2 = tr * rotationAxisY * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisX;
+                //c3 = (t(r) * Z * Z) + cos (r)
+                var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
+
+                Vector3 facingVector = (target.Position as Position).GetFacingVector();
+                vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
+                vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);
+                vZ = (float)(c1 * facingVector.X + c2 * facingVector.Y + c3 * facingVector.Z);
+            }
+
+            return new Vector3(vX, vY, vZ);
+        }
+        public double GetRadianAngle(double angle)
+        {
+            return (Math.PI / 180) * angle;
         }
 
         public void MoveStill(Character target)
@@ -377,10 +463,10 @@ namespace Module.HeroVirtualTabletop.Movements
                     rotationAngle = 90d;
                     break;
                 case MovementDirection.Upward:
-                    rotationAngle = -90d;
+                    rotationAngle = 90d;
                     break;
                 case MovementDirection.Downward:
-                    rotationAngle = 90d;
+                    rotationAngle = -90d;
                     break;
             }
             return rotationAngle;
