@@ -338,6 +338,15 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
             return new Vector3(X, Y, Z);
         }
+
+        public static Vector3 GetRoundedVector(Vector3 vector, int decimalPlaces)
+        {
+            float x = (float)Math.Round(vector.X, decimalPlaces);
+            float y = (float)Math.Round(vector.Y, decimalPlaces);
+            float z = (float)Math.Round(vector.Z, decimalPlaces);
+
+            return new Vector3(x, y, z);
+        }
         #endregion
     }
 }

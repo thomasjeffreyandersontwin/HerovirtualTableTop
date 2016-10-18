@@ -21,6 +21,7 @@ using Framework.WPF.Extensions;
 using System.Runtime.Serialization;
 using Module.HeroVirtualTabletop.Movements;
 using Microsoft.Xna.Framework;
+using Module.HeroVirtualTabletop.Library.Utility;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -193,6 +194,32 @@ namespace Module.HeroVirtualTabletop.Characters
             get
             {
                 return GetLabel();
+            }
+        }
+
+        [JsonIgnore]
+        public Vector3 CurrentPositionVector
+        {
+            get
+            {
+                return Helper.GetRoundedVector((Position as Position).GetPositionVector(), 2);
+            }
+            set
+            {
+                (Position as Position).SetPosition(value);
+            }
+        }
+
+        [JsonIgnore]
+        public Vector3 CurrentFacingVector
+        {
+            get
+            {
+                return Helper.GetRoundedVector((Position as Position).GetFacingVector(), 2);
+            }
+            set
+            {
+                (Position as Position).SetTargetFacing(value);
             }
         }
 

@@ -84,4 +84,15 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Still,
         None
     }
+
+    public enum BodyPart
+    {
+        None,
+        Top,
+        TopMiddle,
+        Middle,
+        BottomMiddle,
+        BottomSemiMiddle,
+        Bottom
+    }
 }
