@@ -61,6 +61,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                     }));
         }
 
+        private object lockObj = new object();
+
         private Action saveCrowdCollectionCompleted;
         public void SaveCrowdCollection(Action SaveCrowdCollectionCompleted, List<CrowdModel> crowdCollection)
         {
@@ -70,9 +72,12 @@ namespace Module.HeroVirtualTabletop.Crowds
                 (new WaitCallback(
                     delegate (object state)
                         {
-                            Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
-                            
-                            this.saveCrowdCollectionCompleted();
+                            lock(lockObj)
+                            {
+                                Helper.SerializeObjectAsJSONToFile(crowdRepositoryPath, crowdCollection);
+
+                                this.saveCrowdCollectionCompleted();
+                            }
                         }));
         }
 

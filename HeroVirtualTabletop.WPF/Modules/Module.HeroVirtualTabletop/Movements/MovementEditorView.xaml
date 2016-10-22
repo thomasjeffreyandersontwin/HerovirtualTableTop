@@ -53,6 +53,9 @@
                 <ComboBox.InputBindings>
                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterMovementEditModeCommand}" CommandParameter="{Binding ElementName=comboBoxMovements}"/>
                 </ComboBox.InputBindings>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="SelectionChanged" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.SaveMovementCommand}"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </ComboBox>
             <TextBox Name="textBoxName" Grid.Row="1" Grid.Column="0" Visibility="Hidden" Text="{Binding Path=SelectedMovement.Name, UpdateSourceTrigger=Explicit}" Margin="3,1, 0, 0">
                 <behaviors:CommandBehaviorCollection.Behaviors>
@@ -63,11 +66,21 @@
                     <KeyBinding Key="Escape" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.CancelMovementEditModeCommand}" CommandParameter="{Binding ElementName=textBoxName}"/>
                 </TextBox.InputBindings>
             </TextBox>
-            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" HorizontalAlignment="Right">
+            <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Orientation="Horizontal">
+                <TextBlock Text="Trigger Key" Style="{StaticResource TextBlockDefaultStyle}" VerticalAlignment="Center"/>
+                <ComboBox Margin="2"
+                          Name="cbBoxActivationKey" ItemsSource="{Binding AvailableKeys}"
+                          SelectedValue="{Binding CurrentCharacterMovement.ActivationKey}">
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="SelectionChanged" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.SaveMovementCommand}"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                </ComboBox>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Left">
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
-                </StackPanel.Resources> 
-                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement" Command="{Binding DemoMovementCommand}" />
+                </StackPanel.Resources>
+                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement" Command="{Binding PlayMovementCommand}" />
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" Margin="0, 0, 5, 0">
                 <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement" Command="{Binding AddMovementCommand}" />
@@ -101,12 +114,17 @@
                 </ListBox>
             </Grid>
             <Grid Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="200*"/>
+                    <ColumnDefinition Width="129*"/>
+                    <ColumnDefinition Width="71*"/>
+                </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
-                <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="3, 1, 0, 0"
-                     Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+                <TextBox Grid.Row="0" Height="Auto" Name="txtBoxAnimationResourceFilter" HorizontalAlignment="Stretch" Margin="3,1,0,31.8"
+                     Text="{Binding Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.ColumnSpan="3" Grid.RowSpan="2"></TextBox>
                 <DataGrid Grid.Row="1" x:Name="dataGridAbilityReferences"
                           MaxWidth="400" HorizontalAlignment="Stretch"
                           Background="Transparent" RowBackground="Transparent"  BorderBrush="#FF1144FF"
@@ -114,7 +132,7 @@
                           SelectionUnit="FullRow" AutoGenerateColumns="False" IsEnabled="{Binding CanEditMovementOptions}"
                           SelectionMode="Single" CanUserResizeRows="False" 
                           SelectedValue="{Binding SelectedMovementMember.MemberAbility.Resource}"
-                            IsSynchronizedWithCurrentItem="True" 
+                            IsSynchronizedWithCurrentItem="True" Grid.ColumnSpan="3" Margin="0,0,0,-0.2" 
                       >
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollIntoViewForDataGrid />
@@ -136,6 +154,6 @@
                 </DataGrid>
             </Grid>
         </Grid>
-        
+
     </Grid>
 </UserControl>

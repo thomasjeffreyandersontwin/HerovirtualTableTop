@@ -196,6 +196,18 @@ namespace Module.HeroVirtualTabletop.Characters
                 return GetLabel();
             }
         }
+        [JsonIgnore]
+        public Microsoft.Xna.Framework.Matrix CurrentModelMatrix
+        {
+            get
+            {
+                return (Position as Position).GetModelMatrix();
+            }
+            set
+            {
+                (Position as Position).SetModelMatrix(value);
+            }
+        }
 
         [JsonIgnore]
         public Vector3 CurrentPositionVector
