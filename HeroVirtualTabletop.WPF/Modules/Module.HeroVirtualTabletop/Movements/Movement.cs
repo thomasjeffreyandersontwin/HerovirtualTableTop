@@ -127,6 +127,8 @@ namespace Module.HeroVirtualTabletop.Movements
             this.Character.MovementInstruction = new MovementInstruction();
             this.Character.MovementInstruction.IsMoving = false;
             this.Character.MovementInstruction.IsTurning = false;
+            this.Character.MovementInstruction.IsMovingToDestination = false;
+            this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
             this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
             this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
             this.Character.MovementInstruction.LastMovementDirection = MovementDirection.None;
@@ -169,6 +171,8 @@ namespace Module.HeroVirtualTabletop.Movements
                                 if (turnDirection != MovementDirection.None)
                                 {
                                     this.Character.MovementInstruction.IsMoving = false;
+                                    this.Character.MovementInstruction.IsMovingToDestination = false;
+                                    this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
                                     this.Character.MovementInstruction.IsTurning = true;
                                     if (this.Character.MovementInstruction.CurrentRotationAxisDirection != turnDirection)
                                     {
@@ -186,6 +190,8 @@ namespace Module.HeroVirtualTabletop.Movements
                                 if(direction != MovementDirection.None)
                                 {
                                     this.Character.MovementInstruction.IsMoving = true;
+                                    this.Character.MovementInstruction.IsMovingToDestination = false;
+                                    this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
                                     this.Character.MovementInstruction.IsTurning = false;
                                     if (this.Character.MovementInstruction.CurrentMovementDirection != direction)
                                     {
@@ -315,27 +321,69 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void Move(Character target, Vector3 destinationVector)
         {
-            // Turn to destination, figure out angle
-            Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
-            float angle = Get2DAngleBetweenVectors(currentForwardVector, destinationVector);
-            target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.Upward;
-            bool turnCompleted = false;
-            while(!turnCompleted)
+            if (target.MovementInstruction == null)
+                target.MovementInstruction = new MovementInstruction();
+            
+            Vector3 currentPositionVector = target.CurrentPositionVector;
+            Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, destinationVector, target.CurrentModelMatrix.Up);
+            newRotationMatrix.M11 *= -1;
+            newRotationMatrix.M33 *= -1;
+            var newModelMatrix = new Matrix
             {
-                if(angle > 5)
+                M11 = newRotationMatrix.M11,
+                M12 = target.CurrentModelMatrix.M12,
+                M13 = newRotationMatrix.M13,
+                M14 = target.CurrentModelMatrix.M14,
+                M21 = target.CurrentModelMatrix.M21,
+                M22 = target.CurrentModelMatrix.M22,
+                M23 = target.CurrentModelMatrix.M23,
+                M24 = target.CurrentModelMatrix.M24,
+                M31 = newRotationMatrix.M31,
+                M32 = target.CurrentModelMatrix.M32,
+                M33 = newRotationMatrix.M33,
+                M34 = target.CurrentModelMatrix.M34,
+                M41 = target.CurrentModelMatrix.M41,
+                M42 = target.CurrentModelMatrix.M42,
+                M43 = target.CurrentModelMatrix.M43,
+                M44 = target.CurrentModelMatrix.M44
+            };
+            //target.CurrentModelMatrix = newModelMatrix;
+            // Turn to destination, figure out angle
+            Vector3 targetForwardVector = newModelMatrix.Forward;
+            Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
+            bool isClockwiseTurn;
+            float origAngle = MathHelper.ToDegrees(Get2DAngleBetweenVectors(currentForwardVector, targetForwardVector, out isClockwiseTurn));
+            var angle = origAngle;
+            
+            if (isClockwiseTurn)
+                target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.Upward;
+            else
+            {
+                target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.Downward;
+            }
+
+            bool turnCompleted = false;
+            while (!turnCompleted)
+            {
+                if (angle > 2)
                 {
-                    Turn(target, 5);
-                    angle -= 5;
+                    Turn(target, 2);
+                    angle -= 2;
                 }
                 else
                 {
                     Turn(target, angle);
                     turnCompleted = true;
                 }
-                Thread.Sleep(10);
+                Thread.Sleep(5);
             }
-            // Play forward movement until reached near destination, also do collision detection
-            // Play still movement when reached near destination
+            // Start Movement
+            target.MovementInstruction.IsMovingToDestination = true;
+            target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
+            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            target.MovementInstruction.DestinationVector = destinationVector;
+            target.MovementInstruction.IsInCollision = false;
+            this.StartMovment(target);
         }
 
         public void Turn(Character target, float angle = 5)
@@ -700,9 +748,12 @@ namespace Module.HeroVirtualTabletop.Movements
             return !(collisionVector.X == 0f && collisionVector.Y == 0f && collisionVector.Z == 0f);
         }
 
-        private float Get2DAngleBetweenVectors(Vector3 v1, Vector3 v2)
+        private float Get2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn)
         {
-            return (float)Math.Atan2(v2.Z - v1.Z, v2.X - v1.X);
+            var x = v1.X * v2.Z - v2.X * v1.Z;
+            isClockwiseTurn = x < 0;
+            var y = (float)Math.Acos(Vector3.Dot(v1, v2));
+            return y;
         }
 
         public void StopMovement()
@@ -765,6 +816,39 @@ namespace Module.HeroVirtualTabletop.Movements
                     await Task.Delay(5);
                     if (this.IsPlaying)
                         timer.Change(5, Timeout.Infinite);
+                }
+                else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
+                {
+                    if (target.MovementInstruction.DestinationVector.X != -10000f && target.MovementInstruction.DestinationVector.Y != -10000f && target.MovementInstruction.DestinationVector.Z != -10000f)
+                    {
+                        var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
+                        if (dist < 5)
+                        {
+                            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
+                            PlayMovementMember(stillMem, target);
+                            target.MovementInstruction.IsMovingToDestination = false;
+                            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+                            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                            this.StopMovement();
+                        }
+                        else
+                        {
+                            if(target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
+                            {
+                                MovementMember forwardMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Forward);
+                                PlayMovementMember(forwardMem, target);
+                                target.MovementInstruction.CurrentMovementDirection = MovementDirection.Forward;
+                            }
+                            else
+                            {
+                                if (!target.MovementInstruction.IsInCollision)
+                                    Move(target);
+                            }
+                        }
+                        await Task.Delay(5);
+                        if (this.IsPlaying)
+                            timer.Change(5, Timeout.Infinite);
+                    }
                 }
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
@@ -884,16 +968,6 @@ namespace Module.HeroVirtualTabletop.Movements
         }
 
         public void MoveToLocation(IMemoryElementPosition destination, Character target)
-        {
-
-        }
-
-        public void Turn(MovementDirection direction, Character target)
-        {
-
-        }
-
-        public void TurnBasedOnKey(string key, Character target)
         {
 
         }
@@ -1052,6 +1126,8 @@ namespace Module.HeroVirtualTabletop.Movements
         private object lockObj = new object();
         public bool IsMoving { get; set; }
         public bool IsTurning { get; set; }
+        public bool IsMovingToDestination { get; set; }
+        public Vector3 DestinationVector { get; set; }
         public MovementDirection CurrentMovementDirection { get; set; }
         public MovementDirection LastMovementDirection { get; set; }
         public MovementDirection CurrentRotationAxisDirection { get; set; }

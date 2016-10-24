@@ -649,10 +649,19 @@ namespace Module.HeroVirtualTabletop.Characters
         public string MoveToCamera(bool completeEvent = true)
         {
             Target(false);
-            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
-            if (completeEvent)
+            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement);
+            if (characterMovement == null)
             {
-                keyBindsGenerator.CompleteEvent();
+                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
+                if (completeEvent)
+                {
+                    keyBindsGenerator.CompleteEvent();
+                }
+            }
+            else
+            {
+                var cameraPos = new Camera().GetPositionVector();
+                characterMovement.Movement.Move(this, cameraPos);
             }
             return keybind;
         }
@@ -914,9 +923,13 @@ namespace Module.HeroVirtualTabletop.Characters
 
         }
 
-        public void MoveToLocation(IMemoryElementPosition destination)
+        public void MoveToLocation(Vector3 destinationVector)
         {
-
+            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement);
+            if (characterMovement != null)
+            {
+                characterMovement.Movement.Move(this, destinationVector);
+            }
         }
 
         public void Turn(MovementDirection direction, double distance)

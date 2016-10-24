@@ -54,8 +54,11 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isPlayingAreaEffect = false;
         private bool isCharacterReset = false;
         private bool isMenuDisplayed = false;
+        private bool isMoveToMouseLocationEnabled = false;
+        private bool isMoveToCharacterEnabled = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
+        private List<Character> targetCharactersForMove = new List<Character>();
         private List<Character> targetCharacters = new List<Character>();
         private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
 
@@ -170,6 +173,8 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> ToggleTargetedCommand { get; private set; }
         public DelegateCommand<object> TargetAndFollowCommand { get; private set; }
         public DelegateCommand<object> MoveTargetToCameraCommand { get; private set; }
+        public DelegateCommand<object> MoveTargetToCharacterCommand { get; private set; }
+        public DelegateCommand<object> MoveTargetToMouseLocationCommand { get; private set; }
         public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
         public DelegateCommand<object> EditCharacterCommand { get; private set; }
         public DelegateCommand<object> ActivateCharacterCommand { get; private set; }
@@ -235,17 +240,24 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         if(!this.isPlayingAttack)
                         {
-                            //Handle clicks
-                            clickCount += 1;
-                            switch (clickCount)
+                            if(!this.isMoveToMouseLocationEnabled)
                             {
-                                case 1: Action action = delegate() { clickTimer.Start(); };
-                                    Application.Current.Dispatcher.BeginInvoke(action);
-                                    break;
-                                case 2: isDoubleClick = true; break;
-                                case 3: isTripleClick = true; break;
-                                case 4: isQuadrupleClick = true; break;
-                                default: break;
+                                //Handle clicks
+                                clickCount += 1;
+                                switch (clickCount)
+                                {
+                                    case 1: Action action = delegate() { clickTimer.Start(); };
+                                        Application.Current.Dispatcher.BeginInvoke(action);
+                                        break;
+                                    case 2: isDoubleClick = true; break;
+                                    case 3: isTripleClick = true; break;
+                                    case 4: isQuadrupleClick = true; break;
+                                    default: break;
+                                }
+                            }
+                            else
+                            {
+                                clickTimer1.Start(); // Get mouse location and move the target character(s) to there
                             }
                         }
                         else
@@ -413,8 +425,21 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
                 Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                AttackDirection direction = new AttackDirection(mouseDirection);
-                this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                if(this.isPlayingAttack)
+                {
+                    AttackDirection direction = new AttackDirection(mouseDirection);
+                    this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                }
+                else
+                {
+                    if(this.SelectedParticipants != null && this.SelectedParticipants.Count > 0)
+                    {
+                        foreach(Character c in this.SelectedParticipants)
+                        {
+                            c.MoveToLocation(mouseDirection);
+                        }
+                    }
+                }
             }
         }
 
@@ -454,6 +479,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
+            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(this.MoveTargetToCharacter, this.CanMoveTargetToCharacter);
+            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(this.MoveTargetToMouseLocation, this.CanMoveTargetToMouseLocation);
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
             this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
             this.ActivateCharacterCommand = new DelegateCommand<object>(this.ActivateCharacter, this.CanActivateCharacter);
@@ -473,6 +500,8 @@ namespace Module.HeroVirtualTabletop.Roster
             this.SavePositionCommand.RaiseCanExecuteChanged();
             this.PlaceCommand.RaiseCanExecuteChanged();
             this.TargetAndFollowCommand.RaiseCanExecuteChanged();
+            this.MoveTargetToCharacterCommand.RaiseCanExecuteChanged();
+            this.MoveTargetToMouseLocationCommand.RaiseCanExecuteChanged();
             this.MoveTargetToCameraCommand.RaiseCanExecuteChanged();
             this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
             this.EditCharacterCommand.RaiseCanExecuteChanged();
@@ -530,7 +559,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void TargetObserver_TargetChanged(object sender, EventArgs e)
         {
-            // sometimes i get exception here in this method's dispatcher calls during application closing. we need to handle this
             try
             {
                 uint currentTargetPointer = targetObserver.CurrentTargetPointer;
@@ -846,6 +874,72 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
+        #region Move Target to Character
+
+        private bool CanMoveTargetToCharacter(object arg)
+        {
+            bool canMoveTargetToCharacter = true;
+            if (this.SelectedParticipants == null)
+            {
+                canMoveTargetToCharacter = false;
+            }
+            else
+            {
+                foreach (CrowdMemberModel member in SelectedParticipants)
+                {
+                    if (!member.HasBeenSpawned)
+                    {
+                        canMoveTargetToCharacter = false;
+                        break;
+                    }
+                }
+            }
+            
+            return canMoveTargetToCharacter;
+        }
+
+        private void MoveTargetToCharacter(object obj)
+        {
+            this.isMoveToCharacterEnabled = true;
+            this.isMoveToMouseLocationEnabled = false;
+            foreach (Character c in this.SelectedParticipants)
+                this.targetCharactersForMove.Add(c);
+            targetObserver.TargetChanged -= RosterTargetUpdated;
+            targetObserver.TargetChanged += RosterTargetUpdated;
+        }
+
+        #endregion
+
+        #region Move Target to Mouse Location
+
+        private bool CanMoveTargetToMouseLocation(object arg)
+        {
+            bool canMoveTargetToMouseLocation = true;
+            if (this.SelectedParticipants == null)
+            {
+                canMoveTargetToMouseLocation = false;
+            }
+            else
+            {
+                foreach (CrowdMemberModel member in SelectedParticipants)
+                {
+                    if (!member.HasBeenSpawned)
+                    {
+                        canMoveTargetToMouseLocation = false;
+                        break;
+                    }
+                }
+            }
+            return canMoveTargetToMouseLocation;
+        }
+
+        private void MoveTargetToMouseLocation(object obj)
+        {
+            this.isMoveToMouseLocationEnabled = !this.isMoveToMouseLocationEnabled;
+        }
+
+        #endregion
+
         #region ToggleManeuverWithCamera
 
 
@@ -972,7 +1066,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     this.fileSystemWatcher.EnableRaisingEvents = true;
                 }
                 Commands_RaiseCanExecuteChanged();
-                targetObserver.TargetChanged += AttackTargetUpdated;
+                targetObserver.TargetChanged += RosterTargetUpdated;
                 this.currentAttack = attack;
                 this.attackingCharacter = attackingCharacter;
                 // Update character properties - icons in roster should show
@@ -980,7 +1074,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        private void AttackTargetUpdated(object sender, EventArgs e)
+        private void RosterTargetUpdated(object sender, EventArgs e)
         {
             uint currentTargetPointer = targetObserver.CurrentTargetPointer;
             CrowdMemberModel currentTarget = (CrowdMemberModel)Participants.DefaultIfEmpty(null).Where(
@@ -1009,6 +1103,24 @@ namespace Module.HeroVirtualTabletop.Roster
                                 if (PopupService.IsOpen("ActiveAttackView") == false)
                                     this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
                             }
+                        }
+                    }
+                }
+                else if(!this.isPlayingAttack && this.isMoveToCharacterEnabled && currentTarget != null)
+                {
+                    if (currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
+                    {
+                        bool canMove = this.targetCharactersForMove.FirstOrDefault(c => c.Name == currentTarget.Name) == null;
+                        if(canMove)
+                        {
+                            Vector3 destination = new Vector3(currentTarget.Position.X, currentTarget.Position.Y, currentTarget.Position.Z);
+                            foreach (Character c in targetCharactersForMove)
+                            {
+                                c.MoveToLocation(destination);
+                            }
+                            this.targetCharactersForMove = new List<Character>();
+                            this.isMoveToCharacterEnabled = false;
+                            targetObserver.TargetChanged -= RosterTargetUpdated;
                         }
                     }
                 }
@@ -1070,7 +1182,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.isPlayingAttack = false;
             this.isPlayingAreaEffect = false;
-            targetObserver.TargetChanged -= AttackTargetUpdated;
+            targetObserver.TargetChanged -= RosterTargetUpdated;
             //this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
             this.currentAttack.Stop();
 
