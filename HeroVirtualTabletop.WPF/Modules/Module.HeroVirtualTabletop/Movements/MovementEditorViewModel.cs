@@ -63,21 +63,6 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #region Public Properties
 
-        //private Character currentCharacter;
-
-        //public Character CurrentCharacter
-        //{
-        //    get
-        //    {
-        //        return currentCharacter;
-        //    }
-        //    set
-        //    {
-        //        currentCharacter = value;
-        //        OnPropertyChanged("CurrentCharacter");
-        //    }
-        //}
-
         private CharacterMovement currentCharacterMovement;
         public CharacterMovement CurrentCharacterMovement
         {
@@ -92,10 +77,10 @@ namespace Module.HeroVirtualTabletop.Movements
                     this.IsDefaultMovementLoaded = true;
                 else
                     this.IsDefaultMovementLoaded = false;
-                OnPropertyChanged("CurrentMovement");
+                OnPropertyChanged("CurrentCharacterMovement");
                 this.SaveMovementCommand.RaiseCanExecuteChanged();
                 this.SetDefaultMovementCommand.RaiseCanExecuteChanged();
-                this.DemoMovementCommand.RaiseCanExecuteChanged();
+                this.PlayMovementCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -117,7 +102,19 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("SelectedMovementMember");
             }
         }
-
+        private ObservableCollection<System.Windows.Forms.Keys> availableKeys;
+        public ObservableCollection<System.Windows.Forms.Keys> AvailableKeys
+        {
+            get
+            {
+                return availableKeys;
+            }
+            set
+            {
+                availableKeys = value;
+                OnPropertyChanged("AvailableKeys");
+            }
+        }
 
         private ObservableCollection<Movement> availableMovements;
         public ObservableCollection<Movement> AvailableMovements
@@ -236,7 +233,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public DelegateCommand<object> LoadResourcesCommand { get; private set; }
         public DelegateCommand<object> SetDefaultMovementCommand { get; private set; }
         public DelegateCommand<object> DemoDirectionalMoveCommand { get; private set; }
-        public DelegateCommand<object> DemoMovementCommand { get; private set; }
+        public DelegateCommand<object> PlayMovementCommand { get; private set; }
         public DelegateCommand<object> LoadAbilityEditorCommand { get; private set; }
 
         #endregion
@@ -275,12 +272,22 @@ namespace Module.HeroVirtualTabletop.Movements
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.DemoDirectionalMoveCommand = new DelegateCommand<object>(this.DemoDirectionalMovement, this.CanDemoDirectionalMovement);
             this.LoadAbilityEditorCommand = new DelegateCommand<object>(this.LoadAbilityEditor, this.CanLoadAbilityEditor);
-            this.DemoMovementCommand = new DelegateCommand<object>(this.DemoMovement, this.CanDemoMovement);
+            this.PlayMovementCommand = new DelegateCommand<object>(this.PlayMovement, this.CanPlayMovement);
         }
 
         private void InitializeMovementSelections()
         {
             this.CurrentCharacterMovement = null;
+
+            if (availableKeys == null)
+            {
+                availableKeys = new ObservableCollection<System.Windows.Forms.Keys>();
+                foreach (var key in Enum.GetValues(typeof(System.Windows.Forms.Keys)).Cast<System.Windows.Forms.Keys>())
+                {
+                    if (!IsMovementKey(key))
+                        availableKeys.Add(key);
+                }
+            }
         }
 
         #endregion
@@ -517,12 +524,12 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        private bool CanDemoMovement(object state)
+        private bool CanPlayMovement(object state)
         {
             return this.CurrentCharacterMovement != null && this.CurrentCharacterMovement.Movement != null && !this.CurrentCharacterMovement.IsActive;
         }
 
-        private void DemoMovement(object state)
+        private void PlayMovement(object state)
         {
             if (this.CurrentCharacterMovement != null && this.CurrentCharacterMovement.Movement != null && !this.CurrentCharacterMovement.IsActive)
             {
@@ -672,6 +679,28 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             return Path.GetFileNameWithoutExtension(resourceName);
         }
+
+        private bool IsMovementKey(System.Windows.Forms.Keys key)
+        {
+            return key == System.Windows.Forms.Keys.W
+                || key == System.Windows.Forms.Keys.A
+                || key == System.Windows.Forms.Keys.S
+                || key == System.Windows.Forms.Keys.D
+                || key == System.Windows.Forms.Keys.X
+                || key == System.Windows.Forms.Keys.Z
+                || key == System.Windows.Forms.Keys.Space
+                || key == System.Windows.Forms.Keys.Left
+                || key == System.Windows.Forms.Keys.Right
+                || key == System.Windows.Forms.Keys.Up
+                || key == System.Windows.Forms.Keys.Down
+                || key == System.Windows.Forms.Keys.Alt
+                || key == System.Windows.Forms.Keys.Control
+                || key == System.Windows.Forms.Keys.Shift
+                || key == System.Windows.Forms.Keys.Enter
+                || key == System.Windows.Forms.Keys.CapsLock
+                || key == System.Windows.Forms.Keys.Escape;
+        }
+
         #endregion
 
         #endregion

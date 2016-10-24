@@ -168,8 +168,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
                 Keys vkCode = (Keys)keyboardLLHookStruct.vkCode;
                 KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN)
-                    && Keyboard.IsKeyDown(Key.LeftAlt))
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
                 {
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                     uint wndProcId;
@@ -177,9 +176,20 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
                         || Process.GetCurrentProcess().Id == wndProcId)
                     {
-                        if (ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
+                        if (Keyboard.IsKeyDown(Key.LeftAlt) && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
                         {
                             ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode).Play();
+                        }
+                        else if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.LeftAlt))
+                        {
+                            if (ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
+                            {
+                                CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
+                                if (!cm.IsActive)
+                                    cm.ActivateMovement();
+                                else
+                                    cm.DeactivateMovement();
+                            }
                         }
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);

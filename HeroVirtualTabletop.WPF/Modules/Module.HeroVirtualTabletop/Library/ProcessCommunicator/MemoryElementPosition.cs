@@ -109,6 +109,41 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             }
         }
 
+        private Matrix modelMatrix = new Matrix();
+
+        public Matrix GetModelMatrix()
+        {
+            if (this.IsReal)
+            {
+                modelMatrix = new Matrix (
+                    GetAttributeAsFloat(56), GetAttributeAsFloat(60), GetAttributeAsFloat(64), 0, 
+                    GetAttributeAsFloat(68), GetAttributeAsFloat(72), GetAttributeAsFloat(76), 0,
+                    GetAttributeAsFloat(80), GetAttributeAsFloat(84), GetAttributeAsFloat(88), 0,
+                    GetAttributeAsFloat(92), GetAttributeAsFloat(96), GetAttributeAsFloat(100), 0
+                    );
+            }
+            return modelMatrix;
+        }
+
+        public void SetModelMatrix(Matrix matrix)
+        {
+            if (this.IsReal)
+            {
+                SetTargetAttribute(56, matrix.M11);
+                SetTargetAttribute(60, matrix.M12);
+                SetTargetAttribute(64, matrix.M13);
+                SetTargetAttribute(68, matrix.M21);
+                SetTargetAttribute(72, matrix.M22);
+                SetTargetAttribute(76, matrix.M23);
+                SetTargetAttribute(80, matrix.M31);
+                SetTargetAttribute(84, matrix.M32);
+                SetTargetAttribute(88, matrix.M33);
+                SetTargetAttribute(92, matrix.M41);
+                SetTargetAttribute(96, matrix.M42);
+                SetTargetAttribute(100, matrix.M43);
+            }
+        }
+
         public IMemoryElementPosition Clone(bool preserveTargetPointer = true, uint oldTargetPointer = 0)
         {
             Position clone = new Position(false);
@@ -186,6 +221,8 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             SetTargetAttribute(80, newRotationMatrix.M31);
             SetTargetAttribute(88, -1 * newRotationMatrix.M33);
         }
+
+        
 
         #region Equality Comparer and Operator Overloading
         public static bool operator ==(Position a, Position b)
