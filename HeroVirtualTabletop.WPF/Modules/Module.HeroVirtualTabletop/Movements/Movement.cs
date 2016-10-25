@@ -377,7 +377,12 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
                 Thread.Sleep(5);
             }
+            //// Disable Camera
+            //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_DISABLE_CAMERA_FILENAME);
+            //keyBindsGenerator.CompleteEvent();
             // Start Movement
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
             target.MovementInstruction.IsMovingToDestination = true;
             target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
@@ -830,6 +835,9 @@ namespace Module.HeroVirtualTabletop.Movements
                             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
                             target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
                             this.StopMovement();
+                            //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_ENABLE_CAMERA_FILENAME);
+                            //keyBindsGenerator.CompleteEvent();
                         }
                         else
                         {
@@ -843,6 +851,13 @@ namespace Module.HeroVirtualTabletop.Movements
                             {
                                 if (!target.MovementInstruction.IsInCollision)
                                     Move(target);
+                                else
+                                {
+                                    //// in collision, so enable camera
+                                    //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                                    //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_ENABLE_CAMERA_FILENAME);
+                                    //keyBindsGenerator.CompleteEvent();
+                                }
                             }
                         }
                         await Task.Delay(5);

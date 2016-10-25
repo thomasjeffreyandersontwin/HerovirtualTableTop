@@ -68,6 +68,8 @@ namespace Module.Shared
         public const string GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME = "saveposition.txt";
         public const string GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME = "movecamera.txt";
         public const string GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME = "movetarget.txt";
+        public const string GAME_CHARACTER_BINDSAVE_MOVETARGETTOMOUSELOCATION_FILENAME = "movetargetmouse.txt";
+        public const string GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME = "movetargetcharacter.txt";
         public const string GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME = "manueverwithcamera.txt";
         public const string GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME = "clear.txt";
         public const string GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME = "activate.txt";
