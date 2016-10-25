@@ -570,7 +570,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     }).FirstOrDefault();
                 AddDesktopTargetToRosterSelection(currentTarget);
             }
-            catch (Exception ex)
+            catch (TaskCanceledException ex)
             {
 
             }
@@ -786,7 +786,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void TargetAndFollow(object obj)
         {
-            foreach (CrowdMemberModel member ssssssssssssssssssssssssssssssssssssssin SelectedParticipants)
+            foreach (CrowdMemberModel member in SelectedParticipants)
             {
                 member.TargetAndFollow();
             }
