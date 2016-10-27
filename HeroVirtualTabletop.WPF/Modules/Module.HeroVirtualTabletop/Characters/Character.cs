@@ -502,6 +502,9 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             return keybind;
         }
+        [JsonIgnore]
+        public bool IsSyncedWithGame
+        { get; set; }
 
         [JsonIgnore]
         public bool IsTargeted
@@ -613,11 +616,14 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private string clearFromDesktop(bool completeEvent = true)
         {
-            Target(false);
-            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
-            if (completeEvent)
+            if(this.HasBeenSpawned)
             {
-                keyBindsGenerator.CompleteEvent();
+                Target(false);
+                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
+                if (completeEvent)
+                {
+                    keyBindsGenerator.CompleteEvent();
+                }
             }
             gamePlayer = null;
             hasBeenSpawned = false;

@@ -534,6 +534,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (!Participants.Contains(member))
                 {
                     AddParticipants(new List<CrowdMemberModel>() { member });
+                    CheckIfCharacterExistsInGame(member);
                 }
             }
         }
@@ -617,7 +618,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 Participants.Add(crowdMember);
                 InitializeAttackEventHandlers(crowdMember);
-                CheckIfCharacterExistsInGame(crowdMember);
+                //CheckIfCharacterExistsInGame(crowdMember);
             }
             Participants.Sort();
         }
@@ -637,6 +638,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 oldTargeted.Target();
             }
             catch { }
+
+            crowdMember.IsSyncedWithGame = true;
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
         }
         #endregion
@@ -785,6 +788,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 member.ToggleTargeted();
             }
         }
@@ -802,6 +807,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 member.TargetAndFollow();
             }
         }
@@ -811,6 +818,8 @@ namespace Module.HeroVirtualTabletop.Roster
             if (this.CanToggleTargeted(null))
             {
                 CrowdMemberModel member = SelectedParticipants[0] as CrowdMemberModel;
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 if (member.IsTargeted)
                 {
                     if (this.isPlayingAttack)
@@ -823,7 +832,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     else
                         member.TargetAndFollow();
                 }
-
                 else
                     member.ToggleTargeted();
 
@@ -869,6 +877,8 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 if (!member.HasBeenSpawned)
                 {
                     canMoveTargetToCamera = false;
@@ -901,6 +911,8 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 foreach (CrowdMemberModel member in SelectedParticipants)
                 {
+                    if (!member.IsSyncedWithGame)
+                        CheckIfCharacterExistsInGame(member);
                     if (!member.HasBeenSpawned)
                     {
                         canMoveTargetToCharacter = false;
@@ -937,6 +949,8 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 foreach (CrowdMemberModel member in SelectedParticipants)
                 {
+                    if (!member.IsSyncedWithGame)
+                        CheckIfCharacterExistsInGame(member);
                     if (!member.HasBeenSpawned)
                     {
                         canMoveTargetToMouseLocation = false;
@@ -971,6 +985,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 member.ToggleManueveringWithCamera();
             }
             Commands_RaiseCanExecuteChanged();
