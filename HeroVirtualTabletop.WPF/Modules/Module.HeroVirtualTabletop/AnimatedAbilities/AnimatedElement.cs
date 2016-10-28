@@ -388,6 +388,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         [JsonConstructor]
         private SoundElement() : base(string.Empty) { }
 
+        System.Threading.Timer timer;
+
         public SoundElement(string name, AnimationResource soundFile, bool persistent = false, int order = 1, Character owner = null)
             : base(name, persistent, order, owner)
         {
@@ -440,19 +442,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                                          targetPositionVector.X, targetPositionVector.Y, targetPositionVector.Z, playLooped);
             if(playLooped)
             {
+                timer = new Timer(this.timer_Callback, null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
                 CancellationToken tokenSrc = new CancellationToken();
                 Task.Factory.StartNew(() => 
                 {
-                    PauseElement pause = new PauseElement("pause", time: 500);
-                    while (this.IsActive)
+                    if(this.IsActive)
                     {
-                        Vector3 camPositionVector2 = new Camera().GetPositionVector();
-                        engine.SetListenerPosition(camPositionVector2.X, camPositionVector2.Y, camPositionVector2.Z, 0, 0, 1);
-                        pause.Play();
+                        timer.Change(1, System.Threading.Timeout.Infinite);
                     }
+                    //PauseElement pause = new PauseElement("pause", time: 500);
+                    //while (this.IsActive)
+                    //{
+                    //    Vector3 camPositionVector2 = new Camera().GetPositionVector();
+                    //    engine.SetListenerPosition(camPositionVector2.X, camPositionVector2.Y, camPositionVector2.Z, 0, 0, 1);
+                    //    pause.Play();
+                    //}
                 }, tokenSrc);
             }
             
+        }
+
+        private void timer_Callback(object state)
+        {
+            if(this.IsActive)
+            {
+                Vector3 camPositionVector2 = new Camera().GetPositionVector();
+                engine.SetListenerPosition(camPositionVector2.X, camPositionVector2.Y, camPositionVector2.Z, 0, 0, 1);
+                timer.Change(500, System.Threading.Timeout.Infinite);
+            }
         }
 
         public override void Stop(Character Target = null)
@@ -462,6 +479,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 IsActive = false;
             }
+            if(timer != null)
+                timer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
             if (engine != null)
                 engine.StopAllSounds();
         }
