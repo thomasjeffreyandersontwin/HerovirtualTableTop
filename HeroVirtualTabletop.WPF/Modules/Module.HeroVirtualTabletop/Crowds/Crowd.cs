@@ -347,6 +347,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 CrowdMemberModel model = crowdMember as CrowdMemberModel;
                 model.Position = pos.Clone(false, (model.Position as MemoryInstance).GetTargetPointer());
+                model.Target(false);
+                model.ActiveIdentity.Render(true);
             }
             else if(this.Name == Constants.ALL_CHARACTER_CROWD_NAME)
             {

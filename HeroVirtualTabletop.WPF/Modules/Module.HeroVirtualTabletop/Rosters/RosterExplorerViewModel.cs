@@ -303,7 +303,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        new PauseElement("", 1000).Play();
+                        //new PauseElement("", 1500).Play();
+                        System.Threading.Thread.Sleep(1000);
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
                         if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                         {
@@ -394,6 +395,19 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     sb.AppendLine(menuFileLines[i]);
                 }
+                // Add move target to character options
+                sb.AppendLine(string.Format("Menu \"{0}\"", "Move Target To"));
+                sb.AppendLine("{");
+                foreach (Character c in this.Participants)
+                {
+                    if(this.SelectedParticipants != null && !this.SelectedParticipants.Contains(c) && c.HasBeenSpawned)
+                    {
+                        string whiteSpaceReplacedCharacterName = c.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", c.Name, Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedCharacterName));
+                    }
+                }
+                sb.AppendLine("}");
+                // now add option groups
                 if(character.OptionGroups != null && character.OptionGroups.Count > 0)
                 {
                     foreach (var optionGroup in character.OptionGroups)
@@ -520,6 +534,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (!Participants.Contains(member))
                 {
                     AddParticipants(new List<CrowdMemberModel>() { member });
+                    CheckIfCharacterExistsInGame(member);
                 }
             }
         }
@@ -603,7 +618,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 Participants.Add(crowdMember);
                 InitializeAttackEventHandlers(crowdMember);
-                CheckIfCharacterExistsInGame(crowdMember);
+                //CheckIfCharacterExistsInGame(crowdMember);
             }
             Participants.Sort();
         }
@@ -623,6 +638,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 oldTargeted.Target();
             }
             catch { }
+
+            crowdMember.IsSyncedWithGame = true;
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
         }
         #endregion
@@ -771,6 +788,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 member.ToggleTargeted();
             }
         }
@@ -788,6 +807,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 member.TargetAndFollow();
             }
         }
@@ -797,6 +818,8 @@ namespace Module.HeroVirtualTabletop.Roster
             if (this.CanToggleTargeted(null))
             {
                 CrowdMemberModel member = SelectedParticipants[0] as CrowdMemberModel;
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 if (member.IsTargeted)
                 {
                     if (this.isPlayingAttack)
@@ -809,7 +832,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     else
                         member.TargetAndFollow();
                 }
-
                 else
                     member.ToggleTargeted();
 
@@ -855,6 +877,8 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 if (!member.HasBeenSpawned)
                 {
                     canMoveTargetToCamera = false;
@@ -887,6 +911,8 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 foreach (CrowdMemberModel member in SelectedParticipants)
                 {
+                    if (!member.IsSyncedWithGame)
+                        CheckIfCharacterExistsInGame(member);
                     if (!member.HasBeenSpawned)
                     {
                         canMoveTargetToCharacter = false;
@@ -923,6 +949,8 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 foreach (CrowdMemberModel member in SelectedParticipants)
                 {
+                    if (!member.IsSyncedWithGame)
+                        CheckIfCharacterExistsInGame(member);
                     if (!member.HasBeenSpawned)
                     {
                         canMoveTargetToMouseLocation = false;
@@ -957,6 +985,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
                 member.ToggleManueveringWithCamera();
             }
             Commands_RaiseCanExecuteChanged();
@@ -1316,6 +1346,9 @@ namespace Module.HeroVirtualTabletop.Roster
                         case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
                             MoveTargetToCamera(null);
                             break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOMOUSELOCATION_FILENAME:
+                            MoveTargetToMouseLocation(null);
+                            break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME:
                             ToggleManeuverWithCamera(null);
                             break;
@@ -1333,16 +1366,38 @@ namespace Module.HeroVirtualTabletop.Roster
                             }
                         default:
                             {
-                                Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
-                                int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
-                                if (index > 0 && character != null)
+                                if(e.Name.StartsWith(Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME))
                                 {
-                                    string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
-                                    string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
-                                    string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                    string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                    ActivateCharacter(character, optionGroupName, optionName);
+                                    int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                    if (index > 0)
+                                    {
+                                        string whiteSpceReplacedCharacterName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                        string characterName = whiteSpceReplacedCharacterName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        Character character = this.Participants.FirstOrDefault(p => p.Name == characterName) as Character;
+                                        if(character != null)
+                                        {
+                                            Vector3 destination = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
+                                            foreach(Character c in this.SelectedParticipants)
+                                            {
+                                                c.MoveToLocation(destination);
+                                            }
+                                        }
+                                    }
                                 }
+                                else
+                                {
+                                    Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
+                                    int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                    if (index > 0 && character != null)
+                                    {
+                                        string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
+                                        string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                        string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        ActivateCharacter(character, optionGroupName, optionName);
+                                    }
+                                }
+                                
                                 break;
                             }
                     }
