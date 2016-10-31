@@ -89,8 +89,9 @@ namespace Module.Shared
         public const string NO_CROWD_CROWD_NAME = "No Crowd";
         #endregion
 
-        #region Default Abilities and Animations
+        #region Default Movements, Abilities and Animations
 
+        public const string KNOCKBACK_MOVEMENT_NAME = "Knockback";
         public const string STANDUP_ABILITY_NAME = "Stand Up";
         public const string HIT_ABITIY_NAME = "Hit";
         public const string DODGE_ABILITY_NAME = "Dodge";

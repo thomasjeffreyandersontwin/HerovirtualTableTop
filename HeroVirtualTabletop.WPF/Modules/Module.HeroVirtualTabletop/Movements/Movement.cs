@@ -110,7 +110,7 @@ namespace Module.HeroVirtualTabletop.Movements
             keyBindsGenerator.CompleteEvent();
             // Unload Keyboard Hook
             KeyBoardHook.UnsetHook(hookID);
-            this.Movement.StopMovement();
+            this.Movement.StopMovement(this.Character);
         }
 
         public void ActivateMovement()
@@ -178,7 +178,6 @@ namespace Module.HeroVirtualTabletop.Movements
                                     {
                                         this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision as the character is changing the facing
                                         this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
-                                        this.Character.MovementInstruction.LastRotationAxisDirection = this.Character.MovementInstruction.CurrentRotationAxisDirection;
                                         this.Character.MovementInstruction.CurrentRotationAxisDirection = turnDirection;
                                         this.Movement.StartMovment(this.Character);
                                     }
@@ -271,13 +270,15 @@ namespace Module.HeroVirtualTabletop.Movements
     }
     public class Movement : NotifyPropertyChanged
     {
-        private System.Threading.Timer timer;
+        private Dictionary<Character, System.Threading.Timer> characterMovementTimerDictionary;
+        //private System.Threading.Timer timer;
         [JsonConstructor]
         private Movement() { }
         private ILogManager logManager = new FileLogManager(typeof(Movement));
         public Movement(string name)
         {
             this.Name = name;
+            this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
             this.AddDefaultMemberAbilities();
         }
 
@@ -319,11 +320,48 @@ namespace Module.HeroVirtualTabletop.Movements
             target.CurrentPositionVector = allowableDestinationVector;
         }
 
+        public void MoveBack(Character target, Vector3 lookatVector, Vector3 destinationVector)
+        {
+            if (target.MovementInstruction == null)
+                target.MovementInstruction = new MovementInstruction();
+
+            SetFacingToDestination(target, lookatVector);
+
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
+            target.MovementInstruction.IsMovingToDestination = true;
+            target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
+            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            target.MovementInstruction.DestinationVector = destinationVector;
+            target.MovementInstruction.IsInCollision = false;
+            target.MovementInstruction.StopOnCollision = true;
+            target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Backward;
+            this.StartMovment(target);
+        }
+
         public void Move(Character target, Vector3 destinationVector)
         {
             if (target.MovementInstruction == null)
                 target.MovementInstruction = new MovementInstruction();
-            
+
+            SetFacingToDestination(target, destinationVector);
+            //// Disable Camera
+            //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_DISABLE_CAMERA_FILENAME);
+            //keyBindsGenerator.CompleteEvent();
+            // Start Movement
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
+            target.MovementInstruction.IsMovingToDestination = true;
+            target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
+            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            target.MovementInstruction.DestinationVector = destinationVector;
+            target.MovementInstruction.IsInCollision = false;
+            target.MovementInstruction.StopOnCollision = false;
+            target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Forward;
+            this.StartMovment(target);
+        }
+
+        private void SetFacingToDestination(Character target, Vector3 destinationVector)
+        {
             Vector3 currentPositionVector = target.CurrentPositionVector;
             Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, destinationVector, target.CurrentModelMatrix.Up);
             newRotationMatrix.M11 *= -1;
@@ -354,7 +392,7 @@ namespace Module.HeroVirtualTabletop.Movements
             bool isClockwiseTurn;
             float origAngle = MathHelper.ToDegrees(Get2DAngleBetweenVectors(currentForwardVector, targetForwardVector, out isClockwiseTurn));
             var angle = origAngle;
-            
+
             if (isClockwiseTurn)
                 target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.Upward;
             else
@@ -377,18 +415,6 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
                 Thread.Sleep(5);
             }
-            //// Disable Camera
-            //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_DISABLE_CAMERA_FILENAME);
-            //keyBindsGenerator.CompleteEvent();
-            // Start Movement
-            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
-            target.MovementInstruction.IsMovingToDestination = true;
-            target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
-            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
-            target.MovementInstruction.DestinationVector = destinationVector;
-            target.MovementInstruction.IsInCollision = false;
-            this.StartMovment(target);
         }
 
         public void Turn(Character target, float angle = 5)
@@ -761,17 +787,26 @@ namespace Module.HeroVirtualTabletop.Movements
             return y;
         }
 
-        public void StopMovement()
+        public void StopMovement(Character target)
         {
             this.IsPlaying = false;
+            System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
             if (timer != null)
                 timer.Change(Timeout.Infinite, Timeout.Infinite);
+            this.characterMovementTimerDictionary[target] = null;
         }
 
         public void StartMovment(Character target)
         {
             this.IsPlaying = true;
-            timer = new System.Threading.Timer(timer_Elapsed, target, 1, Timeout.Infinite);
+            if (this.characterMovementTimerDictionary == null)
+                this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
+            System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);
+            if (this.characterMovementTimerDictionary.ContainsKey(target))
+                this.characterMovementTimerDictionary[target] = timer;
+            else
+                this.characterMovementTimerDictionary.Add(target, timer);
+            timer.Change(1, Timeout.Infinite);
         }
 
         private void timer_Elapsed(object state)
@@ -794,8 +829,12 @@ namespace Module.HeroVirtualTabletop.Movements
                                 Move(target);
                             }
                             await Task.Delay(5);
-                            if (this.IsPlaying)
-                                timer.Change(5, Timeout.Infinite);
+                            //if (this.IsPlaying)
+                            {
+                                var timer = this.characterMovementTimerDictionary[target];
+                                if(timer != null)
+                                    timer.Change(5, Timeout.Infinite);
+                            }
                         }
                     }
                     else // else change direction and increment position
@@ -806,21 +845,28 @@ namespace Module.HeroVirtualTabletop.Movements
                         // Play movement
                         PlayMovementMember(movementMember, target);
                         target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                        if (this.IsPlaying)
-                            timer.Change(1, Timeout.Infinite);
+                        //if (this.IsPlaying)
+                        {
+                            var timer = this.characterMovementTimerDictionary[target];
+                            if (timer != null)
+                                timer.Change(1, Timeout.Infinite);
+                        }
                     }
                 }
                 else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
                 {
-                    target.MovementInstruction.LastRotationAxisDirection = target.MovementInstruction.CurrentRotationAxisDirection;
                     bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);
                     if (associatedKeyPressed)
                     {
                         Turn(target);
                     }
                     await Task.Delay(5);
-                    if (this.IsPlaying)
-                        timer.Change(5, Timeout.Infinite);
+                    //if (this.IsPlaying)
+                    {
+                        var timer = this.characterMovementTimerDictionary[target];
+                        if (timer != null)
+                            timer.Change(5, Timeout.Infinite);
+                    }
                 }
                 else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
                 {
@@ -829,12 +875,17 @@ namespace Module.HeroVirtualTabletop.Movements
                         var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
                         if (dist < 5)
                         {
+                            if(this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                            {
+                                MovementMember downMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
+                                PlayMovementMember(downMem, target);
+                            }
                             MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
                             PlayMovementMember(stillMem, target);
                             target.MovementInstruction.IsMovingToDestination = false;
                             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
                             target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
-                            this.StopMovement();
+                            this.StopMovement(target);
                             //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                             //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_ENABLE_CAMERA_FILENAME);
                             //keyBindsGenerator.CompleteEvent();
@@ -843,9 +894,9 @@ namespace Module.HeroVirtualTabletop.Movements
                         {
                             if(target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
                             {
-                                MovementMember forwardMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Forward);
-                                PlayMovementMember(forwardMem, target);
-                                target.MovementInstruction.CurrentMovementDirection = MovementDirection.Forward;
+                                MovementMember directionMem = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
+                                PlayMovementMember(directionMem, target);
+                                target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
                             }
                             else
                             {
@@ -853,16 +904,25 @@ namespace Module.HeroVirtualTabletop.Movements
                                     Move(target);
                                 else
                                 {
-                                    //// in collision, so enable camera
-                                    //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                                    //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_ENABLE_CAMERA_FILENAME);
-                                    //keyBindsGenerator.CompleteEvent();
+                                    if(target.MovementInstruction.StopOnCollision)
+                                    {
+                                        MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
+                                        PlayMovementMember(stillMem, target);
+                                        target.MovementInstruction.IsMovingToDestination = false;
+                                        target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+                                        target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                                        this.StopMovement(target);
+                                    }
                                 }
                             }
                         }
                         await Task.Delay(5);
-                        if (this.IsPlaying)
-                            timer.Change(5, Timeout.Infinite);
+                        //if (this.IsPlaying)
+                        {
+                            var timer = this.characterMovementTimerDictionary[target];
+                            if (timer != null)
+                                timer.Change(5, Timeout.Infinite);
+                        }
                     }
                 }
             };
@@ -1146,7 +1206,11 @@ namespace Module.HeroVirtualTabletop.Movements
         public MovementDirection CurrentMovementDirection { get; set; }
         public MovementDirection LastMovementDirection { get; set; }
         public MovementDirection CurrentRotationAxisDirection { get; set; }
-        public MovementDirection LastRotationAxisDirection { get; set; }
+        public MovementDirection MovmementDirectionToUseForDestinationMove { get; set; }
+        public bool StopOnCollision { get; set; }
+
+
+
         private bool isInCollision;
         public bool IsInCollision
         {

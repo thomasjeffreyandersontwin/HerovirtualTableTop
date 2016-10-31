@@ -16,6 +16,7 @@ using System.Reflection;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Microsoft.Xna.Framework;
+using Module.HeroVirtualTabletop.Movements;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -46,6 +47,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             set;
         }
         public static List<AnimatedAbility> GlobalCombatAbilities
+        {
+            get;
+            set;
+        }
+
+        public static List<CharacterMovement> GlobalMovements
         {
             get;
             set;
