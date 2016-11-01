@@ -453,6 +453,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             Helper.GlobalDefaultAbilities = (defaultCharacter as Character).AnimatedAbilities.ToList();
             Helper.GlobalCombatAbilities = (combatEffectsCharacter as Character).AnimatedAbilities.ToList();
+            Helper.GlobalMovements = (defaultCharacter as Character).Movements.ToList();
         }
 
         #endregion

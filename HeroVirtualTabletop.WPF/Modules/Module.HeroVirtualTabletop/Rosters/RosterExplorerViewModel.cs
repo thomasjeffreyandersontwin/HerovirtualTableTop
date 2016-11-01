@@ -54,8 +54,8 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isPlayingAreaEffect = false;
         private bool isCharacterReset = false;
         private bool isMenuDisplayed = false;
-        private bool isMoveToMouseLocationEnabled = false;
-        private bool isMoveToCharacterEnabled = false;
+        //private bool isMoveToMouseLocationEnabled = false;
+        //private bool isMoveToCharacterEnabled = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
         private List<Character> targetCharactersForMove = new List<Character>();
@@ -240,7 +240,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         if(!this.isPlayingAttack)
                         {
-                            if(!this.isMoveToMouseLocationEnabled)
+                            if(Helper.GlobalVariables_CharacterMovement == null)
                             {
                                 //Handle clicks
                                 clickCount += 1;
@@ -446,12 +446,12 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else
                 {
-                    if(this.SelectedParticipants != null && this.SelectedParticipants.Count > 0)
+                    if(Helper.GlobalVariables_CharacterMovement != null)
                     {
-                        foreach(Character c in this.SelectedParticipants)
-                        {
-                            c.MoveToLocation(mouseDirection);
-                        }
+                        Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
+                        Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
+                        if (target != null)
+                            target.MoveToLocation(mouseDirection);
                     }
                 }
             }
@@ -926,8 +926,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void MoveTargetToCharacter(object obj)
         {
-            this.isMoveToCharacterEnabled = true;
-            this.isMoveToMouseLocationEnabled = false;
+            //this.isMoveToCharacterEnabled = true;
+            //this.isMoveToMouseLocationEnabled = false;
             foreach (Character c in this.SelectedParticipants)
                 this.targetCharactersForMove.Add(c);
             targetObserver.TargetChanged -= RosterTargetUpdated;
@@ -963,7 +963,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void MoveTargetToMouseLocation(object obj)
         {
-            this.isMoveToMouseLocationEnabled = !this.isMoveToMouseLocationEnabled;
+            //this.isMoveToMouseLocationEnabled = !this.isMoveToMouseLocationEnabled;
         }
 
         #endregion
@@ -1136,22 +1136,13 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                     }
                 }
-                else if(!this.isPlayingAttack && this.isMoveToCharacterEnabled && currentTarget != null)
+                else if(!this.isPlayingAttack && Helper.GlobalVariables_CharacterMovement != null && currentTarget != null)
                 {
                     if (currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
                     {
-                        bool canMove = this.targetCharactersForMove.FirstOrDefault(c => c.Name == currentTarget.Name) == null;
-                        if(canMove)
-                        {
-                            Vector3 destination = new Vector3(currentTarget.Position.X, currentTarget.Position.Y, currentTarget.Position.Z);
-                            foreach (Character c in targetCharactersForMove)
-                            {
-                                c.MoveToLocation(destination);
-                            }
-                            this.targetCharactersForMove = new List<Character>();
-                            this.isMoveToCharacterEnabled = false;
-                            targetObserver.TargetChanged -= RosterTargetUpdated;
-                        }
+                        Vector3 destination = new Vector3(currentTarget.Position.X, currentTarget.Position.Y, currentTarget.Position.Z);
+                        Character activeMovementChar = Helper.GlobalVariables_CharacterMovement.Character;
+                        activeMovementChar.MoveToLocation(destination);
                     }
                 }
                 else if (currentTarget == null) // Cancel attack

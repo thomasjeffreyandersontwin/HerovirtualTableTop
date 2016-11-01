@@ -16,6 +16,7 @@ using System.Reflection;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Microsoft.Xna.Framework;
+using Module.HeroVirtualTabletop.Movements;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -51,6 +52,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             set;
         }
 
+        public static List<CharacterMovement> GlobalMovements
+        {
+            get;
+            set;
+        }
+
         public static bool GlobalVariables_IsPlayingAttack
         {
             get;
@@ -59,6 +66,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static System.Windows.Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
         public static string GlobalVariables_DraggingOptionGroupName { get; set; }
+
+        public static CharacterMovement GlobalVariables_CharacterMovement { get; set; }
 
         #endregion
 

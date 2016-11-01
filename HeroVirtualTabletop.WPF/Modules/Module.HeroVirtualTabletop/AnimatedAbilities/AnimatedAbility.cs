@@ -683,32 +683,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 int knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance;
                 if (knockbackDistance > 0)
                 {
-                    Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
-                    Vector3 vTarget = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
-                    Vector3 directionVector = vTarget - vAttacker;
-                    directionVector.Normalize();
-                    var destX = vTarget.X + directionVector.X * knockbackDistance;
-                    var destY = vTarget.Y + directionVector.Y * knockbackDistance;
-                    var destZ = vTarget.Z + directionVector.Z * knockbackDistance;
-                    if (Math.Abs(vTarget.X - destX) < 1)
-                        destX = vTarget.X;
-                    if (Math.Abs(vTarget.Y - destY) < 1)
-                        destY = vTarget.Y;
-                    if (Math.Abs(vTarget.Z - destZ) < 1)
-                        destZ = vTarget.Z;
-                    var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
-                    Vector3 targetPosition = Helper.GetCollisionVector(collisionInfo);
-                    if(targetPosition.X == 0 && targetPosition.Y == 0 && targetPosition.Z == 0)
+                    //PlayKnockBackWithoutMovement(attackingCharacter, character, knockbackDistance);
+                    var knockbackMovement = Helper.GlobalMovements.FirstOrDefault(cm => cm.Name == Constants.KNOCKBACK_MOVEMENT_NAME);
+                    if(knockbackMovement != null)
                     {
-                        character.Position.X = destX;
-                        character.Position.Y = destY;
-                        character.Position.Z = destZ;
-                    }
-                    else
-                    {
-                        character.Position.X = targetPosition.X;
-                        character.Position.Y = targetPosition.Y;
-                        character.Position.Z = targetPosition.Z;
+                        Vector3 attackerVector = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+                        Vector3 targetVector = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
+                        Vector3 directionVector = targetVector - attackerVector;
+                        directionVector.Normalize();
+                        var destX = targetVector.X + directionVector.X * knockbackDistance;
+                        var destY = targetVector.Y + directionVector.Y * knockbackDistance;
+                        var destZ = targetVector.Z + directionVector.Z * knockbackDistance;
+                        if (Math.Abs(targetVector.X - destX) < 1)
+                            destX = targetVector.X;
+                        if (Math.Abs(targetVector.Y - destY) < 1)
+                            destY = targetVector.Y;
+                        if (Math.Abs(targetVector.Z - destZ) < 1)
+                            destZ = targetVector.Z;
+                        Vector3 destVector = new Vector3(destX, destY, destZ);
+                        knockbackMovement.Movement.MoveBack(character, attackerVector, destVector);
                     }
                 }
             }
@@ -721,7 +714,40 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 base.Play(persistent, target, forcePlay);
         }
 
-        
+        #region old knockback code
+
+        private void PlayKnockBackWithoutMovement(Character attackingCharacter, Character targetCharacter, int knockbackDistance)
+        {
+            Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+            Vector3 vTarget = new Vector3(targetCharacter.Position.X, targetCharacter.Position.Y, targetCharacter.Position.Z);
+            Vector3 directionVector = vTarget - vAttacker;
+            directionVector.Normalize();
+            var destX = vTarget.X + directionVector.X * knockbackDistance;
+            var destY = vTarget.Y + directionVector.Y * knockbackDistance;
+            var destZ = vTarget.Z + directionVector.Z * knockbackDistance;
+            if (Math.Abs(vTarget.X - destX) < 1)
+                destX = vTarget.X;
+            if (Math.Abs(vTarget.Y - destY) < 1)
+                destY = vTarget.Y;
+            if (Math.Abs(vTarget.Z - destZ) < 1)
+                destZ = vTarget.Z;
+            var collisionInfo = IconInteractionUtility.GetCollisionInfo(vTarget.X, vTarget.Y, vTarget.Z, destX, destY, destZ);
+            Vector3 targetPosition = Helper.GetCollisionVector(collisionInfo);
+            if (targetPosition.X == 0 && targetPosition.Y == 0 && targetPosition.Z == 0)
+            {
+                targetCharacter.Position.X = destX;
+                targetCharacter.Position.Y = destY;
+                targetCharacter.Position.Z = destZ;
+            }
+            else
+            {
+                targetCharacter.Position.X = targetPosition.X;
+                targetCharacter.Position.Y = targetPosition.Y;
+                targetCharacter.Position.Z = targetPosition.Z;
+            }
+        }
+
+        #endregion
 
         public override AnimationElement Clone()
         {
