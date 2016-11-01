@@ -90,8 +90,6 @@
                 ToggleTargetedCommand="{Binding ToggleTargetedCommand}"
                 TargetAndFollowCommand="{Binding TargetAndFollowCommand}"
                 MoveTargetToCameraCommand="{Binding MoveTargetToCameraCommand}"
-                MoveTargetToCharacterCommand="{Binding MoveTargetToCharacterCommand}"
-                MoveTargetToMouseLocationCommand="{Binding MoveTargetToMouseLocationCommand}"
                 ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
                 ActivateCharacterCommand="{Binding ActivateCharacterCommand}"

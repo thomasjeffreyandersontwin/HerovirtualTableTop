@@ -100,35 +100,35 @@ namespace Module.HeroVirtualTabletop.Characters
             typeof(ICommand), typeof(CharacterManagementMenuControl),
             new PropertyMetadata(null));
 
-        public ICommand MoveTargetToCharacterCommand
-        {
-            get
-            {
-                return (ICommand)GetValue(MoveTargetToCharacterCommandProperty);
-            }
-            set { SetValue(MoveTargetToCharacterCommandProperty, value); }
-        }
+        //public ICommand MoveTargetToCharacterCommand
+        //{
+        //    get
+        //    {
+        //        return (ICommand)GetValue(MoveTargetToCharacterCommandProperty);
+        //    }
+        //    set { SetValue(MoveTargetToCharacterCommandProperty, value); }
+        //}
 
-        public static readonly DependencyProperty
-            MoveTargetToCharacterCommandProperty =
-            DependencyProperty.Register("MoveTargetToCharacterCommand",
-            typeof(ICommand), typeof(CharacterManagementMenuControl),
-            new PropertyMetadata(null));
+        //public static readonly DependencyProperty
+        //    MoveTargetToCharacterCommandProperty =
+        //    DependencyProperty.Register("MoveTargetToCharacterCommand",
+        //    typeof(ICommand), typeof(CharacterManagementMenuControl),
+        //    new PropertyMetadata(null));
 
-        public ICommand MoveTargetToMouseLocationCommand
-        {
-            get
-            {
-                return (ICommand)GetValue(MoveTargetToMouseLocationCommandProperty);
-            }
-            set { SetValue(MoveTargetToMouseLocationCommandProperty, value); }
-        }
+        //public ICommand MoveTargetToMouseLocationCommand
+        //{
+        //    get
+        //    {
+        //        return (ICommand)GetValue(MoveTargetToMouseLocationCommandProperty);
+        //    }
+        //    set { SetValue(MoveTargetToMouseLocationCommandProperty, value); }
+        //}
 
-        public static readonly DependencyProperty
-            MoveTargetToMouseLocationCommandProperty =
-            DependencyProperty.Register("MoveTargetToMouseLocationCommand",
-            typeof(ICommand), typeof(CharacterManagementMenuControl),
-            new PropertyMetadata(null));
+        //public static readonly DependencyProperty
+        //    MoveTargetToMouseLocationCommandProperty =
+        //    DependencyProperty.Register("MoveTargetToMouseLocationCommand",
+        //    typeof(ICommand), typeof(CharacterManagementMenuControl),
+        //    new PropertyMetadata(null));
 
         public ICommand MoveTargetToCameraCommand
         {

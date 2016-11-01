@@ -67,6 +67,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static System.Windows.Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
         public static string GlobalVariables_DraggingOptionGroupName { get; set; }
 
+        public static CharacterMovement GlobalVariables_CharacterMovement { get; set; }
+
         #endregion
 
         #region Resource Dictionary and Style related

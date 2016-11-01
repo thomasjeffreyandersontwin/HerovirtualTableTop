@@ -111,6 +111,7 @@ namespace Module.HeroVirtualTabletop.Movements
             // Unload Keyboard Hook
             KeyBoardHook.UnsetHook(hookID);
             this.Movement.StopMovement(this.Character);
+            Helper.GlobalVariables_CharacterMovement = null;
         }
 
         public void ActivateMovement()
@@ -138,6 +139,8 @@ namespace Module.HeroVirtualTabletop.Movements
             keyBindsGenerator.CompleteEvent();
             // Load Keyboard Hook
             hookID = KeyBoardHook.SetHook(this.PlayMovementByKeyProc);
+
+            Helper.GlobalVariables_CharacterMovement = this;
         }
 
         private IntPtr PlayMovementByKeyProc(int nCode, IntPtr wParam, IntPtr lParam)
@@ -798,6 +801,9 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void StartMovment(Character target)
         {
+            if(this.IsPlaying)
+                StopMovement(target);
+            
             this.IsPlaying = true;
             if (this.characterMovementTimerDictionary == null)
                 this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
