@@ -285,7 +285,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.AddDefaultMemberAbilities();
         }
 
-        public bool IsPlaying { get; set; }
+        //public bool IsPlaying { get; set; }
 
         private string name;
         public string Name
@@ -792,21 +792,20 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void StopMovement(Character target)
         {
-            this.IsPlaying = false;
-            System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
-            if (timer != null)
-                timer.Change(Timeout.Infinite, Timeout.Infinite);
-            this.characterMovementTimerDictionary[target] = null;
+            if(this.characterMovementTimerDictionary.ContainsKey(target))
+            {
+                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(Timeout.Infinite, Timeout.Infinite);
+                this.characterMovementTimerDictionary[target] = null;
+            }
         }
 
         public void StartMovment(Character target)
         {
-            if(this.IsPlaying)
-                StopMovement(target);
-            
-            this.IsPlaying = true;
             if (this.characterMovementTimerDictionary == null)
                 this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
+            StopMovement(target);
             System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);
             if (this.characterMovementTimerDictionary.ContainsKey(target))
                 this.characterMovementTimerDictionary[target] = timer;
@@ -1037,9 +1036,9 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             if (movementMember != null)
             {
-                if (movementMember.MemberAbility != null && !movementMember.MemberAbility.IsActive)
+                if (movementMember.MemberAbility != null) // && !movementMember.MemberAbility.IsActive)
                 {
-                    foreach (var mm in this.MovementMembers.Where(mm => mm != movementMember && mm.MemberAbility.IsActive))
+                    foreach (var mm in this.MovementMembers.Where(mm => mm != movementMember)) // && mm.MemberAbility.IsActive))
                     {
                         mm.MemberAbility.Stop(target);
                     }

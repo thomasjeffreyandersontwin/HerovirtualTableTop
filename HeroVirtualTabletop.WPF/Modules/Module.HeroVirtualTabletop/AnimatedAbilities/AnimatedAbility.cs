@@ -389,9 +389,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimateAttack(direction, attackingCharacter);
             System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
 
-            AnimateHitAndMiss(defendingCharacters);
-            AnimateAttackEffects(defendingCharacters);
-            AnimateKnockBack(attackingCharacter, defendingCharacters);
+
+            AnimateHitAndMiss(attackingCharacter,defendingCharacters);
+            Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
 
             // Reset FX direction
             this.SetAttackDirection(null);
@@ -498,7 +498,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             attackChainSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
         }
 
-        private void AnimateHitAndMiss(List<Character> defendingCharacters)
+        private void AnimateHitAndMiss(Character attackingCharacter, List<Character> defendingCharacters)
         {
             SequenceElement hitMissSequenceElement = new SequenceElement("HitMissSequence", AnimationSequenceType.And);
             Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
@@ -512,11 +512,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             var missAbilityFlattened = missAbilityToPlay.GetFlattenedAnimationList();
             List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
 
+            int knockbackPlaySequence = 0; // denotes the index of the animation in the flattened list after which we should play knockback if needed. This is played after the first mov element, and would mostly be played
+            // after the 0th animation (which is a mov)
+
             // add all the hit animations in proper order
             foreach (var anim in hitAbilityFlattened)
             {
                 AnimationElement hitElement = anim.Clone();
                 hitElement.Name = GetAppropriateAnimationName(hitElement.Type, hitMissSequenceElement.AnimationElements.ToList());
+                if (hitElement.Type == AnimationType.Movement || hitElement.Type == AnimationType.FX)
+                    knockbackPlaySequence = hitElement.Order;
                 hitMissSequenceElement.AddAnimationElement(hitElement);
                 characterAnimationMappingDictionary.Add(hitElement, hitTargets);
             }
@@ -593,7 +598,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
 
             // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
-            hitMissSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
+            bool playWithKnockback = defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack);// whether we need to play knockback or not
+            if(playWithKnockback)
+            {
+                Task knockbackTask = new Task(() => { Task.Run(() => AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList())); });
+                hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask);
+            }
+            else
+                hitMissSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
         }
 
         private void AnimateAttackEffects(List<Character> defendingCharacters)
@@ -676,9 +688,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             attackEffectSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
         }
 
-        private void AnimateKnockBack(Character attackingCharacter, List<Character> defendingCharacters)
+        private void AnimateKnockBack(Character attackingCharacter, List<Character> knockedBackCharacters)
         {
-            foreach (Character character in defendingCharacters.Where(c => c.ActiveAttackConfiguration != null && c.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit && c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+            foreach (Character character in knockedBackCharacters)
             {
                 int knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance;
                 if (knockbackDistance > 0)
@@ -849,6 +861,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 knockBackDistance = value;
                 OnPropertyChanged("KnockBackDistance");
+            }
+        }
+
+        private bool isKnockedBack;
+        public bool IsKnockedBack
+        {
+            get
+            {
+                return isKnockedBack;
+            }
+            set
+            {
+                isKnockedBack = value;
+                OnPropertyChanged("IsKnockedBack");
             }
         }
 

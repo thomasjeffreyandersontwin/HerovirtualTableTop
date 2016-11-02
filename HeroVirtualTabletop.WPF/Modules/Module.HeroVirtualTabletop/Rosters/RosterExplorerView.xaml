@@ -217,6 +217,11 @@
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                                 </TextBlock.InputBindings>
                             </TextBlock>
+                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsKnockedBack, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf29c;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <TextBlock.InputBindings>
+                                    <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
+                                </TextBlock.InputBindings>
+                            </TextBlock>
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
