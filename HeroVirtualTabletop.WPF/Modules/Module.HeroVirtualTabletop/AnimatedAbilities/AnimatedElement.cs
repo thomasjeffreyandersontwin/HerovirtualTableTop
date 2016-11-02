@@ -1087,6 +1087,46 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     element.Play(false, targets.First());
             }
         }
+        public void PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, int knockbackPlayIndex, Task playKnockBack)
+        {
+            // The following algorithm does not prevail individual playwithnexts, rather chains same animation on all targets, then the next animation on all targets etc. 
+            // If needed this algorithm can be improved in future to preserve individual playwithnexts.
+            bool knockbackDue = false;
+            foreach (AnimationElement element in AnimationElements.OrderBy(x => x.Order))
+            {
+                if (element.Order == knockbackPlayIndex)
+                    knockbackDue = true;
+                List<Character> targets = characterAnimationMappingDictionary[element];
+                if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
+                {
+                    foreach (Character target in targets)
+                    {
+                        element.GetKeybind(target);
+                    }
+                    if (!element.PlayWithNext)
+                    {
+                        
+                        if (knockbackDue) // Usual case when knockback will be played as soon as first mov or fx is played
+                        {
+                            knockbackDue = false;
+                            playKnockBack.RunSynchronously();
+                        }
+                        IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                        //new PauseElement("", 500).Play();
+                    }
+
+                }
+                else
+                {
+                    element.Play(false, targets.First());
+                    if (knockbackDue)// Case when no mov or fx in on hit animations and knockback will be played with the first element of the sequence here
+                    {
+                        knockbackDue = false;
+                        playKnockBack.RunSynchronously();
+                    }
+                }
+            }
+        }
 
         public override Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
         {
@@ -1205,6 +1245,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             seqClone.AnimationElements = new ReadOnlyHashedObservableCollection<AnimationElement, string>(seqClone.animationElements);
             return seqClone;
         }
+
+        
     }
 
     public class ReferenceAbility : AnimationElement

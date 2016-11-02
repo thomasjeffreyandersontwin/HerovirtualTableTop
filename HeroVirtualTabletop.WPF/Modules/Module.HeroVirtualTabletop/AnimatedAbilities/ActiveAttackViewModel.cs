@@ -140,6 +140,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
             else
                 ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
+
+            if (ch.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
+                ch.ActiveAttackConfiguration.IsKnockedBack = true;
         }
         private void CancelActiveAttack(object state)
         {
