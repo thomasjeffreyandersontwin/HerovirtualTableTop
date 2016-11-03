@@ -107,7 +107,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             string GeneratedKeybindText = string.Empty;
             string command = keyBindsStrings[gameEvent];
-
+            string generatedKeybind = "";
             foreach (string p in parameters)
             {
                 if (!string.IsNullOrWhiteSpace(p))
@@ -127,8 +127,8 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
                 {
                     KeyBindsGenerator.generatedKeybindText = string.Format("{0} {1}", command, GeneratedKeybindText);
                 }
-
-                return string.Format("{0} {1}", command, GeneratedKeybindText);
+                
+                generatedKeybind = string.Format("{0} {1}", command, GeneratedKeybindText);
             }
             else
             {
@@ -141,9 +141,14 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
                     KeyBindsGenerator.generatedKeybindText = command;
                 }
 
-                return command;
+                generatedKeybind = command;
+            }
+            if (KeyBindsGenerator.generatedKeybindText == "load_costume Spyder")
+            {
+
             }
 
+            return generatedKeybind;
         }
 
         public string PopEvents()
