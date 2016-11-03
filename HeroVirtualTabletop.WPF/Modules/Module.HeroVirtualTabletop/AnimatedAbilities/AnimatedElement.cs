@@ -1079,7 +1079,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     if (!element.PlayWithNext)
                     {
                         IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                        new PauseElement("", 500).Play();
+                        //new PauseElement("", 500).Play();
                     }
 
                 }
@@ -1104,15 +1104,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         element.GetKeybind(target);
                     }
                     if (!element.PlayWithNext)
-                    {
-                        
+                    { 
+                        IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                        //new PauseElement("", 500).Play();
                         if (knockbackDue) // Usual case when knockback will be played as soon as first mov or fx is played
                         {
                             knockbackDue = false;
                             playKnockBack.RunSynchronously();
                         }
-                        IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                        //new PauseElement("", 500).Play();
                     }
 
                 }

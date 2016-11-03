@@ -391,8 +391,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
 
             AnimateHitAndMiss(attackingCharacter,defendingCharacters);
-            Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
-
+            //Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
+            AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
             // Reset FX direction
             this.SetAttackDirection(null);
             attackingCharacter.Deactivate();
@@ -601,7 +601,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             bool playWithKnockback = defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack);// whether we need to play knockback or not
             if(playWithKnockback)
             {
-                Task knockbackTask = new Task(() => { Task.Run(() => AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList())); });
+                Task knockbackTask = new Task(() => { AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList()); });
                 hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask);
             }
             else
@@ -692,7 +692,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             foreach (Character character in knockedBackCharacters)
             {
-                int knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance;
+                float knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance * 1.5f + 5;
                 if (knockbackDistance > 0)
                 {
                     //PlayKnockBackWithoutMovement(attackingCharacter, character, knockbackDistance);

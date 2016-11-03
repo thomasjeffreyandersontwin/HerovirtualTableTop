@@ -65,6 +65,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> CenterTargetChangedCommand { get; private set; }
         public DelegateCommand<object> SetActiveAttackCommand { get; private set; }
         public DelegateCommand<object> CancelActiveAttackCommand { get; private set; }
+        public DelegateCommand<object> KnockbackOptionChangedCommand { get; private set; }
 
         #endregion
 
@@ -88,11 +89,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SetActiveAttackCommand = new DelegateCommand<object>(this.SetActiveAttack);
             this.CancelActiveAttackCommand = new DelegateCommand<object>(this.CancelActiveAttack);
             this.CenterTargetChangedCommand = new DelegateCommand<object>(this.ChangeCenterTarget);
+            this.KnockbackOptionChangedCommand = new DelegateCommand<object>(this.ChangeKnockbackOption);
         }
 
         #endregion
 
         #region Methods
+
+        //private bool CanPlayAttackEffects
+        //{
+
+        //}
 
         private void ChangeCenterTarget(object state)
         {
@@ -106,6 +113,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         ch.ActiveAttackConfiguration.IsCenterTarget = false;
                     }
                 }
+            }
+        }
+
+        private void ChangeKnockbackOption(object state)
+        {
+            Character character = state as Character;
+            if(character != null && character.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
+            {
+                character.ActiveAttackConfiguration.IsKnockedBack = true;
+                character.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
+            }
+            else
+            {
+                character.ActiveAttackConfiguration.IsKnockedBack = false;
             }
         }
 
