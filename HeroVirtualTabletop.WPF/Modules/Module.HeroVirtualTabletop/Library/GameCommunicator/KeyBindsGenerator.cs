@@ -143,10 +143,6 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
                 generatedKeybind = command;
             }
-            if (KeyBindsGenerator.generatedKeybindText == "load_costume Spyder")
-            {
-
-            }
 
             return generatedKeybind;
         }
