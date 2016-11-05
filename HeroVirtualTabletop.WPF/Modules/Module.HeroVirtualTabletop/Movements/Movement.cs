@@ -319,8 +319,11 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentMovementDirection);
             Vector3 directionVector = GetDirectionVector(rotationAngle, target.MovementInstruction.CurrentMovementDirection, target.CurrentFacingVector);
-            Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
-            target.CurrentPositionVector = allowableDestinationVector;
+            if(directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
+            {
+                Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
+                target.CurrentPositionVector = allowableDestinationVector;
+            }
         }
 
         public void MoveBack(Character target, Vector3 lookatVector, Vector3 destinationVector)
@@ -1013,6 +1016,8 @@ namespace Module.HeroVirtualTabletop.Movements
                 var c2 = tr * rotationAxisY * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisX;
                 //c3 = (t(r) * Z * Z) + cos (r)
                 var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
+
+                facingVector.Y = 0; // cancelling out vertical components of movement
 
                 vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
                 vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);

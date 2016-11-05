@@ -142,18 +142,10 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     position += parsedCmd.Length + 2;
                     parsedCmd = command.Substring(position);
                 }
-                if(parsedCmd == "load_costume Spyder")
-                {
-
-                }
                 executeCmd("/" + parsedCmd);
             }
             else
             {
-                if (command == "load_costume Spyder")
-                {
-
-                }
                 executeCmd("/" + command);
             }
         }
