@@ -51,6 +51,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 editedCharacter = value;
                 OnPropertyChanged("EditedCharacter");
                 this.AddOptionGroupCommand.RaiseCanExecuteChanged();
+                this.SaveCharacterCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -97,6 +98,7 @@ namespace Module.HeroVirtualTabletop.Characters
         public DelegateCommand<object> ToggleManeuverWithCameraCommand { get; private set; }
         public DelegateCommand<object> AddOptionGroupCommand { get; private set; }
         public DelegateCommand<object> RemoveOptionGroupCommand { get; private set; }
+        public DelegateCommand<object> SaveCharacterCommand { get; private set; }
 
         #endregion
 
@@ -128,6 +130,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
             this.AddOptionGroupCommand = new DelegateCommand<object>(this.AddOptionGroup, this.CanAddOptionGroup);
             this.RemoveOptionGroupCommand = new DelegateCommand<object>(this.RemoveOptionGroup, this.CanRemoveOptionGroup);
+            this.SaveCharacterCommand = new DelegateCommand<object>(this.SaveCharacter, this.CanSaveCharacter);
         }
         
         internal void LoadCharacter(object state)
@@ -221,6 +224,18 @@ namespace Module.HeroVirtualTabletop.Characters
             this.AddOptionGroupCommand.RaiseCanExecuteChanged();
             this.RemoveOptionGroupCommand.RaiseCanExecuteChanged();
         }
+
+        #region Save Character
+        private bool CanSaveCharacter(object state)
+        {
+            return EditedCharacter != null;
+        }
+
+        private void SaveCharacter(object state)
+        {
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+        }
+        #endregion
 
         #region Spawn
         private bool CanSpawn(object state)

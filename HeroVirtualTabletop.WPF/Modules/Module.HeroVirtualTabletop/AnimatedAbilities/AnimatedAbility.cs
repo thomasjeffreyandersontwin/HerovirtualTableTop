@@ -692,7 +692,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             foreach (Character character in knockedBackCharacters)
             {
-                float knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance * 1.5f + 5;
+                float knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance * 2f + 5;
                 if (knockbackDistance > 0)
                 {
                     //PlayKnockBackWithoutMovement(attackingCharacter, character, knockbackDistance);

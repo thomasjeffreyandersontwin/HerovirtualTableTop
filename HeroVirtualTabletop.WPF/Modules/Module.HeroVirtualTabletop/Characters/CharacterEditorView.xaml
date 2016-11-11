@@ -24,7 +24,21 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <TextBox Grid.Row="0" Text="{Binding Path=EditedCharacter.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+        <Grid Grid.Row="0">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+            <TextBox Grid.Row="0" Text="{Binding Path=EditedCharacter.Name, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                <TextBlock Text="Movement Speed" Style="{StaticResource TextBlockDefaultStyle}" VerticalAlignment="Center"/>
+                <GridSplitter></GridSplitter>
+                <TextBlock Margin="5 0 0 0" Text="0.5x" Style="{StaticResource TextBlockDefaultStyle}" FontSize="{StaticResource FontSize_Small}" VerticalAlignment="Center"/>
+                <Slider  Grid.Row="1" Width="100"  Minimum="0.5" Maximum="4" TickFrequency="0.25" Value="{Binding EditedCharacter.MovementSpeed}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveCharacterCommand}"/>
+                <TextBlock Text="4x" Style="{StaticResource TextBlockDefaultStyle}" FontSize="{StaticResource FontSize_Small}" VerticalAlignment="Center"/>
+            </StackPanel>
+            
+        </Grid>
         <GridSplitter Grid.Row="1"></GridSplitter>
 
         <Grid Grid.Row="2">

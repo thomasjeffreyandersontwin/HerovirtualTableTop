@@ -318,7 +318,31 @@ namespace Module.HeroVirtualTabletop.Movements
         public void Move(Character target)
         {
             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentMovementDirection);
-            Vector3 directionVector = GetDirectionVector(rotationAngle, target.MovementInstruction.CurrentMovementDirection, target.CurrentFacingVector);
+            Vector3 facingToDest = new Vector3();
+            Vector3 directionVector = new Vector3();
+            if (target.MovementInstruction.IsMovingToDestination)
+            {
+                if (target.MovementInstruction.IsDestinationPointAdjusted)
+                {
+                    var distance = Vector3.Distance(target.CurrentPositionVector, target.MovementInstruction.DestinationVector);
+                    var adjustmentDest = target.MovementInstruction.DestinationPointHeightAdjustment < 1 ? 10 : target.MovementInstruction.DestinationPointHeightAdjustment < 3 ? 20 : 30;
+                    if (distance < adjustmentDest)
+                    {
+                        target.MovementInstruction.DestinationVector = target.MovementInstruction.OriginalDestinationVector;
+                        target.MovementInstruction.IsDestinationPointAdjusted = false;
+                    }
+                }
+                facingToDest = target.MovementInstruction.DestinationVector - target.CurrentPositionVector;
+                facingToDest.Normalize();
+                directionVector = GetDirectionVector(0, target.MovementInstruction.CurrentMovementDirection, facingToDest);
+            }
+            else
+            {
+                facingToDest = new Vector3(target.CurrentFacingVector.X, 0, target.CurrentFacingVector.Z); // disable vertical movement
+                facingToDest.Normalize();
+                directionVector = GetDirectionVector(rotationAngle, target.MovementInstruction.CurrentMovementDirection, facingToDest);
+            }
+            target.MovementInstruction.CurrentDirectionVector = directionVector;
             if(directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
             {
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
@@ -338,8 +362,12 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
             target.MovementInstruction.DestinationVector = destinationVector;
+            target.MovementInstruction.OriginalDestinationVector = destinationVector;
             target.MovementInstruction.IsInCollision = false;
             target.MovementInstruction.StopOnCollision = true;
+            target.MovementInstruction.IsCollisionAhead = false;
+            target.MovementInstruction.IsDestinationPointAdjusted = false;
+            target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Backward;
             this.StartMovment(target);
         }
@@ -360,8 +388,12 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
             target.MovementInstruction.DestinationVector = destinationVector;
+            target.MovementInstruction.OriginalDestinationVector = destinationVector;
             target.MovementInstruction.IsInCollision = false;
             target.MovementInstruction.StopOnCollision = false;
+            target.MovementInstruction.IsCollisionAhead = false;
+            target.MovementInstruction.IsDestinationPointAdjusted = false;
+            target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Forward;
             this.StartMovment(target);
         }
@@ -372,6 +404,26 @@ namespace Module.HeroVirtualTabletop.Movements
             Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, destinationVector, target.CurrentModelMatrix.Up);
             newRotationMatrix.M11 *= -1;
             newRotationMatrix.M33 *= -1;
+            //var newModelMatrix = new Matrix
+            //{
+            //    M11 = newRotationMatrix.M11,
+            //    M12 = newRotationMatrix.M12,
+            //    M13 = newRotationMatrix.M13,
+            //    M14 = newRotationMatrix.M14,
+            //    M21 = newRotationMatrix.M21,
+            //    M22 = newRotationMatrix.M22,
+            //    M23 = newRotationMatrix.M23,
+            //    M24 = newRotationMatrix.M24,
+            //    M31 = newRotationMatrix.M31,
+            //    M32 = newRotationMatrix.M32,
+            //    M33 = newRotationMatrix.M33,
+            //    M34 = newRotationMatrix.M34,
+            //    M41 = target.CurrentModelMatrix.M41,
+            //    M42 = target.CurrentModelMatrix.M42,
+            //    M43 = target.CurrentModelMatrix.M43,
+            //    M44 = target.CurrentModelMatrix.M44
+            //};
+            #region old
             var newModelMatrix = new Matrix
             {
                 M11 = newRotationMatrix.M11,
@@ -391,9 +443,10 @@ namespace Module.HeroVirtualTabletop.Movements
                 M43 = target.CurrentModelMatrix.M43,
                 M44 = target.CurrentModelMatrix.M44
             };
+            #endregion
             //target.CurrentModelMatrix = newModelMatrix;
             // Turn to destination, figure out angle
-            Vector3 targetForwardVector = newModelMatrix.Forward;
+            Vector3 targetForwardVector = newModelMatrix.Forward; 
             Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
             bool isClockwiseTurn;
             float origAngle = MathHelper.ToDegrees(Get2DAngleBetweenVectors(currentForwardVector, targetForwardVector, out isClockwiseTurn));
@@ -465,6 +518,32 @@ namespace Module.HeroVirtualTabletop.Movements
             target.CurrentPositionVector = currentPositionVector; // Keep position intact;
         }
 
+        private float GetMovementUnit(Character target)
+        {
+            // Distance is updated once in every 33 milliseconds approximately - i.e. 30 times in 1 sec
+            // So, normally he can travel 30 * 0.5 = 15 units per second if unit is 0.5
+            float unit = (float)target.MovementSpeed * 0.5f; 
+            if(target.MovementInstruction.IsMovingToDestination)
+            {
+                var distanceFromDestination = Vector3.Distance(target.MovementInstruction.OriginalDestinationVector, target.CurrentPositionVector);
+                if(distanceFromDestination < 50) // 1 sec
+                {
+                    unit = (float)distanceFromDestination / 30;
+                }
+                else if(distanceFromDestination < 150) // 2 sec
+                {
+                    unit = (float)distanceFromDestination / 30 / 2;
+                }
+                else // 3 sec
+                {
+                    unit = (float)distanceFromDestination / 30 / 3;
+                }
+
+                unit *= (float)target.MovementSpeed / 2; // Dividing by two to reduce the speed as high speeds tend to cause more errors
+            }
+            return unit;
+        }
+
         private Vector3 GetCollisionVector(Vector3 sourceVector, Vector3 destVector)
         {
             float distance = Vector3.Distance(sourceVector, destVector);
@@ -477,7 +556,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     var collisionInfo = IconInteractionUtility.GetCollisionInfo(sourceVector.X, sourceVector.Y, sourceVector.Z, destVector.X, destVector.Y, destVector.Z);
                     collisionVector = Helper.GetCollisionVector(collisionInfo);
                     float collisionDistance = Vector3.Distance(sourceVector, collisionVector);
-                    if (!HasCollision(collisionVector) || collisionDistance < distance) // proper collision
+                    if (!HasCollision(collisionVector) || collisionDistance <= distance) // proper collision
                         break;
                 }
                 catch (Exception ex)
@@ -493,49 +572,64 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             // TODO: need to take into account the pitch yaw roll etc. in future
             Vector3 currentPositionVector = target.CurrentPositionVector;
-            Vector3 destinationVectorNext = GetDestinationVector(directionVector, 0.25f, target);
+            Vector3 destinationVectorNext = GetDestinationVector(directionVector, target.MovementInstruction.MovementUnit, target);
             Vector3 destinationVectorFar = GetDestinationVector(directionVector, 20f, target);
             Vector3 collisionVector = new Vector3();
             MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;
             float distanceFromDest = Vector3.Distance(currentPositionVector, destinationVectorNext);
             float distanceFromCollisionPoint = 0f;
             Vector3 collisionBodyPoint = new Vector3();
+            bool needToCheckAdjustment = false;
             //logManager.Info(string.Format("Current position: {0}, {1}, {2}", currentPositionVector.X, currentPositionVector.Y, currentPositionVector.Z));
             if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y == -10000f
-                && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f
-                ) // Need to recalculate next collision point
+                && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f) // Need to recalculate next collision point
             {
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
+                logManager.Info(string.Format("recalculating collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
-                    target.MovementInstruction.CollisionAhead = true;
+                    target.MovementInstruction.IsCollisionAhead = true;
                 }
                 else // No collision in 20 units, so free to move next 20 units
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = destinationVectorFar;
-                    target.MovementInstruction.CollisionAhead = false;
+                    target.MovementInstruction.IsCollisionAhead = false;
                 }
             }
-            else
+            //else
             {
-                logManager.Info(string.Format("CollisionPoint: {0}, {1}, {2}", target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X, target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y, target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z));
+                //logManager.Info(string.Format("CollisionPoint: {0}, {1}, {2}", target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X, target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y, target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z));
                 collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
                 //logManager.Info(string.Format("CollisionBodyPoint: {0}, {1}, {2}", collisionBodyPoint.X, collisionBodyPoint.Y, collisionBodyPoint.Z));
                 distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
 
                 //logManager.Info("Distance from collision: " + distanceFromCollisionPoint.ToString());
-                if(distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)// Collision point nearer, so can't move to destination without checking first
+                if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)// Collision point nearer, so can't move to destination without checking first
                 {
-                    if (target.MovementInstruction.CollisionAhead) // the LastCollisionFreePointInCurrentDirection is a collision point
+                    if (target.MovementInstruction.IsCollisionAhead) // the LastCollisionFreePointInCurrentDirection is a collision point
                     {
-                        //logManager.Info("Collision ahead true");
-                        if (distanceFromDest > distanceFromCollisionPoint)
-                            collisionVector = currentPositionVector; // stay where you are
+                        bool canAvoidCollision;
+                        Vector3 nextTravelPointToAvoidCollision = GetNextTravelPointToAvoidCollision(target, out canAvoidCollision);
+                        collisionVector = nextTravelPointToAvoidCollision;
+                        target.MovementInstruction.IsInCollision = !canAvoidCollision;
+                        if (canAvoidCollision)
+                        {
+                            destinationVectorNext = nextTravelPointToAvoidCollision;
+                            //target.MovementInstruction.CollisionAhead = false;
+                            //target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // we adjusted position, so force recalculation of collision at next iteration
+                        }
                         else
-                            collisionVector = destinationVectorNext; // just go to next point, but no further
-                        target.MovementInstruction.IsInCollision = true;
+                        {
+                            target.MovementInstruction.IsInCollision = true;
+                        }
+                        ////logManager.Info("Collision ahead true");
+                        //if (distanceFromDest > distanceFromCollisionPoint)
+                        //    collisionVector = currentPositionVector; // stay where you are
+                        //else
+                        //    collisionVector = destinationVectorNext; // just go to next point, but no further
+                        //target.MovementInstruction.IsInCollision = true;
                     }
                     else // the LastCollisionFreePointInCurrentDirection is just the last calculated point, so we need to recalculate the collisions in the current direction
                     {
@@ -545,15 +639,17 @@ namespace Module.HeroVirtualTabletop.Movements
                         if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                         {
                             target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
-                            target.MovementInstruction.CollisionAhead = true;
+                            target.MovementInstruction.IsCollisionAhead = true;
                         }
                         else // No collision in 20 units, so free to move next 20 units
                         {
                             target.MovementInstruction.LastCollisionFreePointInCurrentDirection = destinationVectorFar;
-                            target.MovementInstruction.CollisionAhead = false;
+                            target.MovementInstruction.IsCollisionAhead = false;
                         }
                     }
                 }
+                else
+                    needToCheckAdjustment = true;
             }
 
             
@@ -568,19 +664,24 @@ namespace Module.HeroVirtualTabletop.Movements
             distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             if ((distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1) && target.MovementInstruction.IsInCollision)
             {
-                var targetPosition = target.MovementInstruction.LastCollisionFreePointInCurrentDirection;
-                if (distanceFromDest > distanceFromCollisionPoint)
-                    allowableDestVector = currentPositionVector;
-                else
-                    allowableDestVector = destinationVectorNext;
+                //var targetPosition = target.MovementInstruction.LastCollisionFreePointInCurrentDirection;
+                //if (distanceFromDest > distanceFromCollisionPoint)
+                //    allowableDestVector = currentPositionVector;
+                //else
+                //    allowableDestVector = destinationVectorNext;
+                allowableDestVector = collisionVector;
                 //logManager.Info("Collision detected and stopping");
             }
             else
             {
-                allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
+                bool canAvoidCollision;
+                if (target.MovementInstruction.IsPositionAdjustedToAvoidCollision && needToCheckAdjustment)
+                    allowableDestVector = GetNextTravelPointToAvoidCollision(target, out canAvoidCollision);
+                else
+                    allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
                 //logManager.Info("No collision, carrying on");
             }
-            //logManager.Info(string.Format("Next position: {0}, {1}, {2}", allowableDestVector.X, allowableDestVector.Y, allowableDestVector.Z));
+            logManager.Info(string.Format("On {0}, {1}, {2} At {3}", allowableDestVector.X, allowableDestVector.Y, allowableDestVector.Z, DateTime.Now.ToString("HH:mm:ss.fff")));
             //if (!HasCollision(collisionVector)) // No collision - move to destination
             //    allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
             //else // Move to collision point
@@ -589,22 +690,352 @@ namespace Module.HeroVirtualTabletop.Movements
             //    target.MovementInstruction.IsInCollision = true;
             //}
 
-            // Enable gravity if applicable
-            if (allowableDestVector.Y > 0.5 && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
-            {
-                Vector3 collisionVectorGround = GetCollisionVector(allowableDestVector, new Vector3(allowableDestVector.X, 0f, allowableDestVector.Z));
-                if (collisionVectorGround.Y >= 0f && collisionVectorGround.Y < allowableDestVector.Y)
-                    allowableDestVector.Y = collisionVectorGround.Y;
-            }
-            // Preventing going to absurd locations
-            var finalDistance = Vector3.Distance(currentPositionVector, allowableDestVector);
-            if (finalDistance > 5f)
-                allowableDestVector = currentPositionVector;
-            // Preventing from character's feet going under ground
-            if (allowableDestVector.Y < 0.25f && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
-                allowableDestVector.Y = 0.25f;
+            //// Enable gravity if applicable
+            //if (allowableDestVector.Y > 0.5 && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
+            //{
+            //    Vector3 collisionVectorGround = GetCollisionVector(allowableDestVector, new Vector3(allowableDestVector.X, 0f, allowableDestVector.Z));
+            //    if (collisionVectorGround.Y >= 0f && collisionVectorGround.Y < allowableDestVector.Y)
+            //        allowableDestVector.Y = collisionVectorGround.Y;
+            //}
+            //// Preventing going to absurd locations
+            //var finalDistance = Vector3.Distance(currentPositionVector, allowableDestVector);
+            //if (finalDistance > 5f)
+            //    allowableDestVector = currentPositionVector;
+            //// Preventing from character's feet going under ground
+            //if (allowableDestVector.Y < 0.25f && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
+            //    allowableDestVector.Y = 0.25f;
 
             return allowableDestVector;
+        }
+
+        private Vector3 GetNextTravelPointToAvoidCollision(Character target, out bool canAvoidCollision)
+        {
+            Vector3 nextTravelPoint = new Vector3();
+
+            Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, target.MovementInstruction.MovementUnit, target);
+            Vector3 collisionBodyPoint = Vector3.Add(target.CurrentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
+            float distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
+            float distanceFromDest = Vector3.Distance(target.CurrentPositionVector, destinationVectorNext);
+            //if (distanceFromDest > distanceFromCollisionPoint)
+            //    nextTravelPoint = target.CurrentPositionVector;
+            //else
+                nextTravelPoint = destinationVectorNext;
+
+            canAvoidCollision = false;
+
+            if (target.MovementInstruction.IsPositionAdjustedToAvoidCollision)
+            {
+                nextTravelPoint.Y = target.CurrentPositionVector.Y; // maintain same Y till collision point is passed
+                canAvoidCollision = true;
+                var collDistance = Vector3.Distance(nextTravelPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
+                if (collDistance > target.MovementInstruction.DistanceFromCollisionFreePoint)
+                {
+                    // collision point passed, so need to re-calculate
+                    target.MovementInstruction.IsCollisionAhead = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // force recalculation of collision at next iteration
+                    target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
+                }
+                target.MovementInstruction.DistanceFromCollisionFreePoint = collDistance;
+            }
+            else
+            {
+                // Check if Collision is bottom, then we might have a chance to avoid collision by adjusting position
+                BodyPart bodyPart = GetBodyPartFromOffsetVector(target.MovementInstruction.CharacterBodyCollisionOffsetVector);
+                if (bodyPart == BodyPart.Bottom || bodyPart == BodyPart.BottomSemiMiddle)
+                {
+                    // Check if other collisions are also present at same or less distance
+                    Dictionary<BodyPart, bool> bodyPartMap = new Dictionary<BodyPart, bool>();
+                    bodyPartMap.Add(BodyPart.Bottom, false);
+                    bodyPartMap.Add(BodyPart.BottomSemiMiddle, true);
+                    bodyPartMap.Add(BodyPart.BottomMiddle, true);
+                    bodyPartMap.Add(BodyPart.Middle, true);
+                    bodyPartMap.Add(BodyPart.TopMiddle, true);
+                    bodyPartMap.Add(BodyPart.Top, true);
+
+                    Vector3 destinationVector = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, 5f, target);
+                    Dictionary<BodyPart, CollisionInfo> bodyPartCollisionMap = GetCollisionPointsForBodyParts(target, destinationVector, bodyPartMap);
+                    logManager.Info(string.Format("calculate collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
+                    bool hasCollision = false;
+                    foreach (BodyPart key in bodyPartCollisionMap.Keys)
+                    {
+                        if (bodyPartCollisionMap[key] != null)
+                        {
+                            hasCollision = true;
+                            break;
+                        }
+
+                    }
+                    if (hasCollision)
+                    {
+                        // Check if Collision is only bottom semi middle and no other parts, then we can still adjust
+                        if (bodyPartCollisionMap[BodyPart.BottomSemiMiddle] != null && bodyPartCollisionMap[BodyPart.BottomMiddle] == null && bodyPartCollisionMap[BodyPart.Middle] == null
+                            && bodyPartCollisionMap[BodyPart.TopMiddle] == null && bodyPartCollisionMap[BodyPart.Top] == null)
+                        {
+                            // only bottom semi middle collision, so adjust position
+                            canAvoidCollision = true;
+                            if (target.CurrentPositionVector.Y <= destinationVectorNext.Y
+                                && destinationVectorNext.Y <= target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y) // We're basically travelling horizontal or upwards, so increase Y 
+                            {
+                                nextTravelPoint.Y += 0.25f;
+                            }
+                            else // we're going downwards
+                            {
+                                nextTravelPoint = destinationVectorNext;
+                                if (target.CurrentPositionVector.Y > destinationVectorNext.Y)
+                                    nextTravelPoint.Y = target.CurrentPositionVector.Y;
+                                //if (destinationVectorNext.Y > target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y)
+                                //    nextTravelPoint.Y = target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y + 0.1f;
+                            }
+                            var destVector = target.MovementInstruction.DestinationVector;
+                            destVector.Y += 0.25f;
+                            target.MovementInstruction.DestinationPointHeightAdjustment += 0.25f;
+                            target.MovementInstruction.DestinationVector = destVector;
+                            target.MovementInstruction.IsDestinationPointAdjusted = true;
+                            target.MovementInstruction.IsPositionAdjustedToAvoidCollision = true;
+                        }
+                        else
+                        {
+                            // more collisions exist
+                            // check if all the collision distances are significantly larger than current collision distance
+                            bool upperCollisionsFar = true;
+                            foreach (BodyPart key in bodyPartCollisionMap.Keys)
+                            {
+                                if (bodyPartCollisionMap[key] != null)
+                                {
+                                    CollisionInfo collisionInfo = bodyPartCollisionMap[key];
+                                    if (distanceFromCollisionPoint + 0.25f > collisionInfo.CollisionDistance) // check if the collisions are further from current collision so that it is worth moving up 
+                                    {
+                                        upperCollisionsFar = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+                            if (upperCollisionsFar)
+                            {
+                                // we can try to avoid collision by moving up a bit
+                                canAvoidCollision = true;
+                                if (target.CurrentPositionVector.Y <= destinationVectorNext.Y
+                                    && destinationVectorNext.Y <= target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y) // We're basically travelling horizontal or upwards, so increase Y 
+                                {
+                                    if (bodyPartCollisionMap[BodyPart.BottomSemiMiddle] != null) // bottom semi collision present, so lift up .75 units
+                                        nextTravelPoint.Y += 0.75f;
+                                    else
+                                        nextTravelPoint.Y += 0.25f; // bottom collision only, so lift up .25 units
+                                    
+                                }
+                                else // we're going downwards
+                                {
+                                    nextTravelPoint = destinationVectorNext;
+                                    if (target.CurrentPositionVector.Y > destinationVectorNext.Y)
+                                        nextTravelPoint.Y = target.CurrentPositionVector.Y;
+                                    //if (destinationVectorNext.Y > target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y)
+                                    //    nextTravelPoint.Y = target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y + 0.1f;
+                                }
+                                var destVector = target.MovementInstruction.DestinationVector;
+                                destVector.Y += 0.25f;
+                                target.MovementInstruction.DestinationPointHeightAdjustment += 0.25f;
+                                target.MovementInstruction.DestinationVector = destVector;
+                                target.MovementInstruction.IsDestinationPointAdjusted = true;
+                                target.MovementInstruction.IsPositionAdjustedToAvoidCollision = true;
+                            }
+                            else
+                            {
+                                // no way - definite collision
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // We can avoid collision at the bottom by adjusting position
+                        canAvoidCollision = true;
+                        if (target.CurrentPositionVector.Y <= destinationVectorNext.Y
+                            && destinationVectorNext.Y <= target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y) // We're basically travelling horizontal or upwards, so increase Y 
+                        {
+                            nextTravelPoint.Y += 0.25f;
+                        }
+                        else // we're going downwards
+                        {
+                            nextTravelPoint = destinationVectorNext;
+                            if (target.CurrentPositionVector.Y > destinationVectorNext.Y)
+                                nextTravelPoint.Y = target.CurrentPositionVector.Y;
+                            //if (destinationVectorNext.Y > target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y)
+                            //    nextTravelPoint.Y = target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y + 0.1f;
+                        }
+
+                        var destVector = target.MovementInstruction.DestinationVector;
+                        destVector.Y += 0.25f;
+                        target.MovementInstruction.DestinationPointHeightAdjustment += 0.25f;
+                        target.MovementInstruction.DestinationVector = destVector;
+                        target.MovementInstruction.IsDestinationPointAdjusted = true;
+                        target.MovementInstruction.IsPositionAdjustedToAvoidCollision = true;
+                    }
+                }
+            }
+            
+            return nextTravelPoint;
+        }
+
+        private Dictionary<BodyPart, CollisionInfo> GetCollisionPointsForBodyParts(Character target, Vector3 destinationVector, Dictionary<BodyPart, bool> bodyPartMap)
+        {
+            Dictionary<BodyPart, CollisionInfo> bodyPartCollisionMap = new Dictionary<BodyPart, CollisionInfo>();
+            foreach (var bp in Enum.GetValues(typeof(BodyPart)))
+                bodyPartCollisionMap.Add((BodyPart)bp, null);
+
+            Vector3 currentPositionVector = target.CurrentPositionVector;
+
+            Vector3 topOffsetVector = GetBodyPartOffsetVector(target, BodyPart.Top);
+            Vector3 currentTopVector = new Vector3(currentPositionVector.X + topOffsetVector.X, currentPositionVector.Y + topOffsetVector.Y, currentPositionVector.Z + topOffsetVector.Z);
+            Vector3 destinationTopVector = new Vector3(destinationVector.X + topOffsetVector.X, destinationVector.Y + topOffsetVector.Y, destinationVector.Z + topOffsetVector.Z);
+            Vector3 collisionVectorTop = GetCollisionVector(currentTopVector, destinationTopVector);
+
+            Thread.Sleep(5);
+
+            Vector3 topMiddleOffsetVector = GetBodyPartOffsetVector(target, BodyPart.TopMiddle);
+            Vector3 currentTopMiddleVector = new Vector3(currentPositionVector.X + topMiddleOffsetVector.X, currentPositionVector.Y + topMiddleOffsetVector.Y, currentPositionVector.Z + topMiddleOffsetVector.Z);
+            Vector3 destinationTopMiddleVector = new Vector3(destinationVector.X + topMiddleOffsetVector.X, destinationVector.Y + topMiddleOffsetVector.Y, destinationVector.Z + topMiddleOffsetVector.Z);
+            Vector3 collisionVectorTopMiddle = GetCollisionVector(currentTopMiddleVector, destinationTopMiddleVector);
+
+            Thread.Sleep(5);
+
+            Vector3 middleOffsetVector = GetBodyPartOffsetVector(target, BodyPart.Middle);
+            Vector3 currentMiddleVector = new Vector3(currentPositionVector.X + middleOffsetVector.X, currentPositionVector.Y + middleOffsetVector.Y, currentPositionVector.Z + middleOffsetVector.Z);
+            Vector3 destinationMiddleVector = new Vector3(destinationVector.X + middleOffsetVector.X, destinationVector.Y + middleOffsetVector.Y, destinationVector.Z + middleOffsetVector.Z);
+            Vector3 collisionVectorMiddle = GetCollisionVector(currentMiddleVector, destinationMiddleVector);
+
+            Thread.Sleep(5);
+
+            Vector3 bottomMiddleOffsetVector = GetBodyPartOffsetVector(target, BodyPart.BottomMiddle);
+            Vector3 currentBottomMiddleVector = new Vector3(currentPositionVector.X + bottomMiddleOffsetVector.X, currentPositionVector.Y + bottomMiddleOffsetVector.Y, currentPositionVector.Z + bottomMiddleOffsetVector.Z);
+            Vector3 destinationBottomMiddleVector = new Vector3(destinationVector.X + bottomMiddleOffsetVector.X, destinationVector.Y + bottomMiddleOffsetVector.Y, destinationVector.Z + bottomMiddleOffsetVector.Z);
+            Vector3 collisionVectorBottomMiddle = GetCollisionVector(currentBottomMiddleVector, destinationBottomMiddleVector);
+
+            Thread.Sleep(5);
+
+            Vector3 bottomSemiMiddleOffsetVector = GetBodyPartOffsetVector(target, BodyPart.BottomSemiMiddle);
+            Vector3 currentBottomSemiMiddleVector = new Vector3(currentPositionVector.X + bottomSemiMiddleOffsetVector.X, currentPositionVector.Y + bottomSemiMiddleOffsetVector.Y, currentPositionVector.Z + bottomSemiMiddleOffsetVector.Z);
+            Vector3 destinationBottomSemiMiddleVector = new Vector3(destinationVector.X + bottomSemiMiddleOffsetVector.X, destinationVector.Y + bottomSemiMiddleOffsetVector.Y, destinationVector.Z + bottomSemiMiddleOffsetVector.Z);
+            Vector3 collisionVectorBottomSemiMiddle = GetCollisionVector(currentBottomSemiMiddleVector, destinationBottomSemiMiddleVector);
+
+            Thread.Sleep(5);
+
+            Vector3 bottomOffsetVector = GetBodyPartOffsetVector(target, BodyPart.Bottom);
+            Vector3 currentBottomVector = new Vector3(currentPositionVector.X + bottomOffsetVector.X, currentPositionVector.Y + bottomOffsetVector.Y, currentPositionVector.Z + bottomOffsetVector.Z);
+            Vector3 destinationBottomVector = new Vector3(destinationVector.X + bottomOffsetVector.X, destinationVector.Y + bottomOffsetVector.Y, destinationVector.Z + bottomOffsetVector.Z);
+            Vector3 collisionVectorBottom = GetCollisionVector(currentBottomVector, destinationBottomVector);
+
+            float distanceFromCollisionPoint = 10000f;
+            if (HasCollision(collisionVectorBottom) && bodyPartMap[BodyPart.Bottom])
+            {
+                float collDist = Vector3.Distance(currentBottomVector, collisionVectorBottom);
+                if (collDist < distanceFromCollisionPoint)
+                {
+                    bodyPartCollisionMap[BodyPart.Bottom] = new CollisionInfo { 
+                        BodyCollisionOffsetVector = bottomOffsetVector, 
+                        CollisionBodyPart = BodyPart.Bottom, 
+                        CollisionPoint = collisionVectorBottom,
+                        CollisionDistance = collDist
+                    };
+                }
+
+            }
+            else
+            {
+                bodyPartMap[BodyPart.Bottom] = false;
+            }
+            if (HasCollision(collisionVectorBottomSemiMiddle) && bodyPartMap[BodyPart.BottomSemiMiddle])
+            {
+                float collDist = Vector3.Distance(currentBottomSemiMiddleVector, collisionVectorBottomSemiMiddle);
+                if (collDist < distanceFromCollisionPoint)
+                {
+                    bodyPartCollisionMap[BodyPart.BottomSemiMiddle] = new CollisionInfo
+                    {
+                        BodyCollisionOffsetVector = bottomSemiMiddleOffsetVector,
+                        CollisionBodyPart = BodyPart.BottomSemiMiddle,
+                        CollisionPoint = collisionVectorBottomSemiMiddle,
+                        CollisionDistance = collDist
+                    };
+                }
+            }
+            else
+            {
+                bodyPartMap[BodyPart.BottomSemiMiddle] = false;
+            }
+            if (HasCollision(collisionVectorBottomMiddle) && bodyPartMap[BodyPart.BottomMiddle])
+            {
+                float collDist = Vector3.Distance(currentBottomMiddleVector, collisionVectorBottomMiddle);
+                if (collDist < distanceFromCollisionPoint)
+                {
+                    bodyPartCollisionMap[BodyPart.BottomMiddle] = new CollisionInfo
+                    {
+                        BodyCollisionOffsetVector = bottomMiddleOffsetVector,
+                        CollisionBodyPart = BodyPart.BottomMiddle,
+                        CollisionPoint = collisionVectorBottomMiddle,
+                        CollisionDistance = collDist
+                    };
+                }
+            }
+            else
+            {
+                bodyPartMap[BodyPart.BottomMiddle] = false;
+            }
+            if (HasCollision(collisionVectorMiddle) && bodyPartMap[BodyPart.Middle])
+            {
+                float collDist = Vector3.Distance(currentMiddleVector, collisionVectorMiddle);
+                if (collDist < distanceFromCollisionPoint)
+                {
+                    bodyPartCollisionMap[BodyPart.Middle] = new CollisionInfo
+                    {
+                        BodyCollisionOffsetVector = middleOffsetVector,
+                        CollisionBodyPart = BodyPart.Middle,
+                        CollisionPoint = collisionVectorMiddle,
+                        CollisionDistance = collDist
+                    };
+                }
+            }
+            else
+            {
+                bodyPartMap[BodyPart.Middle] = false;
+            }
+            if (HasCollision(collisionVectorTopMiddle) && bodyPartMap[BodyPart.TopMiddle])
+            {
+                float collDist = Vector3.Distance(currentTopMiddleVector, collisionVectorTopMiddle);
+                if (collDist < distanceFromCollisionPoint)
+                {
+                    bodyPartCollisionMap[BodyPart.TopMiddle] = new CollisionInfo
+                    {
+                        BodyCollisionOffsetVector = topMiddleOffsetVector,
+                        CollisionBodyPart = BodyPart.TopMiddle,
+                        CollisionPoint = collisionVectorTopMiddle,
+                        CollisionDistance = collDist
+                    };
+                }
+            }
+            else
+            {
+                bodyPartMap[BodyPart.TopMiddle] = false;
+            }
+            if (HasCollision(collisionVectorTop) && bodyPartMap[BodyPart.Top])
+            {
+                float collDist = Vector3.Distance(currentTopVector, collisionVectorTop);
+                if (collDist < distanceFromCollisionPoint)
+                {
+                    bodyPartCollisionMap[BodyPart.Top] = new CollisionInfo
+                    {
+                        BodyCollisionOffsetVector = topOffsetVector,
+                        CollisionBodyPart = BodyPart.Top,
+                        CollisionPoint = collisionVectorTop,
+                        CollisionDistance = collDist
+                    };
+                }
+            }
+            else
+            {
+                bodyPartMap[BodyPart.Top] = false;
+            }
+
+            return bodyPartCollisionMap;
         }
 
         private Vector3 CalculateNextCollisionPoint(Character target, Vector3 destinationVector)
@@ -700,7 +1131,7 @@ namespace Module.HeroVirtualTabletop.Movements
                         target.MovementInstruction.CharacterBodyCollisionOffsetVector = bottomSemiMiddleOffsetVector;
                     }
                 }
-                if(HasCollision(collisionVectorBottomMiddle))
+                if (HasCollision(collisionVectorBottomMiddle))
                 {
                     float collDist = Vector3.Distance(currentBottomMiddleVector, collisionVectorBottomMiddle);
                     if (collDist < minDist)
@@ -711,7 +1142,7 @@ namespace Module.HeroVirtualTabletop.Movements
                         target.MovementInstruction.CharacterBodyCollisionOffsetVector = bottomMiddleOffsetVector;
                     }
                 }
-                if(HasCollision(collisionVectorMiddle))
+                if (HasCollision(collisionVectorMiddle))
                 {
                     float collDist = Vector3.Distance(currentMiddleVector, collisionVectorMiddle);
                     if (collDist < minDist)
@@ -785,17 +1216,40 @@ namespace Module.HeroVirtualTabletop.Movements
             return !(collisionVector.X == 0f && collisionVector.Y == 0f && collisionVector.Z == 0f);
         }
 
+        private BodyPart GetBodyPartFromOffsetVector(Vector3 bodyPartOffsetVector)
+        {
+            BodyPart bodyPart = BodyPart.None;
+            if (bodyPartOffsetVector.Y == 0f)
+                bodyPart = BodyPart.Bottom;
+            else if (bodyPartOffsetVector.Y == 0.75f)
+                bodyPart = BodyPart.BottomSemiMiddle;
+            else if (bodyPartOffsetVector.Y == 1.5f)
+                bodyPart = BodyPart.BottomMiddle;
+            else if (bodyPartOffsetVector.Y == 3f)
+                bodyPart = BodyPart.Middle;
+            else if (bodyPartOffsetVector.Y == 4.5f)
+                bodyPart = BodyPart.TopMiddle;
+            else if (bodyPartOffsetVector.Y == 6f)
+                bodyPart = BodyPart.Top;
+            return bodyPart;
+        }
+
         private float Get2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn)
         {
             var x = v1.X * v2.Z - v2.X * v1.Z;
             isClockwiseTurn = x < 0;
-            var y = (float)Math.Acos(Vector3.Dot(v1, v2));
+            var dotProduct = Vector3.Dot(v1, v2);
+            if (dotProduct > 1)
+                dotProduct = 1;
+            if (dotProduct < -1)
+                dotProduct = -1;
+            var y = (float)Math.Acos(dotProduct);
             return y;
         }
 
         public void StopMovement(Character target)
         {
-            if(this.characterMovementTimerDictionary.ContainsKey(target))
+            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
             {
                 System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
                 if (timer != null)
@@ -814,6 +1268,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 this.characterMovementTimerDictionary[target] = timer;
             else
                 this.characterMovementTimerDictionary.Add(target, timer);
+            target.MovementInstruction.MovementUnit = this.GetMovementUnit(target);
             timer.Change(1, Timeout.Infinite);
         }
 
@@ -1017,11 +1472,15 @@ namespace Module.HeroVirtualTabletop.Movements
                 //c3 = (t(r) * Z * Z) + cos (r)
                 var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
 
-                facingVector.Y = 0; // cancelling out vertical components of movement
+                //facingVector.Y = 0; // cancelling out vertical components of movement
 
-                vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
-                vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);
-                vZ = (float)(c1 * facingVector.X + c2 * facingVector.Y + c3 * facingVector.Z);
+                //vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
+                //vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);
+                //vZ = (float)(c1 * facingVector.X + c2 * facingVector.Y + c3 * facingVector.Z);
+                Vector3 facingVectorToDestination = facingVector;
+                vX = (float)(a1 * facingVectorToDestination.X + a2 * facingVectorToDestination.Y + a3 * facingVectorToDestination.Z);
+                vY = (float)(b1 * facingVectorToDestination.X + b2 * facingVectorToDestination.Y + b3 * facingVectorToDestination.Z);
+                vZ = (float)(c1 * facingVectorToDestination.X + c2 * facingVectorToDestination.Y + c3 * facingVectorToDestination.Z);
             }
 
             return Helper.GetRoundedVector(new Vector3(vX, vY, vZ), 2);
@@ -1213,13 +1672,15 @@ namespace Module.HeroVirtualTabletop.Movements
         public bool IsTurning { get; set; }
         public bool IsMovingToDestination { get; set; }
         public Vector3 DestinationVector { get; set; }
+        public Vector3 OriginalDestinationVector { get; set; }
+        public Vector3 CurrentDirectionVector { get; set; }
         public MovementDirection CurrentMovementDirection { get; set; }
         public MovementDirection LastMovementDirection { get; set; }
         public MovementDirection CurrentRotationAxisDirection { get; set; }
         public MovementDirection MovmementDirectionToUseForDestinationMove { get; set; }
         public bool StopOnCollision { get; set; }
 
-
+        public float MovementUnit { get; set; }
 
         private bool isInCollision;
         public bool IsInCollision
@@ -1251,7 +1712,7 @@ namespace Module.HeroVirtualTabletop.Movements
         /// Indicates whether there is a collision in next 20 units in current direction. True means the LastCollisionFreePointInCurrentDirection is an actual collision point. False means
         /// we have only calculated upto the LastCollisionFreePointInCurrentDirection point, but it is not an actual collision
         /// </summary>
-        public bool CollisionAhead { get; set; }
+        public bool IsCollisionAhead { get; set; }
         /// <summary>
         /// The point in character body that will have collision in the current direction
         /// </summary>
@@ -1260,6 +1721,19 @@ namespace Module.HeroVirtualTabletop.Movements
             get;
             set;
         }
+
+        public float DistanceFromCollisionFreePoint { get; set; }
+        public bool IsPositionAdjustedToAvoidCollision { get; set; }
+        public float DestinationPointHeightAdjustment { get; set; }
+        public bool IsDestinationPointAdjusted { get; set; }
+    }
+
+    public class CollisionInfo
+    {
+        public Vector3 BodyCollisionOffsetVector { get; set; }
+        public BodyPart CollisionBodyPart { get; set; }
+        public float CollisionDistance { get; set; }
+        public Vector3 CollisionPoint { get; set; }
     }
 
     public class MovementProcessor

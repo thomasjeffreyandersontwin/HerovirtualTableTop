@@ -83,7 +83,14 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
 
         public void SetTargetAttribute(int offset, float value)
         {
-            this.gameMemory[(IntPtr)(this.targetPointer + offset), false].Write<float>(value);
+            if(value != float.NaN)
+            {
+                this.gameMemory[(IntPtr)(this.targetPointer + offset), false].Write<float>(value);
+            }
+            else
+            {
+
+            }
         }
 
         public void SetTargetAttribute(int offset, string value, Encoding encoding)
