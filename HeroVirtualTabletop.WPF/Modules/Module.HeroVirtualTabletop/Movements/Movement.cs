@@ -132,6 +132,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
             this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
             this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            this.Character.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None;
             this.Character.MovementInstruction.LastMovementDirection = MovementDirection.None;
             // Disable Camera Control
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
@@ -181,6 +182,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                     {
                                         this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision as the character is changing the facing
                                         this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
+                                        this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None; // Reset key movement
                                         this.Character.MovementInstruction.CurrentRotationAxisDirection = turnDirection;
                                         this.Movement.StartMovment(this.Character);
                                     }
@@ -198,6 +200,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                     if (this.Character.MovementInstruction.CurrentMovementDirection != direction)
                                     {
                                         this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
+                                        this.Character.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
                                         this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
                                         this.Character.MovementInstruction.CurrentMovementDirection = direction;
                                         this.Movement.StartMovment(this.Character);
