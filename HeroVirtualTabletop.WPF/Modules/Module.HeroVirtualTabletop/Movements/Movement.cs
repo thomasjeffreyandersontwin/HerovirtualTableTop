@@ -69,6 +69,22 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        private double movementSpeed;
+        public double MovementSpeed
+        {
+            get
+            {
+                if (movementSpeed == 0)
+                    movementSpeed = 1;
+                return movementSpeed;
+            }
+            set
+            {
+                movementSpeed = value;
+                OnPropertyChanged("MovementSpeed");
+            }
+        }
+
         private Character character;
         public Character Character
         {
@@ -523,9 +539,20 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private float GetMovementUnit(Character target)
         {
+            double movementSpeed = 1;
+            var activeCharacterMovement = target.Movements.FirstOrDefault(cm => cm.IsActive && cm.Name == this.Name); // See if this character has speed defined for this movement
+            if (activeCharacterMovement != null) 
+                movementSpeed = activeCharacterMovement.MovementSpeed;
+            else // use speed from default character
+            {
+                activeCharacterMovement = Helper.GlobalMovements.FirstOrDefault(cm => cm.Name == this.Name); 
+                if (activeCharacterMovement != null)
+                    movementSpeed = activeCharacterMovement.MovementSpeed;
+            }
+            
             // Distance is updated once in every 33 milliseconds approximately - i.e. 30 times in 1 sec
             // So, normally he can travel 30 * 0.5 = 15 units per second if unit is 0.5
-            float unit = (float)target.MovementSpeed * 0.5f; 
+            float unit = (float)movementSpeed * 0.5f; 
             if(target.MovementInstruction.IsMovingToDestination)
             {
                 var distanceFromDestination = Vector3.Distance(target.MovementInstruction.OriginalDestinationVector, target.CurrentPositionVector);
@@ -542,7 +569,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     unit = (float)distanceFromDestination / 30 / 3;
                 }
 
-                unit *= (float)target.MovementSpeed / 2; // Dividing by two to reduce the speed as high speeds tend to cause more errors
+                unit *= (float)movementSpeed / 2; // Dividing by two to reduce the speed as high speeds tend to cause more errors
             }
             return unit;
         }

@@ -47,8 +47,15 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default" Margin="3,1, 0, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
-            <ComboBox Grid.Row="1" Grid.Column="0" MinWidth="60" IsEnabled="{Binding CanEditMovementOptions}" Margin="3, 1, 0, 0"
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Grid.ColumnSpan="2">
+                <TextBlock Margin="5 0 0 0" Text="Movement Speed" Style="{StaticResource TextBlockDefaultStyle}" VerticalAlignment="Center"/>
+                <GridSplitter></GridSplitter>
+                <TextBlock Margin="5 0 0 0" Text="0.5x" Style="{StaticResource TextBlockDefaultStyle}" FontSize="{StaticResource FontSize_Small}" VerticalAlignment="Center"/>
+                <Slider  Grid.Row="1"  Minimum="0.5" Maximum="4" TickFrequency="0.25" Value="{Binding CurrentCharacterMovement.MovementSpeed}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveMovementCommand}"/>
+                <TextBlock Text="4x" Style="{StaticResource TextBlockDefaultStyle}" FontSize="{StaticResource FontSize_Small}" VerticalAlignment="Center"/>
+                <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default Movement" Margin="7,1, 0, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
+            </StackPanel>
+            <ComboBox Grid.Row="1" Grid.Column="0" Width="{Binding ElementName=lbMovementMembers, Path=ActualWidth}" MinWidth="120" IsEnabled="{Binding CanEditMovementOptions}" Margin="3, 1, 0, 0" HorizontalAlignment="Left"
                           Name="comboBoxMovements" ItemsSource="{Binding AvailableMovements}" DisplayMemberPath="Name" SelectedValue="{Binding SelectedMovement}">
                 <ComboBox.InputBindings>
                     <KeyBinding Key="Space" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.EnterMovementEditModeCommand}" CommandParameter="{Binding ElementName=comboBoxMovements}"/>
@@ -93,7 +100,7 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid Grid.Column="0">
-                <ListBox ItemsSource="{Binding SelectedMovement.MovementMembers}"
+                <ListBox Name="lbMovementMembers" ItemsSource="{Binding SelectedMovement.MovementMembers}"
                     Background="Transparent" TextElement.Foreground="White" BorderBrush="{StaticResource MainBlueThemeColorBrush}"
                      SelectedItem="{Binding SelectedMovementMember}">
                     <ListBox.ItemTemplate>

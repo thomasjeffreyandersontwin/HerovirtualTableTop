@@ -342,22 +342,6 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private double movementSpeed;
-        public double MovementSpeed
-        {
-            get
-            {
-                if (movementSpeed == 0)
-                    movementSpeed = 1;
-                return movementSpeed;
-            }
-            set
-            {
-                movementSpeed = value;
-                OnPropertyChanged("MovementSpeed");
-            }
-        }
-
         private MovementInstruction movementInstruction;
         [JsonIgnore]
         public MovementInstruction MovementInstruction
