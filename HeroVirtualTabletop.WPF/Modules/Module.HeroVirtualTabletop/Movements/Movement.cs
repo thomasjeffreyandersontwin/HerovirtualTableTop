@@ -320,6 +320,8 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        private List<AnimationElement> supportingAnimationElementsForMovement; 
+
         private ObservableCollection<MovementMember> movmementMembers;
         public ObservableCollection<MovementMember> MovementMembers
         {
@@ -334,7 +336,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        public void Move(Character target)
+        public async Task Move(Character target)
         {
             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentMovementDirection);
             Vector3 facingToDest = new Vector3();
@@ -366,6 +368,7 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 target.CurrentPositionVector = allowableDestinationVector;
+                await PlaySupportingMovementAnimationsAsync(target);
             }
         }
 
@@ -539,17 +542,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private float GetMovementUnit(Character target)
         {
-            double movementSpeed = 1;
-            var activeCharacterMovement = target.Movements.FirstOrDefault(cm => cm.IsActive && cm.Name == this.Name); // See if this character has speed defined for this movement
-            if (activeCharacterMovement != null) 
-                movementSpeed = activeCharacterMovement.MovementSpeed;
-            else // use speed from default character
-            {
-                activeCharacterMovement = Helper.GlobalMovements.FirstOrDefault(cm => cm.Name == this.Name); 
-                if (activeCharacterMovement != null)
-                    movementSpeed = activeCharacterMovement.MovementSpeed;
-            }
-            
+            var movementSpeed = GetMovementSpeed(target);
             // Distance is updated once in every 33 milliseconds approximately - i.e. 30 times in 1 sec
             // So, normally he can travel 30 * 0.5 = 15 units per second if unit is 0.5
             float unit = (float)movementSpeed * 0.5f; 
@@ -572,6 +565,22 @@ namespace Module.HeroVirtualTabletop.Movements
                 unit *= (float)movementSpeed / 2; // Dividing by two to reduce the speed as high speeds tend to cause more errors
             }
             return unit;
+        }
+
+        private double GetMovementSpeed(Character target)
+        {
+            double movementSpeed = 1;
+            var activeCharacterMovement = target.Movements.FirstOrDefault(cm => cm.IsActive && cm.Name == this.Name); // See if this character has speed defined for this movement
+            if (activeCharacterMovement != null)
+                movementSpeed = activeCharacterMovement.MovementSpeed;
+            else // use speed from default character
+            {
+                activeCharacterMovement = Helper.GlobalMovements.FirstOrDefault(cm => cm.Name == this.Name);
+                if (activeCharacterMovement != null)
+                    movementSpeed = activeCharacterMovement.MovementSpeed;
+            }
+
+            return movementSpeed;
         }
 
         private Vector3 GetCollisionVector(Vector3 sourceVector, Vector3 destVector)
@@ -1319,15 +1328,12 @@ namespace Module.HeroVirtualTabletop.Movements
                             Key key = movementMember.AssociatedKey;
                             if (Keyboard.IsKeyDown(key))
                             {
-                                Move(target);
+                                await Move(target);
                             }
                             await Task.Delay(5);
-                            //if (this.IsPlaying)
-                            {
-                                var timer = this.characterMovementTimerDictionary[target];
-                                if(timer != null)
-                                    timer.Change(5, Timeout.Infinite);
-                            }
+                            var timer = this.characterMovementTimerDictionary[target];
+                            if (timer != null)
+                                timer.Change(5, Timeout.Infinite);
                         }
                     }
                     else // else change direction and increment position
@@ -1338,12 +1344,10 @@ namespace Module.HeroVirtualTabletop.Movements
                         // Play movement
                         PlayMovementMember(movementMember, target);
                         target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                        //if (this.IsPlaying)
-                        {
-                            var timer = this.characterMovementTimerDictionary[target];
-                            if (timer != null)
-                                timer.Change(1, Timeout.Infinite);
-                        }
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                        var timer = this.characterMovementTimerDictionary[target];
+                        if (timer != null)
+                            timer.Change(1, Timeout.Infinite);
                     }
                 }
                 else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
@@ -1354,12 +1358,9 @@ namespace Module.HeroVirtualTabletop.Movements
                         Turn(target);
                     }
                     await Task.Delay(5);
-                    //if (this.IsPlaying)
-                    {
-                        var timer = this.characterMovementTimerDictionary[target];
-                        if (timer != null)
-                            timer.Change(5, Timeout.Infinite);
-                    }
+                    var timer = this.characterMovementTimerDictionary[target];
+                    if (timer != null)
+                        timer.Change(5, Timeout.Infinite);
                 }
                 else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
                 {
@@ -1394,7 +1395,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             else
                             {
                                 if (!target.MovementInstruction.IsInCollision)
-                                    Move(target);
+                                    await Move(target);
                                 else
                                 {
                                     if(target.MovementInstruction.StopOnCollision)
@@ -1532,18 +1533,84 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 if (movementMember.MemberAbility != null) // && !movementMember.MemberAbility.IsActive)
                 {
-                    foreach (var mm in this.MovementMembers.Where(mm => mm != movementMember)) // && mm.MemberAbility.IsActive))
-                    {
-                        mm.MemberAbility.Stop(target);
-                    }
+                    StopMovementMember(movementMember, target);
                     movementMember.MemberAbility.Play(false, target);
+                    BuildSupportingMovementAnimationElementsList(movementMember);
                 }
             }
         }
 
-        public void MoveToLocation(IMemoryElementPosition destination, Character target)
+        private void BuildSupportingMovementAnimationElementsList(MovementMember movementMember)
         {
+            var allAnimationList = new List<AnimationElement>();
+            this.supportingAnimationElementsForMovement = new List<AnimationElement>();
+            if(movementMember.MemberAbility != null && !movementMember.MemberAbility.Persistent)
+            {
+                if (movementMember.MemberAbility.Reference != null && movementMember.MemberAbility.Reference.AnimationElements != null && movementMember.MemberAbility.Reference.AnimationElements.Count > 0)
+                {
+                    allAnimationList.AddRange(movementMember.MemberAbility.Reference.GetFlattenedAnimationList());
+                    if(allAnimationList.Count > 0)
+                    {
+                        bool foundSound = false;
+                        foreach(var animationElement in allAnimationList)
+                        {
+                            if(animationElement is MOVElement || animationElement is FXEffectElement)
+                            {
+                                if (!foundSound) // if no sound elements found so far, clear pause elements
+                                    supportingAnimationElementsForMovement.Clear();
+                            }
+                            else if(animationElement is SoundElement)
+                            {
+                                foundSound = true;
+                                supportingAnimationElementsForMovement.Add(animationElement);
+                            }
+                            else
+                            {
+                                supportingAnimationElementsForMovement.Add(animationElement);
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
+        public void StopMovementMember(MovementMember movementMember, Character target)
+        {
+            foreach (var mm in this.MovementMembers.Where(mm => mm != movementMember)) // && mm.MemberAbility.IsActive))
+            {
+                mm.MemberAbility.Stop(target);
+            }
+        }
+
+        private async Task PlaySupportingMovementAnimationsAsync(Character target)
+        {
+            int interval = GetSupportingAnimationInterval(target);
+            if (target.MovementInstruction.LastMovmentSupportingAnimationPlayTime.HasValue && target.MovementInstruction.LastMovmentSupportingAnimationPlayTime.Value.AddMilliseconds(interval) <= DateTime.UtcNow)
+            {
+                foreach (AnimationElement ae in this.supportingAnimationElementsForMovement)
+                {
+                    if (ae is SoundElement)
+                    {
+                        SoundElement se = ae as SoundElement;
+                        se.Play(false, target);
+                    }
+                    else
+                        ae.Play();
+                }
+                target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+            }
+            
+            await Task.Delay(1);
+        }
+
+        private int GetSupportingAnimationInterval(Character target)
+        {
+            var movementSpeed = GetMovementSpeed(target);
+            // for 0.5x we give 650, for 4x we give 300, the rest is divided uniformly
+            // solving for y: (y-650)/(650 - 300) = (x - 0.5)/(0.5 - 4) where x is movementSpeed
+            var interval = 650 - (movementSpeed - 0.5) * 100;
+
+            return (int)interval;
         }
 
         private void AddDefaultMemberAbilities()
@@ -1756,6 +1823,8 @@ namespace Module.HeroVirtualTabletop.Movements
         public bool IsPositionAdjustedToAvoidCollision { get; set; }
         public float DestinationPointHeightAdjustment { get; set; }
         public bool IsDestinationPointAdjusted { get; set; }
+
+        public DateTime? LastMovmentSupportingAnimationPlayTime { get; set; }
     }
 
     public class CollisionInfo

@@ -450,16 +450,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         timer.Change(1, System.Threading.Timeout.Infinite);
                     }
-                    //PauseElement pause = new PauseElement("pause", time: 500);
-                    //while (this.IsActive)
-                    //{
-                    //    Vector3 camPositionVector2 = new Camera().GetPositionVector();
-                    //    engine.SetListenerPosition(camPositionVector2.X, camPositionVector2.Y, camPositionVector2.Z, 0, 0, 1);
-                    //    pause.Play();
-                    //}
                 }, tokenSrc);
             }
-            
         }
 
         private void timer_Callback(object state)
