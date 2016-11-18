@@ -363,6 +363,11 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
             return new Vector3(x, y, z);
         }
+
+        public static double GetRadianAngle(double angle)
+        {
+            return (Math.PI / 180) * angle;
+        }
         #endregion
     }
 }

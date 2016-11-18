@@ -359,9 +359,10 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             else
             {
-                facingToDest = new Vector3(target.CurrentFacingVector.X, 0, target.CurrentFacingVector.Z); // disable vertical movement
-                facingToDest.Normalize();
-                directionVector = GetDirectionVector(rotationAngle, target.MovementInstruction.CurrentMovementDirection, facingToDest);
+                //facingToDest = new Vector3(target.CurrentFacingVector.X, target.CurrentFacingVector.Y, target.CurrentFacingVector.Z); // disable vertical movement
+                //facingToDest.Normalize();
+                //directionVector = GetDirectionVector(rotationAngle, target.MovementInstruction.CurrentMovementDirection, facingToDest);
+                directionVector = GetDirectionVector(target);
             }
             target.MovementInstruction.CurrentDirectionVector = directionVector;
             if(directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
@@ -374,6 +375,9 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void MoveBack(Character target, Vector3 lookatVector, Vector3 destinationVector)
         {
+            if (target.CurrentPositionVector == destinationVector)
+                return;
+            
             if (target.MovementInstruction == null)
                 target.MovementInstruction = new MovementInstruction();
 
@@ -396,6 +400,9 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void Move(Character target, Vector3 destinationVector)
         {
+            if (target.CurrentPositionVector == destinationVector)
+                return;
+
             if (target.MovementInstruction == null)
                 target.MovementInstruction = new MovementInstruction();
 
@@ -424,28 +431,10 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             Vector3 currentPositionVector = target.CurrentPositionVector;
             Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, destinationVector, target.CurrentModelMatrix.Up);
+            if (newRotationMatrix.M11 == float.NaN || newRotationMatrix.M13 == float.NaN || newRotationMatrix.M31 == float.NaN || newRotationMatrix.M33 == float.NaN)
+                return;
             newRotationMatrix.M11 *= -1;
             newRotationMatrix.M33 *= -1;
-            //var newModelMatrix = new Matrix
-            //{
-            //    M11 = newRotationMatrix.M11,
-            //    M12 = newRotationMatrix.M12,
-            //    M13 = newRotationMatrix.M13,
-            //    M14 = newRotationMatrix.M14,
-            //    M21 = newRotationMatrix.M21,
-            //    M22 = newRotationMatrix.M22,
-            //    M23 = newRotationMatrix.M23,
-            //    M24 = newRotationMatrix.M24,
-            //    M31 = newRotationMatrix.M31,
-            //    M32 = newRotationMatrix.M32,
-            //    M33 = newRotationMatrix.M33,
-            //    M34 = newRotationMatrix.M34,
-            //    M41 = target.CurrentModelMatrix.M41,
-            //    M42 = target.CurrentModelMatrix.M42,
-            //    M43 = target.CurrentModelMatrix.M43,
-            //    M44 = target.CurrentModelMatrix.M44
-            //};
-            #region old
             var newModelMatrix = new Matrix
             {
                 M11 = newRotationMatrix.M11,
@@ -465,7 +454,6 @@ namespace Module.HeroVirtualTabletop.Movements
                 M43 = target.CurrentModelMatrix.M43,
                 M44 = target.CurrentModelMatrix.M44
             };
-            #endregion
             //target.CurrentModelMatrix = newModelMatrix;
             // Turn to destination, figure out angle
             Vector3 targetForwardVector = newModelMatrix.Forward; 
@@ -517,25 +505,25 @@ namespace Module.HeroVirtualTabletop.Movements
             switch(target.MovementInstruction.CurrentRotationAxisDirection)
             {
                 case MovementDirection.Upward: // Rotate against Up Axis, e.g. Y axis for a vertically aligned model
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentUpVector, (float)GetRadianAngle(angle));
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentUpVector, (float)Helper.GetRadianAngle(angle));
                     break;
                 case MovementDirection.Downward: // Rotate against Down Axis, e.g. -Y axis for a vertically aligned model
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentDownVector, (float)GetRadianAngle(angle));
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentDownVector, (float)Helper.GetRadianAngle(angle));
                     break;
                 case MovementDirection.Right: // Rotate against Right Axis, e.g. X axis for a vertically aligned model will tilt the model forward
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentRightVector, (float)GetRadianAngle(angle));
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentRightVector, (float)Helper.GetRadianAngle(angle));
                     break;
                 case MovementDirection.Left: // Rotate against Left Axis, e.g. -X axis for a vertically aligned model will tilt the model backward
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentLeftVector, (float)GetRadianAngle(angle));
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentLeftVector, (float)Helper.GetRadianAngle(angle));
                     break;
                 case MovementDirection.Forward: // Rotate against Forward Axis, e.g. Z axis for a vertically aligned model will tilt the model on right side
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentForwardVector, (float)GetRadianAngle(angle));
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentForwardVector, (float)Helper.GetRadianAngle(angle));
                     break;
                 case MovementDirection.Backward: // Rotate against Backward Axis, e.g. -Z axis for a vertically aligned model will tilt the model on left side
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentBackwardVector, (float)GetRadianAngle(angle));
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentBackwardVector, (float)Helper.GetRadianAngle(angle));
                     break;
             }
-
+            
             target.CurrentModelMatrix *= rotatedMatrix; // Apply rotation
             target.CurrentPositionVector = currentPositionVector; // Keep position intact;
         }
@@ -625,7 +613,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f) // Need to recalculate next collision point
             {
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
-                logManager.Info(string.Format("recalculating collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
+                //logManager.Info(string.Format("recalculating collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -720,7 +708,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
                 //logManager.Info("No collision, carrying on");
             }
-            logManager.Info(string.Format("On {0}, {1}, {2} At {3}", allowableDestVector.X, allowableDestVector.Y, allowableDestVector.Z, DateTime.Now.ToString("HH:mm:ss.fff")));
+            //logManager.Info(string.Format("On {0}, {1}, {2} At {3}", allowableDestVector.X, allowableDestVector.Y, allowableDestVector.Z, DateTime.Now.ToString("HH:mm:ss.fff")));
             //if (!HasCollision(collisionVector)) // No collision - move to destination
             //    allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
             //else // Move to collision point
@@ -793,7 +781,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
                     Vector3 destinationVector = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, 5f, target);
                     Dictionary<BodyPart, CollisionInfo> bodyPartCollisionMap = GetCollisionPointsForBodyParts(target, destinationVector, bodyPartMap);
-                    logManager.Info(string.Format("calculate collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
+                    //logManager.Info(string.Format("calculate collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
                     bool hasCollision = false;
                     foreach (BodyPart key in bodyPartCollisionMap.Keys)
                     {
@@ -1326,7 +1314,7 @@ namespace Module.HeroVirtualTabletop.Movements
                         {
                             target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
                             Key key = movementMember.AssociatedKey;
-                            if (Keyboard.IsKeyDown(key))
+                            if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
                             {
                                 await Move(target);
                             }
@@ -1482,7 +1470,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             else
             {
-                double rotationAngleRadian = GetRadianAngle(rotaionAngle);
+                double rotationAngleRadian = Helper.GetRadianAngle(rotaionAngle);
                 double tr = 1 - Math.Sin(rotationAngleRadian);
                 //a1 = (t(r) * X * X) + cos(r)
                 var a1 = tr * rotationAxisX * rotationAxisX + Math.Cos(rotationAngleRadian);
@@ -1503,11 +1491,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 //c3 = (t(r) * Z * Z) + cos (r)
                 var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
 
-                //facingVector.Y = 0; // cancelling out vertical components of movement
-
-                //vX = (float)(a1 * facingVector.X + a2 * facingVector.Y + a3 * facingVector.Z);
-                //vY = (float)(b1 * facingVector.X + b2 * facingVector.Y + b3 * facingVector.Z);
-                //vZ = (float)(c1 * facingVector.X + c2 * facingVector.Y + c3 * facingVector.Z);
+                
                 Vector3 facingVectorToDestination = facingVector;
                 vX = (float)(a1 * facingVectorToDestination.X + a2 * facingVectorToDestination.Y + a3 * facingVectorToDestination.Z);
                 vY = (float)(b1 * facingVectorToDestination.X + b2 * facingVectorToDestination.Y + b3 * facingVectorToDestination.Z);
@@ -1516,9 +1500,36 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return Helper.GetRoundedVector(new Vector3(vX, vY, vZ), 2);
         }
-        public double GetRadianAngle(double angle)
+
+        public Vector3 GetDirectionVector(Character target)
         {
-            return (Math.PI / 180) * angle;
+            Vector3 directionVector = new Vector3();
+            switch(target.MovementInstruction.CurrentMovementDirection)
+            {
+                case MovementDirection.Forward:
+                    directionVector = target.CurrentFacingVector;
+                    break;
+                case MovementDirection.Backward:
+                    directionVector = target.CurrentModelMatrix.Backward;
+                    directionVector.X *= -1;
+                    directionVector.Y *= -1;
+                    directionVector.Z *= -1;
+                    break;
+                case MovementDirection.Upward:
+                    directionVector = target.CurrentModelMatrix.Up;
+                    break;
+                case MovementDirection.Downward:
+                    directionVector = target.CurrentModelMatrix.Down;
+                    break;
+                case MovementDirection.Left:
+                    directionVector = target.CurrentModelMatrix.Left;
+                    break;
+                case MovementDirection.Right:
+                    directionVector = target.CurrentModelMatrix.Right;
+                    break;
+            }
+
+            return directionVector;
         }
 
         public void MoveStill(Character target)

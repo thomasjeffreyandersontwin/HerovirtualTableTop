@@ -12,4 +12,5 @@ Option "Clone and Link" "bind_save_file clonelink.txt"
 Option "Move Camera to Target" "bind_save_file movecamera.txt"
 Option "Move Target to Camera" "bind_save_file movetarget.txt"
 Option "Move Target to Mouse Location" "bind_save_file movetargetmouse.txt"
+Option "Reset Orientation" "bind_save_file resetorientation.txt"
 }
