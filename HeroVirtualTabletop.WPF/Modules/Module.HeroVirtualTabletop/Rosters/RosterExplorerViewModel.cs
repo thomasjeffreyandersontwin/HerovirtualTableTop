@@ -1077,7 +1077,27 @@ namespace Module.HeroVirtualTabletop.Roster
                         return;
                     else
                         character = SelectedParticipants[0] as CrowdMemberModel;
+                // Pause movements from other characters that were active
+                if (Helper.GlobalVariables_CharacterMovement != null && Helper.GlobalVariables_CharacterMovement.Character == this.ActiveCharacter)
+                {
+                    Helper.GlobalVariables_CharacterMovement.IsPaused = true;
+                }
+                // Deactivate movements from other characters that are not active
+                if (Helper.GlobalVariables_CharacterMovement != null && Helper.GlobalVariables_CharacterMovement.Character != this.ActiveCharacter)
+                {
+                    var otherCharacter = Helper.GlobalVariables_CharacterMovement.Character;
+                    if (otherCharacter != Helper.GlobalVariables_ActiveCharacter)
+                    {
+                        Helper.GlobalVariables_CharacterMovement.DeactivateMovement();
+                    }
+                }
                 this.ActiveCharacter = character as CrowdMemberModel;
+                // Now resume any paused movements for the activated character
+                var pausedMovement = character.Movements.FirstOrDefault(cm => cm.IsPaused);
+                if(pausedMovement != null)
+                {
+                    pausedMovement.IsPaused = false;
+                }
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(new Tuple<Character, string, string>(character, selectedOptionGroupName, selectedOptionName));
             };
             Application.Current.Dispatcher.BeginInvoke(action);
