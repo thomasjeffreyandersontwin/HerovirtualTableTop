@@ -17,6 +17,7 @@ using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Movements;
+using Module.HeroVirtualTabletop.Characters;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -68,6 +69,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static string GlobalVariables_DraggingOptionGroupName { get; set; }
 
         public static CharacterMovement GlobalVariables_CharacterMovement { get; set; }
+
+        public static Character GlobalVariables_ActiveCharacter { get; set; }
 
         #endregion
 

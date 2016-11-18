@@ -132,6 +132,15 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void ActivateMovement()
         {
+            // Deactivate movements from other characters that are not active
+            if(Helper.GlobalVariables_CharacterMovement != null && Helper.GlobalVariables_CharacterMovement.Character != this.Character)
+            {
+                var otherCharacter = Helper.GlobalVariables_CharacterMovement.Character;
+                if(otherCharacter != Helper.GlobalVariables_ActiveCharacter)
+                {
+                    Helper.GlobalVariables_CharacterMovement.DeactivateMovement();
+                }
+            }
             // Deactivate Current Movement
             CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm != this && cm.IsActive);
             if (activeCharacterMovement != null)

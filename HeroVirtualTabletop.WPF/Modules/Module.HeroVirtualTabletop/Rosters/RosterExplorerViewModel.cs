@@ -128,6 +128,7 @@ namespace Module.HeroVirtualTabletop.Roster
             set
             {
                 activeCharacter = value;
+                Helper.GlobalVariables_ActiveCharacter = value as Character;
                 OnPropertyChanged("ActiveCharacter");
             }
         }
