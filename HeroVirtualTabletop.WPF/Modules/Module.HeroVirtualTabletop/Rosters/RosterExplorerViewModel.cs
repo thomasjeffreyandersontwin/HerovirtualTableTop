@@ -128,6 +128,7 @@ namespace Module.HeroVirtualTabletop.Roster
             set
             {
                 activeCharacter = value;
+                Helper.GlobalVariables_ActiveCharacter = value as Character;
                 OnPropertyChanged("ActiveCharacter");
             }
         }
@@ -181,6 +182,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> ResetCharacterStateCommand { get; private set; }
         public DelegateCommand<object> AreaAttackTargetCommand { get; private set; }
         public DelegateCommand<object> AreaAttackTargetAndExecuteCommand { get; private set; }
+        public DelegateCommand<object> ResetOrientationCommand { get; private set; }
 
         #endregion
 
@@ -395,18 +397,18 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     sb.AppendLine(menuFileLines[i]);
                 }
-                // Add move target to character options
-                sb.AppendLine(string.Format("Menu \"{0}\"", "Move Target To"));
-                sb.AppendLine("{");
-                foreach (Character c in this.Participants)
-                {
-                    if(this.SelectedParticipants != null && !this.SelectedParticipants.Contains(c) && c.HasBeenSpawned)
-                    {
-                        string whiteSpaceReplacedCharacterName = c.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
-                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", c.Name, Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedCharacterName));
-                    }
-                }
-                sb.AppendLine("}");
+                //// Add move target to character options
+                //sb.AppendLine(string.Format("Menu \"{0}\"", "Move Target To"));
+                //sb.AppendLine("{");
+                //foreach (Character c in this.Participants)
+                //{
+                //    if(this.SelectedParticipants != null && !this.SelectedParticipants.Contains(c) && c.HasBeenSpawned)
+                //    {
+                //        string whiteSpaceReplacedCharacterName = c.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                //        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", c.Name, Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedCharacterName));
+                //    }
+                //}
+                //sb.AppendLine("}");
                 // now add option groups
                 if(character.OptionGroups != null && character.OptionGroups.Count > 0)
                 {
@@ -446,13 +448,14 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else
                 {
-                    if(Helper.GlobalVariables_CharacterMovement != null)
+                    if(Helper.GlobalVariables_CharacterMovement != null && !this.isMenuDisplayed)
                     {
                         Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
                         Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
                         if (target != null)
                             target.MoveToLocation(mouseDirection);
                     }
+                    this.isMenuDisplayed = false;
                 }
             }
         }
@@ -501,6 +504,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ResetCharacterStateCommand = new DelegateCommand<object>(this.ResetCharacterState);
             this.AreaAttackTargetCommand = new DelegateCommand<object>(this.TargetCharacterForAreaAttack);
             this.AreaAttackTargetAndExecuteCommand = new DelegateCommand<object>(this.TargetAndExecuteAreaAttack);
+            this.ResetOrientationCommand = new DelegateCommand<object>(this.ResetOrientation, this.CanResetOrientation);
         }
 
         #endregion
@@ -520,6 +524,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ToggleManeuverWithCameraCommand.RaiseCanExecuteChanged();
             this.EditCharacterCommand.RaiseCanExecuteChanged();
             this.ActivateCharacterCommand.RaiseCanExecuteChanged();
+            this.ResetOrientationCommand.RaiseCanExecuteChanged();
         }
 
         public void RaiseEventToImportRosterMember()
@@ -968,6 +973,39 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
+        #region Reset Pitch
+
+        private bool CanResetOrientation(object arg)
+        {
+            bool canResetOrientation = true;
+            if (this.SelectedParticipants == null)
+            {
+                canResetOrientation = false;
+                return canResetOrientation;
+            }
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
+                if (!member.HasBeenSpawned)
+                {
+                    canResetOrientation = false;
+                    break;
+                }
+            }
+            return canResetOrientation;
+        }
+
+        private void ResetOrientation(object obj)
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                (member as Character).ResetOrientation();
+            }
+        }
+
+        #endregion
+
         #region ToggleManeuverWithCamera
 
 
@@ -1039,7 +1077,27 @@ namespace Module.HeroVirtualTabletop.Roster
                         return;
                     else
                         character = SelectedParticipants[0] as CrowdMemberModel;
+                // Pause movements from other characters that were active
+                if (Helper.GlobalVariables_CharacterMovement != null && Helper.GlobalVariables_CharacterMovement.Character == this.ActiveCharacter)
+                {
+                    Helper.GlobalVariables_CharacterMovement.IsPaused = true;
+                }
+                // Deactivate movements from other characters that are not active
+                if (Helper.GlobalVariables_CharacterMovement != null && Helper.GlobalVariables_CharacterMovement.Character != this.ActiveCharacter)
+                {
+                    var otherCharacter = Helper.GlobalVariables_CharacterMovement.Character;
+                    if (otherCharacter != Helper.GlobalVariables_ActiveCharacter)
+                    {
+                        Helper.GlobalVariables_CharacterMovement.DeactivateMovement();
+                    }
+                }
                 this.ActiveCharacter = character as CrowdMemberModel;
+                // Now resume any paused movements for the activated character
+                var pausedMovement = character.Movements.FirstOrDefault(cm => cm.IsPaused);
+                if(pausedMovement != null)
+                {
+                    pausedMovement.IsPaused = false;
+                }
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(new Tuple<Character, string, string>(character, selectedOptionGroupName, selectedOptionName));
             };
             Application.Current.Dispatcher.BeginInvoke(action);
@@ -1336,6 +1394,9 @@ namespace Module.HeroVirtualTabletop.Roster
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
                             MoveTargetToCamera(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME:
+                            ResetOrientation(null);
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOMOUSELOCATION_FILENAME:
                             MoveTargetToMouseLocation(null);

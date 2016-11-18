@@ -74,6 +74,7 @@ namespace Module.Shared
         public const string GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME = "clear.txt";
         public const string GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME = "activate.txt";
         public const string GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME = "clonelink.txt";
+        public const string GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME = "resetorientation.txt";
         public const string GAME_ENABLE_CAMERA_FILENAME = "enable_camera.txt";
         public const string GAME_DISABLE_CAMERA_FILENAME = "disable_camera.txt";
         #endregion

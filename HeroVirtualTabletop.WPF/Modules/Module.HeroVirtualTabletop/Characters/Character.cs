@@ -527,6 +527,49 @@ namespace Module.HeroVirtualTabletop.Characters
             //return string.Empty;
         }
 
+        public void ResetOrientation()
+        {
+            Vector3 currentPositionVector = this.CurrentPositionVector;
+            Vector3 currentForwardVector = this.CurrentModelMatrix.Forward;
+            Vector3 currentFacing = this.CurrentFacingVector;
+
+            Microsoft.Xna.Framework.Matrix defaultMatrix = new Microsoft.Xna.Framework.Matrix(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+            this.CurrentModelMatrix = defaultMatrix;
+            this.CurrentFacingVector = currentFacing;
+            this.CurrentPositionVector = currentPositionVector;
+
+            #region old angle based calculations - doesn't work for all scenarios
+            //Vector3 currentRightVector = this.CurrentModelMatrix.Right;
+            //Vector3 currentLeftVector = this.CurrentModelMatrix.Left;
+            //double forwardX = Math.Round(currentForwardVector.X, 2);
+            //double forwardZ = Math.Round(currentForwardVector.Z, 2);
+            //float negY = -1 * currentForwardVector.Y;
+            //float sineValue = negY > 1 ? 1 : negY < -1 ? -1 : negY;
+            //float currentPitchAngle = (float)(Math.Asin(sineValue) * 180 / Math.PI);
+            
+            //var yaw = Math.Atan2(forwardX, forwardZ);
+            //var yawAngle = (float)(yaw * 180 / Math.PI);
+
+            //var roll = Vector3.Dot(Vector3.Up, this.CurrentModelMatrix.Up);
+            //var rollValue = roll > 1 ? 1 : roll < -1 ? -1 : roll;
+            //var rollAngle1Red= Math.Acos(rollValue);
+            //var rollAngle = (float)(rollAngle1Red * 180 / Math.PI);
+
+            //currentPitchAngle = (float)Math.Round(currentPitchAngle, 2);
+            //var currentYawAngle = (float)Math.Round(yawAngle, 2);
+            //var currentRollAngle = (float)Math.Round(rollAngle, 2);
+
+            //if (currentPitchAngle != 0)
+            //{
+            //    if (forwardX < 0)
+            //        currentPitchAngle = 180 - currentPitchAngle;
+            //    Microsoft.Xna.Framework.Matrix rotatedMatrix = Microsoft.Xna.Framework.Matrix.CreateFromAxisAngle(currentRightVector, (float)Helper.GetRadianAngle(currentPitchAngle));
+            //    this.CurrentModelMatrix *= rotatedMatrix;
+            //    this.CurrentPositionVector = currentPositionVector; // Keep position intact; 
+            //}
+            #endregion
+        }
+
         public void TargetAndFollow(bool completeEvent = true)
         {
             Target(false);
