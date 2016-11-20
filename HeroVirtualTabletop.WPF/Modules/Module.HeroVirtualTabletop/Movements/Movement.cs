@@ -236,7 +236,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             }
                             else
                             {
-                                MovementDirection direction = GetMovementDirectionFromKey(inputKey);
+                                MovementDirection direction = Helper.GetMovementDirectionFromKey(inputKey);
                                 if (direction != MovementDirection.None)
                                 {
                                     this.Character.MovementInstruction.IsMoving = true;
@@ -261,37 +261,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
-
-        private MovementDirection GetMovementDirectionFromKey(Key key)
-        {
-            MovementDirection movementDirection = MovementDirection.None;
-            switch (key)
-            {
-                case Key.A:
-                    movementDirection = MovementDirection.Left;
-                    break;
-                case Key.W:
-                    movementDirection = MovementDirection.Forward;
-                    break;
-                case Key.S:
-                    movementDirection = MovementDirection.Backward;
-                    break;
-                case Key.D:
-                    movementDirection = MovementDirection.Right;
-                    break;
-                case Key.Space:
-                    movementDirection = MovementDirection.Upward;
-                    break;
-                case Key.Z:
-                    movementDirection = MovementDirection.Downward;
-                    break;
-                case Key.X:
-                    movementDirection = MovementDirection.Still;
-                    break;
-
-            }
-            return movementDirection;
-        }
+        
         private MovementDirection GetTurnAxisDirectionFromKey(Key key)
         {
             MovementDirection turnAxisDirection = MovementDirection.None;
@@ -1367,16 +1337,42 @@ namespace Module.HeroVirtualTabletop.Movements
                         {
                             if (!target.MovementInstruction.IsInCollision)
                             {
+                                bool changeDir = false;
                                 target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
                                 Key key = movementMember.AssociatedKey;
                                 if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
                                 {
                                     await Move(target);
                                 }
+                                else 
+                                {
+                                    MovementDirection otherDirection = MovementDirection.None;
+                                    MovementMember otherMember = null;
+                                    foreach(MovementMember mm in this.MovementMembers)
+                                    {
+                                        if(Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                                        {
+                                            otherDirection = mm.MovementDirection;
+                                            otherMember = mm;
+                                            changeDir = true;
+                                            break;
+                                        }
+                                    }
+                                    if(otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
+                                    {
+                                        target.MovementInstruction.IsInCollision = false;
+                                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                                        // Play movement
+                                        PlayMovementMember(otherMember, target);
+                                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                                    }
+                                }
                                 await Task.Delay(5);
                                 var timer = this.characterMovementTimerDictionary[target];
                                 if (timer != null)
-                                    timer.Change(5, Timeout.Infinite);
+                                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
                             }
                         }
                         else // else change direction and increment position
