@@ -1357,7 +1357,7 @@ namespace Module.HeroVirtualTabletop.Movements
             Action d = async delegate()
             {
                 Character target = state as Character;
-                if (!target.MovementInstruction.IsMovementPaused)
+                if (target.MovementInstruction != null && !target.MovementInstruction.IsMovementPaused)
                 {
                     if (target.MovementInstruction != null && target.MovementInstruction.IsMoving)
                     {
