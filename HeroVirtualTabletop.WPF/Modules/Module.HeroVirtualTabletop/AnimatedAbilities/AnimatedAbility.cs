@@ -690,6 +690,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void AnimateKnockBack(Character attackingCharacter, List<Character> knockedBackCharacters)
         {
+            Character centerTargetCharacter = knockedBackCharacters.FirstOrDefault(kbc => kbc.ActiveAttackConfiguration.IsCenterTarget);
             foreach (Character character in knockedBackCharacters)
             {
                 float knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance * 2f + 5;
@@ -702,6 +703,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         Vector3 attackerVector = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
                         Vector3 targetVector = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
                         Vector3 directionVector = targetVector - attackerVector;
+                        if (!character.ActiveAttackConfiguration.IsCenterTarget)
+                        {
+                            if(centerTargetCharacter != null)
+                            {
+                                directionVector = targetVector - centerTargetCharacter.CurrentPositionVector;
+                            }
+                        }
                         directionVector.Normalize();
                         var destX = targetVector.X + directionVector.X * knockbackDistance;
                         var destY = targetVector.Y + directionVector.Y * knockbackDistance;
@@ -713,7 +721,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         if (Math.Abs(targetVector.Z - destZ) < 1)
                             destZ = targetVector.Z;
                         Vector3 destVector = new Vector3(destX, destY, destZ);
-                        knockbackMovement.Movement.MoveBack(character, attackerVector, destVector);
+                        if(character.ActiveAttackConfiguration.IsCenterTarget || centerTargetCharacter == null)
+                            knockbackMovement.Movement.MoveBack(character, attackerVector, destVector);
+                        else
+                            knockbackMovement.Movement.MoveBack(character, centerTargetCharacter.CurrentPositionVector, destVector);
                     }
                 }
             }
