@@ -18,6 +18,7 @@ using Module.HeroVirtualTabletop.Library.Enumerations;
 using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.Characters;
+using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -357,6 +358,45 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
             return new Vector3(X, Y, Z);
         }
+
+        #endregion
+
+        #region Movement
+
+        public static MovementDirection GetMovementDirectionFromKey(Key key)
+        {
+            MovementDirection movementDirection = MovementDirection.None;
+            switch (key)
+            {
+                case Key.A:
+                    movementDirection = MovementDirection.Left;
+                    break;
+                case Key.W:
+                    movementDirection = MovementDirection.Forward;
+                    break;
+                case Key.S:
+                    movementDirection = MovementDirection.Backward;
+                    break;
+                case Key.D:
+                    movementDirection = MovementDirection.Right;
+                    break;
+                case Key.Space:
+                    movementDirection = MovementDirection.Upward;
+                    break;
+                case Key.Z:
+                    movementDirection = MovementDirection.Downward;
+                    break;
+                case Key.X:
+                    movementDirection = MovementDirection.Still;
+                    break;
+
+            }
+            return movementDirection;
+        }
+
+        #endregion
+
+        # region Vector Maths
 
         public static Vector3 GetRoundedVector(Vector3 vector, int decimalPlaces)
         {

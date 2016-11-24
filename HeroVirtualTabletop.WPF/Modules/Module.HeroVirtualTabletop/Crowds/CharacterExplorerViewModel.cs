@@ -417,6 +417,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                delegate ()
                {
                    this.AddDefaultCharactersWithDefaultAbilities();
+                   this.AddDefaultMovementsToCharacters();
                    var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
                    eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
                };
@@ -425,6 +426,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.BusyService.HideBusy();
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
             this.crowdCollectionLoaded = true;
+        }
+
+        private void AddDefaultMovementsToCharacters()
+        {
+            foreach(var c in this.AllCharactersCrowd.CrowdMemberCollection)
+            {
+                (c as Character).AddDefaultMovements();
+            }
         }
 
         private void AddDefaultCharactersWithDefaultAbilities()
@@ -624,9 +633,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             Character character = this.GetNewCharacter();
             // Now Add this
             this.AddNewCharacter(character);
+            // Add default movements
+            character.AddDefaultMovements();
             // Update Repository asynchronously
             this.SaveCrowdCollection();
-
             // Enter edit mode for the added character
             OnEditNeeded(character, null); 
         }

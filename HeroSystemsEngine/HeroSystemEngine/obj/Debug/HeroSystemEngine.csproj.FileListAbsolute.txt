@@ -1,0 +1,12 @@
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\HeroSystemEngine.dll
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\HeroSystemEngine.pdb
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Microsoft.UnitTestFramework.Extensions.dll
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Microsoft.UnitTestFramework.Extensions.xml
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\obj\Debug\HeroSystemEngine.dll
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\obj\Debug\HeroSystemEngine.pdb
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Castle.Core.dll
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Moq.dll
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Castle.Core.xml
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\bin\Debug\Moq.xml
+C:\champions\applications\HeroSystemsEngine\HeroSystemEngine\obj\Debug\HeroSystemEngine.csprojResolveAssemblyReference.cache

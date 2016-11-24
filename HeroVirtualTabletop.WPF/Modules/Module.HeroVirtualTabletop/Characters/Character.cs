@@ -707,6 +707,20 @@ namespace Module.HeroVirtualTabletop.Characters
                 }
             }
         }
+
+        public void AddDefaultMovements()
+        {
+            string[] defaultMovementNames = new string[] { "Walk", "Run", "Swim" };
+            foreach (CharacterMovement cm in Helper.GlobalMovements.Where(gm => defaultMovementNames.Contains(gm.Name)))
+            {
+                if (this.Name != Constants.DEFAULT_CHARACTER_NAME && this.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && this.Movements.FirstOrDefault(m => m.Name == cm.Name) == null)
+                {
+                    CharacterMovement cmDefault = new CharacterMovement(cm.Name, this);
+                    cmDefault.Movement = cm.Movement;
+                    this.Movements.Add(cmDefault);
+                }
+            }
+        }
         
         internal void SetAsSpawned()
         {

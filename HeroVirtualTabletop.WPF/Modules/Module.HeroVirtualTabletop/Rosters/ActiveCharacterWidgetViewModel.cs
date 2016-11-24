@@ -180,7 +180,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         {
                             ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode).Play();
                         }
-                        else if (Keyboard.IsKeyDown(Key.LeftCtrl) && Keyboard.IsKeyDown(Key.LeftAlt))
+                        else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt)))
                         {
                             if (ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
                             {

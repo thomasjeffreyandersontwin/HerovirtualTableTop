@@ -236,7 +236,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             }
                             else
                             {
-                                MovementDirection direction = GetMovementDirectionFromKey(inputKey);
+                                MovementDirection direction = Helper.GetMovementDirectionFromKey(inputKey);
                                 if (direction != MovementDirection.None)
                                 {
                                     this.Character.MovementInstruction.IsMoving = true;
@@ -261,37 +261,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
-
-        private MovementDirection GetMovementDirectionFromKey(Key key)
-        {
-            MovementDirection movementDirection = MovementDirection.None;
-            switch (key)
-            {
-                case Key.A:
-                    movementDirection = MovementDirection.Left;
-                    break;
-                case Key.W:
-                    movementDirection = MovementDirection.Forward;
-                    break;
-                case Key.S:
-                    movementDirection = MovementDirection.Backward;
-                    break;
-                case Key.D:
-                    movementDirection = MovementDirection.Right;
-                    break;
-                case Key.Space:
-                    movementDirection = MovementDirection.Upward;
-                    break;
-                case Key.Z:
-                    movementDirection = MovementDirection.Downward;
-                    break;
-                case Key.X:
-                    movementDirection = MovementDirection.Still;
-                    break;
-
-            }
-            return movementDirection;
-        }
+        
         private MovementDirection GetTurnAxisDirectionFromKey(Key key)
         {
             MovementDirection turnAxisDirection = MovementDirection.None;
@@ -769,7 +739,8 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             Vector3 nextTravelPoint = new Vector3();
 
-            Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, target.MovementInstruction.MovementUnit, target);
+            //Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, target.MovementInstruction.MovementUnit, target);
+            Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, 0.25f, target);
             Vector3 collisionBodyPoint = Vector3.Add(target.CurrentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
             float distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             float distanceFromDest = Vector3.Distance(target.CurrentPositionVector, destinationVectorNext);
@@ -860,10 +831,13 @@ namespace Module.HeroVirtualTabletop.Movements
                                 if (bodyPartCollisionMap[key] != null)
                                 {
                                     CollisionInfo collisionInfo = bodyPartCollisionMap[key];
-                                    if (distanceFromCollisionPoint + 0.25f > collisionInfo.CollisionDistance) // check if the collisions are further from current collision so that it is worth moving up 
+                                    if(collisionInfo.CollisionBodyPart != BodyPart.Bottom && collisionInfo.CollisionBodyPart != BodyPart.BottomSemiMiddle)
                                     {
-                                        upperCollisionsFar = false;
-                                        break;
+                                        if (distanceFromCollisionPoint + 0.25f > collisionInfo.CollisionDistance) // check if the collisions are further from current collision so that it is worth moving up 
+                                        {
+                                            upperCollisionsFar = false;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1357,7 +1331,7 @@ namespace Module.HeroVirtualTabletop.Movements
             Action d = async delegate()
             {
                 Character target = state as Character;
-                if (!target.MovementInstruction.IsMovementPaused)
+                if (target.MovementInstruction != null && !target.MovementInstruction.IsMovementPaused)
                 {
                     if (target.MovementInstruction != null && target.MovementInstruction.IsMoving)
                     {
@@ -1367,16 +1341,42 @@ namespace Module.HeroVirtualTabletop.Movements
                         {
                             if (!target.MovementInstruction.IsInCollision)
                             {
+                                bool changeDir = false;
                                 target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
                                 Key key = movementMember.AssociatedKey;
                                 if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
                                 {
                                     await Move(target);
                                 }
+                                else 
+                                {
+                                    MovementDirection otherDirection = MovementDirection.None;
+                                    MovementMember otherMember = null;
+                                    foreach(MovementMember mm in this.MovementMembers)
+                                    {
+                                        if(Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                                        {
+                                            otherDirection = mm.MovementDirection;
+                                            otherMember = mm;
+                                            changeDir = true;
+                                            break;
+                                        }
+                                    }
+                                    if(otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
+                                    {
+                                        target.MovementInstruction.IsInCollision = false;
+                                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                                        // Play movement
+                                        PlayMovementMember(otherMember, target);
+                                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                                    }
+                                }
                                 await Task.Delay(5);
                                 var timer = this.characterMovementTimerDictionary[target];
                                 if (timer != null)
-                                    timer.Change(5, Timeout.Infinite);
+                                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
                             }
                         }
                         else // else change direction and increment position
