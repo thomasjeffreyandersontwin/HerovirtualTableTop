@@ -739,7 +739,8 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             Vector3 nextTravelPoint = new Vector3();
 
-            Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, target.MovementInstruction.MovementUnit, target);
+            //Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, target.MovementInstruction.MovementUnit, target);
+            Vector3 destinationVectorNext = GetDestinationVector(target.MovementInstruction.CurrentDirectionVector, 0.25f, target);
             Vector3 collisionBodyPoint = Vector3.Add(target.CurrentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
             float distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             float distanceFromDest = Vector3.Distance(target.CurrentPositionVector, destinationVectorNext);
@@ -830,10 +831,13 @@ namespace Module.HeroVirtualTabletop.Movements
                                 if (bodyPartCollisionMap[key] != null)
                                 {
                                     CollisionInfo collisionInfo = bodyPartCollisionMap[key];
-                                    if (distanceFromCollisionPoint + 0.25f > collisionInfo.CollisionDistance) // check if the collisions are further from current collision so that it is worth moving up 
+                                    if(collisionInfo.CollisionBodyPart != BodyPart.Bottom && collisionInfo.CollisionBodyPart != BodyPart.BottomSemiMiddle)
                                     {
-                                        upperCollisionsFar = false;
-                                        break;
+                                        if (distanceFromCollisionPoint + 0.25f > collisionInfo.CollisionDistance) // check if the collisions are further from current collision so that it is worth moving up 
+                                        {
+                                            upperCollisionsFar = false;
+                                            break;
+                                        }
                                     }
                                 }
                             }
