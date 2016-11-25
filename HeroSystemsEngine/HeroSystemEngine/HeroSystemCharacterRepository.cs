@@ -10,3 +10,16 @@ namespace HeroSystemEngine.Character
 
       
 }
+
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using HeroSystemEngine.Manuevers;
+namespace HeroSystemEngine.Character
+{
+
+
+      
+}

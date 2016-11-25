@@ -9,3 +9,6 @@ C:\champions\applications\HeroSystemsEngine\HeroSystemEngineUnitTest\bin\Debug\C
 C:\champions\applications\HeroSystemsEngine\HeroSystemEngineUnitTest\bin\Debug\Moq.dll
 C:\champions\applications\HeroSystemsEngine\HeroSystemEngineUnitTest\bin\Debug\Castle.Core.xml
 C:\champions\applications\HeroSystemsEngine\HeroSystemEngineUnitTest\bin\Debug\Moq.xml
+C:\champions\applications\COH\HeroVirtualTableTop\HeroSystemsEngine\HeroSystemEngineUnitTest\obj\Debug\HeroSystemEngineUnitTest.csprojResolveAssemblyReference.cache
+C:\champions\applications\COH\HeroVirtualTableTop\HeroSystemsEngine\HeroSystemEngineUnitTest\obj\Debug\HeroSystemEngineUnitTest.dll
+C:\champions\applications\COH\HeroVirtualTableTop\HeroSystemsEngine\HeroSystemEngineUnitTest\obj\Debug\HeroSystemEngineUnitTest.pdb

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{729F138C-B2C7-4CEF-8113-3BA447B0EB63}</ProjectGuid>
+    <ProjectGuid>{BC072AD7-5A2D-4191-8E56-3A91386730B3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>HeroSystemEngineUnitTest</RootNamespace>
@@ -35,14 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Castle.Core, Version=3.3.0.0, Culture=neutral, PublicKeyToken=407dd0808d44fbdc, processorArchitecture=MSIL">
-      <HintPath>..\HeroSystemEngine\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Moq, Version=4.5.28.0, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
-      <HintPath>..\HeroSystemEngine\packages\Moq.4.5.28\lib\net45\Moq.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
   </ItemGroup>
   <Choose>
@@ -53,28 +45,18 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
-          <Private>False</Private>
-        </Reference>
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="BasicCombatManueverFeatureTest.cs" />
+    <Compile Include="CharacterTest.cs" />
+    <Compile Include="CombatManeuverTest.cs" />
     <Compile Include="DiceTest.cs" />
     <Compile Include="MockHeroVirtualTableTop.cs" />
+    <Compile Include="UnitTest1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CombatManeuverTest.cs" />
-    <Compile Include="CharacterTest.cs" />
-    <Compile Include="BasicCombatManueverFeatureTest.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HeroSystemEngine\HeroSystemEngine.csproj">
-      <Project>{9bc4ac7c-6873-4387-85ed-16dbc0fed208}</Project>
-      <Name>HeroSystemEngine</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

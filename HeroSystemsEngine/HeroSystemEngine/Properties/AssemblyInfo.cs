@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("HeroSystemEngine")]
+[assembly: AssemblyTitle("HeroSystemsEngine")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("HeroSystemEngine")]
+[assembly: AssemblyProduct("HeroSystemsEngine")]
 [assembly: AssemblyCopyright("Copyright ©  2016")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9bc4ac7c-6873-4387-85ed-16dbc0fed208")]
+[assembly: Guid("109227b2-24b3-4732-9c9b-5bce27d83158")]
 
 // Version information for an assembly consists of the following four values:
 //
