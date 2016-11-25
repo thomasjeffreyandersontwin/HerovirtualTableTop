@@ -948,7 +948,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void MoveToLocation(Vector3 destinationVector)
         {
-            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement);
+            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
             if (characterMovement != null)
             {
                 characterMovement.Movement.Move(this, destinationVector);

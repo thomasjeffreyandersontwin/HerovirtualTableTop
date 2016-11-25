@@ -1395,15 +1395,46 @@ namespace Module.HeroVirtualTabletop.Movements
                     }
                     else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
                     {
+                        bool changeDir = false;
                         bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);
                         if (associatedKeyPressed)
                         {
                             Turn(target);
                         }
+                        else
+                        {
+                            MovementDirection otherDirection = MovementDirection.None;
+                            MovementMember otherMember = null;
+                            foreach (MovementMember mm in this.MovementMembers)
+                            {
+                                if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                                {
+                                    otherDirection = mm.MovementDirection;
+                                    otherMember = mm;
+                                    changeDir = true;
+                                    break;
+                                }
+                            }
+                            if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
+                            {
+                                target.MovementInstruction.IsMoving = true;
+                                target.MovementInstruction.IsTurning = false;
+                                target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
+                                target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
+                                target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                                target.MovementInstruction.IsInCollision = false;
+                                target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                                target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                                // Play movement
+                                PlayMovementMember(otherMember, target);
+                                target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                                target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                            }
+                        }
                         await Task.Delay(5);
                         var timer = this.characterMovementTimerDictionary[target];
                         if (timer != null)
-                            timer.Change(5, Timeout.Infinite);
+                            timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
                     }
                     else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
                     {
@@ -1434,6 +1465,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                     MovementMember directionMem = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
                                     PlayMovementMember(directionMem, target);
                                     target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
+                                    target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
                                 }
                                 else
                                 {
