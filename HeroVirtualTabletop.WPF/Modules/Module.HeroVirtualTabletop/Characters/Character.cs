@@ -235,6 +235,19 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        [JsonIgnore]
+        public bool IsFollowed
+        {
+            get;
+            set;
+        }
+        [JsonIgnore]
+        public bool IsMoving
+        {
+            get;
+            set;
+        }
+
         protected virtual string GetLabel()
         {
             return name;
@@ -573,14 +586,30 @@ namespace Module.HeroVirtualTabletop.Characters
         public void TargetAndFollow(bool completeEvent = true)
         {
             Target(false);
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow);
+            if(!this.IsMoving)
+            {
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow);
+                this.IsFollowed = true;
+            }
+            
             if (completeEvent)
                 keyBindsGenerator.CompleteEvent();
+        }
+
+        public void UnFollow()
+        {
+            if(this.IsFollowed)
+            {
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow);
+                keyBindsGenerator.CompleteEvent();
+                this.IsFollowed = false;
+            }
         }
 
         public string UnTarget(bool completeEvent = true)
         {
             keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
+            this.UnFollow();
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
@@ -621,6 +650,7 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             if(this.HasBeenSpawned)
             {
+                this.UnFollow();
                 Target(false);
                 keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
                 if (completeEvent)

@@ -132,9 +132,9 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void RosterViewListBox_PreviewMouseMove(object sender, MouseEventArgs e)
         {
-            if(e.LeftButton == MouseButtonState.Pressed)
+            if (e.LeftButton == MouseButtonState.Pressed && !this.viewModel.IsCharacterDragDropInProgress)
             {
-                this.viewModel.IsCharacterDragDropInProgress = false;
+                //this.viewModel.IsCharacterDragDropInProgress = false;
                 this.viewModel.StartDragFromRosterToDesktop();
             }
         }

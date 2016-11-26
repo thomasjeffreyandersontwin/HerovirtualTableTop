@@ -228,7 +228,7 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_DesktopInteraction.Elapsed +=
                 new ElapsedEventHandler(clickTimer_DesktopInteraction_Elapsed);
             clickTimer_CharacterDragDrop.AutoReset = false;
-            clickTimer_CharacterDragDrop.Interval = 1000;
+            clickTimer_CharacterDragDrop.Interval = 50;
             clickTimer_CharacterDragDrop.Elapsed +=
                 new ElapsedEventHandler(clickTimer_CharacterDragDrop_Elapsed);
             hookID = MouseHook.SetHook(clickCharacterInDesktop);
@@ -469,6 +469,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         // 2. If conditions satisfy execute move
                         if(this.currentDraggingCharacter != null && lastDesktopMouseDownTime != DateTime.MinValue && this.IsCharacterDragDropInProgress)
                         {
+                            System.Threading.Thread.Sleep(500);
                             string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
                             Vector3 mouseUpPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
                             if(!this.currentDraggingCharacter.HasBeenSpawned)
@@ -477,12 +478,13 @@ namespace Module.HeroVirtualTabletop.Roster
                             }
                             if (Vector3.Distance(this.currentDraggingCharacter.CurrentPositionVector, mouseUpPosition) > 5)
                             {
+                                this.currentDraggingCharacter.UnFollow();
                                 this.currentDraggingCharacter.MoveToLocation(mouseUpPosition);
                             }
-                            this.currentDraggingCharacter = null;
-                            this.lastDesktopMouseDownTime = DateTime.MinValue;
-                            this.IsCharacterDragDropInProgress = false;
                         }
+                        this.currentDraggingCharacter = null;
+                        this.lastDesktopMouseDownTime = DateTime.MinValue;
+                        this.IsCharacterDragDropInProgress = false;
                     }
                 }
                 else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
@@ -529,14 +531,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public void StartDragFromRosterToDesktop()
         {
-            if(this.selectedParticipants != null && this.selectedParticipants.Count == 1)
-            {
-                var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                WindowsUtilities.SetForegroundWindow(winHandle);
-                this.currentDraggingCharacter = this.selectedParticipants[0] as Character;
-                this.IsCharacterDragDropInProgress = true;
-                this.lastDesktopMouseDownTime = DateTime.UtcNow;
-            }
+            this.clickTimer_CharacterDragDrop.Start();
         }
 
         public Vector3 GetDirectionVectorFromMouseXYZInfo(string mouseXYZInfo)
@@ -632,15 +627,25 @@ namespace Module.HeroVirtualTabletop.Roster
         void clickTimer_CharacterDragDrop_Elapsed(object sender, ElapsedEventArgs e)
         {
             clickTimer_CharacterDragDrop.Stop();
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            Action d = delegate()
             {
-                IntPtr handle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                bool bWindow = WindowsUtilities.GetForegroundWindow() == handle;
-                if (!bWindow)
+                if (Mouse.LeftButton == MouseButtonState.Pressed)
                 {
-                    WindowsUtilities.SetForegroundWindow(handle);
-                } 
-            }
+                    IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    bool bWindow = WindowsUtilities.GetForegroundWindow() == winHandle;
+                    //if (!bWindow)
+                    {
+                        if (this.selectedParticipants != null && this.selectedParticipants.Count == 1)
+                        {
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                            this.currentDraggingCharacter = this.selectedParticipants[0] as Character;
+                            this.IsCharacterDragDropInProgress = true;
+                            this.lastDesktopMouseDownTime = DateTime.UtcNow;
+                        }
+                    }
+                }
+            };
+            Application.Current.Dispatcher.BeginInvoke(d);
         }
 
         void clickTimer_DesktopInteraction_Elapsed(object sender, ElapsedEventArgs e)

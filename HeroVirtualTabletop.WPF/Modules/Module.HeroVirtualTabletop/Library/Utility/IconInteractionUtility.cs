@@ -156,6 +156,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static string GetMouseXYZFromGame()
         {
+            System.Threading.Thread.Sleep(100);
             return Marshal.PtrToStringAnsi(getMouseXYZInGame());
         }
 

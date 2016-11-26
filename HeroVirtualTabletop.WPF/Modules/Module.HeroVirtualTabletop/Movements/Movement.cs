@@ -1284,6 +1284,7 @@ namespace Module.HeroVirtualTabletop.Movements
             if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
             {
                 target.MovementInstruction.IsMovementPaused = true;
+                target.IsMoving = false;
                 System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
                 if (timer != null)
                     timer.Change(Timeout.Infinite, Timeout.Infinite);
@@ -1295,6 +1296,7 @@ namespace Module.HeroVirtualTabletop.Movements
             if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
             {
                 target.MovementInstruction.IsMovementPaused = false;
+                target.IsMoving = true;
                 System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
                 if (timer != null)
                     timer.Change(1, Timeout.Infinite);
@@ -1309,6 +1311,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 if (timer != null)
                     timer.Change(Timeout.Infinite, Timeout.Infinite);
                 this.characterMovementTimerDictionary[target] = null;
+                target.IsMoving = false;
             }
         }
 
@@ -1317,6 +1320,8 @@ namespace Module.HeroVirtualTabletop.Movements
             if (this.characterMovementTimerDictionary == null)
                 this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
             StopMovement(target);
+            target.UnFollow();
+            target.IsMoving = true;
             System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);
             if (this.characterMovementTimerDictionary.ContainsKey(target))
                 this.characterMovementTimerDictionary[target] = timer;
