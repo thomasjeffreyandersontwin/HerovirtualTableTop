@@ -688,7 +688,7 @@ namespace Module.HeroVirtualTabletop.Characters
         public string MoveToCamera(bool completeEvent = true)
         {
             Target(false);
-            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement);
+            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
             if (characterMovement == null)
             {
                 keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
