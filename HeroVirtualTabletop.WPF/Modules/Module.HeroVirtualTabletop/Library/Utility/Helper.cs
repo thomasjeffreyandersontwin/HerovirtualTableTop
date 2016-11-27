@@ -73,6 +73,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static Character GlobalVariables_ActiveCharacter { get; set; }
 
+        public static Dictionary<string, object> GlobalVariables_UISettings = new Dictionary<string, object>();
+
         #endregion
 
         #region Resource Dictionary and Style related
@@ -411,6 +413,27 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             return (Math.PI / 180) * angle;
         }
+         
+        #endregion
+
+        #region UI Settings
+
+        public static void SaveUISettings(string settingsName, object value)
+        {
+            if (GlobalVariables_UISettings.ContainsKey(settingsName))
+                GlobalVariables_UISettings[settingsName] = value;
+            else
+                GlobalVariables_UISettings.Add(settingsName, value);
+        }
+
+        public static object GetUISettings(string settingsName)
+        {
+            if (GlobalVariables_UISettings.ContainsKey(settingsName))
+                return GlobalVariables_UISettings[settingsName];
+            else
+                return null;
+        }
+
         #endregion
     }
 }

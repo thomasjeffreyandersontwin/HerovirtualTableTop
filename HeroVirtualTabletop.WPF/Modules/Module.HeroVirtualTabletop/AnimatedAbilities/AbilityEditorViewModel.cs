@@ -167,7 +167,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 selectedAnimationElement = value;
                 OnPropertyChanged("SelectedAnimationElement");
                 OnPropertyChanged("CanPlayWithNext");
-                Filter = string.Empty;
+                if(selectedAnimationElement != null)
+                    SetSavedUIFilter(selectedAnimationElement);
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
                 this.CloneAnimationCommand.RaiseCanExecuteChanged();
@@ -180,10 +181,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             if (e.PropertyName == "Resource")
             {
-                (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName((sender as AnimationElement).Resource);
+                AnimationElement element = sender as AnimationElement;
+                (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName(element.Resource);
                 SaveAbility(null);
                 DemoAnimation(null);
                 SaveResources();
+                SaveUISettingsForResouce(element, element.Resource);
                 this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
             }
         }
@@ -391,19 +394,62 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     switch (SelectedAnimationElement.Type)
                     {
                         case AnimationType.Movement:
+                            Helper.SaveUISettings("Ability_MoveFilter", value);
                             movResourcesCVS.View.Refresh();
                             break;
                         case AnimationType.FX:
+                            Helper.SaveUISettings("Ability_FxFilter", value);
                             fxResourcesCVS.View.Refresh();
                             break;
                         case AnimationType.Sound:
+                            Helper.SaveUISettings("Ability_SoundFilter", value);
                             soundResourcesCVS.View.Refresh();
                             break;
                         case AnimationType.Reference:
+                            Helper.SaveUISettings("Ability_ReferenceFilter", value);
                             referenceAbilitiesCVS.View.Refresh();
                             break;
                     }
                 OnPropertyChanged("Filter");
+            }
+        }
+
+        private void SetSavedUIFilter(IAnimationElement element)
+        {
+            switch (element.Type)
+            {
+                case AnimationType.Movement:
+                    string moveFilter = Helper.GetUISettings("Ability_MoveFilter") as string;
+                    if (!string.IsNullOrEmpty(moveFilter))
+                        this.Filter = moveFilter;
+                    else
+                        this.Filter = string.Empty;
+                    break;
+                case AnimationType.FX:
+                    string fxFilter = Helper.GetUISettings("Ability_FxFilter") as string;
+                    if (!string.IsNullOrEmpty(fxFilter))
+                        this.Filter = fxFilter;
+                    else
+                        this.Filter = string.Empty;
+                    break;
+                case AnimationType.Sound:
+                    string soundFilter = Helper.GetUISettings("Ability_SoundFilter") as string;
+                    if (!string.IsNullOrEmpty(soundFilter))
+                        this.Filter = soundFilter;
+                    else
+                        this.Filter = string.Empty;
+                    break;
+                case AnimationType.Sequence:
+                    break;
+                case AnimationType.Pause:
+                    break;
+                case AnimationType.Reference:
+                    string refFilter = Helper.GetUISettings("Ability_ReferenceFilter") as string;
+                    if (!string.IsNullOrEmpty(refFilter))
+                        this.Filter = refFilter;
+                    else
+                        this.Filter = string.Empty;
+                    break;
             }
         }
 
@@ -853,21 +899,51 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 case AnimationType.Movement:
                     animationElement = new MOVElement("", "");
+                    AnimationResource moveResource = Helper.GetUISettings("Ability_MoveResource") as AnimationResource;
                     fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationType.Movement, flattenedList);
+                    if(moveResource == null)
+                    {
+                        animationElement.DisplayName = fullName;
+                    }
+                    else
+                    {
+                        animationElement.Resource = moveResource;
+                        animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
+                    }
                     animationElement.Name = fullName;
-                    animationElement.DisplayName = fullName;
+                    
                     break;
                 case AnimationType.FX:
                     animationElement = new FXEffectElement("", "");
+                    AnimationResource fxResource = Helper.GetUISettings("Ability_FxResource") as AnimationResource;
                     fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationType.FX, flattenedList);
+                    if(fxResource == null)
+                    {
+                        animationElement.DisplayName = fullName;
+                    }
+                    else
+                    {
+                        animationElement.Resource = fxResource;
+                        animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
+                    }
+                   
                     animationElement.Name = fullName;
-                    animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.Sound:
                     animationElement = new SoundElement("", "");
+                    AnimationResource soundResource = Helper.GetUISettings("Ability_SoundResource") as AnimationResource;
                     fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationType.Sound, flattenedList);
+                    if (soundResource == null)
+                    {
+                        animationElement.DisplayName = fullName;
+                    }
+                    else
+                    {
+                        animationElement.Resource = soundResource;
+                        animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
+                    }
+                    
                     animationElement.Name = fullName;
-                    animationElement.DisplayName = fullName;
                     break;
                 case AnimationType.Sequence:
                     animationElement = new SequenceElement("");
@@ -884,9 +960,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     break;
                 case AnimationType.Reference:
                     animationElement = new ReferenceAbility("", null);
+                    AnimationResource refResource = Helper.GetUISettings("Ability_ReferenceResource") as AnimationResource;
                     fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationType.Reference, flattenedList);
+                    if (refResource == null)
+                    {
+                        animationElement.DisplayName = fullName;
+                    }
+                    else
+                    {
+                        animationElement.Resource = refResource;
+                        animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
+                    }
                     animationElement.Name = fullName;
-                    animationElement.DisplayName = fullName;
                     //this.LoadReferenceResource();
                     break;
             }
@@ -942,6 +1027,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.resourceRepository.SaveMoveResources(this.movResources.ToList());
             this.resourceRepository.SaveFXResources(this.fxResources.ToList());
             this.resourceRepository.SaveSoundResources(this.soundResources.ToList());
+        }
+
+        private void SaveUISettingsForResouce(AnimationElement element, AnimationResource resource)
+        {
+            switch (element.Type)
+            {
+                case AnimationType.Movement:
+                    Helper.SaveUISettings("Ability_MoveResource", resource);
+                    break;
+                case AnimationType.FX:
+                    Helper.SaveUISettings("Ability_FxResource", resource);
+                    break;
+                case AnimationType.Sound:
+                    Helper.SaveUISettings("Ability_SoundResource", resource);
+                    break;
+                case AnimationType.Reference:
+                    Helper.SaveUISettings("Ability_ReferenceResource", resource);
+                    break;
+            }
         }
 
         private void SaveAbility(object state)

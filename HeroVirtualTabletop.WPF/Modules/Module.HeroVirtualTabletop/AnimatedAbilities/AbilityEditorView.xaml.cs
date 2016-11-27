@@ -69,6 +69,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void viewModel_SelectionChanged(object sender, EventArgs e)
         {
             //this.UpdateDataGrid(sender as IAnimationElement);
+            if (!string.IsNullOrEmpty(this.viewModel.Filter))
+            {
+                txtBoxAnimationResourceFilter.Focus();
+                txtBoxAnimationResourceFilter.CaretIndex = txtBoxAnimationResourceFilter.Text.Length;
+            }
         }
 
         private void viewModel_EditModeEnter(object sender, EventArgs e)

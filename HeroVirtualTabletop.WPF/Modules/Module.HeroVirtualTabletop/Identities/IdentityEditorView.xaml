@@ -95,7 +95,7 @@
                          ItemsSource="{Binding ModelsCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Model}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                         IsSynchronizedWithCurrentItem="True">
+                         IsSynchronizedWithCurrentItem="True" IsVisibleChanged="listBoxModels_IsVisibleChanged">
                 <i:Interaction.Behaviors>
                     <behaviors:ScrollIntoViewForListBox />
                 </i:Interaction.Behaviors>
@@ -112,7 +112,7 @@
                          ItemsSource="{Binding CostumesCVS.View}"
                          Visibility="{Binding Path=EditedIdentity.Type, Converter={StaticResource identityTypeConverter}, ConverterParameter=Costume}"
                          SelectedValue="{Binding Path=EditedIdentity.Surface, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
-                         IsSynchronizedWithCurrentItem="True">
+                         IsSynchronizedWithCurrentItem="True" IsVisibleChanged="listBoxCostumes_IsVisibleChanged">
                 <i:Interaction.Behaviors>
                     <behaviors:ScrollIntoViewForListBox />
                 </i:Interaction.Behaviors>
@@ -136,7 +136,7 @@
                 SelectionMode="Single" IsEnabled="{Binding CanEditIdentityOptions}"
                 ItemsSource="{Binding AbilitiesCVS.View}"
                 SelectedItem="{Binding Path=EditedIdentity.AnimationOnLoad, Mode=TwoWay}"
-                DisplayMemberPath="Name">
+                DisplayMemberPath="Name" IsVisibleChanged="listBoxAnimations_IsVisibleChanged">
                     <ListBox.Style>
                         <Style TargetType="{x:Type ListBox}">
                             <Setter Property="Background" Value="Transparent"/>
