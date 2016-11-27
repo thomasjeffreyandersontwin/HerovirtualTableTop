@@ -693,7 +693,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character centerTargetCharacter = knockedBackCharacters.FirstOrDefault(kbc => kbc.ActiveAttackConfiguration.IsCenterTarget);
             foreach (Character character in knockedBackCharacters)
             {
-                float knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance * 2f + 5;
+                float knockbackDistance = character.ActiveAttackConfiguration.KnockBackDistance * 8f + 5;
                 if (knockbackDistance > 0)
                 {
                     //PlayKnockBackWithoutMovement(attackingCharacter, character, knockbackDistance);
