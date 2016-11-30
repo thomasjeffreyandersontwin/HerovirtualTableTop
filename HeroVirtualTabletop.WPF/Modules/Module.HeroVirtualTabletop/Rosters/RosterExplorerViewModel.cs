@@ -83,6 +83,13 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Events
 
+        public event EventHandler RosterMemberAdded;
+        public void OnRosterMemberAdded(object sender, EventArgs e)
+        {
+            if (RosterMemberAdded != null)
+                RosterMemberAdded(sender, e);
+        }
+
         #endregion
 
         #region Public Properties
@@ -709,7 +716,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 InitializeAttackEventHandlers(crowdMember);
                 //CheckIfCharacterExistsInGame(crowdMember);
             }
-            Participants.Sort();
+            Participants.Sort(ListSortDirection.Ascending, new RosterCrowdMemberModelComparer());
+            OnRosterMemberAdded(null, null);
         }
 
         private void CheckIfCharacterExistsInGame(CrowdMemberModel crowdMember)

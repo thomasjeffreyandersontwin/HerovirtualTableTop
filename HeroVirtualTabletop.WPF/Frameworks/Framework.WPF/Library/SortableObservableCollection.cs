@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Framework.WPF.Library
@@ -12,27 +14,27 @@ namespace Framework.WPF.Library
     {
         private Func<T, IComparable>[] keySelectors;
 
-        public SortableObservableCollection(params Func<T, IComparable>[] keySelectors )
-           : base()
+        public SortableObservableCollection(params Func<T, IComparable>[] keySelectors)
+            : base()
         {
             this.keySelectors = keySelectors;
         }
 
         public SortableObservableCollection(List<T> list, params Func<T, IComparable>[] keySelectors)
-           : base(list)
+            : base(list)
         {
             this.keySelectors = keySelectors;
         }
 
         public SortableObservableCollection(IEnumerable<T> collection, params Func<T, IComparable>[] keySelectors)
-           : base(collection)
+            : base(collection)
         {
             this.keySelectors = keySelectors;
         }
 
-        public void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, params Func<T, IComparable>[] keySelectors)
+        public void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, IComparer<T> comparer = null, params Func<T, IComparable>[] keySelectors)
         {
-            if (keySelectors .Count() == 0)
+            if (keySelectors.Count() == 0)
             {
                 keySelectors = this.keySelectors;
             }
@@ -40,19 +42,34 @@ namespace Framework.WPF.Library
             {
                 case ListSortDirection.Ascending:
                     {
-                        for (int i = keySelectors.Count()-1; i >= 0; i--)
-                            ApplySort(Items.OrderBy(keySelectors[i]));
+                        if(comparer == null)
+                        {
+                            for (int i = keySelectors.Count() - 1; i >= 0; i--)
+                                ApplySort(Items.OrderBy(keySelectors[i]));
+                        }
+                        else
+                        {
+                            ApplySort(Items.OrderBy(x => x, comparer));
+                        }
+
                         break;
                     }
                 case ListSortDirection.Descending:
                     {
-                        for (int i = keySelectors.Count() - 1; i >= 0; i--)
-                            ApplySort(Items.OrderByDescending(keySelectors[i]));
+                        if (comparer == null)
+                        {
+                            for (int i = keySelectors.Count() - 1; i >= 0; i--)
+                                ApplySort(Items.OrderByDescending(keySelectors[i]));
+                        }
+                        else
+                        {
+                            ApplySort(Items.OrderByDescending(x => x, comparer));
+                        }
                         break;
                     }
             }
         }
-        
+
         private void ApplySort(IEnumerable<T> sortedItems)
         {
             var sortedItemsList = sortedItems.ToList();
@@ -62,6 +79,5 @@ namespace Framework.WPF.Library
                 Move(IndexOf(item), sortedItemsList.IndexOf(item));
             }
         }
-
     }
 }

@@ -1,10 +1,13 @@
-﻿using Module.HeroVirtualTabletop.Library.Utility;
+﻿using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Roster;
 using Module.Shared;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -45,6 +48,8 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer.Interval = 50;
             clickTimer.Tick +=
                 new EventHandler(clickTimer_Tick);
+
+            this.viewModel.RosterMemberAdded += this.viewModel_RosterMemberAdded;
         }
         private void TextBlock_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -139,5 +144,15 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private void viewModel_RosterMemberAdded(object sender, EventArgs e)
+        {
+            CollectionViewSource source = (CollectionViewSource)(this.Resources["ParticipantsView"]);
+            ListCollectionView view = (ListCollectionView)source.View;
+            if (view != null && view.Groups != null && view.Groups.Count > 1)
+            {
+                view.Refresh();
+            }
+        }
+        
     }
 }

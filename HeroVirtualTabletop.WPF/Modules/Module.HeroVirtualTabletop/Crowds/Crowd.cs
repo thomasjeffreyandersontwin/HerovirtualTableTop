@@ -13,6 +13,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.Shared;
 using System.ComponentModel;
 using System.Runtime.Serialization;
+using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -133,7 +134,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public void Add(ICrowdMemberModel member)
         {
             this.crowdMemberCollection.Add(member);
-            this.crowdMemberCollection.Sort();
+            this.crowdMemberCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
             member.PropertyChanged += Member_PropertyChanged;
         }
 
@@ -153,10 +154,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             if (e.PropertyName == "Name" || e.PropertyName == "Order")
             {
-                crowdMemberCollection.Sort();
+                crowdMemberCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
             }
         }
-
         [OnDeserialized]
         private void AfterDeserializationCallback(StreamingContext context)
         {
@@ -373,6 +373,55 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(x => x.Name, x => x.Order, x => x.Name);
             this.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(crowdMemberCollection);
             this.order = order;
+        }
+    }
+
+    public class CrowdMemberModelComparer : IComparer<ICrowdMemberModel>
+    {
+        public int Compare(ICrowdMemberModel cmm1, ICrowdMemberModel cmm2)
+        {
+            if (cmm1.Order != cmm2.Order)
+                return cmm1.Order.CompareTo(cmm2.Order);
+            string s1 = cmm1.Name;
+            string s2 = cmm2.Name;
+
+            string pattern = "([A-Za-z\\s]*)([0-9]*)";
+            string h1 = Regex.Match(s1, pattern).Groups[1].Value;
+            string h2 = Regex.Match(s2, pattern).Groups[1].Value;
+            if (h1 != h2)
+                return h1.CompareTo(h2);
+            string t1 = Regex.Match(s1, pattern).Groups[2].Value;
+            string t2 = Regex.Match(s2, pattern).Groups[2].Value;
+            if (Helper.IsNumeric(t1) && Helper.IsNumeric(t2))
+                return int.Parse(t1).CompareTo(int.Parse(t2));
+            else
+                return t1.CompareTo(t2);
+        }
+    }
+
+    public class RosterCrowdMemberModelComparer : IComparer<ICrowdMemberModel>
+    {
+        public int Compare(ICrowdMemberModel cmm1, ICrowdMemberModel cmm2)
+        {
+            string s1 = cmm1.RosterCrowd.Name;
+            string s2 = cmm2.RosterCrowd.Name;
+            if (cmm1.RosterCrowd == cmm2.RosterCrowd)
+            {
+                s1 = cmm1.Name;
+                s2 = cmm2.Name;
+            }
+
+            string pattern = "([A-Za-z\\s]*)([0-9]*)";
+            string h1 = Regex.Match(s1, pattern).Groups[1].Value;
+            string h2 = Regex.Match(s2, pattern).Groups[1].Value;
+            if (h1 != h2)
+                return h1.CompareTo(h2);
+            string t1 = Regex.Match(s1, pattern).Groups[2].Value;
+            string t2 = Regex.Match(s2, pattern).Groups[2].Value;
+            if (Helper.IsNumeric(t1) && Helper.IsNumeric(t2))
+                return int.Parse(t1).CompareTo(int.Parse(t2));
+            else
+                return t1.CompareTo(t2);
         }
     }
 }

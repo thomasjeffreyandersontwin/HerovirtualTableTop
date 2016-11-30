@@ -19,6 +19,7 @@ using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.Characters;
 using System.Windows.Input;
+using System.Text.RegularExpressions;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -432,6 +433,18 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 return GlobalVariables_UISettings[settingsName];
             else
                 return null;
+        }
+
+        #endregion
+
+        #region Misc
+
+        public static bool IsNumeric(object value)
+        {
+            int k;
+            if (value != null && Int32.TryParse(value.ToString(), out k))
+                return true;
+            return false;
         }
 
         #endregion

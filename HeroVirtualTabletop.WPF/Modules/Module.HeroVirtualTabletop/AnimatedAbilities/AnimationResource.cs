@@ -1,10 +1,12 @@
 ﻿using Framework.WPF.Library;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
@@ -159,5 +161,31 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         #endregion
+    }
+
+    public class AnimationResourceComparer : IComparer<AnimationResource>
+    {
+        public int Compare(AnimationResource ar1, AnimationResource ar2)
+        {
+            string s1 = ar1.TagLine;
+            string s2 = ar2.TagLine;
+            if (ar1.TagLine == ar2.TagLine)
+            {
+                s1 = ar1.Name;
+                s2 = ar2.Name;
+            }
+
+            string pattern = "([A-Za-z\\s]*)([0-9]*)";
+            string h1 = Regex.Match(s1, pattern).Groups[1].Value;
+            string h2 = Regex.Match(s2, pattern).Groups[1].Value;
+            if (h1 != h2)
+                return h1.CompareTo(h2);
+            string t1 = Regex.Match(s1, pattern).Groups[2].Value;
+            string t2 = Regex.Match(s2, pattern).Groups[2].Value;
+            if (Helper.IsNumeric(t1) && Helper.IsNumeric(t2))
+                return int.Parse(t1).CompareTo(int.Parse(t2));
+            else
+                return t1.CompareTo(t2);
+        }
     }
 }

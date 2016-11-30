@@ -204,9 +204,9 @@ namespace Framework.WPF.Library
             return true;
         }
 
-        public new void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, params Func<TValue, IComparable>[] keySelectors)
+        public new void Sort(ListSortDirection sortOrder = ListSortDirection.Ascending, IComparer<TValue> comparer = null, params Func<TValue, IComparable>[] keySelectors)
         {
-            base.Sort(sortOrder, keySelectors);
+            base.Sort(sortOrder, comparer, keySelectors);
             foreach (TValue item in Items)
             {
                 indices[keySelector(item)] = Items.IndexOf(item);

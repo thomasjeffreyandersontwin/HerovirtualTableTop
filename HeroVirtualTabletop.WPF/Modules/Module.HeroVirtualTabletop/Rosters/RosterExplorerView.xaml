@@ -11,7 +11,7 @@
              xmlns:library="clr-namespace:Framework.WPF.Library;assembly=Framework.WPF"
              xmlns:converters="clr-namespace:Module.Shared.Converters;assembly=Module.Shared"
              xmlns:localconverters="clr-namespace:Module.HeroVirtualTabletop.Library.Converters"
-             mc:Ignorable="d" >
+             mc:Ignorable="d">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

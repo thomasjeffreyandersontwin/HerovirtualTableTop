@@ -1060,15 +1060,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void LoadResources(object state)
         {
             List<AnimationResource> moveResourceCollection = this.resourceRepository.GetMoveResources();
-            movResources = new ObservableCollection<AnimationResource>(moveResourceCollection);
+            movResources = new ObservableCollection<AnimationResource>(moveResourceCollection.OrderBy(x => x, new AnimationResourceComparer()));
             MOVResources = new ReadOnlyObservableCollection<AnimationResource>(movResources);
 
             List<AnimationResource> fxResourceCollection = this.resourceRepository.GetFXResources();
-            fxResources = new ObservableCollection<AnimationResource>(fxResourceCollection);
+            fxResources = new ObservableCollection<AnimationResource>(fxResourceCollection.OrderBy(x => x, new AnimationResourceComparer()));
             FXResources = new ReadOnlyObservableCollection<AnimationResource>(fxResources);
 
             List<AnimationResource> soundResourceCollection = this.resourceRepository.GetSoundResources();
-            soundResources = new ObservableCollection<AnimationResource>(soundResourceCollection);
+            soundResources = new ObservableCollection<AnimationResource>(soundResourceCollection.OrderBy(x => x, new AnimationResourceComparer()));
             SoundResources = new ReadOnlyObservableCollection<AnimationResource>(soundResources);
 
             movResourcesCVS = new CollectionViewSource();
@@ -1094,7 +1094,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (referenceAbilitiesCVS == null)
             {
                 referenceAbilitiesCVS = new CollectionViewSource();
-                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); }));
+                var refAbilityCollection = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
+                refAbilityCollection = refAbilityCollection.OrderBy(x => x, new ReferenceAbilityResourceComparer());
+                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(refAbilityCollection);
                 referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
             }
             else

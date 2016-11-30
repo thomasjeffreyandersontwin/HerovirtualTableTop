@@ -344,7 +344,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void RenameCharacterCrowd(string updatedName)
         {
-             if (this.OriginalName == updatedName)
+            if (this.OriginalName == updatedName)
             {
                 OriginalName = null;
                 return;
@@ -368,9 +368,12 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
                 SelectedCrowdModel.Name = updatedName;
                 this.CrowdCollection.UpdateKey(this.OriginalName, updatedName);
-                this.CrowdCollection.Sort();
+                this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
                 this.OriginalName = null;
             }
+
+            List<CrowdMemberModel> rosterCharacters = new List<CrowdMemberModel>();
+            eventAggregator.GetEvent<AddToRosterEvent>().Publish(rosterCharacters); // sending empty list so that roster sorts its elements
         }
         private bool CheckDuplicateName(string updatedName)
         {
@@ -426,6 +429,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.BusyService.HideBusy();
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
             this.crowdCollectionLoaded = true;
+            this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
         }
 
         private void AddDefaultMovementsToCharacters()
@@ -608,7 +612,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void AddCrowdToCrowdCollection(CrowdModel crowdModel)
         {
             this.CrowdCollection.Add(crowdModel);
-            this.CrowdCollection.Sort();
+            this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
         }
 
         private void AddCrowdToSelectedCrowd(CrowdModel crowdModel)
@@ -698,7 +702,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME, -1);
                 this.CrowdCollection.Add(crowdModelAllCharacters);
-            this.CrowdCollection.Sort();
+                this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
             this.allCharactersCrowd = crowdModelAllCharacters;
         }
 
@@ -1243,7 +1247,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private bool CanAddToRoster(object state)
         {
-            return !(this.SelectedCrowdMemberModel == null && this.SelectedCrowdModel == null); ;
+            return !(this.SelectedCrowdMemberModel == null && this.SelectedCrowdModel == null); 
         }
         
         private void AddToRoster(object state)

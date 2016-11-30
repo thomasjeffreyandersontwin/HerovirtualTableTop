@@ -623,7 +623,9 @@ namespace Module.HeroVirtualTabletop.Movements
             if (referenceAbilitiesCVS == null)
             {
                 referenceAbilitiesCVS = new CollectionViewSource();
-                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); }));
+                var refAbilityCollection = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
+                refAbilityCollection = refAbilityCollection.OrderBy(x => x, new ReferenceAbilityResourceComparer());
+                referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(refAbilityCollection);
                 referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
             }
             else

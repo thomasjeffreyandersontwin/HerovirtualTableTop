@@ -741,6 +741,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         private bool GetMouseTargetRow(Visual theTarget, GetPosition position)
         {
+            if (theTarget == null)
+                return false;
             Rect rect = VisualTreeHelper.GetDescendantBounds(theTarget);
             Point point = position((IInputElement)theTarget);
             return rect.Contains(point);
