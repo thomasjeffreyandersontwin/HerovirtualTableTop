@@ -240,6 +240,7 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_CharacterDragDrop.Elapsed +=
                 new ElapsedEventHandler(clickTimer_CharacterDragDrop_Elapsed);
             mouseHookID = MouseHook.SetHook(clickCharacterInDesktop);
+            keyboardHookID = KeyBoardHook.SetHook(RosterKeyboardHook);
             fileSystemWatcher.Path = string.Format("{0}\\", Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME));
             fileSystemWatcher.IncludeSubdirectories = false;
             fileSystemWatcher.Filter = "*.txt";
@@ -726,18 +727,18 @@ namespace Module.HeroVirtualTabletop.Roster
                     var currentProcId = Process.GetCurrentProcess().Id;
                     if (currentProcId == wndProcId)
                     {
-                        if (Keyboard.IsKeyDown(Key.Left))
+                        if (Keyboard.IsKeyDown(Key.Left) || Keyboard.IsKeyDown(Key.Right))
                         {
                             WindowsUtilities.SetForegroundWindow(winHandle);
                         }
                     }
-                    else if(winHandle == foregroundWindow)
-                    {
-                        if (Keyboard.IsKeyDown(Key.Right))
-                        { 
-                            WindowsUtilities.SetForegroundWindow(winHandle);
-                        }
-                    }
+                    //else if(winHandle == foregroundWindow)
+                    //{
+                    //    if (Keyboard.IsKeyDown(Key.Right))
+                    //    { 
+                    //        WindowsUtilities.SetForegroundWindow(winHandle);
+                    //    }
+                    //}
                 }
             }
             return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);

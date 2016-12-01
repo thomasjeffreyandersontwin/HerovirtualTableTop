@@ -459,8 +459,10 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             string t2 = Regex.Match(s2, pattern).Groups[2].Value;
             if (IsNumeric(t1) && IsNumeric(t2))
                 return int.Parse(t1).CompareTo(int.Parse(t2));
-            else
+            else if (!string.IsNullOrEmpty(t1) && !string.IsNullOrEmpty(t2))
                 return t1.CompareTo(t2);
+            else
+                return s1.CompareTo(s2);
         }
 
         #endregion
