@@ -727,7 +727,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     var currentProcId = Process.GetCurrentProcess().Id;
                     if (currentProcId == wndProcId)
                     {
-                        if (Keyboard.IsKeyDown(Key.Left) || Keyboard.IsKeyDown(Key.Right))
+                        var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                        if (inputKey == Key.Left || inputKey == Key.Right)
                         {
                             WindowsUtilities.SetForegroundWindow(winHandle);
                         }
