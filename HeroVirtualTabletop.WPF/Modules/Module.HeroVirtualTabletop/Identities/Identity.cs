@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Newtonsoft.Json;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace Module.HeroVirtualTabletop.Identities
 {

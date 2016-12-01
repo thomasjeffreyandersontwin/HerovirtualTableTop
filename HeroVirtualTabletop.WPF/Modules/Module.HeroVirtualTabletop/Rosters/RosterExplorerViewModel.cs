@@ -66,7 +66,8 @@ namespace Module.HeroVirtualTabletop.Roster
         private List<Character> targetCharacters = new List<Character>();
         private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
 
-        private IntPtr hookID;
+        private IntPtr mouseHookID;
+        private IntPtr keyboardHookID;
 
         private int clickCount;
         private bool isDoubleClick = false;
@@ -238,7 +239,7 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_CharacterDragDrop.Interval = 50;
             clickTimer_CharacterDragDrop.Elapsed +=
                 new ElapsedEventHandler(clickTimer_CharacterDragDrop_Elapsed);
-            hookID = MouseHook.SetHook(clickCharacterInDesktop);
+            mouseHookID = MouseHook.SetHook(clickCharacterInDesktop);
             fileSystemWatcher.Path = string.Format("{0}\\", Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME));
             fileSystemWatcher.IncludeSubdirectories = false;
             fileSystemWatcher.Filter = "*.txt";
@@ -381,7 +382,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        #region Click on Desktop
+        #region Mouse Hook - Click on Desktop
 
         IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
         {
@@ -533,7 +534,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     }
                 }
             }
-            return MouseHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+            return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
         }
 
         public void StartDragFromRosterToDesktop()
@@ -703,6 +704,43 @@ namespace Module.HeroVirtualTabletop.Roster
 
             clickCount = 0;
             isDoubleClick = isTripleClick = isQuadrupleClick = false;
+        }
+
+        #endregion
+
+        #region Keyboard Hook
+
+        private IntPtr RosterKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (currentProcId == wndProcId)
+                    {
+                        if (Keyboard.IsKeyDown(Key.Left))
+                        {
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                        }
+                    }
+                    else if(winHandle == foregroundWindow)
+                    {
+                        if (Keyboard.IsKeyDown(Key.Right))
+                        { 
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                        }
+                    }
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
         }
 
         #endregion

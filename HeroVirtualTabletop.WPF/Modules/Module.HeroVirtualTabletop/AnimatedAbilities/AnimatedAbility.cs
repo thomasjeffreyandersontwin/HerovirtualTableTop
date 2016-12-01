@@ -145,6 +145,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
     }
 
+    //public class AbilityComparer : IComparer<AnimatedAbility>
+    //{
+    //    public int Compare(AnimatedAbility aa1, AnimatedAbility aa2)
+    //    {
+    //        string s1 = aa1.Name;
+    //        string s2 = aa2.Name;
+    //        return Helper.CompareStrings(s1, s2);
+    //    }
+    //}
+
     public class AttackEffect : AnimatedAbility
     {
         [JsonConstructor]

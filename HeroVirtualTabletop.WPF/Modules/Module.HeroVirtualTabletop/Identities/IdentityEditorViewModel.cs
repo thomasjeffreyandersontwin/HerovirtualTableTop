@@ -353,7 +353,7 @@ namespace Module.HeroVirtualTabletop.Identities
 
         private void CreateModelsViewSource()
         {
-            models = new ObservableCollection<string>(File.ReadAllLines(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_MODELS_FILENAME)));
+            models = new ObservableCollection<string>(File.ReadAllLines(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_MODELS_FILENAME)).OrderBy(m => m, new StringValueComparer()));
             modelsCVS = new CollectionViewSource();
             modelsCVS.Source = Models;
             modelsCVS.View.Filter += stringsCVS_Filter;
@@ -366,7 +366,7 @@ namespace Module.HeroVirtualTabletop.Identities
                     (Path.Combine(
                         Settings.Default.CityOfHeroesGameDirectory,
                         Constants.GAME_COSTUMES_FOLDERNAME),
-                    "*.costume").Select((file) => { return Path.GetFileNameWithoutExtension(file); }));
+                    "*.costume").Select((file) => { return Path.GetFileNameWithoutExtension(file); }).OrderBy(c => c, new StringValueComparer()));
             costumesCVS = new CollectionViewSource();
             costumesCVS.Source = Costumes;
             costumesCVS.View.Filter += stringsCVS_Filter;
@@ -378,7 +378,7 @@ namespace Module.HeroVirtualTabletop.Identities
             abilitiesCVS = new CollectionViewSource();
             Attack none = new Attack("None", owner: this.Owner);
             abilities.Add(none);
-            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner && an.IsAttack == false; }));
+            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner && an.IsAttack == false; }).OrderBy(a=>a.Order));
             abilitiesCVS.View.Filter += abilitiesCVS_Filter;
             AnimatedAbility moveTo = null;
             if (EditedIdentity != null)

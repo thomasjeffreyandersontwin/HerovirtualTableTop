@@ -175,17 +175,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 s2 = ar2.Name;
             }
 
-            string pattern = "([A-Za-z\\s]*)([0-9]*)";
-            string h1 = Regex.Match(s1, pattern).Groups[1].Value;
-            string h2 = Regex.Match(s2, pattern).Groups[1].Value;
-            if (h1 != h2)
-                return h1.CompareTo(h2);
-            string t1 = Regex.Match(s1, pattern).Groups[2].Value;
-            string t2 = Regex.Match(s2, pattern).Groups[2].Value;
-            if (Helper.IsNumeric(t1) && Helper.IsNumeric(t2))
-                return int.Parse(t1).CompareTo(int.Parse(t2));
-            else
-                return t1.CompareTo(t2);
+            return Helper.CompareStrings(s1, s2);
         }
     }
 }
