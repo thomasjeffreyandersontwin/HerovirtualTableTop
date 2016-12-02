@@ -733,13 +733,6 @@ namespace Module.HeroVirtualTabletop.Roster
                             WindowsUtilities.SetForegroundWindow(winHandle);
                         }
                     }
-                    //else if(winHandle == foregroundWindow)
-                    //{
-                    //    if (Keyboard.IsKeyDown(Key.Right))
-                    //    { 
-                    //        WindowsUtilities.SetForegroundWindow(winHandle);
-                    //    }
-                    //}
                 }
             }
             return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);

@@ -284,7 +284,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void CreateModelsViewSource()
         {
-            models = new ObservableCollection<string>(File.ReadAllLines(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_MODELS_FILENAME)));
+            models = new ObservableCollection<string>(File.ReadAllLines(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_MODELS_FILENAME)).OrderBy(m => m, new StringValueComparer()));
             modelsCVS = new CollectionViewSource();
             modelsCVS.Source = Models;
             modelsCVS.View.Filter += stringsCVS_Filter;

@@ -142,7 +142,8 @@ int WINAPI mWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 		SetCurrentDirectoryA(t_gamepath);
 		STARTUPINFO startup;
 		memset(&startup, 0, sizeof(startup));
-		startup.cb = sizeof(STARTUPINFO);
+		startup.cb = sizeof(STARTUPINFO); 
+		//if (!CreateProcessA("cityofheroes.exe", "cityofheroes.exe -project coh", NULL, NULL, FALSE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED | DETACHED_PROCESS, NULL, NULL, (LPSTARTUPINFOA)&startup, &pinfo)) {
 		if (!CreateProcessA("cityofheroes.exe", "cityofheroes.exe -project coh -noverify", NULL, NULL, FALSE, CREATE_NEW_PROCESS_GROUP | CREATE_SUSPENDED | DETACHED_PROCESS, NULL, NULL, (LPSTARTUPINFOA)&startup, &pinfo)) {
 			MessageBoxA(NULL, "Failed to launch process!", "Error", MB_OK | MB_ICONEXCLAMATION);
 			return 0;
