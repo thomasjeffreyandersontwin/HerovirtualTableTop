@@ -227,8 +227,9 @@ namespace Module.HeroVirtualTabletop.Movements
                                     if (this.Character.MovementInstruction.CurrentRotationAxisDirection != turnDirection)
                                     {
                                         this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision as the character is changing the facing
-                                        this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
-                                        this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None; // Reset key movement
+                                        //Jeff - next two lines this was interfering with clean move, turn, move
+                                        //this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
+                                        //this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None; // Reset key movement
                                         this.Character.MovementInstruction.CurrentRotationAxisDirection = turnDirection;
                                         this.Movement.StartMovment(this.Character);
                                     }
@@ -526,6 +527,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
             target.CurrentModelMatrix *= rotatedMatrix; // Apply rotation
             target.CurrentPositionVector = currentPositionVector; // Keep position intact;
+
         }
 
         private float GetMovementUnit(Character target)
@@ -1347,7 +1349,9 @@ namespace Module.HeroVirtualTabletop.Movements
                             if (!target.MovementInstruction.IsInCollision)
                             {
                                 bool changeDir = false;
-                                target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                                if (target.MovementInstruction.CurrentMovementDirection != target.MovementInstruction.LastMovementDirection) {
+                                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                                }
                                 Key key = movementMember.AssociatedKey;
                                 if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
                                 {
@@ -1431,7 +1435,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                 target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
                                 target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
                                 // Play movement
-                                PlayMovementMember(otherMember, target);
+                               // PlayMovementMember(otherMember, target); Jeff -  this was interfering with clean move, turn, move 
                                 target.MovementInstruction.CurrentMovementDirection = otherDirection;
                                 target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
                             }
@@ -1877,7 +1881,20 @@ namespace Module.HeroVirtualTabletop.Movements
         public Vector3 OriginalDestinationVector { get; set; }
         public Vector3 CurrentDirectionVector { get; set; }
         public MovementDirection CurrentMovementDirection { get; set; }
-        public MovementDirection LastMovementDirection { get; set; }
+
+        private MovementDirection _lastMovementDirection = MovementDirection.Forward;
+        public MovementDirection LastMovementDirection {
+            get
+            {
+                return _lastMovementDirection;
+            }
+
+            set{
+                if(this._lastMovementDirection != value) { 
+                    this._lastMovementDirection = value;
+                }
+            }
+        }
         public MovementDirection CurrentRotationAxisDirection { get; set; }
         public MovementDirection MovmementDirectionToUseForDestinationMove { get; set; }
         public bool StopOnCollision { get; set; }

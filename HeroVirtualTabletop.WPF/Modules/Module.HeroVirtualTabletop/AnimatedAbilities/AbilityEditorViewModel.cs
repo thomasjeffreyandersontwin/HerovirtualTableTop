@@ -188,6 +188,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 SaveResources();
                 SaveUISettingsForResouce(element, element.Resource);
                 this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
+                
             }
         }
 
@@ -391,24 +392,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 filter = value;
                 if (SelectedAnimationElement != null)
-                    switch (SelectedAnimationElement.Type)
-                    {
-                        case AnimationType.Movement:
-                            Helper.SaveUISettings("Ability_MoveFilter", value);
-                            movResourcesCVS.View.Refresh();
-                            break;
-                        case AnimationType.FX:
-                            Helper.SaveUISettings("Ability_FxFilter", value);
-                            fxResourcesCVS.View.Refresh();
-                            break;
-                        case AnimationType.Sound:
-                            Helper.SaveUISettings("Ability_SoundFilter", value);
-                            soundResourcesCVS.View.Refresh();
-                            break;
-                        case AnimationType.Reference:
-                            Helper.SaveUISettings("Ability_ReferenceFilter", value);
-                            referenceAbilitiesCVS.View.Refresh();
-                            break;
+                    if(value.Length > 2) {
+                        switch (SelectedAnimationElement.Type)
+                        {
+                            case AnimationType.Movement:
+                                Helper.SaveUISettings("Ability_MoveFilter", value);
+                                movResourcesCVS.View.Refresh();
+                                break;
+                            case AnimationType.FX:
+                                Helper.SaveUISettings("Ability_FxFilter", value);
+                                fxResourcesCVS.View.Refresh();
+                                break;
+                            case AnimationType.Sound:
+                                Helper.SaveUISettings("Ability_SoundFilter", value);
+                                soundResourcesCVS.View.Refresh();
+                                break;
+                            case AnimationType.Reference:
+                                Helper.SaveUISettings("Ability_ReferenceFilter", value);
+                                referenceAbilitiesCVS.View.Refresh();
+                                break;
+                        }
                     }
                 OnPropertyChanged("Filter");
             }

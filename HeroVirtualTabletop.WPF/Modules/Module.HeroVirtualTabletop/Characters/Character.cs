@@ -685,10 +685,43 @@ namespace Module.HeroVirtualTabletop.Characters
             IsTargeted = !IsTargeted;
         }
 
+        //Jeff - added so we always get the right movement when dragging, moving, etc...
+        public CharacterMovement DefaultMovementToActivate
+        {
+            get {
+                CharacterMovement defaultMovementToActivate =null;
+                if (this.ActiveMovement != null)
+                {
+                    defaultMovementToActivate = this.ActiveMovement;
+                }
+                else
+                {
+                    if (this.DefaultMovement != null)
+                    {
+                        defaultMovementToActivate = this.DefaultMovement;
+                    }
+                    else
+                    {
+
+                        if (this.Movements["Walk"] != null)
+                        {
+                            defaultMovementToActivate = this.Movements["Walk"];
+                        }
+                        else
+                        {
+                            defaultMovementToActivate = this.Movements[0];
+                        }
+                    }
+                }
+                return defaultMovementToActivate;
+            }
+        }
         public string MoveToCamera(bool completeEvent = true)
         {
             Target(false);
-            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
+            CharacterMovement characterMovement = this.DefaultMovementToActivate;
+            
+            // characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
             if (characterMovement == null)
             {
                 keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
@@ -700,6 +733,8 @@ namespace Module.HeroVirtualTabletop.Characters
             else
             {
                 var cameraPos = new Camera().GetPositionVector();
+ 
+                cameraPos.Y = new Camera().GetPositionVector().Y - (float) 3.2;
                 characterMovement.Movement.Move(this, cameraPos);
             }
             return keybind;
@@ -978,7 +1013,8 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void MoveToLocation(Vector3 destinationVector)
         {
-            CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
+            CharacterMovement characterMovement = this.DefaultMovementToActivate;
+            //CharacterMovement characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
             if (characterMovement != null)
             {
                 characterMovement.Movement.Move(this, destinationVector);
