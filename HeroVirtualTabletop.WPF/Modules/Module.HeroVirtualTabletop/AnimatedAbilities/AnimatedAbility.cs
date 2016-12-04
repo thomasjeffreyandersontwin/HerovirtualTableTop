@@ -405,6 +405,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
             // Reset FX direction
             this.SetAttackDirection(null);
+            new PauseElement("", 2000).Play();
             attackingCharacter.Deactivate();
         }
 
