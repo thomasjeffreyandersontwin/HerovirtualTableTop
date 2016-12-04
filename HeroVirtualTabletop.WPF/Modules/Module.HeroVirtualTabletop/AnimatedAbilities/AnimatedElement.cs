@@ -545,7 +545,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 Character target = Target ?? this.Owner;
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                 target.Target(false);
-                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
+               // keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
                 IsActive = false;
                 keyBindsGenerator.CompleteEvent();
             }
@@ -1050,7 +1050,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         _list.AddRange(refElement.Reference.GetFlattenedAnimationList());
                     }
                 }
-                _list.Add(animationElement);
+                else {
+                    _list.Add(animationElement);
+                }
+                
             }
             return _list;
         }
