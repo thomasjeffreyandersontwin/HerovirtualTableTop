@@ -87,7 +87,9 @@ namespace Framework.WPF.Library
             var key = keySelector(item);
             if (indices.ContainsKey(key))
             {
+
                 throw new DuplicateKeyException(key.ToString());
+                
             }
 
             if (index != this.Count)

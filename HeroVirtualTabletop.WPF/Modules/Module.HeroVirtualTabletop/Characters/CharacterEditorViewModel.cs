@@ -231,7 +231,7 @@ namespace Module.HeroVirtualTabletop.Characters
             return EditedCharacter != null;
         }
 
-        private void SaveCharacter(object state)
+        public void SaveCharacter(object state)
         {
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }

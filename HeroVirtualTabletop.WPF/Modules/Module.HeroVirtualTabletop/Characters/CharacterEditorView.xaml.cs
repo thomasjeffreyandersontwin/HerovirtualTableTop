@@ -140,5 +140,10 @@ namespace Module.HeroVirtualTabletop.Characters
         {
             Helper.GlobalVariables_DraggingOptionGroupName = null;
         }
+
+        private void SaveCharacter(object sender, RoutedEventArgs e)
+        {
+            this.viewModel.SaveCharacter(null);
+        }
     }
 }

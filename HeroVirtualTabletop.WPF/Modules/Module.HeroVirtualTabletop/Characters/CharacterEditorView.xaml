@@ -29,7 +29,7 @@
                 <RowDefinition/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-            <TextBox Grid.Row="0" Text="{Binding Path=EditedCharacter.Name, UpdateSourceTrigger=PropertyChanged}"></TextBox>
+            <TextBox Grid.Row="0" Text="{Binding Path=EditedCharacter.Name, UpdateSourceTrigger=PropertyChanged}" LostFocus="SaveCharacter"></TextBox>
         </Grid>
         <GridSplitter Grid.Row="1"></GridSplitter>
 

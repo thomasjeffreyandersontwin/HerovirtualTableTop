@@ -62,6 +62,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             if (EditModeLeave != null)
                 EditModeLeave(sender, e);
+                
         }
 
         #endregion
@@ -116,6 +117,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 SetDefaultOption(value);
                 OnPropertyChanged("DefaultOption");
+                this.SaveOptionGroup();
             }
         }
 

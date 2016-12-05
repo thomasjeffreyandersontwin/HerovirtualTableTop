@@ -139,10 +139,12 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             set
             {
+
                 OldName = name;
                 name = value;
                 SetActiveIdentity();
                 OnPropertyChanged("Name");
+                
             }
         }
 
@@ -305,6 +307,7 @@ namespace Module.HeroVirtualTabletop.Characters
             //}
         }
 
+        [JsonProperty(PropertyName = "defaultIdentity")]
         private Identity defaultIdentity;
         [JsonProperty(Order = 1)]
         public Identity DefaultIdentity
@@ -686,6 +689,7 @@ namespace Module.HeroVirtualTabletop.Characters
         }
 
         //Jeff - added so we always get the right movement when dragging, moving, etc...
+        [JsonIgnore]
         public CharacterMovement DefaultMovementToActivate
         {
             get {
