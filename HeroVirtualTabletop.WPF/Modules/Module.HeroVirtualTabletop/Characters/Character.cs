@@ -709,7 +709,10 @@ namespace Module.HeroVirtualTabletop.Characters
                         }
                         else
                         {
-                            defaultMovementToActivate = this.Movements[0];
+                            if (this.Movements.Count> 0)
+                            {
+                                defaultMovementToActivate = this.Movements[0];
+                            }
                         }
                     }
                 }

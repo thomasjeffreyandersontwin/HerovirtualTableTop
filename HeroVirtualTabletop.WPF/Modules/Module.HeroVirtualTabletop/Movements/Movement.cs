@@ -370,7 +370,7 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 target.CurrentPositionVector = allowableDestinationVector;
-                await PlaySupportingMovementAnimationsAsync(target);
+                //await PlaySupportingMovementAnimationsAsync(target);
             }
         }
 
