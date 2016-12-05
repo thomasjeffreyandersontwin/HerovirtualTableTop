@@ -1034,29 +1034,40 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public List<AnimationElement> GetFlattenedAnimationList()
         {
             List<AnimationElement> _list = new List<AnimationElement>();
-            foreach (AnimationElement animationElement in this.AnimationElements)
+            if (this.SequenceType == AnimationSequenceType.And)
             {
-                if (animationElement is SequenceElement)
+
+                foreach (AnimationElement animationElement in this.AnimationElements)
                 {
-                    SequenceElement sequenceElement = (animationElement as SequenceElement);
-                    if (sequenceElement.AnimationElements != null && sequenceElement.AnimationElements.Count > 0)
-                        _list.AddRange(sequenceElement.GetFlattenedAnimationList());
-                }
-                else if (animationElement is ReferenceAbility)
-                {
-                    ReferenceAbility refElement = (animationElement as ReferenceAbility);
-                    if (refElement.Reference != null && refElement.Reference.AnimationElements != null && refElement.Reference.AnimationElements.Count > 0)
+                    if (animationElement is SequenceElement)
                     {
-                        _list.AddRange(refElement.Reference.GetFlattenedAnimationList());
+                        SequenceElement sequenceElement = (animationElement as SequenceElement);
+                        if (sequenceElement.AnimationElements != null && sequenceElement.AnimationElements.Count > 0)
+                            _list.AddRange(sequenceElement.GetFlattenedAnimationList());
                     }
+                    else if (animationElement is ReferenceAbility)
+                    {
+                        ReferenceAbility refElement = (animationElement as ReferenceAbility);
+                        if (refElement.Reference != null && refElement.Reference.AnimationElements != null && refElement.Reference.AnimationElements.Count > 0)
+                        {
+                            _list.AddRange(refElement.Reference.GetFlattenedAnimationList());
+                        }
+                    }
+                    else {
+                        _list.Add(animationElement);
+                    }
+
                 }
-                else {
-                    _list.Add(animationElement);
-                }
-                
+            }
+            else
+            {
+                var rnd = new Random();
+                int chosen = rnd.Next(0, this.AnimationElements.Count);
+                _list.Add(this.AnimationElements[chosen]);
             }
             return _list;
-        }
+       }
+        
 
         public void PlayFlattenedAnimationsOnTargeted(Dictionary<AnimationElement, List<Character>> characterAnimationMapping)
         {

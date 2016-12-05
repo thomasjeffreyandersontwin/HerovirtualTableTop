@@ -191,6 +191,21 @@ namespace Module.HeroVirtualTabletop.Roster
                                     cm.DeactivateMovement();
                             }
                         }
+                        //Jeff can now press control to toggle the default movement on and off
+                        else if(vkCode == System.Windows.Forms.Keys.LControlKey)
+                        {
+                            if (ActiveCharacter.ActiveMovement != null)
+                            {
+                                ActiveCharacter.ActiveMovement.DeactivateMovement();
+                                ActiveCharacter.ActiveMovement = null;
+                            }
+                            else
+                            {
+                                ActiveCharacter.ActiveMovement = ActiveCharacter.DefaultMovementToActivate;
+                                if (!ActiveCharacter.ActiveMovement.IsActive)
+                                    ActiveCharacter.ActiveMovement.ActivateMovement();
+                            }
+                        }
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);
                 }
