@@ -53,29 +53,6 @@
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
-    <UserControl.InputBindings>
-        <KeyBinding Key="L" 
-                    Modifiers="Alt" 
-                    Command="{Binding SavePositionCommand}" />
-        <KeyBinding Key="S" 
-                    Modifiers="Alt" 
-                    Command="{Binding SpawnCommand}" />
-        <KeyBinding Key="P" 
-                    Modifiers="Alt" 
-                    Command="{Binding PlaceCommand}" />
-        <KeyBinding Key="F" 
-                    Modifiers="Alt" 
-                    Command="{Binding TargetAndFollowCommand}" />
-        <KeyBinding Key="M" 
-                    Modifiers="Alt" 
-                    Command="{Binding MoveTargetToCameraCommand}" />
-        <KeyBinding Key="T" 
-                    Modifiers="Alt" 
-                    Command="{Binding ToggleTargetedCommand}" />
-        <KeyBinding Key="C" 
-                    Modifiers="Alt" 
-                    Command="{Binding ToggleManeuverWithCameraCommand}" />
-    </UserControl.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
@@ -92,6 +69,8 @@
                 ToggleManeuverWithCameraCommand="{Binding ToggleManeuverWithCameraCommand}"
                 ClearFromDesktopCommand="{Binding ClearFromDesktopCommand}"
                 ActivateCharacterCommand="{Binding ActivateCharacterCommand}"
+                ResetOrientationCommand="{Binding ResetOrientationCommand}"
+                CycleCommandsThroughCrowdCommand="{Binding CycleCommandsThroughCrowdCommand}"
                 ></characters:CharacterManagementMenuControl>
         <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White" Drop="RosterViewListBox_Drop" DragOver="RosterViewListBox_DragOver"

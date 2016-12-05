@@ -55,11 +55,12 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isCharacterReset = false;
         private bool isMenuDisplayed = false;
         public bool IsCharacterDragDropInProgress = false;
+        private bool stopSyncingWithDesktop = false;
 
         private Character currentDraggingCharacter = null;
+        private CrowdModel currentCyclingCrowd = null;
+        private Character currentCyclingCharacter = null;
         private DateTime lastDesktopMouseDownTime = DateTime.MinValue;
-        //private bool isMoveToMouseLocationEnabled = false;
-        //private bool isMoveToCharacterEnabled = false;
         private Attack currentAttack = null;
         private Character attackingCharacter = null;
         private List<Character> targetCharactersForMove = new List<Character>();
@@ -127,6 +128,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 synchSelectionWithGame();
                 OnPropertyChanged("SelectedParticipants");
                 OnPropertyChanged("ShowAttackContextMenu");
+                this.TargetOrFollow();
                 Commands_RaiseCanExecuteChanged();
             }
         }
@@ -143,6 +145,20 @@ namespace Module.HeroVirtualTabletop.Roster
                 activeCharacter = value;
                 Helper.GlobalVariables_ActiveCharacter = value as Character;
                 OnPropertyChanged("ActiveCharacter");
+            }
+        }
+
+        private bool isCyclingCommandsThroughCrowd;
+        public bool IsCyclingCommandsThroughCrowd
+        {
+            get
+            {
+                return isCyclingCommandsThroughCrowd;
+            }
+            set
+            {
+                isCyclingCommandsThroughCrowd = value;
+                OnPropertyChanged("IsCyclingCommandsThroughCrowd");
             }
         }
 
@@ -196,6 +212,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> AreaAttackTargetCommand { get; private set; }
         public DelegateCommand<object> AreaAttackTargetAndExecuteCommand { get; private set; }
         public DelegateCommand<object> ResetOrientationCommand { get; private set; }
+        public DelegateCommand<object> CycleCommandsThroughCrowdCommand { get; private set; }
 
         #endregion
 
@@ -272,6 +289,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.AreaAttackTargetCommand = new DelegateCommand<object>(this.TargetCharacterForAreaAttack);
             this.AreaAttackTargetAndExecuteCommand = new DelegateCommand<object>(this.TargetAndExecuteAreaAttack);
             this.ResetOrientationCommand = new DelegateCommand<object>(this.ResetOrientation, this.CanResetOrientation);
+            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(this.CycleCommandsThroughCrowd, this.CanCycleCommandsThroughCrowd);
         }
 
         #endregion
@@ -375,11 +393,26 @@ namespace Module.HeroVirtualTabletop.Roster
                 return;
             if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
             {
-                Dispatcher.Invoke(() => { if (SelectedParticipants != null) SelectedParticipants.Clear(); });
+                Dispatcher.Invoke(() => 
+                { 
+                    if (SelectedParticipants != null && !this.stopSyncingWithDesktop) 
+                        SelectedParticipants.Clear(); 
+                });
             }
             if (!SelectedParticipants.Contains(currentTarget))
             {
-                Dispatcher.Invoke(() => { SelectedParticipants.Add(currentTarget); OnPropertyChanged("SelectedParticipants"); });
+                Dispatcher.Invoke(() => 
+                {
+                    if (!stopSyncingWithDesktop)
+                    {
+                        SelectedParticipants.Add(currentTarget);
+                        OnPropertyChanged("SelectedParticipants"); 
+                    }
+                    else
+                    {
+                        this.stopSyncingWithDesktop = false;
+                    }
+                });
             }
         }
 
@@ -720,17 +753,78 @@ namespace Module.HeroVirtualTabletop.Roster
                 KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
                 {
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                     var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
                     uint wndProcId;
                     uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
                     var currentProcId = Process.GetCurrentProcess().Id;
-                    if (currentProcId == wndProcId)
+                    if(foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || currentProcId == wndProcId)
                     {
-                        var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                        if (inputKey == Key.Left || inputKey == Key.Right)
+                        if ((currentProcId == wndProcId) && (inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
                         {
                             WindowsUtilities.SetForegroundWindow(winHandle);
+                        }
+                        else if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.PlaceCommand.CanExecute(null))
+                                this.PlaceCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.SavePositionCommand.CanExecute(null))
+                                this.SavePositionCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.SpawnCommand.CanExecute(null))
+                                this.SpawnCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ToggleTargetedCommand.CanExecute(null))
+                                this.ToggleTargetedCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ToggleManeuverWithCameraCommand.CanExecute(null))
+                                this.ToggleManeuverWithCameraCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.TargetAndFollowCommand.CanExecute(null))
+                                this.TargetAndFollowCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.EditCharacterCommand.CanExecute(null))
+                                this.EditCharacterCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.MoveTargetToCameraCommand.CanExecute(null))
+                                this.MoveTargetToCameraCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.CycleCommandsThroughCrowdCommand.CanExecute(null))
+                                this.CycleCommandsThroughCrowdCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ActivateCharacterCommand.CanExecute(null))
+                                this.ActivateCharacterCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ResetOrientationCommand.CanExecute(null))
+                                this.ResetOrientationCommand.Execute(null);
+                        }
+                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.ClearFromDesktopCommand.CanExecute(null))
+                                this.ClearFromDesktopCommand.Execute(null);
                         }
                     }
                 }
@@ -802,6 +896,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.Spawn();
             }
+            SelectNextCharacterInCrowdCycle();
             Commands_RaiseCanExecuteChanged();
         }
         #endregion
@@ -898,6 +993,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.Place();
             }
+            SelectNextCharacterInCrowdCycle();
             Commands_RaiseCanExecuteChanged();
         }
         #endregion
@@ -959,8 +1055,8 @@ namespace Module.HeroVirtualTabletop.Roster
                         this.isCharacterReset = false; // reset this flag
                         member.Target();
                     }
-                    else
-                        member.TargetAndFollow();
+                    //else
+                    //    member.TargetAndFollow();
                 }
                 else
                     member.ToggleTargeted();
@@ -1024,6 +1120,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.MoveToCamera();
             }
+            SelectNextCharacterInCrowdCycle();
         }
 
         #endregion
@@ -1098,7 +1195,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        #region Reset Pitch
+        #region Reset Orientation
 
         private bool CanResetOrientation(object arg)
         {
@@ -1152,6 +1249,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     CheckIfCharacterExistsInGame(member);
                 member.ToggleManueveringWithCamera();
             }
+            SelectNextCharacterInCrowdCycle();
             Commands_RaiseCanExecuteChanged();
         }
 
@@ -1160,6 +1258,52 @@ namespace Module.HeroVirtualTabletop.Roster
             if (this.CanToggleManeuverWithCamera(null))
             {
                 this.ToggleManeuverWithCamera(null);
+            }
+        }
+
+        #endregion
+
+        #region Cycle Commands Through Crowd
+
+        private bool CanCycleCommandsThroughCrowd(object state)
+        {
+            return true;
+        }
+
+        private void CycleCommandsThroughCrowd(object state)
+        {
+            this.IsCyclingCommandsThroughCrowd = !this.IsCyclingCommandsThroughCrowd;
+        }
+
+        private void SelectNextCharacterInCrowdCycle()
+        {
+            if(this.IsCyclingCommandsThroughCrowd && this.SelectedParticipants != null && this.SelectedParticipants.Count == 1)
+            {
+                this.stopSyncingWithDesktop = true;
+                ICrowdMemberModel cNext = null;
+                ICrowdMemberModel cCurrent = null;
+                cCurrent = this.SelectedParticipants[0] as ICrowdMemberModel;
+                var index = this.Participants.IndexOf(cCurrent as ICrowdMemberModel);
+
+                if (index + 1 == this.Participants.Count)
+                {
+                    cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd == cCurrent.RosterCrowd) as ICrowdMemberModel;
+                }
+                else
+                {
+                    cNext = this.Participants[index + 1] as ICrowdMemberModel;
+                    if (cNext != null && cNext.RosterCrowd != cCurrent.RosterCrowd)
+                    {
+                        cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd == cCurrent.RosterCrowd) as ICrowdMemberModel;
+                    }
+                }
+
+                if (cNext != null && cNext != cCurrent)
+                {
+                    SelectedParticipants.Clear();
+                    SelectedParticipants.Add(cNext);
+                    OnPropertyChanged("SelectedParticipants");
+                }
             }
         }
 

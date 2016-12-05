@@ -71,7 +71,6 @@ namespace Module.HeroVirtualTabletop.Roster
             if (e.ClickCount == 1)
             {
                 isSingleClick = true;
-
                 // Start the click timer.
                 clickTimer.Start();
             }
@@ -113,7 +112,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else
                 {
-                    this.viewModel.TargetOrFollow();
+                    //this.viewModel.TargetOrFollow();
                 }
 
                 isSingleClick = isDoubleClick = isTripleClick = isQuadrupleClick = false;

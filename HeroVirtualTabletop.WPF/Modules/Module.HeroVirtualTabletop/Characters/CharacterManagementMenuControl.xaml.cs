@@ -100,35 +100,35 @@ namespace Module.HeroVirtualTabletop.Characters
             typeof(ICommand), typeof(CharacterManagementMenuControl),
             new PropertyMetadata(null));
 
-        //public ICommand MoveTargetToCharacterCommand
-        //{
-        //    get
-        //    {
-        //        return (ICommand)GetValue(MoveTargetToCharacterCommandProperty);
-        //    }
-        //    set { SetValue(MoveTargetToCharacterCommandProperty, value); }
-        //}
+        public ICommand ResetOrientationCommand
+        {
+            get
+            {
+                return (ICommand)GetValue(ResetOrientationCommandProperty);
+            }
+            set { SetValue(ResetOrientationCommandProperty, value); }
+        }
 
-        //public static readonly DependencyProperty
-        //    MoveTargetToCharacterCommandProperty =
-        //    DependencyProperty.Register("MoveTargetToCharacterCommand",
-        //    typeof(ICommand), typeof(CharacterManagementMenuControl),
-        //    new PropertyMetadata(null));
+        public static readonly DependencyProperty
+            ResetOrientationCommandProperty =
+            DependencyProperty.Register("ResetOrientationCommand",
+            typeof(ICommand), typeof(CharacterManagementMenuControl),
+            new PropertyMetadata(null));
 
-        //public ICommand MoveTargetToMouseLocationCommand
-        //{
-        //    get
-        //    {
-        //        return (ICommand)GetValue(MoveTargetToMouseLocationCommandProperty);
-        //    }
-        //    set { SetValue(MoveTargetToMouseLocationCommandProperty, value); }
-        //}
+        public ICommand CycleCommandsThroughCrowdCommand
+        {
+            get
+            {
+                return (ICommand)GetValue(CycleCommandsThroughCrowdCommandProperty);
+            }
+            set { SetValue(CycleCommandsThroughCrowdCommandProperty, value); }
+        }
 
-        //public static readonly DependencyProperty
-        //    MoveTargetToMouseLocationCommandProperty =
-        //    DependencyProperty.Register("MoveTargetToMouseLocationCommand",
-        //    typeof(ICommand), typeof(CharacterManagementMenuControl),
-        //    new PropertyMetadata(null));
+        public static readonly DependencyProperty
+            CycleCommandsThroughCrowdCommandProperty =
+            DependencyProperty.Register("CycleCommandsThroughCrowdCommand",
+            typeof(ICommand), typeof(CharacterManagementMenuControl),
+            new PropertyMetadata(null));
 
         public ICommand MoveTargetToCameraCommand
         {
@@ -190,5 +190,19 @@ namespace Module.HeroVirtualTabletop.Characters
             typeof(ICommand), typeof(CharacterManagementMenuControl),
             new PropertyMetadata(null));
 
+        public bool IsCyclingCommandsThroughCrowd
+        {
+            get
+            {
+                return (bool)GetValue(IsCyclingCommandsThroughCrowdProperty);
+            }
+            set { SetValue(IsCyclingCommandsThroughCrowdProperty, value); }
+        }
+
+        public static readonly DependencyProperty
+            IsCyclingCommandsThroughCrowdProperty =
+            DependencyProperty.Register("IsCyclingCommandsThroughCrowd",
+            typeof(bool), typeof(CharacterManagementMenuControl),
+            new PropertyMetadata(null));
     }
 }
