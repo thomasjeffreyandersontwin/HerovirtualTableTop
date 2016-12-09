@@ -405,8 +405,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
             // Reset FX direction
             this.SetAttackDirection(null);
-            new PauseElement("", 2000).Play();
-            attackingCharacter.Deactivate();
+            
+            //jeff temorarily removed as deactivating causing a melee attack cycle bug
+            //new PauseElement("", 2000).Play();
+            //attackingCharacter.Deactivate();
         }
 
         private float GetClosestTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)

@@ -836,7 +836,7 @@ namespace Module.HeroVirtualTabletop.Characters
             if (HasBeenSpawned && this.ActiveIdentity.Type == IdentityType.Costume)
             {
                 Target(false);
-                ChangeCostumeColor(new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
+                //ChangeCostumeColor(new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
             }
         }
 
