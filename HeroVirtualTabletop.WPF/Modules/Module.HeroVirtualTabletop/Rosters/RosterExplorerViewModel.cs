@@ -533,36 +533,42 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        //new PauseElement("", 1500).Play();
-                        System.Threading.Thread.Sleep(1000);
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
-                        if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                        string characterName = "";
+                        // Jeff right click hover sucks, get the targeted character instead
+                        if (hoveredCharacterInfo == "")
                         {
-                            string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                            CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
-                            if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                            System.Threading.Thread.Sleep(500);
+                            characterName = ((Character)GetCurrentTarget()).Name;
+                        }
+                        
+                        else
+                        {
+                            characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                        }
+                        CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                        if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                        {
+                            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            if (isPlayingAreaEffect)
                             {
-                                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                                if (isPlayingAreaEffect)
-                                {
-                                    if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
-                                    {
-                                        AddDesktopTargetToRosterSelection(hoveredCharacter);
-                                        hoveredCharacter.Target();
-                                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
-                                        keyBindsGenerator.CompleteEvent();
-                                        this.isMenuDisplayed = true;
-                                    }
-                                }
-                                else
+                                if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
                                 {
                                     AddDesktopTargetToRosterSelection(hoveredCharacter);
-                                    GenerateMenuFileForCharacter(hoveredCharacter);
-                                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
-                                    fileSystemWatcher.EnableRaisingEvents = true;
+                                    hoveredCharacter.Target();
+                                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
                                     keyBindsGenerator.CompleteEvent();
                                     this.isMenuDisplayed = true;
                                 }
+                            }
+                            else
+                            {
+                                AddDesktopTargetToRosterSelection(hoveredCharacter);
+                                GenerateMenuFileForCharacter(hoveredCharacter);
+                                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
+                                fileSystemWatcher.EnableRaisingEvents = true;
+                                keyBindsGenerator.CompleteEvent();
+                                this.isMenuDisplayed = true;
                             }
                         }
                     }

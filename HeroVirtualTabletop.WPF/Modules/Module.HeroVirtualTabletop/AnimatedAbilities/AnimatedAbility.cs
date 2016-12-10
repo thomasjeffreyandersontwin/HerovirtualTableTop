@@ -559,6 +559,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
             var missAbility = this.GetMissAbility();
+
+            //Jeff if we have one target we can look to see if it has a custom miss animation, if it does we can use that
+            //how we get this working for area effect is beyond me thanks to all this crazy sequence injection majic!!!
             if (missTargets.Count == 1 )
             {
                 if (missTargets[0].AnimatedAbilities[Constants.MISS_ABITIY_NAME] != null)
