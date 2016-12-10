@@ -177,7 +177,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 
             ActiveCharacter = null;
         }
-
+                
         private void clickTimer_AbilityPlay_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             clickTimer_AbilityPlay.Stop();
@@ -213,30 +213,14 @@ namespace Module.HeroVirtualTabletop.Roster
                             clickTimer_AbilityPlay.Start();
                         }
                         else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
-                        {
-                            CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
-                            if (!cm.IsActive)
-                                cm.ActivateMovement();
-                            else
-                                cm.DeactivateMovement();
-                        }
-                        //Jeff can now press control to toggle the default movement on and off
-                            // Istiaq THIS WILL CONFLICT WITH CHAR EXPLORER AND ROSTER SHORTCUTS. All those have Ctrl as a modifier key. We should rather 
-                            // change it to a combination of Mod key and hot key e.g. Ctrl+home 
-                        //else if(vkCode == System.Windows.Forms.Keys.LControlKey)
-                        //{
-                        //    if (ActiveCharacter.ActiveMovement != null)
-                        //    {
-                        //        ActiveCharacter.ActiveMovement.DeactivateMovement();
-                        //        ActiveCharacter.ActiveMovement = null;
-                        //    }
-                        //    else
-                        //    {
-                        //        ActiveCharacter.ActiveMovement = ActiveCharacter.DefaultMovementToActivate;
-                        //        if (!ActiveCharacter.ActiveMovement.IsActive)
-                        //            ActiveCharacter.ActiveMovement.ActivateMovement();
-                        //    }
-                        //}
+                            {
+                                CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
+                                if (!cm.IsActive)
+                                    cm.ActivateMovement();
+                                else
+                                    cm.DeactivateMovement();
+                            }
+                        
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);
                 }

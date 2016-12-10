@@ -449,7 +449,7 @@ namespace Module.HeroVirtualTabletop.Roster
                                 clickCount += 1;
                                 switch (clickCount)
                                 {
-                                    case 1: Action action = delegate() { clickTimer_MultipleClick.Start(); };
+                                    case 1: Action action = delegate () { clickTimer_MultipleClick.Start(); };
                                         Application.Current.Dispatcher.BeginInvoke(action);
                                         break;
                                     case 2: isDoubleClick = true; break;
@@ -509,12 +509,12 @@ namespace Module.HeroVirtualTabletop.Roster
                         // Possible character drag drop
                         // 1. Check current position and make sure it is away by a min distance and also there is a min gap in time. 
                         // 2. If conditions satisfy execute move
-                        if(this.currentDraggingCharacter != null && lastDesktopMouseDownTime != DateTime.MinValue && this.IsCharacterDragDropInProgress)
+                        if (this.currentDraggingCharacter != null && lastDesktopMouseDownTime != DateTime.MinValue && this.IsCharacterDragDropInProgress)
                         {
                             System.Threading.Thread.Sleep(500);
                             string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
                             Vector3 mouseUpPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                            if(!this.currentDraggingCharacter.HasBeenSpawned)
+                            if (!this.currentDraggingCharacter.HasBeenSpawned)
                             {
                                 this.currentDraggingCharacter.Spawn();
                             }
@@ -533,12 +533,20 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        //new PauseElement("", 1500).Play();
                         System.Threading.Thread.Sleep(1000);
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
-                        if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                        string characterName = "";
+                        // Jeff right click hover sucks, get the targeted character instead
+                        if (hoveredCharacterInfo == "")
                         {
-                            string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                            System.Threading.Thread.Sleep(1000);
+                            characterName = ((Character)GetCurrentTarget()).Name;
+                        }
+                        
+                        else
+                        {
+                            characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                        }
                             CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
                             if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
                             {
@@ -567,7 +575,6 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                     }
                 }
-            }
             return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
         }
 
@@ -669,7 +676,7 @@ namespace Module.HeroVirtualTabletop.Roster
         void clickTimer_CharacterDragDrop_Elapsed(object sender, ElapsedEventArgs e)
         {
             clickTimer_CharacterDragDrop.Stop();
-            Action d = delegate()
+            Action d = delegate ()
             {
                 if (Mouse.LeftButton == MouseButtonState.Pressed)
                 {
@@ -759,8 +766,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     uint wndProcId;
                     uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
                     var currentProcId = Process.GetCurrentProcess().Id;
-                    if(foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
                         if ((currentProcId == wndProcId) && (inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
                         {
@@ -826,27 +832,15 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (this.ClearFromDesktopCommand.CanExecute(null))
                                 this.ClearFromDesktopCommand.Execute(null);
                         }
-                        else if (inputKey == Key.Home && Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
                         {
-                            if(SelectedParticipants != null && SelectedParticipants.Count == 1)
-                            {
-                                var character = SelectedParticipants[0] as Character;
-                                if (character.ActiveMovement != null)
-                                {
-                                    character.ActiveMovement.DeactivateMovement();
-                                    character.ActiveMovement = null;
-                                }
-                                else
-                                {
-                                    character.ActiveMovement = character.DefaultMovementToActivate;
-                                    if (!character.ActiveMovement.IsActive)
-                                        character.ActiveMovement.ActivateMovement();
-                                }
-                            }
+                            //Jeff fixed activating keystroke problem so works without activating a characte
+                            this.ActivateDefaultMovementToActivate(null);
                         }
                     }
                 }
             }
+            
             return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
         }
 
@@ -1255,6 +1249,44 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             SelectNextCharacterInCrowdCycle();
         }
+
+        private void ActivateDefaultMovementToActivate(object obj)
+        {
+            Character character = ((Character)SelectedParticipants[0]);
+
+            Vector3 facing= new Vector3();
+            if (SelectedParticipants.Count > 1){
+               facing =   character.CurrentFacingVector;
+            }
+           
+            if (character.ActiveMovement == null || character.ActiveMovement.IsActive==false)
+            {
+                foreach (CrowdMemberModel member in SelectedParticipants)
+                {
+                    character = (Character) member;
+                    character.ActiveMovement = character.DefaultMovementToActivate;
+                    if (SelectedParticipants.Count > 1)
+                    {
+                        character.CurrentFacingVector = facing;
+                    }
+                    if (!character.ActiveMovement.IsActive)
+                        character.ActiveMovement.ActivateMovement();
+                }
+
+            }
+            else
+            {
+                foreach (CrowdMemberModel member in SelectedParticipants)
+                {
+                    character = (Character)member;
+                    character.ActiveMovement = character.DefaultMovementToActivate;
+                    if (character.ActiveMovement!=null)
+                        character.ActiveMovement.DeactivateMovement();
+                }
+
+            }
+        }
+                
 
         #endregion
 

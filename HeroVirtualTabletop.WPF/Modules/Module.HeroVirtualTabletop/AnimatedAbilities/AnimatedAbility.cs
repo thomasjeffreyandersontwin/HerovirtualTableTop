@@ -326,6 +326,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private AnimatedAbility GetMissAbility()
         {
             AnimatedAbility ability = null;
+
             if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0)
             {
                 var globalMissAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.MISS_ABITIY_NAME);
@@ -405,8 +406,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
             // Reset FX direction
             this.SetAttackDirection(null);
-            new PauseElement("", 2000).Play();
-            attackingCharacter.Deactivate();
+            
+            //jeff temorarily removed as deactivating causing a melee attack cycle bug
+            //new PauseElement("", 2000).Play();
+            //attackingCharacter.Deactivate();
         }
 
         private float GetClosestTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
@@ -518,10 +521,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             var hitAbilityToPlay = this.GetSequenceToPlay(hitAbility);
             var hitAbilityFlattened = hitAbilityToPlay.GetFlattenedAnimationList();
             List<Character> hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
-            var missAbility = this.GetMissAbility();
-            var missAbilityToPlay = this.GetSequenceToPlay(missAbility);
-            var missAbilityFlattened = missAbilityToPlay.GetFlattenedAnimationList();
-            List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
+            
+            
+            
 
             int knockbackPlaySequence = 0; // denotes the index of the animation in the flattened list after which we should play knockback if needed. This is played after the first mov element, and would mostly be played
             // after the 0th animation (which is a mov)
@@ -536,6 +538,40 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 hitMissSequenceElement.AddAnimationElement(hitElement);
                 characterAnimationMappingDictionary.Add(hitElement, hitTargets);
             }
+            injectMissAbility(hitMissSequenceElement, characterAnimationMappingDictionary, defendingCharacters);
+
+            // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
+            bool playWithKnockback = defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack);// whether we need to play knockback or not
+            if (playWithKnockback)
+            {
+                Task knockbackTask = new Task(() => { AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList()); });
+                hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask);
+            }
+            else {
+                hitMissSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
+                //hitMissSequenceElement.Play(false, defendingCharacters[0]);
+            }
+
+
+        }
+
+        private void injectMissAbility(SequenceElement hitMissSequenceElement, Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, List<Character> defendingCharacters)
+        {
+            List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
+            var missAbility = this.GetMissAbility();
+
+            //Jeff if we have one target we can look to see if it has a custom miss animation, if it does we can use that
+            //how we get this working for area effect is beyond me thanks to all this crazy sequence injection majic!!!
+            if (missTargets.Count == 1 )
+            {
+                if (missTargets[0].AnimatedAbilities[Constants.MISS_ABITIY_NAME] != null)
+                {
+                    missAbility = missTargets[0].AnimatedAbilities[Constants.MISS_ABITIY_NAME];
+                }
+            }
+            
+            var missAbilityToPlay = this.GetSequenceToPlay(missAbility);
+            var missAbilityFlattened = missAbilityToPlay.GetFlattenedAnimationList();
             // Now inject the miss animations where appropriate
             List<AnimationElement> prependMissAnimations = new List<AnimationElement>(); // this list will keep all the non-fx/mov elements from the miss that appear before any mov/fx in the miss
             int missAnimationInjectCurrentPosition = -1, missAnimationInjectionInitialPosition = -1;
@@ -607,16 +643,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
-
-            // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
-            bool playWithKnockback = defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack);// whether we need to play knockback or not
-            if(playWithKnockback)
-            {
-                Task knockbackTask = new Task(() => { AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList()); });
-                hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask);
-            }
-            else
-                hitMissSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
         }
 
         private void AnimateAttackEffects(List<Character> defendingCharacters)
