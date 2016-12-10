@@ -540,7 +540,9 @@ namespace Module.HeroVirtualTabletop.Roster
                         if (hoveredCharacterInfo == "")
                         {
                             System.Threading.Thread.Sleep(1000);
-                            characterName = ((Character)GetCurrentTarget()).Name;
+                            if (GetCurrentTarget() != null) { 
+                                characterName = ((Character)GetCurrentTarget()).Name;
+                            }
                         }
                         
                         else
