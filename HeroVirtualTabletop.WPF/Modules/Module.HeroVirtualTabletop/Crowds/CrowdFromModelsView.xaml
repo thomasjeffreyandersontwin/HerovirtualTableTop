@@ -25,9 +25,9 @@
                     <WrapPanel.Resources>
                         <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                     </WrapPanel.Resources>
-                    <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn Preview" Command="{Binding SpawnModelsCommand}"/>
-                    <Button x:Name="btSave" Content="&#xF0C7;" ToolTip="Save" Command="{Binding SaveCrowdCommand}"/>
-                    <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop" Command="{Binding ClearFromDesktopCommand}" />
+                    <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn Preview (Ctrl+Shift+S)" Command="{Binding SpawnModelsCommand}"/>
+                    <Button x:Name="btSave" Content="&#xF0C7;" ToolTip="Save (Ctrl+Windows+S)" Command="{Binding SaveCrowdCommand}"/>
+                    <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop (Ctrl+Windows+Minus/Delete)" Command="{Binding ClearFromDesktopCommand}" />
                 </WrapPanel>
                 <Button x:Name="closeBtn" Content="&#xf00d;" ToolTip="Close" Command="{Binding CloseEditorCommand}" Margin="2,0,2,5" Style="{StaticResource CloseButtonStyle}"/>
             </Grid>

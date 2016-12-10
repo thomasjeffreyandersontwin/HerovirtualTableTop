@@ -826,6 +826,24 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (this.ClearFromDesktopCommand.CanExecute(null))
                                 this.ClearFromDesktopCommand.Execute(null);
                         }
+                        else if (inputKey == Key.Home && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if(SelectedParticipants != null && SelectedParticipants.Count == 1)
+                            {
+                                var character = SelectedParticipants[0] as Character;
+                                if (character.ActiveMovement != null)
+                                {
+                                    character.ActiveMovement.DeactivateMovement();
+                                    character.ActiveMovement = null;
+                                }
+                                else
+                                {
+                                    character.ActiveMovement = character.DefaultMovementToActivate;
+                                    if (!character.ActiveMovement.IsActive)
+                                        character.ActiveMovement.ActivateMovement();
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -917,12 +935,20 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.ClearFromDesktop();
             }
+            bool cyclingEnabled = false;
+            if (this.IsCyclingCommandsThroughCrowd && this.SelectedParticipants != null && this.SelectedParticipants.Count == 1)
+                cyclingEnabled = true;
             while (SelectedParticipants.Count != 0)
             {
                 var participant = SelectedParticipants[0] as CrowdMemberModel;
+                SelectNextCharacterInCrowdCycle();
+                if (this.ActiveCharacter == participant)
+                    this.ActiveCharacter = null;
                 Participants.Remove(participant);
                 SelectedParticipants.Remove(participant);
                 participant.RosterCrowd = null;
+                if (cyclingEnabled)
+                    break;
             }
             Commands_RaiseCanExecuteChanged();
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
@@ -955,6 +981,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 member.SavePosition();
             }
+            SelectNextCharacterInCrowdCycle();
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
             this.PlaceCommand.RaiseCanExecuteChanged();
         }
@@ -1018,6 +1045,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     CheckIfCharacterExistsInGame(member);
                 member.ToggleTargeted();
             }
+            SelectNextCharacterInCrowdCycle();
         }
 
         #endregion
@@ -1037,6 +1065,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     CheckIfCharacterExistsInGame(member);
                 member.TargetAndFollow();
             }
+            SelectNextCharacterInCrowdCycle();
         }
 
         public void TargetOrFollow()
@@ -1224,6 +1253,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 (member as Character).ResetOrientation();
             }
+            SelectNextCharacterInCrowdCycle();
         }
 
         #endregion
@@ -1346,6 +1376,8 @@ namespace Module.HeroVirtualTabletop.Roster
                         return;
                     else
                         character = SelectedParticipants[0] as CrowdMemberModel;
+                if (!character.HasBeenSpawned)
+                    character.Spawn();
                 // Pause movements from other characters that were active
                 if (Helper.GlobalVariables_CharacterMovement != null && Helper.GlobalVariables_CharacterMovement.Character == this.ActiveCharacter)
                 {
@@ -1368,6 +1400,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     pausedMovement.IsPaused = false;
                 }
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(new Tuple<Character, string, string>(character, selectedOptionGroupName, selectedOptionName));
+                SelectNextCharacterInCrowdCycle();
             };
             Application.Current.Dispatcher.BeginInvoke(action);
         }

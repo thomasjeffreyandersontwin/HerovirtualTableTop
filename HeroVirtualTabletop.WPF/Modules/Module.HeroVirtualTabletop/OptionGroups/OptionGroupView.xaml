@@ -37,7 +37,7 @@
         <ToggleButton Name="toggleButton" Grid.Column="1" Style="{StaticResource ToggleButtonSmallStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0 10 5 0" IsChecked="{Binding ElementName=ExpanderOptionGroup, Path=IsExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent">
         </ToggleButton>
-        <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}" 
+        <GroupBox Header="{Binding Path=OptionGroup.Name}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}"
                   AllowDrop="True" PreviewDrop="GroupBox_PreviewDrop" PreviewDragOver="grpBoxOptionGroup_PreviewDragOver" PreviewDragLeave="GroupBox_PreviewDragLeave" PreviewMouseMove="groupbox_PreviewMouseMove" extensions:DragDropExtension.ScrollOnDragDrop="True">
             <GroupBox.HeaderTemplate>
                 <DataTemplate>
@@ -170,10 +170,14 @@
                             </ListBox.ItemTemplate>
                         </local:OptionListBox>
                         <StackPanel Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityInvertConverter}}" HorizontalAlignment="Right" Margin="0,15,0,0" Height="Auto" VerticalAlignment="Top">
-                            <Button Visibility="{Binding IsStandardOptionGroup, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource AddButtonStyle}" ToolTip="Add Option" Command="{Binding AddOptionCommand}"/>
-                            <Button  Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option" Command="{Binding RemoveOptionCommand}"/>
+                            <Button Visibility="{Binding IsStandardOptionGroup, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource AddButtonStyle}" ToolTip="{Binding AddOptionTooltip}" Command="{Binding AddOptionCommand}"/>
+                            <Button  Style="{StaticResource RemoveButtonStyle}" ToolTip="{Binding RemoveOptionTooltip}" Command="{Binding RemoveOptionCommand}"/>
                         </StackPanel>
                     </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="Expanded" Command="{Binding ShowHideCharacterOptionCommand}"/>
+                        <behaviors:BehaviorBinding Event="Collapsed" Command="{Binding ShowHideCharacterOptionCommand}"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
                 </Expander>
             </Grid>
         </GroupBox>

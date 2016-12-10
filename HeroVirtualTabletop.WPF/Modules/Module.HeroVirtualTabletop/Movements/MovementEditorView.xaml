@@ -87,11 +87,11 @@
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
-                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement" Command="{Binding PlayMovementCommand}" />
+                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement (Alt+Shift+Enter)" Command="{Binding PlayMovementCommand}" />
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" Margin="0, 0, 5, 0">
-                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement" Command="{Binding AddMovementCommand}" />
-                <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Movement" Command="{Binding RemoveMovementCommand}"/>
+                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement (Alt+Shift+Plus)" Command="{Binding AddMovementCommand}" />
+                <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Movement (Alt+Shift+Minus/Delete)" Command="{Binding RemoveMovementCommand}"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="2" Margin="3, 1, 0, 0">
@@ -111,9 +111,9 @@
                                     <ColumnDefinition Width="100"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="{Binding MovementDirection, Converter={StaticResource MovementDirectionToIconTextConverter}}" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.LoadAbilityEditorCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                                <Button Grid.Column="0" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="{Binding MovementDirection, Converter={StaticResource MovementDirectionToIconTextConverter}}" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.LoadAbilityEditorCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Open Ability (Alt+Shift+A)"/>
                                 <TextBlock Grid.Column="1" Text="{Binding MemberAbility.DisplayName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Style="{StaticResource TextBlockDefaultStyle}" ToolTip="{Binding MemberAbility.DisplayName}"/>
-                                <Button Grid.Column="2" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="&#xf04b;" ToolTip="Play Ability" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.DemoDirectionalMoveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" HorizontalAlignment="Right" />
+                                <Button Grid.Column="2" Style="{StaticResource ResourceKey=IconButtonSmall}" Content="&#xf04b;" ToolTip="Play Ability (Alt+Shift+D)" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.DemoDirectionalMoveCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}, Path=DataContext}" HorizontalAlignment="Right" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>

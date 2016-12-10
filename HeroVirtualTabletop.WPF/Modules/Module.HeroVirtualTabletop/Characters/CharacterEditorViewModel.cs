@@ -16,10 +16,13 @@ using Prism.Regions;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -31,6 +34,8 @@ namespace Module.HeroVirtualTabletop.Characters
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
+
+        private IntPtr characterEditorKeyboardHookID;
 
         #endregion
 
@@ -113,6 +118,8 @@ namespace Module.HeroVirtualTabletop.Characters
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(this.UnLoadCharacter);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+
+            characterEditorKeyboardHookID = KeyBoardHook.SetHook(CharacterEditorKeyboardHook);
         }
 
         #endregion
@@ -152,30 +159,37 @@ namespace Module.HeroVirtualTabletop.Characters
                     this.OptionGroups = new ObservableCollection<IOptionGroupViewModel>();
                     foreach (IOptionGroup group in character.OptionGroups)
                     {
+                        bool showOptionsInGroup = false;
+                        if(character.OptionGroupExpansionStates.ContainsKey(group.Name))
+                            showOptionsInGroup = character.OptionGroupExpansionStates[group.Name];
                         switch (group.Type)
                         {
                             case OptionType.Ability:
                                 OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
                                 new ParameterOverride("optionGroup", group),
-                                new ParameterOverride("owner", character)
+                                new ParameterOverride("owner", character),
+                                new PropertyOverride("ShowOptions", showOptionsInGroup)
                                 ));
                                 break;
                             case OptionType.Identity:
                                 OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<Identity>>(
                                 new ParameterOverride("optionGroup", group),
-                                new ParameterOverride("owner", character)
+                                new ParameterOverride("owner", character),
+                                new PropertyOverride("ShowOptions", showOptionsInGroup)
                                 ));
                                 break;
                             case OptionType.CharacterMovement:
                                 OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterMovement>>(
                                 new ParameterOverride("optionGroup", group),
-                                new ParameterOverride("owner", character)
+                                new ParameterOverride("owner", character),
+                                new PropertyOverride("ShowOptions", showOptionsInGroup)
                                 ));
                                 break;
                             case OptionType.Mixed:
                                 OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterOption>>(
                                 new ParameterOverride("optionGroup", group),
-                                new ParameterOverride("owner", character)
+                                new ParameterOverride("owner", character),
+                                new PropertyOverride("ShowOptions", showOptionsInGroup)
                                 ));
                                 break;
                         }
@@ -447,6 +461,44 @@ namespace Module.HeroVirtualTabletop.Characters
             this.EditedCharacter.InsertOptionGroup(targetIndex, sourceViewModel.OptionGroup);
 
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+        }
+
+        #endregion
+
+        #region Keyboard Hooks
+
+        private IntPtr CharacterEditorKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && this.EditedCharacter != null)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || currentProcId == wndProcId)
+                    {
+                        if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                        {
+                            if (this.AddOptionGroupCommand.CanExecute(null))
+                                this.AddOptionGroupCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                        {
+                            if (this.RemoveOptionGroupCommand.CanExecute(null))
+                                this.RemoveOptionGroupCommand.Execute(null);
+                        }
+                    }
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(characterEditorKeyboardHookID, nCode, wParam, lParam);
         }
 
         #endregion

@@ -47,6 +47,7 @@ namespace Module.HeroVirtualTabletop.Characters
             optionGroups = new HashedObservableCollection<IOptionGroup, string>(x => x.Name);
             OptionGroups = new ReadOnlyHashedObservableCollection<IOptionGroup, string>(optionGroups);
             this.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
+            this.OptionGroupExpansionStates = new Dictionary<string, bool>();
         }
 
         public Character(string name): this()
@@ -245,6 +246,12 @@ namespace Module.HeroVirtualTabletop.Characters
         }
         [JsonIgnore]
         public bool IsMoving
+        {
+            get;
+            set;
+        }
+        [JsonIgnore]
+        public Dictionary<string, bool> OptionGroupExpansionStates
         {
             get;
             set;
