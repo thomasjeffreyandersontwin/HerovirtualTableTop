@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework.Content;
 using System.Runtime.Serialization;
 using IrrKlang;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using System.Windows;
 //using IrrKlang;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
@@ -254,6 +255,30 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public virtual string GetKeybind(Character Target = null)
         {
             return string.Empty;
+        }
+
+        public List<AnimationElement> GetFlattenedMembers()
+        {
+            List<AnimationElement> flatList = new List<AnimationElement>();
+            if (this is SequenceElement)
+            {
+                SequenceElement sequenceElement = (this as SequenceElement);
+                if (sequenceElement.AnimationElements != null && sequenceElement.AnimationElements.Count > 0)
+                    flatList = sequenceElement.GetFlattenedAnimationList();
+            }
+            else if (this is ReferenceAbility)
+            {
+                ReferenceAbility refElement = (this as ReferenceAbility);
+                if (refElement.Reference != null && refElement.Reference.AnimationElements != null && refElement.Reference.AnimationElements.Count > 0)
+                {
+                    flatList = refElement.Reference.GetFlattenedAnimationList();
+                }
+            }
+            else
+            {
+                flatList = new List<AnimationElement> { this};
+            }
+            return flatList;
         }
     }
 
@@ -981,35 +1006,50 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             RemoveAnimationElement(element);
         }
 
-        public override bool IsActive
-        {
-            get
-            {
-                return AnimationElements.Any(x => { return x.IsActive == true; });
-            }
-        }
+        //public override bool IsActive
+        //{
+        //    get
+        //    {
+        //        return AnimationElements.Any(x => { return x.IsActive == true; });
+        //    }
+        //}
+
+        private Timer playTimer;
 
         public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
+            playTimer = new Timer(PlaySequence, new object[]{persistent, Target}, Timeout.Infinite, Timeout.Infinite);
             Stop(Target ?? this.Owner);
             //if (this.Persistent || persistent)
-            //    IsActive = true;
-            if (SequenceType == AnimationSequenceType.And)
-            {
-                foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
-                {
-                    item.Play(this.Persistent || persistent, Target ?? this.Owner);
-                }
-            }
-            else
-            {
-                var rnd = new Random();
-                int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
-            }
+            IsActive = true;
             OnPropertyChanged("IsActive");
+            playTimer.Change(5, Timeout.Infinite);
         }
 
+
+        public void PlaySequence(object state)
+        {
+            object[] array = state as object[];
+            bool persistent = (bool)array[0];
+            Character Target = array[1] as Character;
+            Action d = delegate()
+            {
+                if (SequenceType == AnimationSequenceType.And)
+                {
+                    foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
+                    {
+                        item.Play(this.Persistent || persistent, Target ?? this.Owner);
+                    }
+                }
+                else
+                {
+                    var rnd = new Random();
+                    int chosen = rnd.Next(0, AnimationElements.Count);
+                    AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
+                }
+            };
+            Application.Current.Dispatcher.BeginInvoke(d);
+        }
         public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
         {
             Stop(Target ?? this.Owner);
@@ -1036,34 +1076,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             List<AnimationElement> _list = new List<AnimationElement>();
             if (this.SequenceType == AnimationSequenceType.And)
             {
-
                 foreach (AnimationElement animationElement in this.AnimationElements)
                 {
-                    if (animationElement is SequenceElement)
-                    {
-                        SequenceElement sequenceElement = (animationElement as SequenceElement);
-                        if (sequenceElement.AnimationElements != null && sequenceElement.AnimationElements.Count > 0)
-                            _list.AddRange(sequenceElement.GetFlattenedAnimationList());
-                    }
-                    else if (animationElement is ReferenceAbility)
-                    {
-                        ReferenceAbility refElement = (animationElement as ReferenceAbility);
-                        if (refElement.Reference != null && refElement.Reference.AnimationElements != null && refElement.Reference.AnimationElements.Count > 0)
-                        {
-                            _list.AddRange(refElement.Reference.GetFlattenedAnimationList());
-                        }
-                    }
-                    else {
-                        _list.Add(animationElement);
-                    }
-
+                    _list.AddRange(animationElement.GetFlattenedMembers());
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, this.AnimationElements.Count);
-                _list.Add(this.AnimationElements[chosen]);
+                var animationElement = this.AnimationElements[chosen];
+                _list.AddRange(animationElement.GetFlattenedMembers());
             }
             return _list;
        }

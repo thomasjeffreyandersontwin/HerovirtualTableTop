@@ -15,13 +15,16 @@ using Prism.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.Movements
 {
@@ -32,6 +35,7 @@ namespace Module.HeroVirtualTabletop.Movements
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
         private Character defaultCharacter;
+        private IntPtr keyboardHookID;
 
         #endregion
 
@@ -252,6 +256,8 @@ namespace Module.HeroVirtualTabletop.Movements
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
             this.InitializeMovementSelections();
+
+            keyboardHookID = KeyBoardHook.SetHook(MovementEditorKeyboardHook);
         }
 
         #endregion
@@ -675,6 +681,59 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #endregion
 
+        #region Keyboard Hook
+
+        private IntPtr MovementEditorKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && this.IsShowingMovementEditor && this.CurrentCharacterMovement != null)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || currentProcId == wndProcId)
+                    {
+                        if((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
+                        {
+                            if (this.AddMovementCommand.CanExecute(null))
+                                this.AddMovementCommand.Execute(null);
+                        }
+                        else if((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
+                        {
+                            if (this.RemoveMovementCommand.CanExecute(null))
+                                this.RemoveMovementCommand.Execute(null);
+                        }
+                        else if(inputKey == Key.D && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
+                        {
+                            if (this.SelectedMovementMember != null && this.DemoDirectionalMoveCommand.CanExecute(this.SelectedMovementMember))
+                                this.DemoDirectionalMoveCommand.Execute(this.SelectedMovementMember);
+                        }
+                        else if (inputKey == Key.A && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
+                        {
+                            if (this.SelectedMovementMember != null && this.LoadAbilityEditorCommand.CanExecute(this.SelectedMovementMember))
+                                this.LoadAbilityEditorCommand.Execute(this.SelectedMovementMember);
+                        }
+                        else if (inputKey == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
+                        {
+                            if (this.PlayMovementCommand.CanExecute(null))
+                                this.PlayMovementCommand.Execute(null);
+                        }
+                    }
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+        }
+
+        #endregion
+
         #region Utility
 
         private string GetDisplayNameFromResourceName(string resourceName)
@@ -700,7 +759,15 @@ namespace Module.HeroVirtualTabletop.Movements
                 || key == System.Windows.Forms.Keys.Shift
                 || key == System.Windows.Forms.Keys.Enter
                 || key == System.Windows.Forms.Keys.CapsLock
-                || key == System.Windows.Forms.Keys.Escape;
+                || key == System.Windows.Forms.Keys.Escape
+                || key == System.Windows.Forms.Keys.M
+                || key == System.Windows.Forms.Keys.P
+                || key == System.Windows.Forms.Keys.Oemplus
+                || key == System.Windows.Forms.Keys.Add
+                || key == System.Windows.Forms.Keys.Subtract
+                || key == System.Windows.Forms.Keys.OemMinus
+                || key == System.Windows.Forms.Keys.Delete
+                || key == System.Windows.Forms.Keys.Back;
         }
 
         #endregion

@@ -14,13 +14,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -36,6 +39,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private string filter;
         private IMessageBoxService messageBoxService;
         private Visibility visibility = Visibility.Collapsed;
+        private IntPtr keyboardHookID;
 
         #endregion
 
@@ -160,6 +164,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             charExpVM = this.Container.Resolve<CharacterExplorerViewModel>();
             this.eventAggregator.GetEvent<CreateCrowdFromModelsEvent>().Subscribe(this.LoadCrowd);
             tmpCrowd = new CrowdModel();
+
+            keyboardHookID = KeyBoardHook.SetHook(CrowdFromModelsKeyboardHook);
         }
 
         #endregion
@@ -304,6 +310,49 @@ namespace Module.HeroVirtualTabletop.Crowds
             string strItem = item as string;
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(strItem);
         }
+
+        #region Keyboard Hook
+
+        private IntPtr CrowdFromModelsKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && this.Visibility == System.Windows.Visibility.Visible && this.EditedCrowd != null)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || currentProcId == wndProcId)
+                    {
+                        if ((inputKey == Key.S) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.SpawnModelsCommand.CanExecute(null))
+                                this.SpawnModelsCommand.Execute(null);
+                        }
+                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Windows))
+                        {
+                            if (this.ClearFromDesktopCommand.CanExecute(null))
+                                this.ClearFromDesktopCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.S && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Windows))
+                        {
+                            if (this.SaveCrowdCommand.CanExecute(null))
+                                this.SaveCrowdCommand.Execute(null);
+                        }
+                    }
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+        }
+
+        #endregion
 
         #endregion
     }

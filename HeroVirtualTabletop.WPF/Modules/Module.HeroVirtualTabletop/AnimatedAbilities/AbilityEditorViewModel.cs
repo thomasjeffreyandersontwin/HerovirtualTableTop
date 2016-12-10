@@ -25,6 +25,8 @@ using System.Collections.ObjectModel;
 using Module.Shared;
 using System.Windows.Data;
 using Module.HeroVirtualTabletop.Crowds;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -38,6 +40,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
+        private IntPtr keyboardHookID;
 
         #endregion
 
@@ -120,6 +123,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 currentAttackAbility = value;
                 OnPropertyChanged("CurrentAttackAbility");
                 this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+            }
+        }
+        private ObservableCollection<System.Windows.Forms.Keys> availableKeys;
+        public ObservableCollection<System.Windows.Forms.Keys> AvailableKeys
+        {
+            get
+            {
+                return availableKeys;
+            }
+            set
+            {
+                availableKeys = value;
+                OnPropertyChanged("AvailableKeys");
             }
         }
         private AnimatedAbility currentAbility;
@@ -553,6 +569,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
             this.InitializeAnimationElementSelections();
+            keyboardHookID = KeyBoardHook.SetHook(AbilityEditorKeyboardHook);
         }
 
         #endregion
@@ -572,6 +589,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CurrentAbility = null;
             this.CurrentAttackAbility = null;
             this.Owner = null;
+
+            if (availableKeys == null)
+            {
+                availableKeys = new ObservableCollection<System.Windows.Forms.Keys>();
+                foreach (var key in Enum.GetValues(typeof(System.Windows.Forms.Keys)).Cast<System.Windows.Forms.Keys>())
+                {
+                    if (!IsAbilityKey(key))
+                        availableKeys.Add(key);
+                }
+            }
         }
 
         private void InitializeCommands()
@@ -1640,6 +1667,137 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         #endregion
+
+        #region Keyboard Hook
+
+        private IntPtr AbilityEditorKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && this.IsShowingAbilityEditor && this.Owner != null && this.CurrentAbility != null)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || currentProcId == wndProcId)
+                    {
+                        var isAddAnimationElementKeyDown = (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == ModifierKeys.Alt;
+                        if (inputKey == Key.M && isAddAnimationElementKeyDown)
+                        {
+                            if (this.AddAnimationElementCommand.CanExecute(AnimationType.Movement))
+                                this.AddAnimationElementCommand.Execute(AnimationType.Movement);
+                        }
+                        else if (inputKey == Key.F && isAddAnimationElementKeyDown)
+                        {
+                            if (this.AddAnimationElementCommand.CanExecute(AnimationType.FX))
+                                this.AddAnimationElementCommand.Execute(AnimationType.FX);
+                        }
+                        else if (inputKey == Key.S && isAddAnimationElementKeyDown)
+                        {
+                            if (this.AddAnimationElementCommand.CanExecute(AnimationType.Sound))
+                                this.AddAnimationElementCommand.Execute(AnimationType.Sound);
+                        }
+                        else if (inputKey == Key.Q && isAddAnimationElementKeyDown)
+                        {
+                            if (this.AddAnimationElementCommand.CanExecute(AnimationType.Sequence))
+                                this.AddAnimationElementCommand.Execute(AnimationType.Sequence);
+                        }
+                        else if (inputKey == Key.R && isAddAnimationElementKeyDown)
+                        {
+                            if (this.AddAnimationElementCommand.CanExecute(AnimationType.Reference))
+                                this.AddAnimationElementCommand.Execute(AnimationType.Reference);
+                        }
+                        else if (inputKey == Key.P && isAddAnimationElementKeyDown)
+                        {
+                            if (this.AddAnimationElementCommand.CanExecute(AnimationType.Pause))
+                                this.AddAnimationElementCommand.Execute(AnimationType.Pause);
+                        }
+                        else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Alt)
+                        {
+                            if (this.DemoAnimatedAbilityCommand.CanExecute(null))
+                                this.DemoAnimatedAbilityCommand.Execute(null);
+                        }
+                        else if(inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.CloneAnimationCommand.CanExecute(null))
+                                this.CloneAnimationCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.X && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.CutAnimationCommand.CanExecute(null))
+                                this.CutAnimationCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.V && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.PasteAnimationCommand.CanExecute(null))
+                                this.PasteAnimationCommand.Execute(null);
+                        }
+                        else if ((inputKey == Key.Back) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.RemoveAnimationCommand.CanExecute(null))
+                                this.RemoveAnimationCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.DemoAnimationCommand.CanExecute(null))
+                                this.DemoAnimationCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.A && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.ConfigureAttackAnimationCommand.CanExecute("Attack"))
+                                this.ConfigureAttackAnimationCommand.Execute("Attack");
+                        }
+                        else if (inputKey == Key.H && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
+                        {
+                            if (this.ConfigureAttackAnimationCommand.CanExecute("OnHit"))
+                                this.ConfigureAttackAnimationCommand.Execute("OnHit");
+                        }
+                    }
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+        }
+
+        #endregion
+
+        private bool IsAbilityKey(System.Windows.Forms.Keys key)
+        {
+            return key == System.Windows.Forms.Keys.F
+                || key == System.Windows.Forms.Keys.Q
+                || key == System.Windows.Forms.Keys.S
+                || key == System.Windows.Forms.Keys.R
+                || key == System.Windows.Forms.Keys.X
+                || key == System.Windows.Forms.Keys.C
+                || key == System.Windows.Forms.Keys.V
+                || key == System.Windows.Forms.Keys.A
+                || key == System.Windows.Forms.Keys.H
+                || key == System.Windows.Forms.Keys.Space
+                || key == System.Windows.Forms.Keys.Left
+                || key == System.Windows.Forms.Keys.Right
+                || key == System.Windows.Forms.Keys.Up
+                || key == System.Windows.Forms.Keys.Down
+                || key == System.Windows.Forms.Keys.Alt
+                || key == System.Windows.Forms.Keys.Control
+                || key == System.Windows.Forms.Keys.Shift
+                || key == System.Windows.Forms.Keys.Enter
+                || key == System.Windows.Forms.Keys.CapsLock
+                || key == System.Windows.Forms.Keys.Escape
+                || key == System.Windows.Forms.Keys.M
+                || key == System.Windows.Forms.Keys.P
+                || key == System.Windows.Forms.Keys.Oemplus
+                || key == System.Windows.Forms.Keys.Add
+                || key == System.Windows.Forms.Keys.Subtract
+                || key == System.Windows.Forms.Keys.OemMinus
+                || key == System.Windows.Forms.Keys.Delete
+                || key == System.Windows.Forms.Keys.Back;
+        }
 
         #endregion
     }

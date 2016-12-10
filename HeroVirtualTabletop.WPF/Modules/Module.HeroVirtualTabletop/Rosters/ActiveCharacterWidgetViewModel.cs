@@ -28,7 +28,12 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Private Fields
 
         private EventAggregator eventAggregator;
+
+        private System.Timers.Timer clickTimer_AbilityPlay = new System.Timers.Timer();
+
         private IntPtr hookID;
+
+        private AnimatedAbility activeAbility;
 
         #endregion
 
@@ -76,6 +81,11 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator = eventAggregator;
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadCharacter);
             InitializeCommands();
+
+            clickTimer_AbilityPlay.AutoReset = false;
+            clickTimer_AbilityPlay.Interval = 2000;
+            clickTimer_AbilityPlay.Elapsed +=
+                new System.Timers.ElapsedEventHandler(clickTimer_AbilityPlay_Elapsed);
         }
 
         #endregion
@@ -105,6 +115,9 @@ namespace Module.HeroVirtualTabletop.Roster
                 foreach (IOptionGroup group in character.OptionGroups)
                 {
                     bool loadedOptionExists = group.Name == optionGroupName;
+                    bool showOptionsInGroup = false;
+                    if (character.OptionGroupExpansionStates.ContainsKey(group.Name))
+                        showOptionsInGroup = character.OptionGroupExpansionStates[group.Name];
                     switch (group.Type)
                     {
                         case OptionType.Ability:
@@ -113,6 +126,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             new ParameterOverride("optionGroup", group),
                             new ParameterOverride("owner", character),
                             new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("ShowOptions", showOptionsInGroup),
                             new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
@@ -121,6 +135,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             new ParameterOverride("optionGroup", group),
                             new ParameterOverride("owner", character),
                             new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("ShowOptions", showOptionsInGroup),
                             new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
@@ -129,6 +144,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             new ParameterOverride("optionGroup", group), 
                             new ParameterOverride("owner", character),
                             new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("ShowOptions", showOptionsInGroup),
                             new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
@@ -137,6 +153,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             new ParameterOverride("optionGroup", group),
                             new ParameterOverride("owner", character),
                             new PropertyOverride("IsReadOnlyMode", true),
+                            new PropertyOverride("ShowOptions", showOptionsInGroup),
                             new PropertyOverride("LoadingOptionName", loadedOptionExists ? optionName : "")
                             ));
                             break;
@@ -161,6 +178,19 @@ namespace Module.HeroVirtualTabletop.Roster
             ActiveCharacter = null;
         }
                 
+        private void clickTimer_AbilityPlay_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            clickTimer_AbilityPlay.Stop();
+            Action d = delegate()
+            {
+                if (activeAbility != null && !activeAbility.Persistent && !activeAbility.IsAttack)
+                {
+                    activeAbility.Stop(ActiveCharacter);
+                }
+            };
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
+        }
+                
         private IntPtr PlayAbilityByKeyProc(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
@@ -176,13 +206,13 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
                         || Process.GetCurrentProcess().Id == wndProcId)
                     {
-                        if (Keyboard.IsKeyDown(Key.LeftAlt) && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
+                        if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
                         {
-                            ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode).Play();
+                            activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
+                            activeAbility.Play();
+                            clickTimer_AbilityPlay.Start();
                         }
-                        else if ((Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl)) && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt)))
-                        {
-                            if (ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
+                        else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
                             {
                                 CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
                                 if (!cm.IsActive)
@@ -190,8 +220,6 @@ namespace Module.HeroVirtualTabletop.Roster
                                 else
                                     cm.DeactivateMovement();
                             }
-                        }
-                        //Jeff can now press control to toggle the default movement on and off
                         
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);

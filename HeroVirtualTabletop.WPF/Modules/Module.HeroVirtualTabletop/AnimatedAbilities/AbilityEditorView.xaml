@@ -130,7 +130,7 @@
                 </StackPanel>
             </Grid>
         </Grid>
-        <Grid Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Top">
+        <Grid Grid.Row="1" HorizontalAlignment="Right" Grid.ColumnSpan="2" Margin="0,0,0,0.4">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>
@@ -143,18 +143,21 @@
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
-                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Movement" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
-                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
-                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
-                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Reference}"/>
-                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
-                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
-                <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability" Command="{Binding DemoAnimatedAbilityCommand}" />
+                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Move (Alt+Plus+M)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
+                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX (Alt+Plus+F)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
+                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound (Alt+Plus+S)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
+                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference (Alt+Plus+R)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Reference}"/>
+                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence (Alt+Plus+Q)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
+                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
+                <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability (Alt+Enter)" Command="{Binding DemoAnimatedAbilityCommand}" />
             </StackPanel>
             <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
             <ComboBox Grid.Row="1" Grid.Column="1" Margin="2" IsEnabled="{Binding CanEditAbilityOptions}"
-                          Name="cbBoxActivateOnKey" ItemsSource="{Binding Source={StaticResource Keys}}"
+                          Name="cbBoxActivateOnKey" ItemsSource="{Binding AvailableKeys}"
                           SelectedValue="{Binding Path=CurrentAbility.ActivateOnKey}">
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="SelectionChanged" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=abilities:AbilityEditorView}, Path=DataContext.SaveAbilityCommand}"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </ComboBox>
         </Grid>
 
@@ -162,12 +165,12 @@
             <StackPanel.Resources>
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
             </StackPanel.Resources>
-            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone" Command="{Binding CloneAnimationCommand}"/>
-            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut" Command="{Binding CutAnimationCommand}"/>
-            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste" Command="{Binding PasteAnimationCommand}"/>
-            <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove" Command="{Binding RemoveAnimationCommand}"/>
-            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation" Command="{Binding DemoAnimationCommand}"/>
-            <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="Attack">
+            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone (Alt+Ctrl+C)" Command="{Binding CloneAnimationCommand}"/>
+            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut (Alt+Ctrl+X)" Command="{Binding CutAnimationCommand}"/>
+            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste (Alt+Ctrl+V)" Command="{Binding PasteAnimationCommand}"/>
+            <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove (Alt+Ctrl+Backspace)" Command="{Binding RemoveAnimationCommand}"/>
+            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation (Alt+Ctrl+Enter)" Command="{Binding DemoAnimationCommand}"/>
+            <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack (Alt+Ctrl+A)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="Attack">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>
@@ -181,7 +184,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button x:Name="btnOnHit" Grid.Column="1" Content="&#xf132;" ToolTip="On Hit" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="OnHit">
+            <Button x:Name="btnOnHit" Grid.Column="1" Content="&#xf132;" ToolTip="On Hit (Alt+Ctrl+H)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="OnHit">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>
@@ -304,7 +307,7 @@
                           SelectionUnit="FullRow" AutoGenerateColumns="False"
                           SelectionMode="Single" IsEnabled="{Binding CanEditAbilityOptions}"
                           SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                          IsSynchronizedWithCurrentItem="True" CanUserResizeRows="False"
+                          IsSynchronizedWithCurrentItem="True" CanUserResizeRows="False" 
                       >
                     <i:Interaction.Behaviors>
                         <behaviors:ScrollIntoViewForDataGrid />
@@ -321,7 +324,14 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>
+                        <DataGridTemplateColumn Width="200" Header="Name">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <!--<DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True"></DataGridTextColumn>-->
                         <DataGridTextColumn Header="Resource" Binding="{Binding Value}" IsReadOnly="True"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>

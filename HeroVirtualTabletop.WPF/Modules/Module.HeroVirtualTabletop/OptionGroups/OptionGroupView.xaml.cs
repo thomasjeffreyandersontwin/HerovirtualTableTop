@@ -239,8 +239,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             Helper.GlobalVariables_DraggingOptionGroupName = this.viewModel.OptionGroup.Name;
         }
 
-        #endregion
-
-        
+        #endregion     
     }
 }
