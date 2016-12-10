@@ -533,12 +533,13 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
+                        System.Threading.Thread.Sleep(1000);
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
                         string characterName = "";
                         // Jeff right click hover sucks, get the targeted character instead
                         if (hoveredCharacterInfo == "")
                         {
-                            System.Threading.Thread.Sleep(500);
+                            System.Threading.Thread.Sleep(1000);
                             characterName = ((Character)GetCurrentTarget()).Name;
                         }
                         
@@ -831,7 +832,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (this.ClearFromDesktopCommand.CanExecute(null))
                                 this.ClearFromDesktopCommand.Execute(null);
                         }
-                        else if (inputKey == Key.Home && Keyboard.Modifiers == ModifierKeys.Control)
+                        else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
                         {
                             //Jeff fixed activating keystroke problem so works without activating a characte
                             this.ActivateDefaultMovementToActivate(null);
@@ -1239,14 +1240,22 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ActivateDefaultMovementToActivate(object obj)
         {
             Character character = ((Character)SelectedParticipants[0]);
-            Vector3 facing = character.CurrentFacingVector;
+
+            Vector3 facing= new Vector3();
+            if (SelectedParticipants.Count > 1){
+               facing =   character.CurrentFacingVector;
+            }
+           
             if (character.ActiveMovement == null || character.ActiveMovement.IsActive==false)
             {
                 foreach (CrowdMemberModel member in SelectedParticipants)
                 {
                     character = (Character) member;
                     character.ActiveMovement = character.DefaultMovementToActivate;
-                    character.CurrentFacingVector = facing;
+                    if (SelectedParticipants.Count > 1)
+                    {
+                        character.CurrentFacingVector = facing;
+                    }
                     if (!character.ActiveMovement.IsActive)
                         character.ActiveMovement.ActivateMovement();
                 }
