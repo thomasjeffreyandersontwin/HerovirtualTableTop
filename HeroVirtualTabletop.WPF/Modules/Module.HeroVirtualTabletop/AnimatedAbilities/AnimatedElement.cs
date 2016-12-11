@@ -1023,7 +1023,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //if (this.Persistent || persistent)
             IsActive = true;
             OnPropertyChanged("IsActive");
-            playTimer.Change(5, Timeout.Infinite);
+            if(forcePlay) // for Attacks that need to play immediately in the same thread
+                PlayAnimations(persistent, Target);
+            else
+                playTimer.Change(5, Timeout.Infinite);
+            
         }
 
 
@@ -1034,21 +1038,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character Target = array[1] as Character;
             Action d = delegate()
             {
-                if (SequenceType == AnimationSequenceType.And)
-                {
-                    foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
-                    {
-                        item.Play(this.Persistent || persistent, Target ?? this.Owner);
-                    }
-                }
-                else
-                {
-                    var rnd = new Random();
-                    int chosen = rnd.Next(0, AnimationElements.Count);
-                    AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
-                }
+                PlayAnimations(persistent, Target);
             };
             Application.Current.Dispatcher.BeginInvoke(d);
+        }
+
+        private void PlayAnimations(bool persistent = false, Character Target = null)
+        {
+            if (SequenceType == AnimationSequenceType.And)
+            {
+                foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
+                {
+                    item.Play(this.Persistent || persistent, Target ?? this.Owner);
+                }
+            }
+            else
+            {
+                var rnd = new Random();
+                int chosen = rnd.Next(0, AnimationElements.Count);
+                AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
+            }
         }
         public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
         {

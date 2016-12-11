@@ -301,7 +301,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.SetAttackDirection(direction);
             this.SetAttackerFacing(direction, attacker);
-            base.Play(false, attacker);
+            base.Play(false, attacker, true); // forceplay true as this is an attack and needs to play immediately
             // Reset FX direction
             this.SetAttackDirection(null);
         }
@@ -538,7 +538,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 hitMissSequenceElement.AddAnimationElement(hitElement);
                 characterAnimationMappingDictionary.Add(hitElement, hitTargets);
             }
-            injectMissAbility(hitMissSequenceElement, characterAnimationMappingDictionary, defendingCharacters);
+            InjectMissAbility(hitMissSequenceElement, characterAnimationMappingDictionary, defendingCharacters);
 
             // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
             bool playWithKnockback = defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack);// whether we need to play knockback or not
@@ -555,7 +555,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
-        private void injectMissAbility(SequenceElement hitMissSequenceElement, Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, List<Character> defendingCharacters)
+        private void InjectMissAbility(SequenceElement hitMissSequenceElement, Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, List<Character> defendingCharacters)
         {
             List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
             var missAbility = this.GetMissAbility();
