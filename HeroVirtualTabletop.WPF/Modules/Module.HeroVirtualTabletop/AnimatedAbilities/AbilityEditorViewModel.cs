@@ -408,7 +408,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 filter = value;
                 if (SelectedAnimationElement != null)
-                    if(value.Length > 2) {
+                    if(value.Length > 2 || value.Length== 0) {
                         switch (SelectedAnimationElement.Type)
                         {
                             case AnimationType.Movement:
