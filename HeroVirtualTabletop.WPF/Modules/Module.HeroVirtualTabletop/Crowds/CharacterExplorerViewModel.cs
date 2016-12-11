@@ -869,9 +869,31 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             foreach (CrowdModel cModel in this.CrowdCollection)
             {
-                DeleteCrowdMemberFromCrowdModelByName(cModel, nameOfDeletingCrowdMember); 
+                DeleteCrowdMemberFromCrowdModelByName(cModel, nameOfDeletingCrowdMember);
+                DeleteCrowdMemberFromNestedCrowdByName(cModel, nameOfDeletingCrowdMember);
             }
             DeleteCrowdMemberFromCharacterCollectionByName(nameOfDeletingCrowdMember);
+        }
+
+        private void DeleteCrowdMemberFromNestedCrowdByName(CrowdModel crowdModel, string nameOfDeletingCrowdMember)
+        {
+            if(crowdModel.CrowdMemberCollection != null && crowdModel.CrowdMemberCollection.Count > 0)
+            {
+                foreach(var cm in crowdModel.CrowdMemberCollection)
+                {
+                    if(cm is CrowdModel)
+                    {
+                        var cmm = cm as CrowdModel;
+                        if (cmm.CrowdMemberCollection != null)
+                        {
+                            var crm = cmm.CrowdMemberCollection.Where(cmmm => cmmm.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+                            if(crm != null)
+                                cmm.Remove(crm);
+                            DeleteCrowdMemberFromNestedCrowdByName(cmm, nameOfDeletingCrowdMember);
+                        }
+                    }
+                }
+            }
         }
         private void DeleteCrowdMemberFromCrowdModelByName(CrowdModel crowdModel, string nameOfDeletingCrowdMember)
         {
@@ -1304,6 +1326,9 @@ namespace Module.HeroVirtualTabletop.Crowds
                     string crowdMemberModelName = tuple.Item1;
                     string crowdModelName = tuple.Item2;
                     var crowdModel = this.CrowdCollection[crowdModelName];
+                    IEnumerable<ICrowdMemberModel> modelList = this.CrowdCollection;
+                    if (crowdModel == null)
+                        crowdModel = FindNestedCrowd(modelList.ToList(), crowdModelName) as CrowdModel;
                     var crowdMemberModel = crowdModel.CrowdMemberCollection.Where(c => c.Name == crowdMemberModelName).First() as CrowdMemberModel;
                     if (crowdMemberModel.RosterCrowd == null)
                     {
@@ -1629,6 +1654,29 @@ namespace Module.HeroVirtualTabletop.Crowds
             return isNested;
         }
 
+        private ICrowdMemberModel FindNestedCrowd(List<ICrowdMemberModel> list, string crowdName)
+        {
+            ICrowdMemberModel crowd = null;
+            foreach(var cm in list)
+            {
+                if (cm is CrowdModel)
+                {
+                    CrowdModel crm = (cm as CrowdModel);
+                    if(crm.Name == crowdName)
+                    {
+                        crowd = crm;
+                        break;
+                    }
+                    else if (crm.CrowdMemberCollection != null && crm.CrowdMemberCollection.Count > 0)
+                    {
+                        crowd = FindNestedCrowd(crm.CrowdMemberCollection.ToList(), crowdName);
+                        if (crowd != null)
+                            break;
+                    }
+                }
+            }
+            return crowd;
+        }
 
         private void StopAllActiveAbilities(object obj)
         {
