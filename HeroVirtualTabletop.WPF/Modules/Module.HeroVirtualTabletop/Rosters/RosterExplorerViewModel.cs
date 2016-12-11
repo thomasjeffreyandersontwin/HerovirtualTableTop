@@ -430,17 +430,27 @@ namespace Module.HeroVirtualTabletop.Roster
                         // 1. Determine which character is clicked and save its name and also click time
                         System.Threading.Thread.Sleep(200);
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+                        CrowdMemberModel hoveredCharacter = null;
                         if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                         {
-                            string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                            CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
-                            if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                            string characterName = GetCharacterNameFromHoveredInfo (hoveredCharacterInfo);
+                            hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                            // JEFF hover sucks make it work
+                        }
+                        if (hoveredCharacterInfo == "")
+                        {
+                            System.Threading.Thread.Sleep(200);
+                            if (GetCurrentTarget() != null)
                             {
-                                this.currentDraggingCharacter = hoveredCharacter;
-                                this.IsCharacterDragDropInProgress = true;
-                                this.lastDesktopMouseDownTime = DateTime.UtcNow;
+                            hoveredCharacter = (CrowdMemberModel)  GetCurrentTarget();
                             }
                         }
+                       
+                            this.currentDraggingCharacter = hoveredCharacter;
+                            this.IsCharacterDragDropInProgress = true;
+                            this.lastDesktopMouseDownTime = DateTime.UtcNow;
+                            
+                        
                         if (!this.isPlayingAttack)
                         {
                             if (Helper.GlobalVariables_CharacterMovement == null)
@@ -533,7 +543,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        System.Threading.Thread.Sleep(1000);
+                        //System.Threading.Thread.Sleep(1000);
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
                         string characterName = "";
                         // Jeff right click hover sucks, get the targeted character instead
@@ -1271,8 +1281,15 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         character.CurrentFacingVector = facing;
                     }
-                    if (!character.ActiveMovement.IsActive)
-                        character.ActiveMovement.ActivateMovement();
+                    if (character.ActiveMovement != null)
+                    {
+
+
+
+
+                        if (!character.ActiveMovement.IsActive)
+                            character.ActiveMovement.ActivateMovement();
+                    }
                 }
 
             }
