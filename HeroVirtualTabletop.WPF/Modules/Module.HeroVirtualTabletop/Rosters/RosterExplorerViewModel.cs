@@ -422,10 +422,12 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (nCode >= 0)
             {
-                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
+                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam )
                 {
+                    MemoryElement targetedBeforeMouseCLick = new MemoryElement();
+
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
-                    {
+                    {  
                         // possible drag drop
                         // 1. Determine which character is clicked and save its name and also click time
                         System.Threading.Thread.Sleep(200);
@@ -439,18 +441,20 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         if (hoveredCharacterInfo == "")
                         {
-                            System.Threading.Thread.Sleep(200);
-                            if (GetCurrentTarget() != null)
+                            //   System.Threading.Thread.Sleep(200);
+                            MemoryElement target = new MemoryElement();
+                            if (target.Label != "" && targetedBeforeMouseCLick.Label != target.Label)
                             {
-                            hoveredCharacter = (CrowdMemberModel)  GetCurrentTarget();
+                                hoveredCharacter = (CrowdMemberModel)  GetCurrentTarget();
                             }
-                        }
-                       
+                       }
+                        if (hoveredCharacter != null)
+                        {
                             this.currentDraggingCharacter = hoveredCharacter;
                             this.IsCharacterDragDropInProgress = true;
                             this.lastDesktopMouseDownTime = DateTime.UtcNow;
-                            
-                        
+                        }
+
                         if (!this.isPlayingAttack)
                         {
                             if (Helper.GlobalVariables_CharacterMovement == null)
@@ -515,10 +519,12 @@ namespace Module.HeroVirtualTabletop.Roster
                 else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
                 {
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
-                    { 
+                    {
                         // Possible character drag drop
                         // 1. Check current position and make sure it is away by a min distance and also there is a min gap in time. 
                         // 2. If conditions satisfy execute move
+
+                        
                         if (this.currentDraggingCharacter != null && lastDesktopMouseDownTime != DateTime.MinValue && this.IsCharacterDragDropInProgress)
                         {
                             System.Threading.Thread.Sleep(500);
@@ -550,7 +556,8 @@ namespace Module.HeroVirtualTabletop.Roster
                         if (hoveredCharacterInfo == "")
                         {
                             System.Threading.Thread.Sleep(1000);
-                            if (GetCurrentTarget() != null) { 
+                            MemoryElement target = new MemoryElement ();
+                            if (target.Label != "") { 
                                 characterName = ((Character)GetCurrentTarget()).Name;
                             }
                         }
@@ -559,34 +566,34 @@ namespace Module.HeroVirtualTabletop.Roster
                         {
                             characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
                         }
-                            CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
-                            if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                        CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                        if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+                        {
+                            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            if (isPlayingAreaEffect)
                             {
-                                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                                if (isPlayingAreaEffect)
-                                {
-                                    if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
-                                    {
-                                        AddDesktopTargetToRosterSelection(hoveredCharacter);
-                                        hoveredCharacter.Target();
-                                        keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
-                                        keyBindsGenerator.CompleteEvent();
-                                        this.isMenuDisplayed = true;
-                                    }
-                                }
-                                else
+                                if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
                                 {
                                     AddDesktopTargetToRosterSelection(hoveredCharacter);
-                                    GenerateMenuFileForCharacter(hoveredCharacter);
-                                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
-                                    fileSystemWatcher.EnableRaisingEvents = true;
+                                    hoveredCharacter.Target();
+                                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
                                     keyBindsGenerator.CompleteEvent();
                                     this.isMenuDisplayed = true;
                                 }
                             }
+                            else
+                            {
+                                AddDesktopTargetToRosterSelection(hoveredCharacter);
+                                GenerateMenuFileForCharacter(hoveredCharacter);
+                                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
+                                fileSystemWatcher.EnableRaisingEvents = true;
+                                keyBindsGenerator.CompleteEvent();
+                                this.isMenuDisplayed = true;
+                            }
                         }
                     }
                 }
+            }
             return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
         }
 
