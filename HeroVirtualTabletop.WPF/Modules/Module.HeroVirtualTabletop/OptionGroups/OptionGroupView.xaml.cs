@@ -240,5 +240,63 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         }
 
         #endregion     
+
+        #region Adjustable Width
+
+        public double OptionGroupWidth
+        {
+            get
+            {
+                return (double)GetValue(OptionGroupWidthProperty);
+            }
+            set 
+            {
+                SetValue(OptionGroupWidthProperty, value); 
+            }
+        }
+
+        public static readonly DependencyProperty
+            OptionGroupWidthProperty =
+            DependencyProperty.Register("OptionGroupWidth",
+            typeof(double), typeof(OptionGroupView),
+            new PropertyMetadata(null));
+
+
+        public double OptionListBoxWidth
+        {
+            get
+            {
+                return (double)GetValue(OptionListBoxWidthProperty);
+            }
+            set
+            {
+                SetValue(OptionListBoxWidthProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty
+            OptionListBoxWidthProperty =
+            DependencyProperty.Register("OptionListBoxWidth",
+            typeof(double), typeof(OptionGroupView),
+            new PropertyMetadata(null));
+
+        public int NumberOfOptionsPerRow
+        {
+            get
+            {
+                return (int)GetValue(NumberOfOptionsPerRowProperty);
+            }
+            set
+            {
+                SetValue(NumberOfOptionsPerRowProperty, value);
+            }
+        }
+
+        public static readonly DependencyProperty
+            NumberOfOptionsPerRowProperty =
+            DependencyProperty.Register("NumberOfOptionsPerRow",
+            typeof(int), typeof(OptionGroupView),
+            new PropertyMetadata(null));
+        #endregion
     }
 }
