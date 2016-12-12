@@ -178,7 +178,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                         dObject = VisualTreeHelper.GetParent(dObject);
                         tvi = dObject as TreeViewItem;
                     }
-                    containingCrowdModel = tvi.DataContext as CrowdModel;
+                    containingCrowdModel = tvi.DataContext as    CrowdModel;
                 }
             }
 
