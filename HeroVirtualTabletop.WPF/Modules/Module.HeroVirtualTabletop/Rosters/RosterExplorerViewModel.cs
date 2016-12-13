@@ -1290,10 +1290,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     }
                     if (character.ActiveMovement != null)
                     {
-
-
-
-
                         if (!character.ActiveMovement.IsActive)
                             character.ActiveMovement.ActivateMovement();
                     }

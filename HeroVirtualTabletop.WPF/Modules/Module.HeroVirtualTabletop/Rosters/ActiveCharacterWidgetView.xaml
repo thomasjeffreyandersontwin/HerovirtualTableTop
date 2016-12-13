@@ -27,7 +27,7 @@
                     </ListView.Style>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <optiongroups:OptionGroupView OptionGroupWidth="800" OptionListBoxWidth="780" NumberOfOptionsPerRow="16">
+                            <optiongroups:OptionGroupView OptionGroupWidth="500" OptionListBoxWidth="480" NumberOfOptionsPerRow="10">
 
                             </optiongroups:OptionGroupView>
                         </DataTemplate>
