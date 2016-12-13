@@ -1024,7 +1024,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = true;
             OnPropertyChanged("IsActive");
             if(forcePlay) // for Attacks that need to play immediately in the same thread
-                PlayAnimations(persistent, Target);
+                PlayAnimations(persistent, Target, true);
             else
                 playTimer.Change(5, Timeout.Infinite);
             
@@ -1043,20 +1043,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Application.Current.Dispatcher.BeginInvoke(d);
         }
 
-        private void PlayAnimations(bool persistent = false, Character Target = null)
+        private void PlayAnimations(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             if (SequenceType == AnimationSequenceType.And)
             {
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
-                    item.Play(this.Persistent || persistent, Target ?? this.Owner);
+                    item.Play(this.Persistent || persistent, Target ?? this.Owner, forcePlay);
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner);
+                AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner, forcePlay);
             }
         }
         public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
@@ -1337,7 +1337,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string retVal = string.Empty;
             if (this.Reference != null)
             {
-                this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner);
+                this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner, forcePlay);
             }
             OnPropertyChanged("IsActive");
         }
