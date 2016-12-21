@@ -185,7 +185,9 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 if (activeAbility != null && !activeAbility.Persistent && !activeAbility.IsAttack)
                 {
-                    activeAbility.Stop(ActiveCharacter);
+                    //activeAbility.Stop(ActiveCharacter);
+                    activeAbility.IsActive = false;
+                    OnPropertyChanged("IsActive");
                 }
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);

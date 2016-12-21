@@ -437,6 +437,21 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        private AnimatedAbility defaultAbility;
+        [JsonProperty(Order = 4)]
+        public AnimatedAbility DefaultAbility
+        {
+            get
+            {
+                return defaultAbility;
+            }
+            set
+            {
+                defaultAbility = value;
+                OnPropertyChanged("DefaultAbility");
+            }
+        }
+
         private AnimatedAbility activeAbility;
         [JsonIgnore]
         public AnimatedAbility ActiveAbility
@@ -449,6 +464,23 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 activeAbility = value;
                 OnPropertyChanged("ActiveAbility");
+            }
+        }
+        [JsonIgnore]
+        public AnimatedAbility DefaultAbilityToActivate
+        {
+            get
+            {
+                AnimatedAbility ability = null;
+
+                if(this.DefaultAbility != null)
+                    ability = this.DefaultAbility;
+                else if(this.AnimatedAbilities != null && this.AnimatedAbilities.Count > 0)
+                {
+                    ability = this.AnimatedAbilities.First();
+                }
+
+                return ability;
             }
         }
 

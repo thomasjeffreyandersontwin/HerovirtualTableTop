@@ -503,6 +503,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 defaultOption = (T)Convert.ChangeType(owner.DefaultMovement, typeof(T));
             }
+            else if (this.OptionGroup.Type == OptionType.Ability)
+            {
+                defaultOption = (T)Convert.ChangeType(owner.DefaultAbility, typeof(Attack));
+            }
             else if (this.OptionGroup.Type == OptionType.Mixed)
             {
                 // return the default option of the selected type
@@ -513,6 +517,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 else if (SelectedOption is CharacterMovement)
                 {
                     defaultOption = (T)Convert.ChangeType(owner.DefaultMovement, typeof(CharacterMovement));
+                }
+                else if (this.OptionGroup.Type == OptionType.Ability)
+                {
+                    defaultOption = (T)Convert.ChangeType(owner.DefaultAbility, typeof(Attack));
                 }
             }
 
@@ -529,10 +537,14 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 owner.DefaultMovement = (CharacterMovement)Convert.ChangeType(value, typeof(CharacterMovement));
             }
+            else if (this.OptionGroup.Type == OptionType.Ability)
+            {
+                owner.DefaultAbility = (Attack)Convert.ChangeType(value, typeof(Attack));
+            }
         }
         private bool CanSetDefaultOption(object state)
         {
-            return typeof(T) == typeof(Identity) || typeof(T) == typeof(CharacterMovement);
+            return typeof(T) == typeof(Identity) || typeof(T) == typeof(CharacterMovement) || typeof(T) == typeof(AnimatedAbility); 
         }
 
         private void SetDefaultOption(object state)
@@ -624,7 +636,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 if(owner.ActiveAbility != null && !owner.ActiveAbility.Persistent && !owner.ActiveAbility.IsAttack)
                 {
-                    StopAnimatedAbility(owner.ActiveAbility);
+                    //StopAnimatedAbility(owner.ActiveAbility);
+                    owner.ActiveAbility.IsActive = false;
+                    OnPropertyChanged("IsActive");
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(d);

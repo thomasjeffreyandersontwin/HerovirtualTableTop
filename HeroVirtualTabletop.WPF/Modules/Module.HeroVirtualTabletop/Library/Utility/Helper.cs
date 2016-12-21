@@ -72,6 +72,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static CharacterMovement GlobalVariables_CharacterMovement { get; set; }
 
+        public static CharacterMovement GlobalVariables_FormerActiveCharacterMovement { get; set; }
+
         public static Character GlobalVariables_ActiveCharacter { get; set; }
 
         public static Dictionary<string, object> GlobalVariables_UISettings = new Dictionary<string, object>();

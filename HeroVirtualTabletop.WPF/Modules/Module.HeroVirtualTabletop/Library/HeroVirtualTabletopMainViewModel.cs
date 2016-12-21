@@ -80,6 +80,7 @@ namespace Module.HeroVirtualTabletop.Library
             LoadMainView();
 
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
+            this.eventAggregator.GetEvent<DeactivateCharacterEvent>().Subscribe(this.CloseActiveCharacterWidget);
             this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.ConfigureAttack);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttackWidget);
         }
@@ -161,6 +162,11 @@ namespace Module.HeroVirtualTabletop.Library
         private void CloseActiveAttackWidget(object state)
         {
             PopupService.CloseDialog("ActiveAttackView");
+        }
+
+        private void CloseActiveCharacterWidget(object state)
+        {
+            PopupService.CloseDialog("ActiveCharacterWidgetView");
         }
         
         private void LaunchGame()

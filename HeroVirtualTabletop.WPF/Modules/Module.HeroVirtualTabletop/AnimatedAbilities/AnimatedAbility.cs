@@ -268,7 +268,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Stop(character);
             //if (this.Persistent || persistent)
             IsActive = true;
-            // Change the costume to Complementary color - CHRIS to do
+            // Change the costume to red color
             character.Activate();
             // Fire event to update Roster and select target
             OnAttackInitiated(character, new CustomEventArgs<Attack> { Value = this });

@@ -104,11 +104,13 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else if(isTripleClick)
                 {
-                    this.viewModel.TargetAndFollow();
+                    this.viewModel.ActivateCharacterCommand.Execute(null);
                 }
                 else if (isDoubleClick)
                 {
-                    this.viewModel.TargetAndFollow();
+                    //this.viewModel.TargetAndFollow();
+                    this.viewModel.RosterMouseDoubleClicked = true;
+                    this.viewModel.PlayDefaultAbility();
                 }
                 else
                 {
