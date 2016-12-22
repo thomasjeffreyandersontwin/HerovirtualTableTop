@@ -443,12 +443,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
                         System.Threading.Thread.Sleep(200);
-                        //if (!string.IsNullOrEmpty(targetedBeforeMouseCLick.Label))
-                        //{
-                        //    previousSelectedCharacter = this.Participants.FirstOrDefault(p => (p as Character).Label == targetedBeforeMouseCLick.Label) as Character;
-                        //}
-                        string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                        lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
                         // possible drag drop
                         // 1. Determine which character is clicked and save its name and also click time
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
@@ -489,10 +483,20 @@ namespace Module.HeroVirtualTabletop.Roster
                                 clickCount += 1;
                                 switch (clickCount)
                                 {
-                                    case 1: Action action = delegate() { clickTimer_MultipleClick.Start(); };
+                                    case 1:
+                                        Action action = delegate()
+                                        {
+                                            clickTimer_MultipleClick.Start();
+                                        };
                                         Application.Current.Dispatcher.BeginInvoke(action);
                                         break;
-                                    case 2: isDoubleClick = true; break;
+                                    case 2:
+                                        {
+                                            isDoubleClick = true;
+                                            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                                            lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                                            break;
+                                        }
                                     case 3: isTripleClick = true; break;
                                     case 4: isQuadrupleClick = true; break;
                                     default: break;
