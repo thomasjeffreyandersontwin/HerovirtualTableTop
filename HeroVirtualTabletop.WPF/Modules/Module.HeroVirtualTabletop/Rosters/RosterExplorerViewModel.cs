@@ -433,20 +433,69 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Mouse Hook - Click on Desktop
 
+        public Character GetHoveredCharacter()
+        {
+
+            Character hoveredCharacter = null;
+            string hoverCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
+            if (hoverCharacterInfo != "")
+            {
+                int start = 7;
+                int end = 1 + hoverCharacterInfo.IndexOf("]", start);
+                string hoveredLabel = hoverCharacterInfo.Substring(start, end - start);
+                if (lastHoveredCharacter == null || lastHoveredCharacter.Label != hoveredLabel)
+                {
+                    foreach (CrowdMemberModel model in this.Participants)
+                    {
+                        if (model.Label == hoveredLabel)
+                        {
+                            hoveredCharacter = model;
+                            break;
+                        }
+                    }
+
+                }
+            }
+            return hoveredCharacter;
+        }
+
+        public void TargetHoveredCharacter(Character hoveredCharacter)
+        {
+
+            if (hoveredCharacter != null)
+            {
+                if (lastHoveredCharacter == null || hoveredCharacter.Label != lastHoveredCharacter.Label)
+                {
+                    if (MouseState != DesktopMouseState.DOWN)
+                    {
+                        hoveredCharacter.Target();
+                    }
+                }
+            }
+        }
+
+        public enum DesktopMouseState {DOWN =1 , UP =2};
+        public DesktopMouseState MouseState = DesktopMouseState.UP;
         IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
             {
+                if (MouseState != DesktopMouseState.DOWN)
+                {
+                    Character hoveredCharacter = GetHoveredCharacter();
+                    if (hoveredCharacter != null)
+                    {
+                        TargetHoveredCharacter(hoveredCharacter);
+                        lastHoveredCharacter = hoveredCharacter;
+                    }
+                }
                 if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
                 {
+                    MouseState = DesktopMouseState.DOWN;
                     MemoryElement targetedBeforeMouseCLick = new MemoryElement();
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
-                        System.Threading.Thread.Sleep(200);
-                        //if (!string.IsNullOrEmpty(targetedBeforeMouseCLick.Label))
-                        //{
-                        //    previousSelectedCharacter = this.Participants.FirstOrDefault(p => (p as Character).Label == targetedBeforeMouseCLick.Label) as Character;
-                        //}
+                        //System.Threading.Thread.Sleep(200);
                         string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
                         lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
                         // possible drag drop
@@ -461,7 +510,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         if (hoveredCharacterInfo == "")
                         {
-                            //   System.Threading.Thread.Sleep(200);
+                            System.Threading.Thread.Sleep(200);
                             MemoryElement target = new MemoryElement();
                             if (target.Label != "" && targetedBeforeMouseCLick.Label != target.Label)
                             {
@@ -543,6 +592,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
                 {
+                    MouseState = DesktopMouseState.UP;
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
                         // Possible character drag drop
@@ -574,6 +624,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
                 {
+                    MouseState = DesktopMouseState.UP;
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
                         //System.Threading.Thread.Sleep(1000);
@@ -593,16 +644,21 @@ namespace Module.HeroVirtualTabletop.Roster
                         {
                             characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
                         }
-                        CrowdMemberModel hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
-                        if (!string.IsNullOrWhiteSpace(characterName) && hoveredCharacter != null)
+
+                        MemoryElement target2 = new MemoryElement();
+                        Character character = (Character)GetCurrentTarget();
+                        
+
+                        CrowdMemberModel targetedCharacter = this.Participants.FirstOrDefault(p => character.Name == characterName) as CrowdMemberModel;
+                        if (character!=null)
                         {
                             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                             if (isPlayingAreaEffect)
                             {
                                 if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
                                 {
-                                    AddDesktopTargetToRosterSelection(hoveredCharacter);
-                                    hoveredCharacter.Target();
+                                    AddDesktopTargetToRosterSelection(targetedCharacter);
+                                    targetedCharacter.Target();
                                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
                                     keyBindsGenerator.CompleteEvent();
                                     this.isMenuDisplayed = true;
@@ -610,8 +666,8 @@ namespace Module.HeroVirtualTabletop.Roster
                             }
                             else
                             {
-                                AddDesktopTargetToRosterSelection(hoveredCharacter);
-                                GenerateMenuFileForCharacter(hoveredCharacter);
+                                AddDesktopTargetToRosterSelection(targetedCharacter);
+                                GenerateMenuFileForCharacter(targetedCharacter);
                                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
                                 fileSystemWatcher.EnableRaisingEvents = true;
                                 keyBindsGenerator.CompleteEvent();
