@@ -474,7 +474,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public enum DesktopMouseState {DOWN =1 , UP =2};
+        public enum DesktopMouseState { DOWN = 1, UP = 2 };
         public DesktopMouseState MouseState = DesktopMouseState.UP;
         IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
         {
