@@ -496,8 +496,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
                     {
                         //System.Threading.Thread.Sleep(200);
-                        string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                        lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
                         // possible drag drop
                         // 1. Determine which character is clicked and save its name and also click time
                         string hoveredCharacterInfo = IconInteractionUtility.GetHoveredNPCInfoFromGame();
@@ -538,10 +536,19 @@ namespace Module.HeroVirtualTabletop.Roster
                                 clickCount += 1;
                                 switch (clickCount)
                                 {
-                                    case 1: Action action = delegate() { clickTimer_MultipleClick.Start(); };
+                                    case 1: Action action = delegate() 
+                                        { 
+                                            clickTimer_MultipleClick.Start(); 
+                                        };
                                         Application.Current.Dispatcher.BeginInvoke(action);
                                         break;
-                                    case 2: isDoubleClick = true; break;
+                                    case 2:
+                                        {
+                                            isDoubleClick = true;
+                                            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                                            lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                                            break;
+                                        }
                                     case 3: isTripleClick = true; break;
                                     case 4: isQuadrupleClick = true; break;
                                     default: break;
@@ -647,7 +654,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
                         MemoryElement target2 = new MemoryElement();
                         Character character = (Character)GetCurrentTarget();
-                        
 
                         CrowdMemberModel targetedCharacter = this.Participants.FirstOrDefault(p => character.Name == characterName) as CrowdMemberModel;
                         if (character!=null)
