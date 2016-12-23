@@ -7,9 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Framework.WPF.Library;
+using Framework.WPF.Services.BusyService;
+using Microsoft.Practices.Unity;
+
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
+    
+    
     public static class HookCodes
     {
         public const int HC_ACTION = 0;
@@ -112,6 +118,81 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         WM_SYSKEYUP = 0x0105
     }
 
+    public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+    public abstract class Hooker : BaseViewModel
+    {
+        public IntPtr hookID;
+
+        public Hooker(IBusyService busyService, IUnityContainer container) : base(busyService, container)
+        {
+
+        }
+
+        public void ActivateKeyboardHook()
+        {
+
+            hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
+        }
+
+        internal void DeactivateKeyboardHook()
+        {
+            KeyBoardHook.UnsetHook(hookID);
+        }
+
+        internal IntPtr CallNextHook(IntPtr hookID, int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
+        internal abstract void ExecuteKeyBoardEventRelatedLogic(Keys vkCode);
+
+        internal System.Windows.Input.Key GetKeyFromCode(Keys vkCode)
+        {
+            return KeyInterop.KeyFromVirtualKey((int)vkCode);
+        }
+
+         internal Boolean ApplicationIsActiveWindow
+        {
+            get
+            {
+                uint wndProcId;
+                IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                
+                uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                var currentProcId = Process.GetCurrentProcess().Id;
+                return currentProcId == wndProcId;
+            }
+        }
+        internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            
+            if (nCode >= 0)
+            {  
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                Keys vkCode = (Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || Process.GetCurrentProcess().Id == wndProcId)
+                    {
+
+                        ExecuteKeyBoardEventRelatedLogic(vkCode);
+                    }
+                    WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                }
+            }
+            return CallNextHook(hookID, nCode, wParam, lParam);
+        }
+    }
+
+        
+        
+
     public static class KeyBoardHook
     {
         #region Imports
@@ -140,7 +221,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         private static List<IntPtr> hookedProcIDs = new List<IntPtr>();
 
-        public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        
 
         /// <summary>
         /// This function lets hook a function with LowLevelKeyboardProc signature to Windows key processing queue.

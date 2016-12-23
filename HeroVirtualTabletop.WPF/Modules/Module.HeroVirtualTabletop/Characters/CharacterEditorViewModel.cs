@@ -27,7 +27,7 @@ using System.Windows.Input;
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
 {
-    public class CharacterEditorViewModel : BaseViewModel
+    public class CharacterEditorViewModel : Hooker
     {
         #region Private Fields
 
@@ -35,11 +35,7 @@ namespace Module.HeroVirtualTabletop.Characters
         private Character editedCharacter;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
 
-        private IntPtr characterEditorKeyboardHookID;
-
-        #endregion
-
-        #region Events
+      
 
         #endregion
 
@@ -119,7 +115,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
 
-            characterEditorKeyboardHookID = KeyBoardHook.SetHook(CharacterEditorKeyboardHook);
+            ActivateKeyboardHook();
         }
 
         #endregion
@@ -466,39 +462,25 @@ namespace Module.HeroVirtualTabletop.Characters
         #endregion
 
         #region Keyboard Hooks
-
-        private IntPtr CharacterEditorKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        
+        internal override void ExecuteKeyBoardEventRelatedLogic(System.Windows.Forms.Keys vkCode)
         {
-            if (nCode >= 0 && this.EditedCharacter != null)
+            if (this.EditedCharacter != null)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                var inputKey = GetKeyFromCode(vkCode);
+                    
+                if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                 {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            if (this.AddOptionGroupCommand.CanExecute(null))
-                                this.AddOptionGroupCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            if (this.RemoveOptionGroupCommand.CanExecute(null))
-                                this.RemoveOptionGroupCommand.Execute(null);
-                        }
-                    }
+                    if (this.AddOptionGroupCommand.CanExecute(null))
+                        this.AddOptionGroupCommand.Execute(null);
+                }
+                else if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                {
+                    if (this.RemoveOptionGroupCommand.CanExecute(null))
+                        this.RemoveOptionGroupCommand.Execute(null);
                 }
             }
-            return KeyBoardHook.CallNextHookEx(characterEditorKeyboardHookID, nCode, wParam, lParam);
+            
         }
 
         #endregion

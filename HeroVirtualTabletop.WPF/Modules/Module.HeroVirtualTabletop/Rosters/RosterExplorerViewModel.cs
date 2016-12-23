@@ -42,7 +42,7 @@ using System.Windows.Threading;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
-    public class RosterExplorerViewModel : BaseViewModel
+    public class RosterExplorerViewModel : Hooker
     {
         #region Private Fields
 
@@ -73,7 +73,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public bool RosterMouseDoubleClicked = false;
 
         private IntPtr mouseHookID;
-        private IntPtr keyboardHookID;
+        
 
         private int clickCount;
         private bool isDoubleClick = false;
@@ -271,7 +271,8 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_CharacterDragDrop.Elapsed +=
                 new ElapsedEventHandler(clickTimer_CharacterDragDrop_Elapsed);
             mouseHookID = MouseHook.SetHook(clickCharacterInDesktop);
-            keyboardHookID = KeyBoardHook.SetHook(RosterKeyboardHook);
+            ActivateKeyboardHook();
+            
             fileSystemWatcher.Path = string.Format("{0}\\", Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME));
             fileSystemWatcher.IncludeSubdirectories = false;
             fileSystemWatcher.Filter = "*.txt";
@@ -859,102 +860,88 @@ namespace Module.HeroVirtualTabletop.Roster
             isDoubleClick = isTripleClick = isQuadrupleClick = false;
         }
 
-        #endregion
+        #endregionC:\champions\applications\COH\HeroVirtualTableTop\HeroVirtualTabletop.WPF\Modules\Module.HeroVirtualTabletop\AnimatedAbilities\AbilityEditorViewModel.cs
 
         #region Keyboard Hook
 
-        private IntPtr RosterKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        internal override void ExecuteKeyBoardEventRelatedLogic(System.Windows.Forms.Keys vkCode)
         {
-            if (nCode >= 0)
+
+           var inputKey = GetKeyFromCode(vkCode);
+           if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null) || (currentProcId == wndProcId))
-                    {
-                        if ((currentProcId == wndProcId) && (inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            WindowsUtilities.SetForegroundWindow(winHandle);
-                        }
-                        else if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.PlaceCommand.CanExecute(null))
-                                this.PlaceCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.SavePositionCommand.CanExecute(null))
-                                this.SavePositionCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.SpawnCommand.CanExecute(null))
-                                this.SpawnCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ToggleTargetedCommand.CanExecute(null))
-                                this.ToggleTargetedCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ToggleManeuverWithCameraCommand.CanExecute(null))
-                                this.ToggleManeuverWithCameraCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.TargetAndFollowCommand.CanExecute(null))
-                                this.TargetAndFollowCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.EditCharacterCommand.CanExecute(null))
-                                this.EditCharacterCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.MoveTargetToCameraCommand.CanExecute(null))
-                                this.MoveTargetToCameraCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.CycleCommandsThroughCrowdCommand.CanExecute(null))
-                                this.CycleCommandsThroughCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ActivateCharacterCommand.CanExecute(null))
-                                this.ActivateCharacterCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ResetOrientationCommand.CanExecute(null))
-                                this.ResetOrientationCommand.Execute(null);
-                        }
-                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.ClearFromDesktopCommand.CanExecute(null))
-                                this.ClearFromDesktopCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            //Jeff fixed activating keystroke problem so works without activating a characte
-                            this.ActivateDefaultMovementToActivate(null);
-                        }
-                    }
-                }
+                if (this.PlaceCommand.CanExecute(null))
+                    this.PlaceCommand.Execute(null);
+            }
+            else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                if (this.SavePositionCommand.CanExecute(null))
+                    this.SavePositionCommand.Execute(null);
+            }
+            else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.SpawnCommand.CanExecute(null))
+                    this.SpawnCommand.Execute(null);
+            }
+            else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.ToggleTargetedCommand.CanExecute(null))
+                    this.ToggleTargetedCommand.Execute(null);
+            }
+            else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.ToggleManeuverWithCameraCommand.CanExecute(null))
+                    this.ToggleManeuverWithCameraCommand.Execute(null);
+            }
+            else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.TargetAndFollowCommand.CanExecute(null))
+                    this.TargetAndFollowCommand.Execute(null);
+            }
+            else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.EditCharacterCommand.CanExecute(null))
+                    this.EditCharacterCommand.Execute(null);
+            }
+            else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                if (this.MoveTargetToCameraCommand.CanExecute(null))
+                    this.MoveTargetToCameraCommand.Execute(null);
+            }
+            else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                if (this.CycleCommandsThroughCrowdCommand.CanExecute(null))
+                    this.CycleCommandsThroughCrowdCommand.Execute(null);
+            }
+            else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.ActivateCharacterCommand.CanExecute(null))
+                    this.ActivateCharacterCommand.Execute(null);
+            }
+            else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (this.ResetOrientationCommand.CanExecute(null))
+                    this.ResetOrientationCommand.Execute(null);
+            }
+            else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                if (this.ClearFromDesktopCommand.CanExecute(null))
+                    this.ClearFromDesktopCommand.Execute(null);
+            }
+            else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                //Jeff fixed activating keystroke problem so works without activating a characte
+                this.ActivateDefaultMovementToActivate(null);
+            }
+            if ((inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+
+                WindowsUtilities.SetForegroundWindow(winHandle);
+                return;
             }
 
-            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
-        }
+        } 
 
         #endregion
 
