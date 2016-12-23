@@ -636,9 +636,9 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 if(owner.ActiveAbility != null && !owner.ActiveAbility.Persistent && !owner.ActiveAbility.IsAttack)
                 {
-                    //StopAnimatedAbility(owner.ActiveAbility);
-                    owner.ActiveAbility.IsActive = false;
-                    OnPropertyChanged("IsActive");
+                    DeActivateAnimatedAbility(owner.ActiveAbility);
+                    //owner.ActiveAbility.IsActive = false;
+                    //OnPropertyChanged("IsActive");
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(d);
@@ -737,6 +737,27 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             owner.ActiveAbility = null;
             ability.Stop(Target: currentTarget);
+        }
+
+        private void DeActivateAnimatedAbility(AnimatedAbility ability)
+        {
+            Character currentTarget = null;
+            if (!ability.PlayOnTargeted)
+            {
+                this.SpawnAndTargetOwnerCharacter();
+            }
+            else
+            {
+                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+                currentTarget = rostExpVM.GetCurrentTarget() as Character;
+                if (currentTarget == null)
+                {
+                    this.SpawnAndTargetOwnerCharacter();
+                    currentTarget = this.Owner;
+                }
+            }
+            owner.ActiveAbility = null;
+            ability.DeActivate(Target: currentTarget);
         }
 
         private void TogglePlayOption(object obj)

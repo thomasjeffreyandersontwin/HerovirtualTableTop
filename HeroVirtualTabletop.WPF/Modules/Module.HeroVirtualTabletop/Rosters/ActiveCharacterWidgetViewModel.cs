@@ -185,9 +185,9 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 if (activeAbility != null && !activeAbility.Persistent && !activeAbility.IsAttack)
                 {
-                    //activeAbility.Stop(ActiveCharacter);
-                    activeAbility.IsActive = false;
-                    OnPropertyChanged("IsActive");
+                    activeAbility.DeActivate(ActiveCharacter);
+                    //activeAbility.IsActive = false;
+                    //OnPropertyChanged("IsActive");
                 }
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
@@ -215,13 +215,13 @@ namespace Module.HeroVirtualTabletop.Roster
                             clickTimer_AbilityPlay.Start();
                         }
                         else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
-                            {
-                                CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
-                                if (!cm.IsActive)
-                                    cm.ActivateMovement();
-                                else
-                                    cm.DeactivateMovement();
-                            }
+                        {
+                            CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
+                            if (!cm.IsActive)
+                                cm.ActivateMovement();
+                            else
+                                cm.DeactivateMovement();
+                        }
                         
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);

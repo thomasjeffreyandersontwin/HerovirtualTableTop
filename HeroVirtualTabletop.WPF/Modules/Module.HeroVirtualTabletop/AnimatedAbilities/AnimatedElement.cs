@@ -47,6 +47,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, bool persistent = false);
         string GetKeybind(Character Target = null);
         void Stop(Character Target = null);
+        void DeActivate(Character Target = null);
     }
 
     public class AnimationElement : CharacterOption, IAnimationElement
@@ -228,6 +229,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
+        public virtual void DeActivate(Character Target = null)
+        {
+            this.IsActive = false;
+        }
         protected virtual AnimationResource GetResource()
         {
             return string.Empty;
@@ -1249,8 +1254,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
-            //if (IsActive)
-            //    IsActive = false;
+            if (IsActive)
+                IsActive = false;
             if (target != null)
             {
                 bool otherPersistentAbilityActive = target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null || (target.ActiveIdentity.AnimationOnLoad != null && target.ActiveIdentity.AnimationOnLoad.Persistent);
@@ -1268,7 +1273,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             OnPropertyChanged("IsActive");
         }
-
+        public override void DeActivate(Character Target = null)
+        {
+            Character target = Target ?? this.Owner;
+            if (IsActive)
+                IsActive = false;
+            if (target != null)
+            {
+                bool otherPersistentAbilityActive = target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null || (target.ActiveIdentity.AnimationOnLoad != null && target.ActiveIdentity.AnimationOnLoad.Persistent);
+                var animationsToStop = AnimationElements.Where(x => x.IsActive);
+                if (otherPersistentAbilityActive)
+                {
+                    animationsToStop = animationsToStop.Where(x => !(x is FXEffectElement));
+                    foreach (var fxAnimation in AnimationElements.Where(x => (x is FXEffectElement) && x.IsActive))
+                        fxAnimation.IsActive = false;
+                }
+                foreach (AnimationElement item in animationsToStop)
+                {
+                    item.IsActive = false;
+                }
+            }
+            OnPropertyChanged("IsActive");
+        }
         public override AnimationElement Clone()
         {
             SequenceElement seqClone = new SequenceElement(this.Name, this.SequenceType, this.Persistent);
