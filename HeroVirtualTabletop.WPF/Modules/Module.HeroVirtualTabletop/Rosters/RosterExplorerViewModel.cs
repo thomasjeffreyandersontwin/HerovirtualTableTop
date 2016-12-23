@@ -652,11 +652,12 @@ namespace Module.HeroVirtualTabletop.Roster
                             characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
                         }
 
-                        MemoryElement target2 = new MemoryElement();
+
+                        System.Threading.Thread.Sleep(200);
                         Character character = (Character)GetCurrentTarget();
 
-                        CrowdMemberModel targetedCharacter = this.Participants.FirstOrDefault(p => character.Name == characterName) as CrowdMemberModel;
-                        if (character!=null)
+                        CrowdMemberModel targetedCharacter = (CrowdMemberModel) this.Participants[character.Name];
+                        if (targetedCharacter != null)
                         {
                             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                             if (isPlayingAreaEffect)
