@@ -122,16 +122,18 @@ namespace Module.HeroVirtualTabletop.Library.Utility
     public abstract class Hooker : BaseViewModel
     {
         public IntPtr hookID;
-
+        public IntPtr mouseHookID;
         public Hooker(IBusyService busyService, IUnityContainer container) : base(busyService, container)
         {
 
         }
+        public enum DesktopMouseState { LEFT_CLICK = 1, UP = 2, RIGHT_CLICK =3, MOUSE_MOVE=4, RIGHT_CLICK_UP =5, LEFT_CLICK_UP = 6 };
 
         public void ActivateKeyboardHook()
         {
 
             hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
+            mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
         }
 
         internal void DeactivateKeyboardHook()
@@ -145,7 +147,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         }
 
         internal abstract void ExecuteKeyBoardEventRelatedLogic(Keys vkCode);
-
+       // internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
+        
         internal System.Windows.Input.Key GetKeyFromCode(Keys vkCode)
         {
             return KeyInterop.KeyFromVirtualKey((int)vkCode);
@@ -163,6 +166,38 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 var currentProcId = Process.GetCurrentProcess().Id;
                 return currentProcId == wndProcId;
             }
+        }
+
+        DesktopMouseState MouseState = DesktopMouseState.UP;
+        internal IntPtr HandleMouseEvent(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                MouseState = DesktopMouseState.UP;
+                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.LEFT_CLICK;
+                }
+                else if (MouseMessage.WM_RBUTTONDOWN == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.RIGHT_CLICK;
+                }
+                else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.RIGHT_CLICK_UP;
+                }
+                else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.LEFT_CLICK_UP;
+                }
+                else if (MouseMessage.WM_MOUSEMOVE == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.MOUSE_MOVE;
+                }
+                ExecuteMouseEventRelatedLogic(MouseState);
+
+            }
+            return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
         }
         internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
         {

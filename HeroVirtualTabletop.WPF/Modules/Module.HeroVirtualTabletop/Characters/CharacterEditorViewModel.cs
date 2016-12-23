@@ -30,7 +30,7 @@ namespace Module.HeroVirtualTabletop.Characters
     public class CharacterEditorViewModel : Hooker
     {
         #region Private Fields
-
+        internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState) { }
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;

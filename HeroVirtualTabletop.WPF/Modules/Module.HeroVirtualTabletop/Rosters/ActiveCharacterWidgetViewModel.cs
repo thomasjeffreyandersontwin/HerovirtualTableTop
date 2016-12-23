@@ -61,6 +61,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         #endregion
 
+        internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState) { }
         #region Constructor
         public ActiveCharacterWidgetViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
             : base(busyService, container)

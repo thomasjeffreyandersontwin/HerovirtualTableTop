@@ -32,6 +32,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
     public class AbilityEditorViewModel : Hooker
     {
+        internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState){ }
         #region Private Fields
 
         private EventAggregator eventAggregator;
