@@ -215,11 +215,17 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
         public void SetTargetFacing(Vector3 facingDirectionVector)
         {
             Vector3 currentPositionVector = GetPositionVector();
-            Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, facingDirectionVector, Vector3.Up);
-            SetTargetAttribute(56, -1 * newRotationMatrix.M11);
-            SetTargetAttribute(64, newRotationMatrix.M13);
-            SetTargetAttribute(80, newRotationMatrix.M31);
-            SetTargetAttribute(88, -1 * newRotationMatrix.M33);
+            if(facingDirectionVector != currentPositionVector)
+            {
+                Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, facingDirectionVector, Vector3.Up);
+                if(newRotationMatrix.M11 != float.NaN && newRotationMatrix.M13 != float.NaN && newRotationMatrix.M31 != float.NaN && newRotationMatrix.M33 != float.NaN)
+                {
+                    SetTargetAttribute(56, -1 * newRotationMatrix.M11);
+                    SetTargetAttribute(64, newRotationMatrix.M13);
+                    SetTargetAttribute(80, newRotationMatrix.M31);
+                    SetTargetAttribute(88, -1 * newRotationMatrix.M33);
+                }
+            }
         }
 
         
