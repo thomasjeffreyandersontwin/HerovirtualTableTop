@@ -611,8 +611,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             System.Threading.Thread.Sleep(500);
                             string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
                             Vector3 mouseUpPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                            var mouseDistance = Vector3.Distance(mouseUpPosition, lastMouseDownPosition);
-                            if (!this.isPlayingAttack && lastMouseDownPosition.X != -10000 && mouseDistance > 5)
+                            if (!this.isPlayingAttack)
                             {
                                 if (!this.currentDraggingCharacter.HasBeenSpawned)
                                 {
@@ -629,7 +628,6 @@ namespace Module.HeroVirtualTabletop.Roster
                         this.currentDraggingCharacter = null;
                         this.lastDesktopMouseDownTime = DateTime.MinValue;
                         this.IsCharacterDragDropInProgress = false;
-                        this.lastMouseDownPosition = new Vector3(-10000, -10000, -10000);
                     }
                 }
                 else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
