@@ -215,8 +215,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             {
                                 DeactivateMovement();
                                 this.Character.ActiveMovement = null;
-                            }
-                                                      
+                            }                        
                             else if (inputKey == Key.Left || inputKey == Key.Right || inputKey == Key.Up || inputKey == Key.Down)
                             {
                                 MovementDirection turnDirection = GetTurnAxisDirectionFromKey(inputKey);
