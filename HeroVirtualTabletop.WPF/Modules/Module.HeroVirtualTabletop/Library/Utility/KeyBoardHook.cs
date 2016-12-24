@@ -133,7 +133,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
 
             hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
-            mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
+            //mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
         }
 
         internal void DeactivateKeyboardHook()
@@ -173,20 +173,25 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             if (nCode >= 0)
             {
+                //Console.WriteLine(((MouseMessage)lParam).ToString());
                 //MouseState = DesktopMouseState.UP;
                 if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
                 {
-                    if(MouseState == DesktopMouseState.LEFT_CLICK)
+                 //   if (MouseState == DesktopMouseState.LEFT_CLICK_UP || MouseState == DesktopMouseState.LEFT_CLICK_UP)
                     {
-                        MouseState = DesktopMouseState.DOUBLE_CLICK;
-                    }
-                    else
-                    {
-
+               //         MouseState = DesktopMouseState.DOUBLE_CLICK;
+               //     }
+               //     else {
                         MouseState = DesktopMouseState.LEFT_CLICK;
                     }
-                    
                 }
+
+                else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam)
+                {
+                        MouseState = DesktopMouseState.DOUBLE_CLICK;
+                }
+                   
+              
                 else if (MouseMessage.WM_RBUTTONDOWN == (MouseMessage)wParam)
                 {
                     MouseState = DesktopMouseState.RIGHT_CLICK;
@@ -203,10 +208,10 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     MouseState = DesktopMouseState.MOUSE_MOVE;
                 }
-               else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam){
+             //  else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam){
 
-                    MouseState = DesktopMouseState.MOUSE_MOVE;
-                }
+                   // MouseState = DesktopMouseState.MOUSE_MOVE;
+           //     }
                 ExecuteMouseEventRelatedLogic(MouseState);
 
             }
