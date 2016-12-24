@@ -1674,7 +1674,8 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (targetCharacters.Count == 0)
                             {
                                 this.targetCharacters.Add(abilityTargetCharacter);
-                                abilityTargetCharacter.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                                if(this.currentAttack.IsAreaEffect)
+                                    abilityTargetCharacter.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                                 ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                                 attackConfig.AttackMode = AttackMode.Defend;
                                 attackConfig.AttackEffectOption = AttackEffectOption.None;
@@ -1778,7 +1779,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (targetCharacters.Count == 0)// choose only one character for vanilla attack
                             {
                                 this.targetCharacters.Add(currentTarget);
-                                currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                                //currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                                 ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                                 attackConfig.AttackMode = AttackMode.Defend;
                                 attackConfig.AttackEffectOption = AttackEffectOption.None;
