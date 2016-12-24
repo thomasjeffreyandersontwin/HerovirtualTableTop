@@ -882,7 +882,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         {
                             WindowsUtilities.SetForegroundWindow(winHandle);
                         }
-                        if ((currentProcId == wndProcId) && (inputKey == Key.Escape) && Keyboard.Modifiers == ModifierKeys.None)
+                        else if ((currentProcId == wndProcId) && (inputKey == Key.Escape) && Keyboard.Modifiers == ModifierKeys.None)
                         {
                             this.CancelActiveAttack(this.currentAttack);
                         }
