@@ -261,6 +261,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = false;
             base.Stop(Target);
         }
+        public override void DeActivate(Character Target = null)
+        {
+            IsActive = false;
+            base.DeActivate(Target);
+        }
 
         public string InitiateAttack(bool persistent = false, Character target = null)
         {
