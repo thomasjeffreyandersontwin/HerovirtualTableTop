@@ -488,7 +488,11 @@ namespace Module.HeroVirtualTabletop.Roster
                     lastHoveredCharacter = hoveredCharacter;
                 }
             }
-            else if (mouseState == DesktopMouseState.LEFT_CLICK )
+            else if (mouseState == DesktopMouseState.DOUBLE_CLICK)
+            {
+                PlayDefaultAbility();
+            }
+            else if (mouseState == DesktopMouseState.LEFT_CLICK)
             {
                 MemoryElement targetedBeforeMouseCLick = new MemoryElement();
 
@@ -500,17 +504,17 @@ namespace Module.HeroVirtualTabletop.Roster
                 //if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                 //{
                 //    string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                 //   hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
-                    // JEFF hover sucks make it work
+                //   hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                // JEFF hover sucks make it work
                 //}
                 //if (hoveredCharacterInfo == "")
                 //{
-                    System.Threading.Thread.Sleep(200);
-                    MemoryElement target = new MemoryElement();
-                    if (target.Label != "" && targetedBeforeMouseCLick.Label != target.Label)
-                    {
-                        hoveredCharacter = (CrowdMemberModel)GetCurrentTarget();
-                    }
+                System.Threading.Thread.Sleep(200);
+                MemoryElement target = new MemoryElement();
+                if (target.Label != "")
+                {
+                    hoveredCharacter = (CrowdMemberModel)GetCurrentTarget();
+                }
                 //}
                 if (hoveredCharacter != null)
                 {
@@ -529,11 +533,14 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (Helper.GlobalVariables_CharacterMovement == null)
                     {
+
                         //Handle clicks
                         clickCount += 1;
                         switch (clickCount)
                         {
                             case 1:
+                                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                                lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
                                 Action action = delegate ()
                             {
                                 clickTimer_MultipleClick.Start();
@@ -543,8 +550,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             case 2:
                                 {
                                     isDoubleClick = true;
-                                    string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                                    lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+
                                     break;
                                 }
                             case 3: isTripleClick = true; break;
@@ -565,7 +571,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         string characterName = null;
                         //if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
                         //{
-                            characterName = hoveredCharacter.Name;
+                        characterName = hoveredCharacter.Name;
                         //}
                         if (!string.IsNullOrEmpty(characterName))
                         {
@@ -1570,8 +1576,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public void PlayDefaultAbility(Character target = null)
         {
-            Action d = delegate()
-            {
+           // Action d = delegate()
+           // {
                 if (SelectedParticipants != null && SelectedParticipants.Count == 1)
                 {
                     //lastHoveredCharacter != null && previousSelectedCharacter != null && previousSelectedCharacter.HasBeenSpawned
@@ -1664,8 +1670,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
 
                 }
-            };
-            Application.Current.Dispatcher.BeginInvoke(d);
+            
+            //Application.Current.Dispatcher.BeginInvoke(d);
         }
 
         #endregion

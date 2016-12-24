@@ -127,7 +127,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
 
         }
-        public enum DesktopMouseState { LEFT_CLICK = 1, UP = 2, RIGHT_CLICK =3, MOUSE_MOVE=4, RIGHT_CLICK_UP =5, LEFT_CLICK_UP = 6 };
+        public enum DesktopMouseState { DOUBLE_CLICK =7, LEFT_CLICK = 1, UP = 2, RIGHT_CLICK =3, MOUSE_MOVE=4, RIGHT_CLICK_UP =5, LEFT_CLICK_UP = 6 };
 
         public void ActivateKeyboardHook()
         {
@@ -147,7 +147,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         }
 
         internal abstract void ExecuteKeyBoardEventRelatedLogic(Keys vkCode);
-       // internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
+        internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
         
         internal System.Windows.Input.Key GetKeyFromCode(Keys vkCode)
         {
@@ -173,10 +173,19 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             if (nCode >= 0)
             {
-                MouseState = DesktopMouseState.UP;
+                //MouseState = DesktopMouseState.UP;
                 if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
                 {
-                    MouseState = DesktopMouseState.LEFT_CLICK;
+                    if(MouseState == DesktopMouseState.LEFT_CLICK)
+                    {
+                        MouseState = DesktopMouseState.DOUBLE_CLICK;
+                    }
+                    else
+                    {
+
+                        MouseState = DesktopMouseState.LEFT_CLICK;
+                    }
+                    
                 }
                 else if (MouseMessage.WM_RBUTTONDOWN == (MouseMessage)wParam)
                 {
@@ -192,6 +201,10 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 }
                 else if (MouseMessage.WM_MOUSEMOVE == (MouseMessage)wParam)
                 {
+                    MouseState = DesktopMouseState.MOUSE_MOVE;
+                }
+               else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam){
+
                     MouseState = DesktopMouseState.MOUSE_MOVE;
                 }
                 ExecuteMouseEventRelatedLogic(MouseState);
