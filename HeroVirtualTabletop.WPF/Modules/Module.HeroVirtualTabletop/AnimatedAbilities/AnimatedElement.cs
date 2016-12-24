@@ -1032,6 +1032,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 PlayAnimations(persistent, Target, true);
             else
                 playTimer.Change(5, Timeout.Infinite);
+
             
         }
 

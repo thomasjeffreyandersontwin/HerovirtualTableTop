@@ -7,9 +7,15 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Framework.WPF.Library;
+using Framework.WPF.Services.BusyService;
+using Microsoft.Practices.Unity;
+
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
+    
+    
     public static class HookCodes
     {
         public const int HC_ACTION = 0;
@@ -112,6 +118,134 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         WM_SYSKEYUP = 0x0105
     }
 
+    public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+    public abstract class Hooker : BaseViewModel
+    {
+        public IntPtr hookID;
+        public IntPtr mouseHookID;
+        public Hooker(IBusyService busyService, IUnityContainer container) : base(busyService, container)
+        {
+
+        }
+        public enum DesktopMouseState { DOUBLE_CLICK =7, LEFT_CLICK = 1, UP = 2, RIGHT_CLICK =3, MOUSE_MOVE=4, RIGHT_CLICK_UP =5, LEFT_CLICK_UP = 6 };
+
+        public void ActivateKeyboardHook()
+        {
+
+            hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
+            //mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
+        }
+
+        internal void DeactivateKeyboardHook()
+        {
+            KeyBoardHook.UnsetHook(hookID);
+        }
+
+        internal IntPtr CallNextHook(IntPtr hookID, int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
+        internal abstract void ExecuteKeyBoardEventRelatedLogic(Keys vkCode);
+        internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
+        
+        internal System.Windows.Input.Key GetKeyFromCode(Keys vkCode)
+        {
+            return KeyInterop.KeyFromVirtualKey((int)vkCode);
+        }
+
+         internal Boolean ApplicationIsActiveWindow
+        {
+            get
+            {
+                uint wndProcId;
+                IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                
+                uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                var currentProcId = Process.GetCurrentProcess().Id;
+                return currentProcId == wndProcId;
+            }
+        }
+
+        DesktopMouseState MouseState = DesktopMouseState.UP;
+        internal IntPtr HandleMouseEvent(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                //Console.WriteLine(((MouseMessage)lParam).ToString());
+                //MouseState = DesktopMouseState.UP;
+                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
+                {
+                 //   if (MouseState == DesktopMouseState.LEFT_CLICK_UP || MouseState == DesktopMouseState.LEFT_CLICK_UP)
+                    {
+               //         MouseState = DesktopMouseState.DOUBLE_CLICK;
+               //     }
+               //     else {
+                        MouseState = DesktopMouseState.LEFT_CLICK;
+                    }
+                }
+
+                else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam)
+                {
+                        MouseState = DesktopMouseState.DOUBLE_CLICK;
+                }
+                   
+              
+                else if (MouseMessage.WM_RBUTTONDOWN == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.RIGHT_CLICK;
+                }
+                else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.RIGHT_CLICK_UP;
+                }
+                else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.LEFT_CLICK_UP;
+                }
+                else if (MouseMessage.WM_MOUSEMOVE == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.MOUSE_MOVE;
+                }
+             //  else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam){
+
+                   // MouseState = DesktopMouseState.MOUSE_MOVE;
+           //     }
+                ExecuteMouseEventRelatedLogic(MouseState);
+
+            }
+            return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
+        }
+        internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            
+            if (nCode >= 0)
+            {  
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                Keys vkCode = (Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || Process.GetCurrentProcess().Id == wndProcId)
+                    {
+
+                        ExecuteKeyBoardEventRelatedLogic(vkCode);
+                    }
+                    WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                }
+            }
+            return CallNextHook(hookID, nCode, wParam, lParam);
+        }
+    }
+
+        
+        
+
     public static class KeyBoardHook
     {
         #region Imports
@@ -140,7 +274,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         private static List<IntPtr> hookedProcIDs = new List<IntPtr>();
 
-        public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+        
 
         /// <summary>
         /// This function lets hook a function with LowLevelKeyboardProc signature to Windows key processing queue.

@@ -536,7 +536,8 @@ namespace Module.HeroVirtualTabletop.Roster
                                 clickCount += 1;
                                 switch (clickCount)
                                 {
-                                    case 1: Action action = delegate() 
+                                    case 1:
+                                        Action action = delegate ()
                                         { 
                                             clickTimer_MultipleClick.Start(); 
                                         };
@@ -617,8 +618,7 @@ namespace Module.HeroVirtualTabletop.Roster
                                 {
                                     this.currentDraggingCharacter.Spawn();
                                 }
-                                var characterDistance = Vector3.Distance(this.currentDraggingCharacter.CurrentPositionVector, mouseUpPosition);
-                                if (characterDistance > 5)
+                                if (Vector3.Distance(this.currentDraggingCharacter.CurrentPositionVector, mouseUpPosition) > 5)
                                 {
                                     this.currentDraggingCharacter.UnFollow();
                                     this.currentDraggingCharacter.MoveToLocation(mouseUpPosition);
@@ -657,7 +657,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         System.Threading.Thread.Sleep(200);
                         Character character = (Character)GetCurrentTarget();
 
-                        CrowdMemberModel targetedCharacter = (CrowdMemberModel) this.Participants[character.Name];
+                        CrowdMemberModel targetedCharacter = (CrowdMemberModel)this.Participants[character.Name];
                         if (targetedCharacter != null)
                         {
                             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
@@ -786,7 +786,7 @@ namespace Module.HeroVirtualTabletop.Roster
         void clickTimer_CharacterDragDrop_Elapsed(object sender, ElapsedEventArgs e)
         {
             clickTimer_CharacterDragDrop.Stop();
-            Action d = delegate()
+            Action d = delegate ()
             {
                 if (Mouse.LeftButton == MouseButtonState.Pressed)
                 {
@@ -1515,7 +1515,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ToggleActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
         {
-            Action action = delegate()
+            Action action = delegate ()
             {
                 if (character == null)
                     if (SelectedParticipants.Count == 0)
@@ -1567,7 +1567,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void DeactivateCharacter(Character character = null)
         {
-            Action action = delegate()
+            Action action = delegate ()
             {
                 if (character == null)
                     if (SelectedParticipants.Count == 0)
@@ -1597,7 +1597,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public void PlayDefaultAbility(Character target = null)
         {
-            Action d = delegate()
+            Action d = delegate ()
             {
                 if (SelectedParticipants != null && SelectedParticipants.Count == 1)
                 {
@@ -1628,7 +1628,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         else
                         {
-                            if(this.ActiveCharacter != null)
+                            if (this.ActiveCharacter != null)
                                 abilityPlayingCharacter = this.ActiveCharacter as Character;
                             else
                                 abilityPlayingCharacter = SelectedParticipants[0] as Character;
@@ -1657,7 +1657,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
                     RosterMouseDoubleClicked = false;
 
-                    if(abilityPlayingCharacter != null)
+                    if (abilityPlayingCharacter != null)
                     {
                         var ability = abilityPlayingCharacter.DefaultAbilityToActivate;
                         ability.Play();
@@ -1763,7 +1763,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     Character c = p as Character;
                     return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                 }).FirstOrDefault();
-            Action action = delegate()
+            Action action = delegate ()
             {
                 if (this.isPlayingAttack && currentTarget != null)
                 {
@@ -1805,7 +1805,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void CancelActiveAttack(object state)
         {
-            Action action = delegate()
+            Action action = delegate ()
             {
                 if (this.isPlayingAttack)
                 {
@@ -1952,7 +1952,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            Action action = delegate()
+            Action action = delegate ()
             {
                 this.isMenuDisplayed = false;
                 if (this.isPlayingAreaEffect)

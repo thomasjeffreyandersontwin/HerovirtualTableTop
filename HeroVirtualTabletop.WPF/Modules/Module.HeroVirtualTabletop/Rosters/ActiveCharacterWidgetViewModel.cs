@@ -23,26 +23,15 @@ using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
-    public class ActiveCharacterWidgetViewModel : BaseViewModel
+    public class ActiveCharacterWidgetViewModel : Hooker
     {
         #region Private Fields
-
         private EventAggregator eventAggregator;
-
         private System.Timers.Timer clickTimer_AbilityPlay = new System.Timers.Timer();
-
-        private IntPtr hookID;
-
         private AnimatedAbility activeAbility;
-
-        #endregion
-
-        #region Events
-
         #endregion
 
         #region Public Properties
-
         private Character activeCharacter;
         public Character ActiveCharacter
         {
@@ -70,37 +59,24 @@ namespace Module.HeroVirtualTabletop.Roster
                 OnPropertyChanged("OptionGroups");
             }
         }
-
         #endregion
 
+        internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState) { }
         #region Constructor
-
         public ActiveCharacterWidgetViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadCharacter);
-            InitializeCommands();
 
             clickTimer_AbilityPlay.AutoReset = false;
             clickTimer_AbilityPlay.Interval = 2000;
             clickTimer_AbilityPlay.Elapsed +=
                 new System.Timers.ElapsedEventHandler(clickTimer_AbilityPlay_Elapsed);
         }
-
         #endregion
 
-        #region Initialization
-
-        private void InitializeCommands()
-        {
-
-        }
-
-        #endregion
-
-        #region Private Methods
-
+        
         private void LoadCharacter(Tuple<Character, string, string> tuple)
         {
             this.UnloadCharacter();
@@ -163,21 +139,25 @@ namespace Module.HeroVirtualTabletop.Roster
                 character.Activate();
 
                 //Setting hooks for PlayAbilityByKey
-                hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
+
+                // hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
+                this.ActivateKeyboardHook();
             }
+
         }
-        
         private void UnloadCharacter()
         {
             if (ActiveCharacter != null)
             {
                 ActiveCharacter.Deactivate();
-                KeyBoardHook.UnsetHook(hookID);
+                //KeyBoardHook.UnsetHook(hookID);
+                DeactivateKeyboardHook();
             }
                 
             ActiveCharacter = null;
         }
-                
+
+        
         private void clickTimer_AbilityPlay_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             clickTimer_AbilityPlay.Stop();
@@ -192,44 +172,36 @@ namespace Module.HeroVirtualTabletop.Roster
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
         }
-                
-        private IntPtr PlayAbilityByKeyProc(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0)
-            {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                Keys vkCode = (Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || Process.GetCurrentProcess().Id == wndProcId)
-                    {
-                        if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
-                        {
-                            activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
-                            activeAbility.Play();
-                            clickTimer_AbilityPlay.Start();
-                        }
-                        else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
-                        {
-                            CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
-                            if (!cm.IsActive)
-                                cm.ActivateMovement();
-                            else
-                                cm.DeactivateMovement();
-                        }
-                        
-                    }
-                    WindowsUtilities.SetForegroundWindow(foregroundWindow);
-                }
-            }
-            return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
-        }
 
+        #region event logic
+        internal override void ExecuteKeyBoardEventRelatedLogic(Keys vkCode) {
+
+            if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
+            {
+                playActiveAbility(vkCode);
+            }
+            else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
+            {
+                toggleMovement(vkCode);
+            }
+        }
+        private void toggleMovement(Keys vkCode)
+        {
+            CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
+            if (!cm.IsActive)
+                cm.ActivateMovement();
+            else
+                cm.DeactivateMovement();
+        }
+        private void playActiveAbility(Keys vkCode)
+        {
+            activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
+            activeAbility.Play();
+            clickTimer_AbilityPlay.Start();
+
+            
+        }
         #endregion
+
     }
 }

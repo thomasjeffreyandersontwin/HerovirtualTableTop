@@ -768,8 +768,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
         {
-            if (this.IsAttack)
+            if (this.IsAttack) {
                 this.InitiateAttack(persistent, target);
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                WindowsUtilities.SetForegroundWindow(winHandle);
+            }
             else
                 base.Play(persistent, target, forcePlay);
         }
