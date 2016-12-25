@@ -9,6 +9,7 @@ using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Prism.Events;
+using Microsoft.Practices.Prism.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -25,14 +26,17 @@ namespace Module.HeroVirtualTabletop.Roster
 {
     public class ActiveCharacterWidgetViewModel : Hooker
     {
+        
         #region Private Fields
         private EventAggregator eventAggregator;
         private System.Timers.Timer clickTimer_AbilityPlay = new System.Timers.Timer();
         private AnimatedAbility activeAbility;
-        #endregion
+        public DelegateCommand<object> PlayActiveAbilityCommand { get; private set; }
+        public DelegateCommand<object> ToggleMovementCommand { get; private set; }
+    #endregion
 
-        #region Public Properties
-        private Character activeCharacter;
+    #region Public Properties
+    private Character activeCharacter;
         public Character ActiveCharacter
         {
             get
@@ -73,6 +77,10 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_AbilityPlay.Interval = 2000;
             clickTimer_AbilityPlay.Elapsed +=
                 new System.Timers.ElapsedEventHandler(clickTimer_AbilityPlay_Elapsed);
+
+            this.PlayActiveAbilityCommand = new DelegateCommand<object>(this.PlayActiveAbility, this.CanPlayActiveAbility);
+            this.ToggleMovementCommand = new DelegateCommand<object>(this.ToggleMovement, this.CanToggleMovement);
+
         }
         #endregion
 
@@ -173,35 +181,44 @@ namespace Module.HeroVirtualTabletop.Roster
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
         }
 
-        #region event logic
-        internal override void ExecuteKeyBoardEventRelatedLogic(Keys vkCode) {
+
+        
+        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput()
+        {
 
             if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
             {
-                playActiveAbility(vkCode);
+                return this.PlayActiveAbilityCommand;
             }
             else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
             {
-                toggleMovement(vkCode);
+                return this.ToggleMovementCommand;
             }
+            return null;
         }
-        private void toggleMovement(Keys vkCode)
+       
+        public bool CanToggleMovement(object state) { return true; }
+        public void ToggleMovement(object state)
         {
+            Keys vkCode = this.vkCode;
             CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
             if (!cm.IsActive)
                 cm.ActivateMovement();
             else
                 cm.DeactivateMovement();
         }
-        private void playActiveAbility(Keys vkCode)
+
+        public bool CanPlayActiveAbility(object state) { return true; }
+        public void PlayActiveAbility(object state)
         {
+            Keys vkCode = this.vkCode;
             activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
             activeAbility.Play();
             clickTimer_AbilityPlay.Start();
 
             
         }
-        #endregion
+        
 
     }
 }

@@ -42,10 +42,10 @@ using System.Windows.Threading;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
-    public class RosterExplorerViewModel : BaseViewModel
+    public class RosterExplorerViewModel : Hooker
     {
         #region Private Fields
-
+        internal override void ExecuteMouseEventRelatedLogic(Hooker.DesktopMouseState mouseState) { }
         private IMessageBoxService messageBoxService;
         private ITargetObserver targetObserver;
         private EventAggregator eventAggregator;
@@ -73,7 +73,7 @@ namespace Module.HeroVirtualTabletop.Roster
         public bool RosterMouseDoubleClicked = false;
 
         private IntPtr mouseHookID;
-        private IntPtr keyboardHookID;
+
 
         private int clickCount;
         private bool isDoubleClick = false;
@@ -211,6 +211,7 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Commands
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
+
         public DelegateCommand<object> SavePositionCommand { get; private set; }
         public DelegateCommand<object> PlaceCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
@@ -271,7 +272,9 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_CharacterDragDrop.Elapsed +=
                 new ElapsedEventHandler(clickTimer_CharacterDragDrop_Elapsed);
             mouseHookID = MouseHook.SetHook(clickCharacterInDesktop);
-            keyboardHookID = KeyBoardHook.SetHook(RosterKeyboardHook);
+
+            ActivateKeyboardHook();
+
             fileSystemWatcher.Path = string.Format("{0}\\", Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME));
             fileSystemWatcher.IncludeSubdirectories = false;
             fileSystemWatcher.Filter = "*.txt";
@@ -538,8 +541,8 @@ namespace Module.HeroVirtualTabletop.Roster
                                 {
                                     case 1:
                                         Action action = delegate ()
-                                        { 
-                                            clickTimer_MultipleClick.Start(); 
+                                        {
+                                            clickTimer_MultipleClick.Start();
                                         };
                                         Application.Current.Dispatcher.BeginInvoke(action);
                                         break;
@@ -859,106 +862,73 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        #region Keyboard Hook
-
-        private IntPtr RosterKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        #region Commands 
+        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput()
         {
-            if (nCode >= 0)
+
+            var inputKey = InputKey;
+            if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null) || (currentProcId == wndProcId))
-                    {
-                        if ((currentProcId == wndProcId) && (inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            WindowsUtilities.SetForegroundWindow(winHandle);
-                        }
-                        else if ((currentProcId == wndProcId) && (inputKey == Key.Escape) && Keyboard.Modifiers == ModifierKeys.None)
-                        {
-                            this.CancelActiveAttack(this.currentAttack);
-                        }
-                        else if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.PlaceCommand.CanExecute(null))
-                                this.PlaceCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.SavePositionCommand.CanExecute(null))
-                                this.SavePositionCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.SpawnCommand.CanExecute(null))
-                                this.SpawnCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ToggleTargetedCommand.CanExecute(null))
-                                this.ToggleTargetedCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ToggleManeuverWithCameraCommand.CanExecute(null))
-                                this.ToggleManeuverWithCameraCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.TargetAndFollowCommand.CanExecute(null))
-                                this.TargetAndFollowCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.EditCharacterCommand.CanExecute(null))
-                                this.EditCharacterCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.MoveTargetToCameraCommand.CanExecute(null))
-                                this.MoveTargetToCameraCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.CycleCommandsThroughCrowdCommand.CanExecute(null))
-                                this.CycleCommandsThroughCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ActivateCharacterCommand.CanExecute(null))
-                                this.ActivateCharacterCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.ResetOrientationCommand.CanExecute(null))
-                                this.ResetOrientationCommand.Execute(null);
-                        }
-                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.ClearFromDesktopCommand.CanExecute(null))
-                                this.ClearFromDesktopCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            //Jeff fixed activating keystroke problem so works without activating a characte
-                            this.ActivateDefaultMovementToActivate(null);
-                        }
-                    }
-                }
+                return this.PlaceCommand;
             }
-
-            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+            else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return this.SavePositionCommand;
+            }
+            else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.SpawnCommand;
+            }
+            else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.ToggleTargetedCommand;
+            }
+            else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.ToggleManeuverWithCameraCommand;
+            }
+            else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.TargetAndFollowCommand;
+            }
+            else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.EditCharacterCommand;
+            }
+            else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return this.MoveTargetToCameraCommand;
+            }
+            else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return this.CycleCommandsThroughCrowdCommand;
+            }
+            else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.ActivateCharacterCommand;
+            }
+            else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                return this.ResetOrientationCommand;
+            }
+            else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+            {
+                return this.ClearFromDesktopCommand;
+            }
+            else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                //Jeff fixed activating keystroke problem so works without activating a characte
+                this.ActivateDefaultMovementToActivate(null);
+                return null;
+            }
+            else if ((inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                WindowsUtilities.SetForegroundWindow(winHandle);
+                return null;
+            }
+            else { return null; }
         }
-
-        #endregion
 
         #region Add Participants
         private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
@@ -1519,7 +1489,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ToggleActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
         {
-            Action action = delegate ()
+            Action action = delegate()
             {
                 if (character == null)
                     if (SelectedParticipants.Count == 0)
@@ -1571,7 +1541,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void DeactivateCharacter(Character character = null)
         {
-            Action action = delegate ()
+            Action action = delegate()
             {
                 if (character == null)
                     if (SelectedParticipants.Count == 0)
@@ -1768,7 +1738,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     Character c = p as Character;
                     return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                 }).FirstOrDefault();
-            Action action = delegate ()
+            Action action = delegate()
             {
                 if (this.isPlayingAttack && currentTarget != null)
                 {
@@ -1810,7 +1780,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void CancelActiveAttack(object state)
         {
-            Action action = delegate ()
+            Action action = delegate()
             {
                 if (this.isPlayingAttack)
                 {
@@ -1957,7 +1927,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            Action action = delegate ()
+            Action action = delegate()
             {
                 this.isMenuDisplayed = false;
                 if (this.isPlayingAreaEffect)
@@ -2071,6 +2041,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
+        #endregion
         #endregion
     }
 }

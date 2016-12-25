@@ -13,25 +13,25 @@ namespace Module.HeroVirtualTabletop.Library.Converters
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             string iconText = null;
-            AnimationType animationType = (AnimationType)value;
+            AnimationElementType animationType = (AnimationElementType)value;
             switch(animationType)
             {
-                case AnimationType.Movement:
+                case AnimationElementType.Movement:
                     iconText = "\uf008";
                     break;
-                case AnimationType.FX:
+                case AnimationElementType.FX:
                     iconText = "\uf0d0";
                     break;
-                case AnimationType.Sound:
+                case AnimationElementType.Sound:
                     iconText = "\uf001";
                     break;
-                case AnimationType.Pause:
+                case AnimationElementType.Pause:
                     iconText = "\uf04c";
                     break;
-                case AnimationType.Sequence:
+                case AnimationElementType.Sequence:
                     iconText = "\uf126";
                     break;
-                case AnimationType.Reference:
+                case AnimationElementType.Reference:
                     iconText = "\uf08e";
                     break;
             }

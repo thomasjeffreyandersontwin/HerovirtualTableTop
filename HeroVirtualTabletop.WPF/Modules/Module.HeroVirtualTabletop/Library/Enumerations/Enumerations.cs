@@ -31,7 +31,7 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Paste,
         DragDrop
     }
-    public enum AnimationType
+    public enum AnimationElementType
     {
         Movement,
         Sound,
@@ -39,6 +39,14 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Reference,
         Sequence,
         Pause
+    }
+
+    public enum AnimationType
+    {
+        Attack,
+        OnHit,
+        Standard
+
     }
     public enum ReferenceType
     {

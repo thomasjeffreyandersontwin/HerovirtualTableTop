@@ -36,7 +36,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         string Name { get; set; }
         Character Owner { get; set; }
         int Order { get; set; }
-        AnimationType Type { get; set; }
+        AnimationElementType Type { get; set; }
         bool PlayWithNext { get; set; }
         AnimationResource Resource { get; set; }
         bool IsActive { get; }
@@ -93,8 +93,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private AnimationType type;
-        public AnimationType Type
+        private AnimationElementType type;
+        public AnimationElementType Type
         {
             get
             {
@@ -296,7 +296,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, persistent, order, owner)
         {
             this.Time = time;
-            this.Type = AnimationType.Pause;
+            this.Type = AnimationElementType.Pause;
         }
 
         private int time;
@@ -424,7 +424,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, persistent, order, owner)
         {
             this.SoundFile = soundFile;
-            this.Type = AnimationType.Sound;
+            this.Type = AnimationElementType.Sound;
         }
 
         private AnimationResource soundFile;
@@ -532,7 +532,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, persistent, order, owner)
         {
             this.MOVResource = MOVResource;
-            this.Type = AnimationType.Movement;
+            this.Type = AnimationElementType.Movement;
         }
 
         private AnimationResource movResource;
@@ -607,7 +607,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, persistent, order, owner)
         {
             this.Effect = effect;
-            this.Type = AnimationType.FX;
+            this.Type = AnimationElementType.FX;
             this.PlayWithNext = playWithNext;
             System.Windows.Media.Color black = System.Windows.Media.Color.FromRgb(0, 0, 0);
             this.colors = new ObservableCollection<System.Windows.Media.Color>() { black, black, black, black };
@@ -907,7 +907,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Initialize();
             this.SequenceType = seqType;
-            this.Type = AnimationType.Sequence;
+            this.Type = AnimationElementType.Sequence;
         }
 
         private void Initialize()
@@ -1114,7 +1114,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             foreach (AnimationElement element in AnimationElements.OrderBy(x => x.Order))
             {
                 List<Character> targets = characterAnimationMapping[element];
-                if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
+                if (element.Type == AnimationElementType.FX || element.Type == AnimationElementType.Movement)
                 {
                     foreach (Character target in targets)
                     {
@@ -1141,7 +1141,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (element.Order == knockbackPlayIndex)
                     knockbackDue = true;
                 List<Character> targets = characterAnimationMappingDictionary[element];
-                if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
+                if (element.Type == AnimationElementType.FX || element.Type == AnimationElementType.Movement)
                 {
                     foreach (Character target in targets)
                     {
@@ -1187,7 +1187,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             foreach (AnimationElement element in elementsToPlay)
             {
                 List<Character> targets = characterAnimationMapping[element];
-                if (element.Type == AnimationType.FX || element.Type == AnimationType.Movement)
+                if (element.Type == AnimationElementType.FX || element.Type == AnimationElementType.Movement)
                 {
                     foreach (Character target in targets)
                     {
@@ -1201,11 +1201,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     //    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
                     //    new PauseElement("", 500).Play();
                     //}));
-                    if (element.Type == AnimationType.Pause || element.Type == AnimationType.Sound)
+                    if (element.Type == AnimationElementType.Pause || element.Type == AnimationElementType.Sound)
                     {
                         tasks.Add(new Task(() => { element.Play(persistent); }));
                     }
-                    else if (element.Type == AnimationType.Sequence)
+                    else if (element.Type == AnimationElementType.Sequence)
                     {
                         Dictionary<AnimationElement, List<Character>> charAnimMappingInner = new Dictionary<AnimationElement, List<Character>>();
                         SequenceElement seqElem = (element as SequenceElement);
@@ -1215,7 +1215,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         }
                         tasks.Add(new Task(() => { element.PlayGrouped(charAnimMappingInner, persistent).RunSynchronously(); }));
                     }
-                    else if (element.Type == AnimationType.Reference)
+                    else if (element.Type == AnimationElementType.Reference)
                     {
                         Dictionary<AnimationElement, List<Character>> charAnimMappingInner = new Dictionary<AnimationElement, List<Character>>();
                         ReferenceAbility refElem = element as ReferenceAbility;
@@ -1230,7 +1230,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
-            if (elementsToPlay.Last().Type == AnimationType.FX || AnimationElements.Last().Type == AnimationType.Movement)
+            if (elementsToPlay.Last().Type == AnimationElementType.FX || AnimationElements.Last().Type == AnimationElementType.Movement)
             {
                 //tasks.Add(new Task(() =>
                 //{
@@ -1319,7 +1319,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(name, persistent, order, owner)
         {
             this.Reference = reference;
-            this.Type = AnimationType.Reference;
+            this.Type = AnimationElementType.Reference;
             this.ReferenceType = ReferenceType.Link;
         }
 
@@ -1407,7 +1407,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             clonedAbility.DisplayName = this.DisplayName;
             clonedAbility.PlayOnTargeted = this.PlayOnTargeted;
             clonedAbility.ReferenceType = ReferenceType.Link;
-            clonedAbility.Type = AnimationType.Reference;
+            clonedAbility.Type = AnimationElementType.Reference;
             return clonedAbility;
         }
     }

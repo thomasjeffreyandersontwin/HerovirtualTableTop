@@ -30,6 +30,7 @@ namespace Module.HeroVirtualTabletop.Characters
     public class CharacterEditorViewModel : Hooker
     {
         #region Private Fields
+        
         internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState) { }
         private EventAggregator eventAggregator;
         private Character editedCharacter;
@@ -462,25 +463,23 @@ namespace Module.HeroVirtualTabletop.Characters
         #endregion
 
         #region Keyboard Hooks
-        
-        internal override void ExecuteKeyBoardEventRelatedLogic(System.Windows.Forms.Keys vkCode)
+
+        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput()
         {
             if (this.EditedCharacter != null)
             {
-                var inputKey = GetKeyFromCode(vkCode);
-                    
+                var inputKey = InputKey;
+
                 if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                 {
-                    if (this.AddOptionGroupCommand.CanExecute(null))
-                        this.AddOptionGroupCommand.Execute(null);
+                    return this.AddOptionGroupCommand;
                 }
                 else if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                 {
-                    if (this.RemoveOptionGroupCommand.CanExecute(null))
-                        this.RemoveOptionGroupCommand.Execute(null);
+                    return RemoveOptionGroupCommand;
                 }
             }
-            
+            return null;
         }
 
         #endregion

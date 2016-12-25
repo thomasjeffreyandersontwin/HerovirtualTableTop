@@ -10,7 +10,7 @@ using System.Windows.Input;
 using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Unity;
-
+using Microsoft.Practices.Prism.Commands;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -123,6 +123,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
     {
         public IntPtr hookID;
         public IntPtr mouseHookID;
+        public Keys vkCode;
+        public System.Windows.Input.Key _inputKey;
         public Hooker(IBusyService busyService, IUnityContainer container) : base(busyService, container)
         {
 
@@ -146,13 +148,16 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
 
-        internal abstract void ExecuteKeyBoardEventRelatedLogic(Keys vkCode);
+        internal abstract DelegateCommand<object> RetrieveCommandstFromKeyInput();
         internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
         
-        internal System.Windows.Input.Key GetKeyFromCode(Keys vkCode)
+        internal System.Windows.Input.Key InputKey
         {
-            return KeyInterop.KeyFromVirtualKey((int)vkCode);
+            get {
+                return KeyInterop.KeyFromVirtualKey((int)this.vkCode);
+            }
         }
+       
 
          internal Boolean ApplicationIsActiveWindow
         {
@@ -223,7 +228,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             if (nCode >= 0)
             {  
                 KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                Keys vkCode = (Keys)keyboardLLHookStruct.vkCode;
+                this.vkCode = (Keys)keyboardLLHookStruct.vkCode;
                 KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
                 {
@@ -233,8 +238,11 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
                         || Process.GetCurrentProcess().Id == wndProcId)
                     {
+                        DelegateCommand<object> command = RetrieveCommandstFromKeyInput();
+                        if (command != null && command.CanExecute(null)) { 
+                            command.Execute(null);
 
-                        ExecuteKeyBoardEventRelatedLogic(vkCode);
+                        }
                     }
                     WindowsUtilities.SetForegroundWindow(foregroundWindow);
                 }
