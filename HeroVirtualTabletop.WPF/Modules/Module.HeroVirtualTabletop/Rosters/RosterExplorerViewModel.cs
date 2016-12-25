@@ -1830,7 +1830,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.isPlayingAreaEffect = false;
             targetObserver.TargetChanged -= RosterTargetUpdated;
             //this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
-            this.currentAttack.Stop();
+            this.currentAttack.DeActivate();
 
             // Hide attack icon from attacking character
             if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
