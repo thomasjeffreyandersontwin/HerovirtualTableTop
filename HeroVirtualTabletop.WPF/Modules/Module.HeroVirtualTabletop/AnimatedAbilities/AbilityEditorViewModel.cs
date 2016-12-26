@@ -1673,7 +1673,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         AnimationElementType EditingAnimationType = AnimationElementType.FX;
         AnimationType DemoingType = AnimationType.Standard;
-        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput()
+        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             
             var isAddAnimationElementKeyDown = (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == ModifierKeys.Alt;

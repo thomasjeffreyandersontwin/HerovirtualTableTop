@@ -183,7 +183,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
 
         
-        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput()
+        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
 
             if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))

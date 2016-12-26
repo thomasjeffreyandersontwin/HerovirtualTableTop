@@ -148,7 +148,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
 
-        internal abstract DelegateCommand<object> RetrieveCommandstFromKeyInput();
+        internal abstract DelegateCommand<object> RetrieveCommandstFromKeyInput(Keys vkCode);
         internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
         
         internal System.Windows.Input.Key InputKey
@@ -238,7 +238,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
                         || Process.GetCurrentProcess().Id == wndProcId)
                     {
-                        DelegateCommand<object> command = RetrieveCommandstFromKeyInput();
+                        DelegateCommand<object> command = RetrieveCommandstFromKeyInput(vkCode);
                         if (command != null && command.CanExecute(null)) { 
                             command.Execute(null);
 

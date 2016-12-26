@@ -464,7 +464,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Keyboard Hooks
 
-        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput()
+        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             if (this.EditedCharacter != null)
             {
