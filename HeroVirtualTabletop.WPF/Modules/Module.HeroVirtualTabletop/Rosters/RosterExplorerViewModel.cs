@@ -480,6 +480,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public enum DesktopMouseState { DOWN = 1, UP = 2 };
         public DesktopMouseState MouseState = DesktopMouseState.UP;
+
+
         IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
@@ -597,6 +599,33 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void CLickOnDesktop(MemoryElement targetedBeforeMouseCLick)
         {
+            string hoveredCharacterInfo = StartDraggingCharacter(targetedBeforeMouseCLick);
+            if (!this.isPlayingAttack)
+            {
+                if (Helper.GlobalVariables_CharacterMovement == null)
+                {
+                    TrackMouseCLicks();
+                }
+                else
+                {
+                    clickTimer_DesktopInteraction.Start(); // Get mouse location and move the target character(s) to there
+                }
+            }
+            else
+            {
+                if (!this.isMenuDisplayed)
+                {
+                    PrepareToRunAttackCycle(hoveredCharacterInfo);
+
+                }
+                else
+                {
+                    this.isMenuDisplayed = false;
+                }
+            }
+        }
+        private string StartDraggingCharacter(MemoryElement targetedBeforeMouseCLick)
+        {
             //System.Threading.Thread.Sleep(200);
             // possible drag drop
             // 1. Determine which character is clicked and save its name and also click time
@@ -630,81 +659,63 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             else
                 this.lastHoveredCharacter = null;
-            if (!this.isPlayingAttack)
-            {
-                if (Helper.GlobalVariables_CharacterMovement == null)
-                {
-                    //Handle clicks
-                    clickCount += 1;
-                    switch (clickCount)
-                    {
-                        case 1:
-                            Action action = delegate ()
-                            {
-                                clickTimer_MultipleClick.Start();
-                            };
-                            Application.Current.Dispatcher.BeginInvoke(action);
-                            break;
-                        case 2:
-                            {
-                                isDoubleClick = true;
-                                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                                lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
-                                break;
-                            }
-                        case 3: isTripleClick = true; break;
-                        case 4: isQuadrupleClick = true; break;
-                        default: break;
-                    }
-                }
-                else
-                {
-                    clickTimer_DesktopInteraction.Start(); // Get mouse location and move the target character(s) to there
-                }
-            }
-            else
-            {
-                if (!this.isMenuDisplayed)
-                {
-                    bool canFireAttackAnimation = true;
-                    string characterName = null;
-                    if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
-                    {
-                        characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
-                    }
-                    if (!string.IsNullOrEmpty(characterName))
-                    {
-                        ICrowdMemberModel model = this.Participants.FirstOrDefault(p => p.Name == characterName);
-                        if (model != null && this.SelectedParticipants != null && !this.SelectedParticipants.Contains(model))
-                        {
-                            canFireAttackAnimation = false;
-                        }
-                        //else if(model != null && model.Name != this.attackingCharacter.Name)
-                        //{
-                        //    canFireAttackAnimation = false;
-                        //}
-                    }
-                    if (canFireAttackAnimation)
-                    {
-                        if (this.currentAttack != null && this.attackingCharacter != null)
-                        {
-                            clickTimer_DesktopInteraction.Start();// Doing this in another thread so that if the game window has lost focus, the attack doesn't animate.
-                        }
-                    }
-
-                }
-                else
-                {
-                    this.isMenuDisplayed = false;
-                }
-            }
+            return hoveredCharacterInfo;
         }
-
-        public void StartDragFromRosterToDesktop()
+        private void PrepareToRunAttackCycle(string hoveredCharacterInfo)
         {
-            this.clickTimer_CharacterDragDrop.Start();
+            bool canFireAttackAnimation = true;
+            string characterName = null;
+            if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+            {
+                characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+            }
+            if (!string.IsNullOrEmpty(characterName))
+            {
+                ICrowdMemberModel model = this.Participants.FirstOrDefault(p => p.Name == characterName);
+                if (model != null && this.SelectedParticipants != null && !this.SelectedParticipants.Contains(model))
+                {
+                    canFireAttackAnimation = false;
+                }
+                //else if(model != null && model.Name != this.attackingCharacter.Name)
+                //{
+                //    canFireAttackAnimation = false;
+                //}
+            }
+            if (canFireAttackAnimation)
+            {
+                if (this.currentAttack != null && this.attackingCharacter != null)
+                {
+                    clickTimer_DesktopInteraction.Start();// Doing this in another thread so that if the game window has lost focus, the attack doesn't animate.
+                }
+            }
         }
-
+        private void TrackMouseCLicks()
+        {
+            //Handle clicks
+            clickCount += 1;
+            switch (clickCount)
+            {
+                case 1:
+                    Action action = delegate ()
+                    {
+                        clickTimer_MultipleClick.Start();
+                    };
+                    Application.Current.Dispatcher.BeginInvoke(action);
+                    break;
+                case 2:
+                    {
+                        isDoubleClick = true;
+                        string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                        lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                        break;
+                    }
+                case 3: isTripleClick = true; break;
+                case 4: isQuadrupleClick = true; break;
+                default: break;
+            }
+        }
+        
+        
         public Vector3 GetDirectionVectorFromMouseXYZInfo(string mouseXYZInfo)
         {
             Vector3 vector3 = new Vector3();
@@ -800,23 +811,27 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_CharacterDragDrop.Stop();
             Action d = delegate ()
             {
-                if (Mouse.LeftButton == MouseButtonState.Pressed)
-                {
-                    IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    bool bWindow = WindowsUtilities.GetForegroundWindow() == winHandle;
-                    //if (!bWindow)
-                    {
-                        if (this.selectedParticipants != null && this.selectedParticipants.Count == 1)
-                        {
-                            WindowsUtilities.SetForegroundWindow(winHandle);
-                            this.currentDraggingCharacter = this.selectedParticipants[0] as Character;
-                            this.IsCharacterDragDropInProgress = true;
-                            this.lastDesktopMouseDownTime = DateTime.UtcNow;
-                        }
-                    }
-                }
+                ContinueDraggingTheCharacter();
             };
             Application.Current.Dispatcher.BeginInvoke(d);
+        }
+        private void ContinueDraggingTheCharacter()
+        {
+            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            {
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                bool bWindow = WindowsUtilities.GetForegroundWindow() == winHandle;
+                //if (!bWindow)
+                {
+                    if (this.selectedParticipants != null && this.selectedParticipants.Count == 1)
+                    {
+                        WindowsUtilities.SetForegroundWindow(winHandle);
+                        this.currentDraggingCharacter = this.selectedParticipants[0] as Character;
+                        this.IsCharacterDragDropInProgress = true;
+                        this.lastDesktopMouseDownTime = DateTime.UtcNow;
+                    }
+                }
+            }
         }
 
         void clickTimer_DesktopInteraction_Elapsed(object sender, ElapsedEventArgs e)
@@ -825,31 +840,45 @@ namespace Module.HeroVirtualTabletop.Roster
             bool bWindow = WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null);
             if (bWindow)
             {
-                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-                Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
                 if (this.isPlayingAttack)
                 {
-                    AttackDirection direction = new AttackDirection(mouseDirection);
-                    this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                    PlayAttackAtDesktopPositionCLicked();
                 }
                 else
                 {
                     if (Helper.GlobalVariables_CharacterMovement != null && !this.isMenuDisplayed)
                     {
-                        Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
-                        Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
-                        if (target != null)
-                            target.MoveToLocation(mouseDirection);
+                        MoveCharacterToDesktopPositionClicked();
                     }
                     this.isMenuDisplayed = false;
                 }
             }
+        }
+        private void MoveCharacterToDesktopPositionClicked()
+        {
+            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+            Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+            Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
+            Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
+            if (target != null)
+                target.MoveToLocation(mouseDirection);
+        }
+        private void PlayAttackAtDesktopPositionCLicked()
+        {
+            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+            Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+            AttackDirection direction = new AttackDirection(mouseDirection);
+            this.currentAttack.AnimateAttack(direction, attackingCharacter);
         }
 
         void clickTimer_MultipleClick_Elapsed(object sender, ElapsedEventArgs e)
         {
             clickTimer_MultipleClick.Stop();
 
+            RunCommandsBasedOnDOubleTripleQuadMouseClicks();
+        }
+        private void RunCommandsBasedOnDOubleTripleQuadMouseClicks()
+        {
             if (isQuadrupleClick)
             {
                 ToggleManueverWithCamera();
@@ -867,6 +896,11 @@ namespace Module.HeroVirtualTabletop.Roster
 
             clickCount = 0;
             isDoubleClick = isTripleClick = isQuadrupleClick = false;
+        }
+
+        public void StartDragFromRosterToDesktop()
+        {
+            this.clickTimer_CharacterDragDrop.Start();
         }
 
         #endregion
