@@ -502,7 +502,7 @@ namespace Module.HeroVirtualTabletop.Movements
         private void DemoDirectionalMovement(object state)
         {
             MovementMember member = state as MovementMember;
-            member.MemberAbility.Reference.Play(false, this.CurrentCharacterMovement.Character);
+            member.MemberAbility.Reference.Play(false, this.CurrentCharacterMovement.Character, true);
         }
 
         private void GetDirectionalAbility(MovementDirection direction)

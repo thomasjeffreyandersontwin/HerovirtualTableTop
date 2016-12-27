@@ -203,7 +203,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public virtual void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
         {
-            Play(persistent, Target);
+            Play(persistent, Target, true);
         }
 
         public virtual Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
@@ -756,7 +756,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                 string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, costume);
                 keyBindsGenerator.CompleteEvent();
-                Play(persistent, Target);
+                Play(persistent, Target, true);
             }
         }
 
@@ -1032,8 +1032,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 PlayAnimations(persistent, Target, true);
             else
                 playTimer.Change(5, Timeout.Infinite);
-
-            
         }
 
 

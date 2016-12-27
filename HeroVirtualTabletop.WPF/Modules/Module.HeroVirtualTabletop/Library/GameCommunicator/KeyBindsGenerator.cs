@@ -162,27 +162,30 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             return KeyBindsGenerator.generatedKeybindText;
         }
 
-        public string CompleteEvent()
+        public string CompleteEvent(bool preventLoadCostumeWithoutTarget = true)
         {
             string command = string.Empty;
             string generatedKeyBindText = string.Empty;
 
             command = PopEvents();
 
-            // HACK: Prevent loading costume without targetting first
-            if(command.Contains(keyBindsStrings[GameEvent.LoadCostume]))
+            if (preventLoadCostumeWithoutTarget)
             {
-                var loadCostumeIndex = command.IndexOf("$$load_costume");
-                if(loadCostumeIndex > 0)
+                // HACK: Prevent loading costume without targetting first
+                if (command.Contains(keyBindsStrings[GameEvent.LoadCostume]))
                 {
-                    var prevCommand = command.Substring(0, loadCostumeIndex);
-                    if(string.IsNullOrEmpty(prevCommand) || !prevCommand.Contains(keyBindsStrings[GameEvent.TargetName]))
+                    var loadCostumeIndex = command.IndexOf("$$load_costume");
+                    if (loadCostumeIndex > 0)
                     {
-                        return "";
+                        var prevCommand = command.Substring(0, loadCostumeIndex);
+                        if (string.IsNullOrEmpty(prevCommand) || !prevCommand.Contains(keyBindsStrings[GameEvent.TargetName]))
+                        {
+                            return "";
+                        }
                     }
-                }
-                else
-                    return "";
+                    else
+                        return "";
+                } 
             }
             
             //generatedKeyBindText = triggerKey + " " + command;
