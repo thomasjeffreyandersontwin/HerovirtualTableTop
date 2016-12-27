@@ -143,12 +143,12 @@
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
-                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Move (Alt+Plus+M)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Movement}"/>
-                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX (Alt+Plus+F)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.FX}"/>
-                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound (Alt+Plus+S)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sound}"/>
-                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference (Alt+Plus+R)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Reference}"/>
-                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence (Alt+Plus+Q)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Sequence}"/>
-                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationType.Pause}"/>
+                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Move (Alt+Plus+M)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Movement}"/>
+                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX (Alt+Plus+F)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.FX}"/>
+                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound (Alt+Plus+S)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sound}"/>
+                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference (Alt+Plus+R)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Reference}"/>
+                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence (Alt+Plus+Q)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sequence}"/>
+                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Pause}"/>
                 <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability (Alt+Enter)" Command="{Binding DemoAnimatedAbilityCommand}" />
             </StackPanel>
             <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
