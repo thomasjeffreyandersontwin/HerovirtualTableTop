@@ -67,7 +67,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private List<Character> targetCharacters = new List<Character>();
         private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
 
-        
+
         Character lastHoveredCharacter = null;
         private Character previousSelectedCharacter = null;
         public bool RosterMouseDoubleClicked = false;
@@ -81,7 +81,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isQuadrupleClick = false;
         private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 2);
         private Timer clickTimer_RunCommandsBasedOnDoubleTripleQuadMouseClicks = new Timer();
-        private Timer clickTimer_MoveCharacterToDesktopPositionClicked = new Timer();
+        private Timer clickTimer_DesktopPositionClicked = new Timer();
         private Timer clickTimer_ContinueDraggingTheCharacter = new Timer();
 
         private FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
@@ -264,10 +264,10 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_RunCommandsBasedOnDoubleTripleQuadMouseClicks.Elapsed +=
                 new ElapsedEventHandler(clickTimer_RunCommandsBasedOnDoubleTripleQuadMouseClicks_Elapsed);
 
-            clickTimer_MoveCharacterToDesktopPositionClicked.AutoReset = false;
-            clickTimer_MoveCharacterToDesktopPositionClicked.Interval = 50;
-            clickTimer_MoveCharacterToDesktopPositionClicked.Elapsed +=
-                new ElapsedEventHandler(clickTimer_MoveCharacterToDesktopPositionClickedElapsed);
+            clickTimer_DesktopPositionClicked.AutoReset = false;
+            clickTimer_DesktopPositionClicked.Interval = 50;
+            clickTimer_DesktopPositionClicked.Elapsed +=
+                new ElapsedEventHandler(clickTimer_DesktopPositionClickedElapsed);
 
             clickTimer_ContinueDraggingTheCharacter.AutoReset = false;
             clickTimer_ContinueDraggingTheCharacter.Interval = 50;
@@ -460,7 +460,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
             }
             return hoveredCharacter;
-        }  
+        }
         public Vector3 GetDirectionVectorFromMouseXYZInfo(string mouseXYZInfo)
         {
             Vector3 vector3 = new Vector3();
@@ -501,8 +501,9 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public bool CharacterIsMoving
         {
-            get {
-                return Helper.GlobalVariables_CharacterMovement !=null;
+            get
+            {
+                return Helper.GlobalVariables_CharacterMovement != null;
             }
         }
         IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
@@ -512,7 +513,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 if (MouseState != DesktopMouseState.DOWN)
                 {
-                    TargetHoveredCharacter(); 
+                    TargetHoveredCharacter();
                 }
                 if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
                 {
@@ -520,16 +521,16 @@ namespace Module.HeroVirtualTabletop.Roster
                     StartDraggingCharacter();
                     if (!this.isPlayingAttack)
                     {
-                        if (CharacterIsMoving==false)
+                        if (CharacterIsMoving == false)
                         {
                             TrackMouseClicks();
                         }
                         else
                         {
-                            clickTimer_MoveCharacterToDesktopPositionClicked.Start(); // Get mouse location and move the target character(s) to there
+                            clickTimer_DesktopPositionClicked.Start(); // Get mouse location and move the target character(s) to there
                         }
                     }
-                    else if (this.isMenuDisplayed==false)
+                    else if (this.isMenuDisplayed == false)
                     {
                         PrepareToRunAttackCycle();
                     }
@@ -753,10 +754,6 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     canFireAttackAnimation = false;
                 }
-                //else if(model != null && model.Name != this.attackingCharacter.Name)
-                //{
-                //    canFireAttackAnimation = false;
-                //}
             }
             if (canFireAttackAnimation)
             {
@@ -764,9 +761,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (this.isPlayingAttack)
                     {
-                        PlayAttackAtDesktopPositionCLicked();
+                        clickTimer_DesktopPositionClicked.Start(); // Doing this in another thread so that if the game window has lost focus, the attack doesn't animate.
                     }
-                    ;// Doing this in another thread so that if the game window has lost focus, the attack doesn't animate.
                 }
             }
         }
@@ -777,7 +773,7 @@ namespace Module.HeroVirtualTabletop.Roster
             switch (clickCount)
             {
                 case 1:
-                    Action action = delegate ()
+                    Action action = delegate()
                     {
                         clickTimer_RunCommandsBasedOnDoubleTripleQuadMouseClicks.Start();
                     };
@@ -786,7 +782,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 case 2:
                     {
                         isDoubleClick = true;
-                        
+
                         break;
                     }
                 case 3: isTripleClick = true; break;
@@ -794,11 +790,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 default: break;
             }
         }
-       
+
         void clickTimer_ContinueDraggingTheCharacterElapsed(object sender, ElapsedEventArgs e)
         {
             clickTimer_ContinueDraggingTheCharacter.Stop();
-            Action d = delegate ()
+            Action d = delegate()
             {
                 ContinueDraggingTheCharacter();
             };
@@ -823,32 +819,40 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        void clickTimer_MoveCharacterToDesktopPositionClickedElapsed(object sender, ElapsedEventArgs e)
+        void clickTimer_DesktopPositionClickedElapsed(object sender, ElapsedEventArgs e)
         {
-            clickTimer_MoveCharacterToDesktopPositionClicked.Stop();
-            if (Helper.GlobalVariables_CharacterMovement != null && !this.isMenuDisplayed)
+            clickTimer_DesktopPositionClicked.Stop();
+            bool bWindow = WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null);
+            if (bWindow)
             {
-                MoveCharacterToDesktopPositionClicked();
+                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
+                Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                if (this.isPlayingAttack)
+                {
+                    PlayAttackAtDesktopPositionCLicked(mouseDirection);
+                }
+                else
+                {
+                    if (Helper.GlobalVariables_CharacterMovement != null && !this.isMenuDisplayed)
+                    {
+                        MoveCharacterToDesktopPositionClicked(mouseDirection);
+                    }
+                    this.isMenuDisplayed = false;
+                }
             }
-            this.isMenuDisplayed = false;
         }
-        private void MoveCharacterToDesktopPositionClicked()
+        private void MoveCharacterToDesktopPositionClicked(Vector3 mouseDirection)
         {
-            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-            Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
             Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
             Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
             if (target != null)
                 target.MoveToLocation(mouseDirection);
         }
 
-        private void PlayAttackAtDesktopPositionCLicked()
+        private void PlayAttackAtDesktopPositionCLicked(Vector3 mouseDirection)
         {
-            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZFromGame();
-            Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
             AttackDirection direction = new AttackDirection(mouseDirection);
             this.currentAttack.AnimateAttack(direction, attackingCharacter);
-            this.isMenuDisplayed = false;
         }
 
         void clickTimer_RunCommandsBasedOnDoubleTripleQuadMouseClicks_Elapsed(object sender, ElapsedEventArgs e)
@@ -885,10 +889,9 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        #region Commands 
+        #region Commands
         internal override DelegateCommand<object> RetrieveCommandstFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
-
             var inputKey = InputKey;
             if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
@@ -940,7 +943,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                //Jeff fixed activating keystroke problem so works without activating a characte
+                //Jeff fixed activating keystroke problem so works without activating a character
                 this.ActivateDefaultMovementToActivate(null);
                 return null;
             }
@@ -1594,14 +1597,14 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public void PlayDefaultAbility(Character target = null)
         {
-            Action d = delegate ()
+            Action d = delegate()
             {
                 if (SelectedParticipants != null && SelectedParticipants.Count == 1)
                 {
                     //lastHoveredCharacter != null && previousSelectedCharacter != null && previousSelectedCharacter.HasBeenSpawned
                     Character abilityPlayingCharacter = null;
                     Character abilityTargetCharacter = null;
-                    
+
                     if (lastHoveredCharacter == null) // not clicked any character on desktop
                     {
                         if (RosterMouseDoubleClicked)
@@ -1659,7 +1662,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         var ability = abilityPlayingCharacter.DefaultAbilityToActivate;
                         ability.Play();
                     }
-                    
+
                     if (this.isPlayingAttack)
                     {
                         if (abilityTargetCharacter != null)
@@ -1667,7 +1670,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (targetCharacters.Count == 0)
                             {
                                 this.targetCharacters.Add(abilityTargetCharacter);
-                                if(this.currentAttack.IsAreaEffect)
+                                if (this.currentAttack.IsAreaEffect)
                                     abilityTargetCharacter.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                                 ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                                 attackConfig.AttackMode = AttackMode.Defend;
