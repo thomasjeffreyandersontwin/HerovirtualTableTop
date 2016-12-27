@@ -140,8 +140,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (e.LeftButton == MouseButtonState.Pressed && !this.viewModel.IsCharacterDragDropInProgress)
             {
-                //this.viewModel.IsCharacterDragDropInProgress = false;
-                this.viewModel.StartDragFromRosterToDesktop();
+                //this.viewModel.StartDragFromRosterToDesktop();
             }
         }
 
