@@ -1664,7 +1664,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (abilityPlayingCharacter != null)
                     {
                         var ability = abilityPlayingCharacter.DefaultAbilityToActivate;
-                        ability.Play(forcePlay: true);
+                        ability.Play();
                     }
                     
                     if (this.isPlayingAttack)
@@ -1907,7 +1907,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         var globalStandUpAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.STANDUP_ABILITY_NAME);
                         if (globalStandUpAbility != null && globalStandUpAbility.AnimationElements != null && globalStandUpAbility.AnimationElements.Count > 0)
                         {
-                            globalStandUpAbility.Play(false, defendingCharacter, true);
+                            globalStandUpAbility.Play(false, defendingCharacter);
                         }
                     }
                     // Update icons in Roster

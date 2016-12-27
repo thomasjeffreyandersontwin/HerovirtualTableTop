@@ -1644,7 +1644,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 if (movementMember.MemberAbility != null) // && !movementMember.MemberAbility.IsActive)
                 {
                     StopMovementMember(movementMember, target);
-                    movementMember.MemberAbility.Play(false, target, true);
+                    movementMember.MemberAbility.Play(false, target);
                     BuildSupportingMovementAnimationElementsList(movementMember);
                 }
             }
@@ -1702,10 +1702,10 @@ namespace Module.HeroVirtualTabletop.Movements
                     if (ae is SoundElement)
                     {
                         SoundElement se = ae as SoundElement;
-                        se.Play(false, target, true);
+                        se.Play(false, target);
                     }
                     else
-                        ae.Play(false, target, true);
+                        ae.Play(false, target);
                 }
                 target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
             }

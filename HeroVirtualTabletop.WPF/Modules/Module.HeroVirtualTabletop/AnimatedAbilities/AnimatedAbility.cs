@@ -306,7 +306,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.SetAttackDirection(direction);
             this.SetAttackerFacing(direction, attacker);
-            base.Play(false, attacker, true); // forceplay true as this is an attack and needs to play immediately
+            base.Play(false, attacker);
             // Reset FX direction
             this.SetAttackDirection(null);
         }
