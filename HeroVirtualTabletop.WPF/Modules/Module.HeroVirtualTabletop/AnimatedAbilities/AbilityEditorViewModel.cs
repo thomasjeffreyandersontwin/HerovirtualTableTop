@@ -901,6 +901,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void AddAnimationElement(object state)
         {
             AnimationElementType animationType = EditingAnimationType;
+            if(state != null)
+            {
+                animationType = (AnimationElementType)state; // Poor fix. Will need to change this mechanism later.
+            } 
             AnimationElement animationElement = this.GetAnimationElement(animationType);
             this.AddAnimationElement(animationElement);
             OnAnimationAdded(animationElement, null);

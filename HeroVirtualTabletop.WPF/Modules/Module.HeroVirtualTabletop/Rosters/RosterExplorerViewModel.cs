@@ -174,7 +174,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public bool CanShowAttackContextMenu
+        public bool ShowAttackContextMenu
         {
             get
             {
