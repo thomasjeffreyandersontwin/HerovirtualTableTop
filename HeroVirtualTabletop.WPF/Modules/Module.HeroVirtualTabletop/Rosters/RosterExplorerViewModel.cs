@@ -227,14 +227,14 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> CycleCommandsThroughCrowdCommand { get; private set; }
 
         public DelegateCommand<object> TargetHoveredCharacterCommand { get; private set; }
-        public AsyncDelegateCommand<object> ContinueDraggingCharacterCommand { get; private set; }
+        //public AsyncDelegate<object> ContinueDraggingCharacterCommand { get; private set; }
         public DelegateCommand<object> DropDraggedCharacterCommand { get; private set; }
-        public AsyncDelegateCommand<object> PlayAttackCycleCommand { get; private set; }
-        public DelegateCommand<object> DisplayCharacterPopupMenueCommand { get; private set; }
-        public DelegateCommand<object> PlayDefaultAbilityCommand { get; private set; }
-        public DelegateCommand<object> GetHoveredCharacterCommand { get; private set; }
-        public AsyncDelegateCommand<object> PlayAttackAtDesktopPositionClickedCommand { get; private set; }
-        public AsyncDelegateCommand<object> MoveCharacterToDesktopPositionClickedCommand { get; private set; }
+        //public AsyncDelegate<object> PlayAttackCycleCommand { get; private set; }
+        //public DelegateCommand<object> DisplayCharacterPopupMenueCommand { get; private set; }
+        //public DelegateCommand<object> PlayDefaultAbilityCommand { get; private set; }
+        //public DelegateCommand<object> GetHoveredCharacterCommand { get; private set; }
+        //public AsyncDelegate<object> PlayAttackAtDesktopPositionClickedCommand { get; private set; }
+        //public AsyncDelegate<object> MoveCharacterToDesktopPositionClickedCommand { get; private set; }
 
        
         #endregion
@@ -297,16 +297,16 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ResetOrientationCommand = new DelegateCommand<object>(this.ResetOrientation, this.CanResetOrientation);
             this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(this.CycleCommandsThroughCrowd, this.CanCycleCommandsThroughCrowd);
 
-            this.TargetHoveredCharacterCommand = new DelegateCommand<object>(this.TargetHoveredCharacter, this.CanDo);
-            this.ContinueDraggingCharacterCommand = new AsyncDelegateCommand<object>(this.ContinueDraggingCharacter, this.CanDo);
-            this.DropDraggedCharacterCommand = new DelegateCommand<object>(this.DropDraggedCharacter, this.CanDo);
-            this.PlayAttackCycleCommand = new AsyncDelegateCommand<object>(this.PlayAttackCycle, this.CanDo);
-            this.DisplayCharacterPopupMenueCommand = new DelegateCommand<object>(this.DisplayCharacterPopupMenue, this.CanDo);
-            this.PlayDefaultAbilityCommand = new DelegateCommand<object>(this.PlayDefaultAbility, this.CanDo);
-            this.GetHoveredCharacterCommand = new DelegateCommand<object>(this.PlayDefaultAbility, this.CanDo);
+            //this.TargetHoveredCharacterCommand = new DelegateCommand<object>(this.TargetHoveredCharacter, this.CanDo);
+            //this.ContinueDraggingCharacterCommand = new AsyncDelegateCommand<object>(this.ContinueDraggingCharacter, this.CanDo);
+            //this.DropDraggedCharacterCommand = new DelegateCommand<object>(this.DropDraggedCharacter, this.CanDo);
+            //this.PlayAttackCycleCommand = new AsyncDelegateCommand<object>(this.PlayAttackCycle, this.CanDo);
+            //this.DisplayCharacterPopupMenueCommand = new DelegateCommand<object>(this.DisplayCharacterPopupMenue, this.CanDo);
+            //this.PlayDefaultAbilityCommand = new DelegateCommand<object>(this.PlayDefaultAbility, this.CanDo);
+            //this.GetHoveredCharacterCommand = new DelegateCommand<object>(this.PlayDefaultAbility, this.CanDo);
 
-            this.MoveCharacterToDesktopPositionClickedCommand = new AsyncDelegateCommand<object>(this.MoveCharacterToDesktopPositionClicked, this.CanDo);
-            this.GetHoveredCharacterCommand = new DelegateCommand<object>(this.MoveCharacterToDesktopPositionClicked, this.CanDo);
+            //this.MoveCharacterToDesktopPositionClickedCommand = new AsyncDelegateCommand<object>(this.MoveCharacterToDesktopPositionClicked, this.CanDo);
+            //this.GetHoveredCharacterCommand = new DelegateCommand<object>(this.MoveCharacterToDesktopPositionClicked, this.CanDo);
         }
 
         #region Methods
@@ -458,21 +458,24 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return null;
         }
+
         
         #region Command Implementation
-        internal override DelegateCommand<object> RetrieveCommandFromMouseInput(Hooker.DesktopMouseState mouseState)
+        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
         {
+            EventMethod handler = null;
+            
             if (mouseState == Hooker.DesktopMouseState.MOUSE_MOVE)
             {
-                return TargetHoveredCharacterCommand;
+                handler = TargetHoveredCharacter;
             }
             else if (mouseState == Hooker.DesktopMouseState.RIGHT_CLICK_UP)
             {
-                return DisplayCharacterPopupMenueCommand;
+                handler = DisplayCharacterPopupMenue;
             }
             else if (mouseState == Hooker.DesktopMouseState.LEFT_CLICK_UP)
             {
-                return DropDraggedCharacterCommand;
+                handler = DropDraggedCharacter;
             }
             else if (mouseState == Hooker.DesktopMouseState.LEFT_CLICK)
             {
@@ -480,37 +483,34 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (CharacterIsMoving == true)
                     {
-                        return MoveCharacterToDesktopPositionClickedCommand;
+                        handler = MoveCharacterToDesktopPositionClicked;
                     }
                     else
-                        return ContinueDraggingCharacterCommand;
+                        handler = ContinueDraggingCharacter;
                 }
                 else if (this._isPlayingAttack == true)
                 {
                     if (this._isMenuDisplayed == false)
                     {
-                        return PlayAttackCycleCommand;
+                        handler = PlayAttackCycle;
                     }
                     else
                     {
                         this._isMenuDisplayed = false;
                     }
                 }
-            }   
+            }
             else if (mouseState == Hooker.DesktopMouseState.DOUBLE_CLICK)
             {
-                return PlayDefaultAbilityCommand;
+                handler = PlayDefaultAbility;
             }
             else if (mouseState == Hooker.DesktopMouseState.TRIPLE_CLICK)
             {
-                return ToggleManeuverWithCameraCommand;
+                handler = ToggleManeuverWithCameraa;
             }
-            else if (mouseState == Hooker.DesktopMouseState.TRIPLE_CLICK)
-            {
-                return ToggleManeuverWithCameraCommand;
-            }
-            return null;
+            return handler;
         }
+
         internal override DelegateCommand<object> RetrieveCommandFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             var inputKey = InputKey;
@@ -577,19 +577,19 @@ namespace Module.HeroVirtualTabletop.Roster
             else { return null; }
         }
 
-        public void TargetHoveredCharacter(object state)
+        public void TargetHoveredCharacter()
         {
             Character hoveredCharacter = GetHoveredCharacter(null);
             if (hoveredCharacter != null)
             {
                 if (lastTargetedCharacter == null || hoveredCharacter.Label != lastTargetedCharacter.Label)
-                {
+               {
                    hoveredCharacter.Target();
                 }
                 lastTargetedCharacter = hoveredCharacter;
             }
         }
-        private void DropDraggedCharacter(object state)
+        private void DropDraggedCharacter()
         {
             if (_currentDraggingCharacter != null && _lastDesktopMouseDownTime != DateTime.MinValue && IsCharacterDragDropInProgress)
             {
@@ -613,7 +613,7 @@ namespace Module.HeroVirtualTabletop.Roster
             _lastDesktopMouseDownTime = DateTime.MinValue;
             IsCharacterDragDropInProgress = false;
         }
-        private void DisplayCharacterPopupMenue(object state)
+        private void DisplayCharacterPopupMenue()
         {
             CrowdMemberModel character = (CrowdMemberModel)GetCurrentTarget();
             if (character != null)
@@ -684,7 +684,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     );
             }
         }
-        private void ContinueDraggingCharacter(object state)
+        private void ContinueDraggingCharacter()
         {
             MemoryElement targetedBeforeMouseCLick = new MemoryElement();
             CrowdMemberModel hoveredCharacter = (CrowdMemberModel) GetHoveredCharacter(null);
@@ -703,7 +703,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.lastTargetedCharacter = null;
             return;
         }
-        private void PlayAttackCycle(object state)
+        private void PlayAttackCycle()
         {
             CrowdMemberModel character  = (CrowdMemberModel)GetHoveredCharacter(null);    
             if (this._currentAttack != null && this._attackingCharacter != null)
@@ -717,7 +717,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
             }
         }
-        private void MoveCharacterToDesktopPositionClicked(object state)
+        private void MoveCharacterToDesktopPositionClicked()
         {
             Vector3 mouseDirection = new MouseElement().Position;
             Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
@@ -1188,6 +1188,19 @@ namespace Module.HeroVirtualTabletop.Roster
             SelectNextCharacterInCrowdCycle();
             Commands_RaiseCanExecuteChanged();
         }
+
+        private void ToggleManeuverWithCameraa()
+        {
+            foreach (CrowdMemberModel member in SelectedParticipants)
+            {
+                if (!member.IsSyncedWithGame)
+                    CheckIfCharacterExistsInGame(member);
+                member.ToggleManueveringWithCamera();
+            }
+            SelectNextCharacterInCrowdCycle();
+            Commands_RaiseCanExecuteChanged();
+        }
+
         public void ToggleManueverWithCamera()
         {
             if (this.CanToggleManeuverWithCamera(null))
@@ -1350,7 +1363,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        public void PlayDefaultAbility(object state)
+        public void PlayDefaultAbility()
         {
             Action d = delegate()
             {

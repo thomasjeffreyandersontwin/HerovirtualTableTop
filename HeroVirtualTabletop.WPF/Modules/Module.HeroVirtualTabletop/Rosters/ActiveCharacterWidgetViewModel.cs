@@ -65,7 +65,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         #endregion
 
-        internal override DelegateCommand<object> RetrieveCommandFromMouseInput(Hooker.DesktopMouseState mouseState)
+        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
         { return null; }
         #region Constructor
         public ActiveCharacterWidgetViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)

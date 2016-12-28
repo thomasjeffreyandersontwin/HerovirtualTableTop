@@ -145,7 +145,6 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
             mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
         }
-
         internal void DeactivateKeyboardHook()
         {
             KeyBoardHook.UnsetHook(hookID);
@@ -155,7 +154,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
         internal abstract DelegateCommand<object> RetrieveCommandFromKeyInput(Keys vkCode);
-        internal abstract DelegateCommand<object> RetrieveCommandFromMouseInput(DesktopMouseState mouseState);
+        internal abstract EventMethod RetrieveEventHandlerFromMouseInput(DesktopMouseState mouseState);
         internal System.Windows.Input.Key InputKey
         {
             get {
@@ -184,6 +183,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             DoubleTripleQuadMouseClicksTracker.Stop();
             MouseClickCount = 0;
         }
+
+        public delegate void EventMethod();
         internal IntPtr HandleMouseEvent(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
@@ -226,12 +227,13 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                 if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null))
                 {
-                    DelegateCommand<object> command = RetrieveCommandFromMouseInput(MouseState);
-                    if (command != null && command.CanExecute(null))
-                    {
-                        command.Execute(null);
+                    EventMethod handler = RetrieveEventHandlerFromMouseInput(MouseState);
+                    if(handler != null) {
+                        System.Windows.Application.Current.Dispatcher.BeginInvoke(handler);
 
+                        
                     }
+                    
 
                 }
                // MouseClickCount = 0;
@@ -261,7 +263,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
                         }
                     }
-                    WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                    //WindowsUtilities.SetForegroundWindow(foregroundWindow);
                 }
             }
             return CallNextHook(hookID, nCode, wParam, lParam);

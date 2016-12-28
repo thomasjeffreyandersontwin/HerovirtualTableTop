@@ -110,7 +110,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     //this.viewModel.TargetAndFollow();
                     this.viewModel.RosterMouseDoubleClicked = true;
-                    this.viewModel.PlayDefaultAbility(null);
+                    this.viewModel.PlayDefaultAbility();
                 }
                 else
                 {

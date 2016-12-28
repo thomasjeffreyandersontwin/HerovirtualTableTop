@@ -33,7 +33,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     public class AbilityEditorViewModel : Hooker
     {
 
-        internal override DelegateCommand<object> RetrieveCommandFromMouseInput(Hooker.DesktopMouseState mouseState)
+        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
         { return null; }
         #region Private Fields
 

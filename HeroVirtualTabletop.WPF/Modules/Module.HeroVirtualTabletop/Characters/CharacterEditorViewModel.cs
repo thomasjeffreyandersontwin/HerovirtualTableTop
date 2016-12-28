@@ -31,7 +31,7 @@ namespace Module.HeroVirtualTabletop.Characters
     {
         #region Private Fields
 
-        internal override DelegateCommand<object> RetrieveCommandFromMouseInput(Hooker.DesktopMouseState mouseState)
+        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
         { return null; }
         private EventAggregator eventAggregator;
         private Character editedCharacter;
