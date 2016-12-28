@@ -168,6 +168,7 @@
     <Compile Include="Library\Events\Events.cs" />
     <Compile Include="Library\Sevices\ITargetObserver.cs" />
     <Compile Include="Library\Sevices\TargetObserver.cs" />
+    <Compile Include="Library\Utility\AsyncDelegateCommands.cs" />
     <Compile Include="Library\Utility\DllInjector.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />
     <Compile Include="Library\Utility\IconInteractionUtility.cs" />

@@ -65,7 +65,8 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         #endregion
 
-        internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState) { }
+        internal override DelegateCommand<object> RetrieveCommandFromMouseInput(Hooker.DesktopMouseState mouseState)
+        { return null; }
         #region Constructor
         public ActiveCharacterWidgetViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
             : base(busyService, container)
@@ -183,7 +184,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
 
         
-        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal override DelegateCommand<object> RetrieveCommandFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
 
             if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))

@@ -32,8 +32,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
     public class AbilityEditorViewModel : Hooker
     {
-        
-        internal override void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState){ }
+
+        internal override DelegateCommand<object> RetrieveCommandFromMouseInput(Hooker.DesktopMouseState mouseState)
+        { return null; }
         #region Private Fields
 
         private EventAggregator eventAggregator;
@@ -1673,7 +1674,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         AnimationElementType EditingAnimationType = AnimationElementType.FX;
         AnimationType DemoingType = AnimationType.Standard;
-        internal override DelegateCommand<object> RetrieveCommandstFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal override DelegateCommand<object> RetrieveCommandFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             
             var isAddAnimationElementKeyDown = (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == ModifierKeys.Alt;

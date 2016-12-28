@@ -11,6 +11,7 @@ using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Unity;
 using Microsoft.Practices.Prism.Commands;
+using System.Timers;
 
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
@@ -125,41 +126,43 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public IntPtr mouseHookID;
         public Keys vkCode;
         public System.Windows.Input.Key _inputKey;
+        private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 2);
+        public System.Timers.Timer DoubleTripleQuadMouseClicksTracker = new System.Timers.Timer();
+
         public Hooker(IBusyService busyService, IUnityContainer container) : base(busyService, container)
         {
 
+            DoubleTripleQuadMouseClicksTracker.AutoReset = false;
+            DoubleTripleQuadMouseClicksTracker.Interval = maxClickTime;
+            DoubleTripleQuadMouseClicksTracker.Elapsed +=
+                new ElapsedEventHandler(DoubleTripleQuadMouseClicksTrackerElapsed);
         }
-        public enum DesktopMouseState { DOUBLE_CLICK =7, LEFT_CLICK = 1, UP = 2, RIGHT_CLICK =3, MOUSE_MOVE=4, RIGHT_CLICK_UP =5, LEFT_CLICK_UP = 6 };
+        public enum DesktopMouseState { LEFT_CLICK = 1, DOUBLE_CLICK = 2, RIGHT_CLICK =3, MOUSE_MOVE= 4, RIGHT_CLICK_UP =5, LEFT_CLICK_UP = 6, TRIPLE_CLICK = 7, QUAD_CLICK=8 };
 
         public void ActivateKeyboardHook()
         {
 
             hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
-            //mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
+            mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
         }
 
         internal void DeactivateKeyboardHook()
         {
             KeyBoardHook.UnsetHook(hookID);
         }
-
         internal IntPtr CallNextHook(IntPtr hookID, int nCode, IntPtr wParam, IntPtr lParam)
         {
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
-
-        internal abstract DelegateCommand<object> RetrieveCommandstFromKeyInput(Keys vkCode);
-        internal abstract void ExecuteMouseEventRelatedLogic(DesktopMouseState mouseState);
-        
+        internal abstract DelegateCommand<object> RetrieveCommandFromKeyInput(Keys vkCode);
+        internal abstract DelegateCommand<object> RetrieveCommandFromMouseInput(DesktopMouseState mouseState);
         internal System.Windows.Input.Key InputKey
         {
             get {
                 return KeyInterop.KeyFromVirtualKey((int)this.vkCode);
             }
         }
-       
-
-         internal Boolean ApplicationIsActiveWindow
+        internal Boolean ApplicationIsActiveWindow
         {
             get
             {
@@ -173,30 +176,37 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             }
         }
 
-        DesktopMouseState MouseState = DesktopMouseState.UP;
+        public DesktopMouseState MouseState = DesktopMouseState.MOUSE_MOVE;
+        int MouseClickCount = 0;
+
+        void DoubleTripleQuadMouseClicksTrackerElapsed(object sender, ElapsedEventArgs e)
+        {
+            DoubleTripleQuadMouseClicksTracker.Stop();
+            MouseClickCount = 0;
+        }
         internal IntPtr HandleMouseEvent(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0)
             {
-                //Console.WriteLine(((MouseMessage)lParam).ToString());
                 //MouseState = DesktopMouseState.UP;
                 if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
                 {
-                 //   if (MouseState == DesktopMouseState.LEFT_CLICK_UP || MouseState == DesktopMouseState.LEFT_CLICK_UP)
+                    MouseClickCount += 1;
+                    switch (MouseClickCount)
                     {
-               //         MouseState = DesktopMouseState.DOUBLE_CLICK;
-               //     }
-               //     else {
-                        MouseState = DesktopMouseState.LEFT_CLICK;
+                        case 1:
+                            MouseState = DesktopMouseState.LEFT_CLICK;
+                            Action action = delegate ()
+                            {
+                                DoubleTripleQuadMouseClicksTracker.Start();
+                            };
+                            System.Windows.Application.Current.Dispatcher.BeginInvoke(action);
+                            break;
+                        case 2: MouseState = DesktopMouseState.DOUBLE_CLICK;break;
+                        case 3: MouseState = DesktopMouseState.TRIPLE_CLICK; break;
+                        case 4: MouseState = DesktopMouseState.QUAD_CLICK; break;
                     }
                 }
-
-                else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam)
-                {
-                        MouseState = DesktopMouseState.DOUBLE_CLICK;
-                }
-                   
-              
                 else if (MouseMessage.WM_RBUTTONDOWN == (MouseMessage)wParam)
                 {
                     MouseState = DesktopMouseState.RIGHT_CLICK;
@@ -213,15 +223,22 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 {
                     MouseState = DesktopMouseState.MOUSE_MOVE;
                 }
-             //  else if (MouseMessage.WM_LBUTTONDBLCLK == (MouseMessage)wParam){
+                IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null))
+                {
+                    DelegateCommand<object> command = RetrieveCommandFromMouseInput(MouseState);
+                    if (command != null && command.CanExecute(null))
+                    {
+                        command.Execute(null);
 
-                   // MouseState = DesktopMouseState.MOUSE_MOVE;
-           //     }
-                ExecuteMouseEventRelatedLogic(MouseState);
+                    }
 
+                }
+               // MouseClickCount = 0;
             }
             return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
         }
+
         internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
         {
             
@@ -238,7 +255,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
                         || Process.GetCurrentProcess().Id == wndProcId)
                     {
-                        DelegateCommand<object> command = RetrieveCommandstFromKeyInput(vkCode);
+                        DelegateCommand<object> command = RetrieveCommandFromKeyInput(vkCode);
                         if (command != null && command.CanExecute(null)) { 
                             command.Execute(null);
 
@@ -277,18 +294,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             AppDomain.CurrentDomain.ProcessExit += UnsetHooks;
         }
-
         private static Dictionary<IntPtr, LowLevelKeyboardProc> hookedProcs = new Dictionary<IntPtr, LowLevelKeyboardProc>();
-
         private static List<IntPtr> hookedProcIDs = new List<IntPtr>();
-
-        
-
-        /// <summary>
-        /// This function lets hook a function with LowLevelKeyboardProc signature to Windows key processing queue.
-        /// </summary>
-        /// <param name="proc">The function to be executed. Must end with "return CallNextHookEx(hookID, nCode, wParam, lParam);" to let the processing continue correctly.</param>
-        /// <returns>Return the hook identifier assigned in Windows hooks queue</returns>
         public static IntPtr SetHook(LowLevelKeyboardProc proc)
         {
             using (Process curProcess = Process.GetCurrentProcess())
@@ -300,7 +307,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 return hookID;
             }
         }
-
+  
         public static void UnsetHook(IntPtr hookID)
         {
             if (hookedProcIDs.Contains(hookID))
