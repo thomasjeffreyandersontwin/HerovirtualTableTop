@@ -166,8 +166,10 @@
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Converters\MovementConverters.cs" />
     <Compile Include="Library\Events\Events.cs" />
+    <Compile Include="Library\ProcessCommunicator\HoveredElement.cs" />
     <Compile Include="Library\Sevices\ITargetObserver.cs" />
     <Compile Include="Library\Sevices\TargetObserver.cs" />
+    <Compile Include="Library\Utility\3DSpaceHelper.cs" />
     <Compile Include="Library\Utility\AsyncDelegateCommands.cs" />
     <Compile Include="Library\Utility\DllInjector.cs" />
     <Compile Include="Library\Utility\FlattenRecursive.cs" />

@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace Module.HeroVirtualTabletop.Library.Utility
 {
     public static class IconInteractionUtility
@@ -149,17 +150,20 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 executeCmd("/" + command);
             }
         }
-        public static string GetHoveredNPCInfoFromGame()
+        public static string GeInfoFromNpcMouseIsHoveringOver()
         {
             return Marshal.PtrToStringAnsi(getHoveredNPCInfo());
         }
+        
 
-        public static string GetMouseXYZFromGame()
+        public static string GetMouseXYZString()
         {
             System.Threading.Thread.Sleep(100);
             return Marshal.PtrToStringAnsi(getMouseXYZInGame());
         }
 
+        
+       
         public static string GetCollisionInfo(float sourceX, float sourceY, float sourceZ, float destX, float destY, float destZ)
         {
             return Marshal.PtrToStringAnsi(detectCollision(sourceX, sourceY, sourceZ, destX, destY, destZ));
