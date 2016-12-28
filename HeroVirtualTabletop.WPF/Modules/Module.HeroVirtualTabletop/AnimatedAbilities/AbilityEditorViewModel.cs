@@ -1587,6 +1587,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ConfigureAttackAnimation(object state)
         {
+            // Another quick and dirty fix for now, will have to change during final refactor. Commands should not be hooked to hook. The methods should
+            if (state != null)
+            {
+                if (state.ToString() == "Attack")
+                    DemoingType = AnimationType.Attack;
+                else if (state.ToString() == "OnHit")
+                    DemoingType = AnimationType.OnHit;
+            }
+
             if (DemoingType == AnimationType.Standard)
             {
                 if (this.CurrentAttackAbility.IsAttack)
@@ -1602,13 +1611,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
                 this.SaveAbility(null);
             }
-            else if (DemoingType == AnimationType.Attack)
+            else if (DemoingType == AnimationType.Attack) 
             {
                 this.IsAttackSelected = true;
                 this.IsHitSelected = false;
                 this.CurrentAbility = this.CurrentAttackAbility;
             }
-            else if (DemoingType == AnimationType.OnHit)
+            else if (DemoingType == AnimationType.OnHit) 
             {
                 this.IsAttackSelected = false;
                 this.IsHitSelected = true;
