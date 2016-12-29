@@ -154,6 +154,7 @@
       <DependentUpon>CrowdFromModelsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Crowds\CrowdFromModelsViewModel.cs" />
+    <Compile Include="Desktop\DesktopContextMenu.cs" />
     <Compile Include="Identities\Camera.cs" />
     <Compile Include="Identities\IdentityEditorView.xaml.cs">
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>
