@@ -279,23 +279,23 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         private void InitializeCommands()
         {
-            this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
-            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
-            this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted, this.CanToggleTargeted);
-            this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
-            this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
+            this.SpawnCommand = new DelegateCommand<object>(delegate (object state) { this.Spawn(); } );
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(delegate (object state) { this.ClearFromDesktop(); }, this.CanClearFromDesktop);
+            this.ToggleTargetedCommand = new DelegateCommand<object>(delegate(object state) { this.ToggleTargeted(); }, this.CanToggleTargeted);
+            this.SavePositionCommand = new DelegateCommand<object>(delegate (object state) { this.SavePosition(); }, this.CanSavePostion);
+            this.PlaceCommand = new DelegateCommand<object>(delegate (object state) { this.Place(); }, this.CanPlace);
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
-            this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
-            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(this.MoveTargetToCharacter, this.CanMoveTargetToCharacter);
-            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(this.MoveTargetToMouseLocation, this.CanMoveTargetToMouseLocation);
-            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
-            this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
-            this.ActivateCharacterCommand = new DelegateCommand<object>(this.ActivateCharacter, this.CanActivateCharacter);
+            this.MoveTargetToCameraCommand = new DelegateCommand<object>(delegate (object state) { this.MoveTargetToCamera(); }, this.CanMoveTargetToCamera);
+            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(delegate (object state) { this.MoveTargetToCharacter(); }, this.CanMoveTargetToCharacter);
+            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(delegate (object state) { this.MoveTargetToMouseLocation(); }, this.CanMoveTargetToMouseLocation);
+            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleManeuverWithCamera(); }, this.CanToggleManeuverWithCamera);
+            this.EditCharacterCommand = new DelegateCommand<object>(delegate (object state) { this.EditCharacter(); }, this.CanEditCharacter);
+            this.ActivateCharacterCommand = new DelegateCommand<object>(delegate (object state) { this.ActivateCharacter(); }, this.CanActivateCharacter);
             this.ResetCharacterStateCommand = new DelegateCommand<object>(this.ResetCharacterState);
             this.AreaAttackTargetCommand = new DelegateCommand<object>(this.TargetCharacterForAreaAttack);
             this.AreaAttackTargetAndExecuteCommand = new DelegateCommand<object>(this.TargetAndExecuteAreaAttack);
-            this.ResetOrientationCommand = new DelegateCommand<object>(this.ResetOrientation, this.CanResetOrientation);
-            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(this.CycleCommandsThroughCrowd, this.CanCycleCommandsThroughCrowd);
+            this.ResetOrientationCommand = new DelegateCommand<object>(delegate (object state) { this.ResetOrientation(); }, this.CanResetOrientation);
+            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(delegate (object state) { this.CycleCommandsThroughCrowd(); }, this.CanCycleCommandsThroughCrowd);
 
             //this.TargetHoveredCharacterCommand = new DelegateCommand<object>(this.TargetHoveredCharacter, this.CanDo);
             //this.ContinueDraggingCharacterCommand = new AsyncDelegateCommand<object>(this.ContinueDraggingCharacter, this.CanDo);
@@ -511,56 +511,56 @@ namespace Module.HeroVirtualTabletop.Roster
             return handler;
         }
 
-        internal override DelegateCommand<object> RetrieveCommandFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             var inputKey = InputKey;
             if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.PlaceCommand;
+                return this.Place;
             }
             else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {
-                return this.SavePositionCommand;
+                return this.SavePosition;
             }
             else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.SpawnCommand;
+                return this.Spawn;
             }
             else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.ToggleTargetedCommand;
+                return this.ToggleTargeted;
             }
             else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.ToggleManeuverWithCameraCommand;
+                return this.ToggleManeuverWithCamera;
             }
             else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.TargetAndFollowCommand;
+                return this.TargetAndFollow;
             }
             else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.EditCharacterCommand;
+                return this.EditCharacter;
             }
             else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {
-                return this.MoveTargetToCameraCommand;
+                return this.MoveTargetToCamera;
             }
             else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {
-                return this.CycleCommandsThroughCrowdCommand;
+                return this.CycleCommandsThroughCrowd;
             }
             else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.ActivateCharacterCommand;
+                return this.ActivateCharacter;
             }
             else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
             {
-                return this.ResetOrientationCommand;
+                return this.ResetOrientation;
             }
             else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
             {
-                return this.ClearFromDesktopCommand;
+                return this.ClearFromDesktop;
             }
             else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
             {
@@ -777,10 +777,10 @@ namespace Module.HeroVirtualTabletop.Roster
                 foreach (var participant in participants)
                     this.SelectedParticipants.Add(participant);
             }
-            this.ClearFromDesktop(null);
+            this.ClearFromDesktop();
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
-        private void Spawn(object state)
+        private void Spawn()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -799,7 +799,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return false;
         }
-        private void ClearFromDesktop(object state)
+        private void ClearFromDesktop()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -844,7 +844,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return canSavePosition;
         }
-        private void SavePostion(object state)
+        public void SavePosition()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -883,7 +883,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return canPlace;
         }
-        private void Place(object state)
+        private void Place()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -906,7 +906,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canToggleTargeted;
         }
 
-        private void ToggleTargeted(object obj)
+        private void ToggleTargeted()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1010,7 +1010,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canMoveTargetToCamera;
         }
 
-        private void MoveTargetToCamera(object obj)
+        private void MoveTargetToCamera()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1047,7 +1047,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canMoveTargetToCharacter;
         }
 
-        private void MoveTargetToCharacter(object obj)
+        private void MoveTargetToCharacter()
         {
             //this.isMoveToCharacterEnabled = true;
             //this.isMoveToMouseLocationEnabled = false;
@@ -1084,7 +1084,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canMoveTargetToMouseLocation;
         }
 
-        private void MoveTargetToMouseLocation(object obj)
+        private void MoveTargetToMouseLocation()
         {
             //this.isMoveToMouseLocationEnabled = !this.isMoveToMouseLocationEnabled;
         }
@@ -1114,7 +1114,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canResetOrientation;
         }
 
-        private void ResetOrientation(object obj)
+        private void ResetOrientation()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1177,7 +1177,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return canManeuverWithCamera;
         }
-        private void ToggleManeuverWithCamera(object obj)
+        private void ToggleManeuverWithCamera()
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1205,7 +1205,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (this.CanToggleManeuverWithCamera(null))
             {
-                this.ToggleManeuverWithCamera(null);
+                this.ToggleManeuverWithCamera();
             }
         }
 
@@ -1217,7 +1217,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             return true;
         }
-        private void CycleCommandsThroughCrowd(object state)
+        private void CycleCommandsThroughCrowd()
         {
             this.IsCyclingCommandsThroughCrowd = !this.IsCyclingCommandsThroughCrowd;
         }
@@ -1262,7 +1262,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 && !this._isPlayingAttack;
         }
 
-        private void EditCharacter(object state)
+        private void EditCharacter()
         {
             CrowdMemberModel c = this.SelectedParticipants[0] as CrowdMemberModel;
             this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(c, null));
@@ -1278,7 +1278,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return !this._isPlayingAttack;
         }
 
-        private void ActivateCharacter(object state)
+        private void ActivateCharacter()
         {
             ToggleActivateCharacter();
         }
@@ -1742,34 +1742,34 @@ namespace Module.HeroVirtualTabletop.Roster
                     switch (e.Name)
                     {
                         case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
-                            Spawn(null);
+                            Spawn();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_PLACE_FILENAME:
-                            Place(null);
+                            Place();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME:
-                            SavePostion(null);
+                            SavePosition();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME:
                             TargetAndFollow(null);
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
-                            MoveTargetToCamera(null);
+                            MoveTargetToCamera();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME:
-                            ResetOrientation(null);
+                            ResetOrientation();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOMOUSELOCATION_FILENAME:
-                            MoveTargetToMouseLocation(null);
+                            MoveTargetToMouseLocation();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME:
-                            ToggleManeuverWithCamera(null);
+                            ToggleManeuverWithCamera();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME:
                             ToggleActivateCharacter(null);
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME:
-                            ClearFromDesktop(null);
+                            ClearFromDesktop();
                             break;
                         case Constants.GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME:
                             {

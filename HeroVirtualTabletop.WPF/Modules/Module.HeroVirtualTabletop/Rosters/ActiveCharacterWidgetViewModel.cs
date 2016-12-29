@@ -79,8 +79,8 @@ namespace Module.HeroVirtualTabletop.Roster
             clickTimer_AbilityPlay.Elapsed +=
                 new System.Timers.ElapsedEventHandler(clickTimer_AbilityPlay_Elapsed);
 
-            this.PlayActiveAbilityCommand = new DelegateCommand<object>(this.PlayActiveAbility, this.CanPlayActiveAbility);
-            this.ToggleMovementCommand = new DelegateCommand<object>(this.ToggleMovement, this.CanToggleMovement);
+            this.PlayActiveAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.PlayActiveAbility(); }, this.CanPlayActiveAbility);
+            this.ToggleMovementCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleMovement(); }, this.CanToggleMovement);
 
         }
         #endregion
@@ -184,22 +184,22 @@ namespace Module.HeroVirtualTabletop.Roster
 
 
         
-        internal override DelegateCommand<object> RetrieveCommandFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
 
             if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
             {
-                return this.PlayActiveAbilityCommand;
+                return this.PlayActiveAbility;
             }
             else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
             {
-                return this.ToggleMovementCommand;
+                return this.ToggleMovement;
             }
             return null;
         }
        
         public bool CanToggleMovement(object state) { return true; }
-        public void ToggleMovement(object state)
+        public void ToggleMovement()
         {
             Keys vkCode = this.vkCode;
             CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
@@ -210,7 +210,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
         public bool CanPlayActiveAbility(object state) { return true; }
-        public void PlayActiveAbility(object state)
+        public void PlayActiveAbility()
         {
             Keys vkCode = this.vkCode;
             activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);

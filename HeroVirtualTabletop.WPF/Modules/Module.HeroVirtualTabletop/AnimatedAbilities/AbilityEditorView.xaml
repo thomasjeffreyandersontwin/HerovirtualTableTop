@@ -170,7 +170,7 @@
             <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste (Alt+Ctrl+V)" Command="{Binding PasteAnimationCommand}"/>
             <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove (Alt+Ctrl+Backspace)" Command="{Binding RemoveAnimationCommand}"/>
             <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation (Alt+Ctrl+Enter)" Command="{Binding DemoAnimationCommand}"/>
-            <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack (Alt+Ctrl+A)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="Attack">
+            <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack (Alt+Ctrl+A)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="{x:Static enumerations:AnimationType.Attack}">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>
@@ -184,7 +184,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button x:Name="btnOnHit" Grid.Column="1" Content="&#xf132;" ToolTip="On Hit (Alt+Ctrl+H)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="OnHit">
+            <Button x:Name="btnOnHit" Grid.Column="1" Content="&#xf132;" ToolTip="On Hit (Alt+Ctrl+H)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="{x:Static enumerations:AnimationType.OnHit}">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>

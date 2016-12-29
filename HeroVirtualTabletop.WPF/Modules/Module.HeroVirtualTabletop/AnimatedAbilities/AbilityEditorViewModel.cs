@@ -202,8 +202,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 AnimationElement element = sender as AnimationElement;
                 (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName(element.Resource);
-                SaveAbility(null);
-                DemoAnimation(null);
+                SaveAbility();
+                DemoAnimation();
                 SaveResources();
                 SaveUISettingsForResouce(element, element.Resource);
                 this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
@@ -608,24 +608,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
-            this.SaveAbilityCommand = new DelegateCommand<object>(this.SaveAbility, this.CanSaveAbility);
+            this.SaveAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.SaveAbility(); }, this.CanSaveAbility);
             this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence, this.CanSaveSequence);
             this.EnterAbilityEditModeCommand = new DelegateCommand<object>(this.EnterAbilityEditMode);
             this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
-            this.AddAnimationElementCommand = new DelegateCommand<object>(this.AddAnimationElement, this.CanAddAnimationElement);
-            this.RemoveAnimationCommand = new DelegateCommand<object>(this.RemoveAnimation, this.CanRemoveAnimation);
+            ;
+            this.AddAnimationElementCommand = new DelegateCommand<object>(delegate(object state) { EditingAnimationType = (AnimationElementType) state;  this.AddAnimationElement(); }, this.CanAddAnimationElement);
+            this.RemoveAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.RemoveAnimation(); }, this.CanRemoveAnimation);
             this.UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
             this.SubmitAnimationElementRenameCommand = new DelegateCommand<object>(this.SubmitAnimationElementRename);
             this.EnterAnimationElementEditModeCommand = new DelegateCommand<object>(this.EnterAnimationElementEditMode, this.CanEnterAnimationElementEditMode);
             this.CancelAnimationElementEditModeCommand = new DelegateCommand<object>(this.CancelAnimationElementEditMode);
-            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(this.DemoAnimatedAbility, this.CanDemoAnimation);
-            this.DemoAnimationCommand = new DelegateCommand<object>(this.DemoAnimation, this.CanDemoAnimation);
-            this.CloneAnimationCommand = new DelegateCommand<object>(this.CloneAnimation, this.CanCloneAnimation);
-            this.CutAnimationCommand = new DelegateCommand<object>(this.CutAnimation, this.CanCutAnimation);
-            this.PasteAnimationCommand = new DelegateCommand<object>(this.PasteAnimation, this.CanPasteAnimation);
+            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.DemoAnimatedAbility(); }, this.CanDemoAnimation);
+            this.DemoAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.DemoAnimation(); }, this.CanDemoAnimation);
+            this.CloneAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.CloneAnimation(); }, this.CanCloneAnimation);
+            this.CutAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.CutAnimation(); }, this.CanCutAnimation);
+            this.PasteAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.PasteAnimation(); }, this.CanPasteAnimation);
             this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType, this.CanUpdateReferenceType);
-            this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(this.ConfigureAttackAnimation, this.CanConfigureAttackAnimation);
-            this.ConfigureUnitPauseCommand = new DelegateCommand<object>(this.ConfigureUnitPause, this.CanConfigureUnitPause);
+            this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(delegate (object state) { DemoingType = (AnimationType)state; this.ConfigureAttackAnimation();}, this.CanConfigureAttackAnimation);
+            this.ConfigureUnitPauseCommand = new DelegateCommand<object>(delegate (object state) { this.ConfigureUnitPause(); }, this.CanConfigureUnitPause);
         }
 
         #endregion
@@ -830,7 +831,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     RenameAbility(updatedName);
                     OnEditModeLeave(state, null);
-                    this.SaveAbility(null);
+                    this.SaveAbility();
                     this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
                 }
                 else
@@ -886,7 +887,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 (this.SelectedAnimationElement as PauseElement).DisplayName = "Pause " + pausePeriod.ToString();
                 this.OriginalAnimationDisplayName = "";
                 OnEditModeLeave(state, null);
-                this.SaveAbility(null);
+                this.SaveAbility();
             }
         }
         #endregion
@@ -898,17 +899,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return !Helper.GlobalVariables_IsPlayingAttack; 
         }
 
-        private void AddAnimationElement(object state)
+        private void AddAnimationElement()
         {
             AnimationElementType animationType = EditingAnimationType;
-            if(state != null)
-            {
-                animationType = (AnimationElementType)state; // Poor fix. Will need to change this mechanism later.
-            } 
+            animationType = EditingAnimationType; // Poor fix. Will need to change this mechanism later.
+            
             AnimationElement animationElement = this.GetAnimationElement(animationType);
             this.AddAnimationElement(animationElement);
             OnAnimationAdded(animationElement, null);
-            this.SaveAbility(null);
+            this.SaveAbility();
         }
 
         private void AddAnimationElement(AnimationElement animationElement)
@@ -1084,9 +1083,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private void SaveAbility(object state)
+        private void SaveAbility()
         {
-            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(state);
+            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
             //this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
         }
 
@@ -1219,7 +1218,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.CurrentSequenceElement.DisplayName = "Sequence: " + this.CurrentSequenceElement.SequenceType.ToString();
             }
-            this.SaveAbility(state);
+            this.SaveAbility();
         }
         #endregion
 
@@ -1230,7 +1229,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return this.SelectedAnimationElement != null && !Helper.GlobalVariables_IsPlayingAttack; 
         }
 
-        private void RemoveAnimation(object state)
+        private void RemoveAnimation()
         {
             this.LockModelAndMemberUpdate(true);
             if (this.SelectedAnimationParent != null)
@@ -1241,7 +1240,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.CurrentAbility.RemoveAnimationElement(this.SelectedAnimationElement.Name);
             }
-            this.SaveAbility(null);
+            this.SaveAbility();
             this.LockModelAndMemberUpdate(false);
         }
 
@@ -1300,13 +1299,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return !Helper.GlobalVariables_IsPlayingAttack;
         }
 
-        private void DemoAnimatedAbility(object state)
+        private void DemoAnimatedAbility()
         {
             Character currentTarget = GetCurrentTarget();
             this.CurrentAbility.Play(Target: currentTarget);
         }
 
-        private void DemoAnimation(object state)
+        private void DemoAnimation()
         {
             Character currentTarget = GetCurrentTarget();
             if (this.SelectedAnimationElement != null)
@@ -1356,7 +1355,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             return (this.SelectedAnimationElement != null || (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0)) && !Helper.GlobalVariables_IsPlayingAttack; 
         }
-        private void CloneAnimation(object state)
+        private void CloneAnimation()
         {
             if (this.SelectedAnimationElement != null)
                 Helper.GlobalClipboardObject = this.SelectedAnimationElement; // any animation element
@@ -1372,7 +1371,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             return (this.SelectedAnimationElement != null) && !Helper.GlobalVariables_IsPlayingAttack; 
         }
-        private void CutAnimation(object state)
+        private void CutAnimation()
         {
             if (this.SelectedAnimationParent != null)
             {
@@ -1467,7 +1466,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return canPaste;
         }
-        private void PasteAnimation(object state)
+        private void PasteAnimation()
         {
             // Lock animation Tree from updating
             this.LockModelAndMemberUpdate(true);
@@ -1482,7 +1481,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             (animationElement as AnimationElement).DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
                         this.AddAnimationElement(animationElement as AnimationElement);
                         OnAnimationAdded(animationElement, null);
-                        this.SaveAbility(null);
+                        this.SaveAbility();
                         break;
                     }
                 case ClipboardAction.Cut:
@@ -1495,7 +1494,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             (animationElement as AnimationElement).DisplayName = "Sequence: " + (animationElement as SequenceElement).SequenceType.ToString();
                         this.AddAnimationElement(animationElement as AnimationElement);
                         OnAnimationAdded(animationElement, new CustomEventArgs<bool>() { Value = false });
-                        this.SaveAbility(null);
+                        this.SaveAbility();
                         break;
                     }
             }
@@ -1530,7 +1529,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     sequenceElement.Name = AnimatedAbility.GetAppropriateAnimationName(sequenceElement.Type, flattenedList);
                     if (sequenceElement is SequenceElement && string.IsNullOrEmpty((sequenceElement as AnimationElement).DisplayName))
                         (sequenceElement as AnimationElement).DisplayName = "Sequence: " + (sequenceElement as SequenceElement).SequenceType.ToString();
-                    this.RemoveAnimation(null);
+                    this.RemoveAnimation();
                     if (this.SelectedAnimationElement is SequenceElement)
                         (this.SelectedAnimationElement as SequenceElement).AddAnimationElement(sequenceElement, order);
                     else if (this.SelectedAnimationParent is SequenceElement)
@@ -1538,7 +1537,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     else
                         this.CurrentAbility.AddAnimationElement(sequenceElement, order);
                     OnAnimationAdded(sequenceElement, null);
-                    this.SaveAbility(null);
+                    this.SaveAbility();
                     this.CurrentReferenceElement = null;
                     this.IsReferenceAbilitySelected = false;
                     this.LockModelAndMemberUpdate(false);
@@ -1555,7 +1554,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return Helper.GlobalVariables_IsPlayingAttack == false;
         }
 
-        private void ConfigureUnitPause(object state)
+        private void ConfigureUnitPause()
         {
             if(this.CurrentPauseElement != null)
             {
@@ -1564,7 +1563,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 else
                     this.CurrentPauseElement.DisplayName = "Pause " + this.CurrentPauseElement.Time.ToString();                
             }
-            this.SaveAbility(state);
+            this.SaveAbility();
         } 
 
         #endregion
@@ -1585,18 +1584,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return canConfigureAttack;
         }
 
-        private void ConfigureAttackAnimation(object state)
+        private void ConfigureAttackAnimation()
         {
-            // Another quick and dirty fix for now, will have to change during final refactor. Commands should not be hooked to hook. The methods should
-            if (state != null)
-            {
-                if (state.ToString() == "Attack")
-                    DemoingType = AnimationType.Attack;
-                else if (state.ToString() == "OnHit")
-                    DemoingType = AnimationType.OnHit;
-            }
-
-            if (DemoingType == AnimationType.Standard)
+         if (DemoingType == AnimationType.Standard)
             {
                 if (this.CurrentAttackAbility.IsAttack)
                 {
@@ -1609,7 +1599,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.IsHitSelected = false;
                 this.CurrentAbility = this.CurrentAttackAbility;
                 this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
-                this.SaveAbility(null);
+                this.SaveAbility();
             }
             else if (DemoingType == AnimationType.Attack) 
             {
@@ -1657,7 +1647,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (sourceElement as AnimationElement).DisplayName = "Sequence: " + (sourceElement as SequenceElement).SequenceType.ToString();
                 destinationElementParent.AddAnimationElement(sourceElement as AnimationElement, order);
                 OnAnimationAdded(sourceElement, new CustomEventArgs<bool>() { Value = false });
-                this.SaveAbility(null);
+                this.SaveAbility();
             }
         }
         /// <summary>
@@ -1676,7 +1666,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 animationElement.DisplayName = GetDisplayNameFromResourceName(referenceAbility.Name);
                 destinationElementParent.AddAnimationElement(animationElement, order);
                 OnAnimationElementDraggedFromGrid(animationElement, null);
-                SaveAbility(null);
+                SaveAbility();
                 this.CloneAnimationCommand.RaiseCanExecuteChanged();
             }
         }
@@ -1687,75 +1677,75 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         AnimationElementType EditingAnimationType = AnimationElementType.FX;
         AnimationType DemoingType = AnimationType.Standard;
-        internal override DelegateCommand<object> RetrieveCommandFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             
             var isAddAnimationElementKeyDown = (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == ModifierKeys.Alt;
             if (InputKey == Key.M && isAddAnimationElementKeyDown)
             {
                 EditingAnimationType = AnimationElementType.Movement;
-                    return AddAnimationElementCommand;
+                    return AddAnimationElement;
             }
             else if (InputKey == Key.F && isAddAnimationElementKeyDown)
             {
                 EditingAnimationType = AnimationElementType.FX;
-                return AddAnimationElementCommand;
+                return AddAnimationElement;
             }
             else if (InputKey == Key.S && isAddAnimationElementKeyDown)
             {
                 EditingAnimationType = AnimationElementType.Sound;
-                return AddAnimationElementCommand;
+                return AddAnimationElement;
             }
             else if (InputKey == Key.Q && isAddAnimationElementKeyDown)
             {
                EditingAnimationType = AnimationElementType.Sequence;
-               return AddAnimationElementCommand;
+               return AddAnimationElement;
             }
             else if (InputKey == Key.R && isAddAnimationElementKeyDown)
             {
                 EditingAnimationType = AnimationElementType.Reference;
-                return AddAnimationElementCommand;
+                return AddAnimationElement;
             }
             else if (InputKey == Key.P && isAddAnimationElementKeyDown)
             {
                 EditingAnimationType = AnimationElementType.Pause;
-                return AddAnimationElementCommand;
+                return AddAnimationElement;
             }
             else if (InputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Alt)
             {
-                 return DemoAnimatedAbilityCommand;
+                 return DemoAnimatedAbility;
             }
             else if (InputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
-                return CloneAnimationCommand; 
+                return CloneAnimation; 
             }
             else if (InputKey == Key.X && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
-                return CutAnimationCommand;
+                return CutAnimation;
             }
             else if (InputKey == Key.V && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
                 EditingAnimationType = AnimationElementType.FX;
-                return PasteAnimationCommand;
+                return PasteAnimation;
             }
             else if ((InputKey == Key.Back) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
-                return RemoveAnimationCommand;
+                return RemoveAnimation;
             }
             else if (InputKey == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
-                return DemoAnimationCommand;
+                return DemoAnimation;
             }
             else if (InputKey == Key.A && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
                 DemoingType = AnimationType.Attack;
-                return ConfigureAttackAnimationCommand;
+                return ConfigureAttackAnimation;
                     
             }
             else if (InputKey == Key.H && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
                 DemoingType = AnimationType.OnHit;
-                return ConfigureAttackAnimationCommand;
+                return ConfigureAttackAnimation;
             }
             return null;
         }
