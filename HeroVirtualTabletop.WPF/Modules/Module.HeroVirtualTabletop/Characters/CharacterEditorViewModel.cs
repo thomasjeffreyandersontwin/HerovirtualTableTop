@@ -31,6 +31,8 @@ namespace Module.HeroVirtualTabletop.Characters
     {
         #region Private Fields
 
+        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
+        { return null; }
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
@@ -131,8 +133,8 @@ namespace Module.HeroVirtualTabletop.Characters
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
             this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
             this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
-            this.AddOptionGroupCommand = new DelegateCommand<object>(this.AddOptionGroup, this.CanAddOptionGroup);
-            this.RemoveOptionGroupCommand = new DelegateCommand<object>(this.RemoveOptionGroup, this.CanRemoveOptionGroup);
+            this.AddOptionGroupCommand = new DelegateCommand<object>(delegate (object state) { this.AddOptionGroup(); }, this.CanAddOptionGroup);
+            this.RemoveOptionGroupCommand = new DelegateCommand<object>(delegate (object state) { this.RemoveOptionGroup(); }, this.CanRemoveOptionGroup);
             this.SaveCharacterCommand = new DelegateCommand<object>(this.SaveCharacter, this.CanSaveCharacter);
         }
         
@@ -416,7 +418,7 @@ namespace Module.HeroVirtualTabletop.Characters
             return SelectedOptionGroup != null && SelectedOptionGroup.Name != Constants.ABILITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.IDENTITY_OPTION_GROUP_NAME && SelectedOptionGroup.Name != Constants.MOVEMENT_OPTION_GROUP_NAME && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
-        private void RemoveOptionGroup(object obj)
+        private void RemoveOptionGroup()
         {
             IOptionGroup toBeRemoved = SelectedOptionGroup;
             this.EditedCharacter.RemoveOptionGroup(toBeRemoved);
@@ -424,7 +426,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
 
-        private void AddOptionGroup(object obj)
+        private void AddOptionGroup()
         {
             string baseName = "Custom Option Group";
             string validName = baseName;
@@ -462,25 +464,23 @@ namespace Module.HeroVirtualTabletop.Characters
         #endregion
 
         #region Keyboard Hooks
-        
-        internal override void ExecuteKeyBoardEventRelatedLogic(System.Windows.Forms.Keys vkCode)
+
+        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             if (this.EditedCharacter != null)
             {
-                var inputKey = GetKeyFromCode(vkCode);
-                    
+                var inputKey = InputKey;
+
                 if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                 {
-                    if (this.AddOptionGroupCommand.CanExecute(null))
-                        this.AddOptionGroupCommand.Execute(null);
+                    return this.AddOptionGroup;
                 }
                 else if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                 {
-                    if (this.RemoveOptionGroupCommand.CanExecute(null))
-                        this.RemoveOptionGroupCommand.Execute(null);
+                    return RemoveOptionGroup;
                 }
             }
-            
+            return null;
         }
 
         #endregion

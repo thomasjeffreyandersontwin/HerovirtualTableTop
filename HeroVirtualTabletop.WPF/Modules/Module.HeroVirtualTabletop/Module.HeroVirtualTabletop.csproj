@@ -166,6 +166,7 @@
     <Compile Include="Library\Converters\IdentityTypeConverter.cs" />
     <Compile Include="Library\Converters\MovementConverters.cs" />
     <Compile Include="Library\Events\Events.cs" />
+    <Compile Include="Library\ProcessCommunicator\HoveredElement.cs" />
     <Compile Include="Library\Sevices\ITargetObserver.cs" />
     <Compile Include="Library\Sevices\TargetObserver.cs" />
     <Compile Include="Library\Utility\DllInjector.cs" />

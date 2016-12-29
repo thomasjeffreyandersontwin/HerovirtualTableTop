@@ -133,6 +133,8 @@ namespace Module.HeroVirtualTabletop.Library
             if (defendingCharacters != null && defendingCharacters.Count > 0)
             {
                 this.LoadActiveAttackWidget(tuple);
+                IntPtr foregroundWindow = WindowsUtilities.FindWindow(null, "MainWindow");
+                WindowsUtilities.SetForegroundWindow(foregroundWindow);
             }
             else // blank target
             {
@@ -146,12 +148,16 @@ namespace Module.HeroVirtualTabletop.Library
         {
             if (tuple.Item1 != null && tuple.Item2 != null && PopupService.IsOpen("ActiveAttackView") == false)
             {
+                
+
                 System.Windows.Style style = Helper.GetCustomWindowStyle();
                 ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
                 var position = System.Windows.Forms.Cursor.Position;
                 Mouse.OverrideCursor = Cursors.Arrow; 
                 PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
                 this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Publish(tuple);
+                
+
             }
             else if ((tuple.Item1 == null || tuple.Item2 == null) && PopupService.IsOpen("ActiveAttackView"))
             {

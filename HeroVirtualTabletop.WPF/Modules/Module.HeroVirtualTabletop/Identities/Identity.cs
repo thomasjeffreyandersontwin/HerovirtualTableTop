@@ -144,7 +144,7 @@ namespace Module.HeroVirtualTabletop.Identities
             return keybind;
         }
 
-        public string RenderWoAnimation(bool completeEvent = true)
+        public string RenderWithoutAnimation(bool completeEvent = true)
         {
             string keybind = string.Empty;
             switch (Type)
@@ -162,7 +162,7 @@ namespace Module.HeroVirtualTabletop.Identities
             }
             if (completeEvent)
             {
-                keybind = keyBindsGenerator.CompleteEvent();
+                keybind = keyBindsGenerator.CompleteEvent(false);
             }
             return keybind;
         }

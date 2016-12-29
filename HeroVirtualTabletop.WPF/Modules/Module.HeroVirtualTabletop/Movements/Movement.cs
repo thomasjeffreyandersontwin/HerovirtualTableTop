@@ -215,8 +215,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             {
                                 DeactivateMovement();
                                 this.Character.ActiveMovement = null;
-                            }
-                                                      
+                            }                        
                             else if (inputKey == Key.Left || inputKey == Key.Right || inputKey == Key.Up || inputKey == Key.Down)
                             {
                                 MovementDirection turnDirection = GetTurnAxisDirectionFromKey(inputKey);
@@ -1706,7 +1705,7 @@ namespace Module.HeroVirtualTabletop.Movements
                         se.Play(false, target);
                     }
                     else
-                        ae.Play();
+                        ae.Play(false, target);
                 }
                 target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
             }

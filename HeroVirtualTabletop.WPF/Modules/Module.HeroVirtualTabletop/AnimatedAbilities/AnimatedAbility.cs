@@ -94,27 +94,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return clonedAbility;
         }
 
-        public static string GetAppropriateAnimationName(AnimationType animationType, List<AnimationElement> collection)
+        public static string GetAppropriateAnimationName(AnimationElementType animationType, List<AnimationElement> collection)
         {
             string name = "";
             switch (animationType)
             {
-                case AnimationType.Movement:
+                case AnimationElementType.Movement:
                     name = "Mov Element";
                     break;
-                case AnimationType.FX:
+                case AnimationElementType.FX:
                     name = "FX Element";
                     break;
-                case AnimationType.Pause:
+                case AnimationElementType.Pause:
                     name = "Pause Element";
                     break;
-                case AnimationType.Sequence:
+                case AnimationElementType.Sequence:
                     name = "Seq Element";
                     break;
-                case AnimationType.Sound:
+                case AnimationElementType.Sound:
                     name = "Sound Element";
                     break;
-                case AnimationType.Reference:
+                case AnimationElementType.Reference:
                     name = "Ref Element";
                     break;
             }
@@ -261,6 +261,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = false;
             base.Stop(Target);
         }
+        public override void DeActivate(Character Target = null)
+        {
+            IsActive = false;
+            base.DeActivate(Target);
+        }
 
         public string InitiateAttack(bool persistent = false, Character target = null)
         {
@@ -301,7 +306,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.SetAttackDirection(direction);
             this.SetAttackerFacing(direction, attacker);
-            base.Play(false, attacker, true); // forceplay true as this is an attack and needs to play immediately
+            base.Play(false, attacker);
             // Reset FX direction
             this.SetAttackDirection(null);
         }
@@ -343,7 +348,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AttackDirection direction = new AttackDirection();
             int attackDelay = 0;
             float distance = 0;
-            PauseElement unitPauseElement = this.AnimationElements.LastOrDefault(a => a.Type == AnimationType.Pause && (a as PauseElement).IsUnitPause) as PauseElement;
+            PauseElement unitPauseElement = this.AnimationElements.LastOrDefault(a => a.Type == AnimationElementType.Pause && (a as PauseElement).IsUnitPause) as PauseElement;
             if (defendingCharacters == null || defendingCharacters.Count == 0)
             {
                 var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
@@ -533,7 +538,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 AnimationElement hitElement = anim.Clone();
                 hitElement.Name = GetAppropriateAnimationName(hitElement.Type, hitMissSequenceElement.AnimationElements.ToList());
-                if (hitElement.Type == AnimationType.Movement || hitElement.Type == AnimationType.FX)
+                if (hitElement.Type == AnimationElementType.Movement || hitElement.Type == AnimationElementType.FX)
                     knockbackPlaySequence = hitElement.Order;
                 hitMissSequenceElement.AddAnimationElement(hitElement);
                 characterAnimationMappingDictionary.Add(hitElement, hitTargets);
@@ -714,7 +719,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             // now make all MOVs and FXs to play with next, except the last one so that they play together
             AnimationElement lastMovOrFx = null;
-            foreach (var movOrFxElement in attackEffectSequenceElement.AnimationElements.Where(a => a.Type == AnimationType.FX || a.Type == AnimationType.Movement))
+            foreach (var movOrFxElement in attackEffectSequenceElement.AnimationElements.Where(a => a.Type == AnimationElementType.FX || a.Type == AnimationElementType.Movement))
             {
                 movOrFxElement.PlayWithNext = true;
                 lastMovOrFx = movOrFxElement;

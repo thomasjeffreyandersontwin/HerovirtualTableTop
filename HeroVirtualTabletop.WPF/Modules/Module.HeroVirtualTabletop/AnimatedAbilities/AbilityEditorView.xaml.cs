@@ -20,8 +20,7 @@ using Xceed.Wpf.Toolkit;
 using Module.Shared;
 using System.Windows.Controls.Primitives;
 
-namespace Module.HeroVirtualTabletop.AnimatedAbilities
-{
+namespace Module.HeroVirtualTabletop.AnimatedAbilities { 
     /// <summary>
     /// Interaction logic for AbilityEditorView.xaml
     /// </summary>
@@ -770,5 +769,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return curIndex;
         }
         #endregion
+
+        private void btnFXAnimation_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

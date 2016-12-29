@@ -162,13 +162,32 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
             return KeyBindsGenerator.generatedKeybindText;
         }
 
-        public string CompleteEvent()
+        public string CompleteEvent(bool preventLoadCostumeWithoutTarget = true)
         {
             string command = string.Empty;
             string generatedKeyBindText = string.Empty;
 
             command = PopEvents();
 
+            if (preventLoadCostumeWithoutTarget)
+            {
+                // HACK: Prevent loading costume without targetting first
+                if (command.Contains(keyBindsStrings[GameEvent.LoadCostume]))
+                {
+                    var loadCostumeIndex = command.IndexOf("$$load_costume");
+                    if (loadCostumeIndex > 0)
+                    {
+                        var prevCommand = command.Substring(0, loadCostumeIndex);
+                        if (string.IsNullOrEmpty(prevCommand) || !prevCommand.Contains(keyBindsStrings[GameEvent.TargetName]))
+                        {
+                            return "";
+                        }
+                    }
+                    else
+                        return "";
+                } 
+            }
+            
             //generatedKeyBindText = triggerKey + " " + command;
 
             IconInteractionUtility.ExecuteCmd(command);

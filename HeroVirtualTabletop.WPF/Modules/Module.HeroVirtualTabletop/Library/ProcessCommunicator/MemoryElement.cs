@@ -33,6 +33,16 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             }
         }
 
+        public string Name {
+            get
+            {
+                string label = Label;
+                int start = 7;
+                int end = 1 + label.IndexOf("]", start);
+                return label.Substring(start, end - start);
+            }
+        }
+    
         public IMemoryElementPosition Position
         {
             get;
