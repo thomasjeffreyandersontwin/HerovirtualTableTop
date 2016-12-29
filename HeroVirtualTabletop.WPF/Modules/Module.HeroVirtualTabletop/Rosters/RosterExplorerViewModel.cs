@@ -84,16 +84,12 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        #region Events
-
         public event EventHandler RosterMemberAdded;
         public void OnRosterMemberAdded(object sender, EventArgs e)
         {
             if (RosterMemberAdded != null)
                 RosterMemberAdded(sender, e);
         }
-
-        #endregion
 
         #region Public Properties
 
@@ -459,8 +455,8 @@ namespace Module.HeroVirtualTabletop.Roster
             return null;
         }
 
-        
-        #region Command Implementation
+        #endregion
+        #region Event Implementation
         internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
         {
             EventMethod handler = null;
@@ -510,7 +506,6 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return handler;
         }
-
         internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
         {
             var inputKey = InputKey;
@@ -1836,6 +1831,6 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #endregion
-        #endregion
+        
     }
 }
