@@ -51,15 +51,12 @@ namespace Module.HeroVirtualTabletop.Roster
         private IMessageBoxService messageBoxService;
         private ITargetObserver targetObserver;
         public EventAggregator EventAggregator;
-        //private FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
-
+        
         private Attack _currentAttack = null;
         public Character AttackingCharacter = null;
         private bool _isPlayingAttack = false;
-        
 
         private bool _isCharacterReset = false;
-        
 
         public bool IsCharacterDragDropInProgress = false;
         private Character _currentDraggingCharacter = null;
@@ -70,7 +67,6 @@ namespace Module.HeroVirtualTabletop.Roster
         private List<Character> _targetCharactersForMove = new List<Character>();
         private List<Character> _targetCharacters = new List<Character>();
         private List<CrowdMemberModel> _oldSelection = new List<CrowdMemberModel>();
-
 
         Character lastTargetedCharacter = null;
         private Character previousSelectedCharacter = null;
@@ -171,29 +167,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 isCyclingCommandsThroughCrowd = value;
                 OnPropertyChanged("IsCyclingCommandsThroughCrowd");
             }
-        }
-
-        public bool ShowAttackContextMenu
-        {
-            get
-            {
-                bool showAttackContextMenu = false;
-                if (DesktopContextMenu.IsPlayingAreaEffect && this.SelectedParticipants != null && this.SelectedParticipants.Count > 0)
-                {
-                    showAttackContextMenu = true;
-                    foreach (var participant in this.SelectedParticipants)
-                    {
-                        if (!(participant as Character).HasBeenSpawned)
-                        {
-                            showAttackContextMenu = false;
-                            break;
-                        }
-                    }
-                }
-
-                return showAttackContextMenu;
-            }
-        }
+        }     
 
         public bool IsSingleSpawnedCharacterSelected
         {
@@ -224,16 +198,9 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> AreaAttackTargetAndExecuteCommand { get; private set; }
         public DelegateCommand<object> ResetOrientationCommand { get; private set; }
         public DelegateCommand<object> CycleCommandsThroughCrowdCommand { get; private set; }
-
         public DelegateCommand<object> TargetHoveredCharacterCommand { get; private set; }
-        //public AsyncDelegate<object> ContinueDraggingCharacterCommand { get; private set; }
         public DelegateCommand<object> DropDraggedCharacterCommand { get; private set; }
-        //public AsyncDelegate<object> PlayAttackCycleCommand { get; private set; }
-        //public DelegateCommand<object> DisplayCharacterPopupMenueCommand { get; private set; }
-        //public DelegateCommand<object> PlayDefaultAbilityCommand { get; private set; }
-        //public DelegateCommand<object> GetHoveredCharacterCommand { get; private set; }
-        //public AsyncDelegate<object> PlayAttackAtDesktopPositionClickedCommand { get; private set; }
-        //public AsyncDelegate<object> MoveCharacterToDesktopPositionClickedCommand { get; private set; }
+
 
        
         #endregion
@@ -242,6 +209,7 @@ namespace Module.HeroVirtualTabletop.Roster
             : base(busyService, container)
         {
             DesktopContextMenu = new DesktopContextMenu(this);
+
             this.EventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             this.targetObserver = targetObserver;
@@ -290,17 +258,6 @@ namespace Module.HeroVirtualTabletop.Roster
             this.AreaAttackTargetAndExecuteCommand = new DelegateCommand<object>(this.TargetAndExecuteAreaAttack);
             this.ResetOrientationCommand = new DelegateCommand<object>(delegate (object state) { this.ResetOrientation(); }, this.CanResetOrientation);
             this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(delegate (object state) { this.CycleCommandsThroughCrowd(); }, this.CanCycleCommandsThroughCrowd);
-
-            //this.TargetHoveredCharacterCommand = new DelegateCommand<object>(this.TargetHoveredCharacter, this.CanDo);
-            //this.ContinueDraggingCharacterCommand = new AsyncDelegateCommand<object>(this.ContinueDraggingCharacter, this.CanDo);
-            //this.DropDraggedCharacterCommand = new DelegateCommand<object>(this.DropDraggedCharacter, this.CanDo);
-            //this.PlayAttackCycleCommand = new AsyncDelegateCommand<object>(this.PlayAttackCycle, this.CanDo);
-            //this.DisplayCharacterPopupMenueCommand = new DelegateCommand<object>(this.DisplayCharacterPopupMenue, this.CanDo);
-            //this.PlayDefaultAbilityCommand = new DelegateCommand<object>(this.PlayDefaultAbility, this.CanDo);
-            //this.GetHoveredCharacterCommand = new DelegateCommand<object>(this.PlayDefaultAbility, this.CanDo);
-
-            //this.MoveCharacterToDesktopPositionClickedCommand = new AsyncDelegateCommand<object>(this.MoveCharacterToDesktopPositionClicked, this.CanDo);
-            //this.GetHoveredCharacterCommand = new DelegateCommand<object>(this.MoveCharacterToDesktopPositionClicked, this.CanDo);
         }
 
         #region Methods

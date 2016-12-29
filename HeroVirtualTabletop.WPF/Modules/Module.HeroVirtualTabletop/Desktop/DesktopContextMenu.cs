@@ -61,6 +61,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         {
             Character = character;
             GenerateAndDisplay();
+            ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
 
         public void GenerateMenu()
