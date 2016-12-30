@@ -235,9 +235,6 @@ namespace Module.HeroVirtualTabletop.Roster
 
             InitializeCommands();
             ActivateKeyboardHook();
-            
-
-            
         }
         private void InitializeCommands()
         {
@@ -411,6 +408,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
         #endregion
+
         #region Event Implementation
         internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
         {
