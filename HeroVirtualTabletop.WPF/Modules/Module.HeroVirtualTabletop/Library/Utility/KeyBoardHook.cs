@@ -120,8 +120,51 @@ namespace Module.HeroVirtualTabletop.Library.Utility
     }
 
     public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+    
     public abstract class Hooker : BaseViewModel
     {
+        public delegate void MouseSubscriber();
+        public List<MouseSubscriber> OnMouseLeftClick = new List<MouseSubscriber>();
+        public List<MouseSubscriber> OnMouseRightClick = new List<MouseSubscriber>();
+        public List<MouseSubscriber> OnMouseRightClickUp = new List<MouseSubscriber>();
+        public List<MouseSubscriber> OnMouseLeftClickUp = new List<MouseSubscriber>();
+        public List<MouseSubscriber> OnMouseDoubleClick = new List<MouseSubscriber>();
+        public List<MouseSubscriber> OnMouseTripleClick = new List<MouseSubscriber>();
+        public List<MouseSubscriber> OnMouseMove = new List<MouseSubscriber>();
+
+        public void FireMouseLeftClick()
+        {
+            fireEvent(OnMouseRightClick);
+        }
+        public void FireMouseRightClick()
+        {
+            fireEvent(OnMouseRightClick);
+            
+        }
+        public void FireMouseLeftClickUp()
+        {
+            fireEvent(OnMouseLeftClick);
+        }
+        public void FireMouseMove()
+        {
+            fireEvent(OnMouseMove);
+        }
+        public void FireMouseDoubleClick()
+        {
+            fireEvent(OnMouseDoubleClick);
+        }
+        public void FireMouseTripleCLick()
+        {
+            fireEvent(OnMouseTripleClick);
+        }
+        private void fireEvent(List<MouseSubscriber> subs)
+        {
+            foreach (MouseSubscriber m in subs)
+            {
+                System.Windows.Application.Current.Dispatcher.BeginInvoke(m);
+            }
+        }
+
         public IntPtr hookID;
         public IntPtr mouseHookID;
         public Keys vkCode;
@@ -129,6 +172,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 2);
         public System.Timers.Timer DoubleTripleQuadMouseClicksTracker = new System.Timers.Timer();
 
+        
         public Hooker(IBusyService busyService, IUnityContainer container) : base(busyService, container)
         {
 

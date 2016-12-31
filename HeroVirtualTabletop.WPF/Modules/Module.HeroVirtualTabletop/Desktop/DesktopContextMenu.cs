@@ -2,37 +2,22 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using Module.HeroVirtualTabletop.Crowds;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Threading;
+using Microsoft.Xna.Framework;
+using Module.Shared;
+using Module.Shared.Enumerations;
+using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Roster;
 using Module.HeroVirtualTabletop.Library.Events;
-using Microsoft.Xna.Framework;
-
-using Module.Shared;
-using Module.Shared.Enumerations;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
+
 namespace Module.HeroVirtualTabletop.Desktop
 {
-    
+
     class DesktopContextMenu
     {
         public static FileSystemWatcher ContextCommandFileWatcher;
@@ -50,7 +35,7 @@ namespace Module.HeroVirtualTabletop.Desktop
                 ContextCommandFileWatcher.IncludeSubdirectories = false;
                 ContextCommandFileWatcher.Filter = "*.txt";
                 ContextCommandFileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                ContextCommandFileWatcher.Changed += fileSystemWatcher_Changed;
+                ContextCommandFileWatcher.Changed += LaunchMethodBasedOnFileName;
             }
             DesktopContextMenu.ContextCommandFileWatcher.EnableRaisingEvents = false;
             CreateBindSaveFilesForContextCommands();
@@ -149,7 +134,7 @@ namespace Module.HeroVirtualTabletop.Desktop
             keyBindsGenerator.CompleteEvent();
         }
 
-        private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
+        private void LaunchMethodBasedOnFileName(object sender, FileSystemEventArgs e)
         {
             Action action = delegate ()
             {
@@ -245,6 +230,7 @@ namespace Module.HeroVirtualTabletop.Desktop
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
+            IsDisplayed = false;
         }
 
         public void CreateBindSaveFilesForContextCommands()

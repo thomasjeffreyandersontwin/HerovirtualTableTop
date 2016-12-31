@@ -1,4 +1,16 @@
-﻿using Framework.WPF.Behaviors;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Threading;
 using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
@@ -6,45 +18,27 @@ using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Microsoft.Xna.Framework;
+using Prism.Events;
+using Module.Shared;
+using Module.Shared.Enumerations;
+using Module.Shared.Events;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
 using Module.HeroVirtualTabletop.Desktop;
-using Module.HeroVirtualTabletop.Identities;
-using Module.HeroVirtualTabletop.Desktop;
+using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Library.Sevices;
 using Module.HeroVirtualTabletop.Library.Utility;
-using Module.HeroVirtualTabletop.Movements;
-using Module.HeroVirtualTabletop.OptionGroups;
-using Module.Shared;
-using Module.Shared.Enumerations;
-using Module.Shared.Events;
-using Prism.Events;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using System.Timers;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Threading;
+using Module.HeroVirtualTabletop.Desktop;
+
 
 namespace Module.HeroVirtualTabletop.Roster
 {
-    public class RosterExplorerViewModel : Hooker
+    public class RosterExplorerViewModel : BaseViewModel
     {
         #region Private Fields
         
@@ -52,6 +46,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private ITargetObserver targetObserver;
         public EventAggregator EventAggregator;
         
+        //refactor to attacking character
         private Attack _currentAttack = null;
         public Character AttackingCharacter = null;
         private bool _isPlayingAttack = false;
@@ -234,10 +229,17 @@ namespace Module.HeroVirtualTabletop.Roster
             });
 
             InitializeCommands();
-            ActivateKeyboardHook();
-            
 
-            
+            DesktopMouseEventHandler mouseHandler = new DesktopMouseEventHandler();
+            mouseHandler.OnMouseLeftClick.Add(RespondToMouseClickBasedOnDesktopState);
+            mouseHandler.OnMouseLeftClickUp.Add(DropDraggedCharacter);
+            mouseHandler.OnMouseRightClickUp.Add(DisplayCharacterPopupMenue);
+            mouseHandler.OnMouseMove.Add(TargetHoveredCharacter);
+            mouseHandler.OnMouseDoubleClick.Add(PlayDefaultAbility);
+            mouseHandler.OnMouseTripleClick.Add(ToggleManeuverWithCamera);
+
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+
         }
         private void InitializeCommands()
         {
@@ -346,7 +348,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
             }
         }
-        public void AddDesktopTargetToRosterSelection(CrowdMemberModel currentTarget)
+        public void AddDesktopTargetToRosterSelection(CrowdMemberModel currentTarget)   
         {
             Dispatcher.Invoke(() =>
             {
@@ -412,58 +414,9 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
         #region Event Implementation
-        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
+        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            EventMethod handler = null;
             
-            if (mouseState == Hooker.DesktopMouseState.MOUSE_MOVE)
-            {
-                handler = TargetHoveredCharacter;
-            }
-            else if (mouseState == Hooker.DesktopMouseState.RIGHT_CLICK_UP)
-            {
-                handler = DisplayCharacterPopupMenue;
-            }
-            else if (mouseState == Hooker.DesktopMouseState.LEFT_CLICK_UP)
-            {
-                handler = DropDraggedCharacter;
-            }
-            else if (mouseState == Hooker.DesktopMouseState.LEFT_CLICK)
-            {
-                if (this._isPlayingAttack == false)
-                {
-                    if (CharacterIsMoving == true)
-                    {
-                        handler = MoveCharacterToDesktopPositionClicked;
-                    }
-                    else
-                        handler = ContinueDraggingCharacter;
-                }
-                else if (this._isPlayingAttack == true)
-                {
-                    if (DesktopContextMenu.IsDisplayed == false)
-                    {
-                        handler = PlayAttackCycle;
-                    }
-                    else
-                    {
-                        DesktopContextMenu.IsDisplayed = false;
-                    }
-                }
-            }
-            else if (mouseState == Hooker.DesktopMouseState.DOUBLE_CLICK)
-            {
-                handler = PlayDefaultAbility;
-            }
-            else if (mouseState == Hooker.DesktopMouseState.TRIPLE_CLICK)
-            {
-                handler = ToggleManeuverWithCamera;
-            }
-            return handler;
-        }
-        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
-        {
-            var inputKey = InputKey;
             if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 return this.Place;
@@ -640,21 +593,40 @@ namespace Module.HeroVirtualTabletop.Roster
                     Vector3 mouseDirection = new MouseElement().Position;
                     AttackDirection direction = new AttackDirection(mouseDirection);
                     this._currentAttack.AnimateAttack(direction, AttackingCharacter);
-                    DesktopContextMenu.IsDisplayed = false; 
                 }
             }
+            
         }
-        private void MoveCharacterToDesktopPositionClicked()
+        public void MoveCharacterToDesktopPositionClicked()
         {
             Vector3 mouseDirection = new MouseElement().Position;
             Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
             Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
             if (target != null)
                 target.MoveToLocation(mouseDirection);
-            DesktopContextMenu.IsDisplayed = false;
         }
 
-        
+        public void RespondToMouseClickBasedOnDesktopState()
+        {
+            
+            if (DesktopContextMenu.IsDisplayed == false)
+            {
+                if (_isPlayingAttack == false)
+                {
+                    if (CharacterIsMoving == true)
+                    {
+                        MoveCharacterToDesktopPositionClicked();
+                    }
+                    else
+                        ContinueDraggingCharacter();
+                }
+                else if (_isPlayingAttack == true)
+                {
+ 
+                    PlayAttackCycle();
+                }
+            }
+        }
         #region Add Participants
         private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
         {
@@ -843,6 +815,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             SelectNextCharacterInCrowdCycle();
         }
+
 
         #endregion
 
@@ -1557,7 +1530,6 @@ namespace Module.HeroVirtualTabletop.Roster
             Mouse.OverrideCursor = Cursors.Arrow;
 
             this._currentAttack = null;
-            DesktopContextMenu.ContextCommandFileWatcher.EnableRaisingEvents = false;
             this.Commands_RaiseCanExecuteChanged();
         }
 

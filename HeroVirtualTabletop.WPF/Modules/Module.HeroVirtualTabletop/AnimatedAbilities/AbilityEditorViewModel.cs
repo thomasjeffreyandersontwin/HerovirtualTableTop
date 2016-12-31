@@ -493,7 +493,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private bool isAttackSelected;
+        private bool isAttackSelected=false;
         public bool IsAttackSelected
         {
             get

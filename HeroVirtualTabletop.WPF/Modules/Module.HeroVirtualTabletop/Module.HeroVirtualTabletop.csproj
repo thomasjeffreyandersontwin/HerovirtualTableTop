@@ -155,6 +155,8 @@
     </Compile>
     <Compile Include="Crowds\CrowdFromModelsViewModel.cs" />
     <Compile Include="Desktop\DesktopContextMenu.cs" />
+    <Compile Include="Desktop\DesktopKeyEventHandler.cs" />
+    <Compile Include="Desktop\DesktopMouseEventHandler.cs" />
     <Compile Include="Identities\Camera.cs" />
     <Compile Include="Identities\IdentityEditorView.xaml.cs">
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>
@@ -215,6 +217,7 @@
       <DependentUpon>ActiveCharacterWidgetView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Rosters\ActiveCharacterWidgetViewModel.cs" />
+    <Compile Include="Rosters\Roster.cs" />
     <Compile Include="Rosters\RosterExplorerViewModel.cs" />
     <Compile Include="Crowds\CharacterExplorerView.xaml.cs">
       <DependentUpon>CharacterExplorerView.xaml</DependentUpon>
