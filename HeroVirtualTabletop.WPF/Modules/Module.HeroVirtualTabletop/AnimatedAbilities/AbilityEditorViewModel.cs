@@ -185,6 +185,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     (value as AnimationElement).PropertyChanged += SelectedAnimationElement_PropertyChanged;
                 selectedAnimationElement = value;
                 OnPropertyChanged("SelectedAnimationElement");
+                OnPropertyChanged("IsAnimationElementSelected");
                 OnPropertyChanged("CanPlayWithNext");
                 if(selectedAnimationElement != null)
                     SetSavedUIFilter(selectedAnimationElement);
@@ -354,6 +355,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("EditableAnimationDisplayName");
             }
         }
+        public bool IsAnimationElementSelected
+        {
+            get
+            {
+                return this.SelectedAnimationElement != null;
+            }
+        }
+
 
         private ObservableCollection<AnimationResource> movResources;
         public ReadOnlyObservableCollection<AnimationResource> MOVResources { get; private set; }
@@ -537,6 +546,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> SubmitAbilityRenameCommand { get; private set; }
         public DelegateCommand<object> CancelAbilityEditModeCommand { get; private set; }
         public DelegateCommand<object> AddAnimationElementCommand { get; private set; }
+        public DelegateCommand<object> ChangePersistenceCommand { get; private set; }
         public DelegateCommand<object> SaveAbilityCommand { get; private set; }
         public DelegateCommand<object> RemoveAnimationCommand { get; private set; }
         public DelegateCommand<object> SaveSequenceCommand { get; private set; }
@@ -612,7 +622,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence, this.CanSaveSequence);
             this.EnterAbilityEditModeCommand = new DelegateCommand<object>(this.EnterAbilityEditMode);
             this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
-            ;
+            this.ChangePersistenceCommand = new DelegateCommand<object>(this.ChangePersistence);
             this.AddAnimationElementCommand = new DelegateCommand<object>(delegate(object state) { EditingAnimationType = (AnimationElementType) state;  this.AddAnimationElement(); }, this.CanAddAnimationElement);
             this.RemoveAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.RemoveAnimation(); }, this.CanRemoveAnimation);
             this.UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
@@ -1047,6 +1057,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return order;
         }
         
+
+        #endregion
+
+        #region Change Persistence
+
+        private void ChangePersistence(object state)
+        {
+            if(!IsAnimationElementSelected)
+            {
+                foreach (var element in CurrentAbility.AnimationElements)
+                    element.Persistent = CurrentAbility.Persistent;
+            }
+            else
+            {
+                if (SelectedAnimationElement.Persistent && !CurrentAbility.Persistent)
+                    CurrentAbility.Persistent = true;
+            }
+            SaveAbility();
+        }
 
         #endregion
 

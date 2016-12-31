@@ -559,7 +559,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return keyBindsGenerator.GetEvent();
         }
 
-        public override void Play(bool persistent = true, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             Stop(Target);
             GetKeybind(Target);
@@ -1053,14 +1053,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
-                    item.Play(this.Persistent || persistent, Target ?? this.Owner, forcePlay);
+                    item.Play(item.Persistent || persistent, Target ?? this.Owner, forcePlay);
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(this.Persistent || persistent, Target ?? this.Owner, forcePlay);
+                AnimationElements[chosen].Play(AnimationElements[chosen].Persistent || persistent, Target ?? this.Owner, forcePlay);
             }
         }
         public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
@@ -1072,14 +1072,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
-                    item.PlayOnLoad(this.Persistent || persistent, Target ?? this.Owner, costume);
+                    item.PlayOnLoad(item.Persistent || persistent, Target ?? this.Owner, costume);
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].PlayOnLoad(this.Persistent || persistent, Target ?? this.Owner, costume);
+                AnimationElements[chosen].PlayOnLoad(AnimationElements[chosen].Persistent || persistent, Target ?? this.Owner, costume);
             }
             OnPropertyChanged("IsActive");
         }
@@ -1362,7 +1362,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             string retVal = string.Empty;
             if (this.Reference != null)
             {
-                this.Reference.Play(this.Persistent || persistent, Target ?? this.Owner, forcePlay);
+                this.Reference.Play(persistent, Target ?? this.Owner, forcePlay); // persistence of ref element doesn't matter
             }
             OnPropertyChanged("IsActive");
         }
