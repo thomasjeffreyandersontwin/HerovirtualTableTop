@@ -1603,13 +1603,33 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.EventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this._targetCharacters, this._currentAttack));
         }
 
-        
+        public bool ShowAttackContextMenu
+        {
+            get
+            {
+                bool showAttackContextMenu = false;
+                if (DesktopContextMenu.IsPlayingAreaEffect && this.SelectedParticipants != null && this.SelectedParticipants.Count > 0)
+                {
+                    showAttackContextMenu = true;
+                    foreach (var participant in this.SelectedParticipants)
+                    {
+                        if (!(participant as Character).HasBeenSpawned)
+                        {
+                            showAttackContextMenu = false;
+                            break;
+                        }
+                    }
+                }
+
+                return showAttackContextMenu;
+            }
+        }
 
 
 
         #endregion
 
         #endregion
-        
+
     }
 }
