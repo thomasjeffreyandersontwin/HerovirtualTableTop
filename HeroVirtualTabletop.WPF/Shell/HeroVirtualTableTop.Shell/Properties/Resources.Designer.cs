@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace HeroVirtualTabletop.Shell.Properties {
+namespace HeroVirtualTableTop.Shell.Properties {
     using System;
     
     

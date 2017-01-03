@@ -159,7 +159,9 @@
     <Compile Include="Library\BaseTest.cs" />
     <Compile Include="Roster\RosterTestSuite.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Refactored\" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Frameworks\Framework.WPF\Framework.WPF.csproj">
       <Project>{8af7c885-3d47-4837-84b1-9761b9737f3f}</Project>
@@ -180,6 +182,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Choose>

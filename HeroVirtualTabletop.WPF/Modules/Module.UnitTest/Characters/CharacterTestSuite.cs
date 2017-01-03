@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using System.IO;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
-using Moq;
 using Module.HeroVirtualTabletop.Identities;
+using Moq;
 
 namespace Module.UnitTest.Characters
 {
