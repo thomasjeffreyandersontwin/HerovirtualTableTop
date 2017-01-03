@@ -74,6 +74,7 @@ namespace Module.HeroVirtualTabletop.Identities
         private static Identity skin;
 
         private static string[] lastKeybinds;
+
         public string[] LastKeybinds
         {
             get

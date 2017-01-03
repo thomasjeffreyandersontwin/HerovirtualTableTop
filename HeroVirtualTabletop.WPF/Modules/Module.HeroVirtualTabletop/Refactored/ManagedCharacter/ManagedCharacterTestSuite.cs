@@ -85,7 +85,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         {
             CharacterUnderTest = Factory.CharacterUnderTest;
             Mock<Camera> mocker = Mock.Get<Camera>(CharacterUnderTest.Camera);
-            mocker.Setup(p => p.MoveToCharacter(It.Is<ManagedCharacter>(x => x.Equals(CharacterUnderTest))));
+            mocker.Setup(p => p.MoveToTarget(true));
 
             CharacterUnderTest.TargetAndMoveCameraToCharacter();
             mocker.Verify();
@@ -103,14 +103,21 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
 
         [TestMethod]
-        public void SpawnToDesktop_RendersActiveIdentity() {
+        public void SpawnToDesktop_SpawnsDefaultModelThenRendersActiveIdentity() {
+            //arrange
             CharacterUnderTest = Factory.CharacterUnderTest;
 
+            //act
             CharacterUnderTest.SpawnToDesktop();
 
+            //assert
+            var mocker = Mock.Get<KeyBindCommandGenerator>(CharacterUnderTest.Generator);
+            string[] para = { "model_statesmen", CharacterUnderTest.Name };
+            mocker.Verify(x => x.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, para));
+        
             Identity active = CharacterUnderTest.Identities.Active;
-            Mock<Identity> mocker = Mock.Get(active);
-            mocker.Verify(x => x.Render(true));
+            Mock<Identity> idMocker = Mock.Get(active);
+            idMocker.Verify(x => x.Render(true));
 
         }
 
@@ -137,6 +144,8 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             Assert.AreEqual(CharacterUnderTest.IsManueveringWithCamera, false);
         }
+
+        [TestMethod]
         public void SpawnToDesktop__WithNoIdentityRendersCostumeWithNameOfCharacterAndCreatesDefaultIdentity() {
             CharacterUnderTest = Factory.CharacterUnderTestWithNoIdentities;
             CharacterUnderTest.SpawnToDesktop();
@@ -145,6 +154,8 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Assert.AreEqual(CharacterUnderTest.Name, newlyCreatedId.Name);
             Assert.AreEqual(CharacterUnderTest.Name, newlyCreatedId.Surface);
             Assert.AreEqual(newlyCreatedId.Type, SurfaceType.Costume);
+            Assert.AreEqual(newlyCreatedId.Owner, CharacterUnderTest);
+
 
             Mock<Identity> mocker = Mock.Get(newlyCreatedId);
             mocker.Verify(x => x.Render(true));
@@ -152,30 +163,181 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         }
 
-        public void ClearsFromDesktop_RemiovesCharacterFromDesktop() { }
-        public void ClearsFromDesktop_CLearsAllStateAndMemoryInstanceAndIdentity() { }
-        public void MoveCharacterToCamera_CharacterHasSamePositionAsCamera() { }
+        [TestMethod]
+        public void ClearsFromDesktop_RemovesCharacterFromDesktop() {
+            string[] para = { };
+            CharacterUnderTest = Factory.GetCharactersWithDependenciesMockedAndCommandGenerationSetup(DesktopCommand.DeleteNPC, para);
+
+            CharacterUnderTest.ClearFromDesktop();
+
+            Mock<KeyBindCommandGenerator> mocker = Mock.Get(CharacterUnderTest.Generator);
+            mocker.VerifyAll();
+
+        }
+
+        [TestMethod]
+        public void ClearsFromDesktop_CLearsAllStateAndMemoryInstanceAndIdentity() {
+            CharacterUnderTest = Factory.CharacterUnderTestWithNoIdentities;
+
+            CharacterUnderTest.ClearFromDesktop();
+
+            Assert.IsNull(CharacterUnderTest.MemoryInstance);
+            Assert.IsFalse(CharacterUnderTest.IsSpawned);
+            Assert.IsFalse(CharacterUnderTest.IsTargeted);
+            Assert.IsFalse(CharacterUnderTest.IsFollowed);
+            Assert.IsFalse(CharacterUnderTest.IsManueveringWithCamera);
+        }
+
+        [TestMethod]
+        public void MoveCharacterToCamera_GeneratesCorrectCommand() {
+            string[] paras = { };
+            CharacterUnderTest = Factory.GetCharactersWithDependenciesMockedAndCommandGenerationSetup(DesktopCommand.MoveNPC,paras );
+            CharacterUnderTest.MoveCharacterToCamera();
+
+            Mock<KeyBindCommandGenerator> mocker = Mock.Get(CharacterUnderTest.Generator);
+            mocker.VerifyAll();
+
+        }
 
     }
 
-    class CameraTestSuite
+    [TestClass]
+    public class CameraTestSuite
     {
-        public void MoveToCharacter_MovesCameraToPositionCloseToCharacter(){ }
-        public void ManueverCharacter_SettingMoveToCharacter_MovesCameraToPositionCloseToCharacterThenCLearsCharacterThenTakesSurfaceOfCharactersActiveIdentity(){ }
+        public MockManagedCustomerFactory Factory;
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            Factory = new MockManagedCustomerFactory(new MockDesktopFactory());
+        }
+
+        [TestMethod]
+        public void MoveToCharacter_GenerateCommandToFollowCharacter(){
+            Camera cameraUnderTest = Factory.CameraUnderTest;
+
+            ManagedCharacter character = Factory.CharacterUnderTest;
+            character.Target();
+
+            cameraUnderTest.MoveToTarget();
+
+            KeyBindCommandGenerator generator = cameraUnderTest.Generator;
+
+            string[] para = { "" };
+            Mock.Get<KeyBindCommandGenerator>(generator).Verify(x => x.GenerateDesktopCommandText(It.Is<DesktopCommand>(y => y.Equals(DesktopCommand.Follow)),para));
+        }
+
+        [TestMethod]
+        public void ManueverCharacter_StopsWaitingToGetToDestinationIfdNoChangeInDistanceAfterSixChecks(){
+            ManagedCharacter character = Factory.MockFixture.Create<ManagedCharacter>();
+            Mock.Get<ManagedCharacter>(character).SetupAllProperties();
+
+            Camera cameraUnderTest = Factory.CameraUnderTest;
+            Mock<Position> mocker = Mock.Get<Position>(cameraUnderTest.Position);
+
+            float distance;
+            int counter = 0;
+            mocker.Setup(x => x.IsWithin(It.IsAny<float>(), It.IsAny<Position>(), out distance)).Returns(false).Callback(() => counter++);
+
+            cameraUnderTest.ManueveringCharacter = character;
+            Assert.AreEqual(6, counter);
+        }
+
+        [TestMethod]
+
+        public void ManueverCharacter_ContinuesToWaitForCameraToGetToDestinationUntilWithinMinimumDistance()
+        {
+            ManagedCharacter character = Factory.MockFixture.Create<ManagedCharacter>();
+            Mock.Get<ManagedCharacter>(character).SetupAllProperties();
+
+            Camera cameraUnderTest = Factory.CameraUnderTest;
+            Mock<Position> mocker = Mock.Get<Position>(cameraUnderTest.Position);
+
+            float distance= 3;
+            mocker.Setup(x => x.IsWithin(It.IsAny<float>(), It.IsAny<Position>(), out distance)).Returns(
+                    delegate ()
+                    {
+                        if (distance > 0)
+                        {
+                            distance--;
+                            return false;
+                        }
+                        return true;
+                    }
+            );
+            cameraUnderTest.ManueveringCharacter = character;
+            Assert.AreEqual(distance,0);
     }
-    class IdentityTestSuite
+        [TestMethod]
+        public void ManueverCharacter_ClearsCharacterFromDesktopAndCameraBecomesCharacter()
+        {
+            //arrange
+            ManagedCharacter mockCharacter = Factory.MockCharacter;
+            Camera cameraUnderTest = Factory.CameraUnderTest;
+           
+            //act
+            cameraUnderTest.ManueveringCharacter = mockCharacter;
+
+            //assert
+            var charMocker = Mock.Get<ManagedCharacter>(mockCharacter);
+            string[] para = { mockCharacter.Name };
+            charMocker.Verify(x => x.ClearFromDesktop(true));
+
+            var idMocker = Mock.Get<Identity>(cameraUnderTest.Identity);
+            string[] para2 = { mockCharacter.Identities.Active.Name };
+            idMocker.Verify(x => x.Render(true));
+
+            Assert.AreEqual(cameraUnderTest.Identity, mockCharacter.Identities.Active);
+
+        }
+    }
+
+    [TestClass]
+    public class IdentityTestSuite
     {
-        public void Render_GeneratesCorrectCommandsForCostume(){ }
-        public void Render_GeneratesCorrectCommandsForModel(){ }
-        public void Render_SpawnsModelWithCorrectName(){ }
+        public MockManagedCustomerFactory Factory;
+
+        [TestInitialize]
+        public void TestInitialize()
+        {
+            Factory = new MockManagedCustomerFactory(new MockDesktopFactory());
+        }
+
+        [TestMethod]
+        public void Render_GeneratesCorrectCommandsForCostume(){
+            //arrange
+            Identity id = Factory.CostumedIdentityUnderTest;
+
+            //act
+            id.Render();
+
+            //assert
+            var mocker = Mock.Get<KeyBindCommandGenerator>(id.Generator);
+            string[] para = { id.Surface };
+            mocker.Verify(x => x.GenerateDesktopCommandText(DesktopCommand.LoadCostume, para));
+        }
+
+
+        [TestMethod]
+        public void Render_GeneratesCorrectCommandsForModel(){
+            //arrange
+            Identity id = Factory.ModelIdentityUnderTest;
+
+            //act
+            id.Render();
+
+            //assert
+            var mocker = Mock.Get<KeyBindCommandGenerator>(id.Generator);
+            string[] para = { id.Surface };
+            mocker.Verify(x => x.GenerateDesktopCommandText(DesktopCommand.BeNPC, para));
+        }
     }
     class CharacterActionListTestSuite
     {
-        public void Default_ReturnsFirstIfNoDefalultSetOrReturnsDefalultIfSet() { }
+        public void Default_ReturnsFirstIfNoDefaultSetOrReturnsDefalultIfSet() { }
         public void Active_ReturnsActiveIfSetOrDefalultIfNotSet() { }
         public void GetNewValidActionName_ReturnsGenericActionTypeWithNumberIfNoNamePassedInOrNamePlusUniqueNumberIfNamePassed() { }
-        public void Insert_InsertsAtBottomOfListIsRetrieveableByActionName() { }
-        public void InsertAfter_InsertsAfterPreviousActionsIsRetrieveableByActionNameAndItemNumber() { }
+        public void Insert_InsertsAtBottomOfListAndIsRetrieveableByActionName() { }
+        public void InsertAfter_InsertsAfterPreviousActionsIsRetrieveableByActionNameAndCorrectItemNumber() { }
         public void InsertAfter_ReordersItemIfItAlreadyExistsInList() { }
         public void ItemByInt_GetsCorrectAction() { }
         public void ItemByActionName_GetsCorrectAction() { }
@@ -185,7 +347,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
     public class MockManagedCustomerFactory
     {
         public MockDesktopFactory MockDesktopFactory;
-        IFixture MockFixture;
+        public IFixture MockFixture;
         IFixture CustomizedMockFixture;
         public MockManagedCustomerFactory(MockDesktopFactory desktopFactory)
         {
@@ -206,6 +368,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 {
                     character.Identities.Remove(id.Name);
                 }
+                character.Identities.Active = null;
                 return character;
             }
         }
@@ -220,14 +383,26 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 Camera camera = MockCamera;
                 CharacterActionList<Identity> identities = MockIdentities;
 
-                  //create the character
+                //create the character
                 ManagedCharacter characterUnderTest = new ManagedCharacterImpl(targeter, generator, camera, identities);
                 characterUnderTest.Name = characterName;
 
                 return characterUnderTest;
             }
         }
+        public ManagedCharacter MockCharacter
+        {
+            get {
+                Mock<ManagedCharacter> mocker = new Mock<ManagedCharacter>();
+                ManagedCharacter character = CustomizedMockFixture.Create<ManagedCharacter>();
 
+                mocker.SetupAllProperties();
+                character.Identities.Active = MockIdentities.Active;
+
+                return character;
+
+            }
+        }
         public ManagedCharacter GetCharactersWithDependenciesMockedAndCommandGenerationSetup(DesktopCommand command, string[] parameters)
         {
             DesktopCharacterTargeter targeter = MockDesktopFactory.MockDesktopCharacterTargeter;
@@ -246,12 +421,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
         {
             get
             {
-                var identityActionList= CustomizedMockFixture.Create<CharacterActionList<Identity>>();
+                var identityActionList = CustomizedMockFixture.Create<CharacterActionList<Identity>>();
                 Mock<CharacterActionList<Identity>> identityMocker = Mock.Get<CharacterActionList<Identity>>(identityActionList);
                 identityMocker.SetupAllProperties();
 
                 IEnumerable<Identity> identities = CustomizedMockFixture.Create<IEnumerable<Identity>>();
-                
+
                 foreach (Identity id in identities)
                 {
                     identityActionList.Add(id.Name, id);
@@ -264,6 +439,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 return identityActionList;
             }
         }
+
         public Camera MockCamera
         {
             get
@@ -272,10 +448,41 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 Mock<Camera> cameraMocker = Mock.Get<Camera>(mock);
                 cameraMocker.SetupAllProperties();
                 return mock;
-                
+
+            }
+        }
+        public Camera CameraUnderTest
+        {
+            get
+            {
+                Camera cameraUnderTest = new CameraImpl(MockDesktopFactory.MockKeybindGenerator);
+
+                Position pos = MockFixture.Create<Position>();
+                cameraUnderTest.Position = pos;
+
+                return cameraUnderTest;
+            }
+        }
+
+        public Identity CostumedIdentityUnderTest
+        {
+            get {
+                Identity id = new IdentityImpl(MockDesktopFactory.MockKeybindGenerator, MockCharacter, SurfaceType.Costume);
+                return id;
+            }
+        }
+
+        public Identity ModelIdentityUnderTest
+        {
+            get
+            {
+                Identity id = new IdentityImpl(MockDesktopFactory.MockKeybindGenerator, MockCharacter, SurfaceType.Model);
+                return id;
             }
         }
     }
+            
+   
 
 }
 

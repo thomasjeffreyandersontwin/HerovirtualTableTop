@@ -32,6 +32,7 @@ namespace HeroVirtualTableTop.Desktop
         float Pitch { get; set; }
         float Roll { get; set; }
         Position Duplicate();
+        bool IsWithin(float dist, Position position, out float calculatedDistance);
     }
     public interface DesktopCharacterMemoryInstance
     {

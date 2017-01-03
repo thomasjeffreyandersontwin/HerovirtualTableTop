@@ -22,9 +22,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
         private KeyBindCommandGenerator _generator;
         public KeyBindCommandGenerator Generator { get { return _generator; } set { _generator = value; } }
 
-        public IdentityImpl(KeyBindCommandGenerator generator, ManagedCharacter owner)
+        public IdentityImpl(KeyBindCommandGenerator generator, ManagedCharacter owner, SurfaceType type)
         {
             _owner = owner;
+            Type = type;
             _generator = generator;
         }
         public IdentityImpl()
@@ -37,12 +38,23 @@ namespace HeroVirtualTableTop.ManagedCharacter
         public SurfaceType Type { get; set; }
         public void Render(bool completeEvent = true)
         {
-            string model = "Model_Statesman";
-            if (Type == SurfaceType.Model)
+            switch (Type)
             {
-                model = Surface;
+                case SurfaceType.Model:
+                    {
+                        Generator.GenerateDesktopCommandText(DesktopCommand.BeNPC, Surface);
+                        break;
+                    }
+                case SurfaceType.Costume:
+                    {
+                         Generator.GenerateDesktopCommandText(DesktopCommand.LoadCostume, Surface);
+                        break;
+                    }
             }
-            Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, model, Owner.DesktopLabel);
+            if (completeEvent)
+            {
+                Generator.CompleteEvent();
+            }
             Owner.Target(completeEvent);
         }
     }

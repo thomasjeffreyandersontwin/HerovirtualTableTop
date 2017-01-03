@@ -250,6 +250,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Refactored\Desktop\KeyBindCommandGenerator.cs" />
+    <Compile Include="Refactored\ManagedCharacter\Camera.cs" />
     <Compile Include="Refactored\ManagedCharacter\CharacterActionList.cs" />
     <Compile Include="Refactored\ManagedCharacter\Identity.cs" />
     <Compile Include="Refactored\ManagedCharacter\ManagedCharacter.cs" />

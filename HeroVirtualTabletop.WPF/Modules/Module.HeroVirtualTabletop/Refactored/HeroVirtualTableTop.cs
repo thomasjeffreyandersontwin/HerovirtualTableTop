@@ -183,6 +183,13 @@ namespace HeroSystemEngine.HeroVirtualTableTop.Crowd
         ManagedCharacter Character { get; set; }
     }
 
+    public interface CrowdClipboard {
+        void CopyToClipboard(CrowdMember member);
+        void LinkToClipboard(CrowdMember member);
+        void CutToClipboard(CrowdMember member);
+        void PasteFromClipboard(CrowdMember member);
+    }
+
     public interface CharacterCrowd : CrowdMembership, ManagedCharacterCommands, CrowdMemberCommands
     {
         bool UseRelativePositioning { get; set; }
@@ -211,7 +218,7 @@ namespace HeroSystemEngine.HeroVirtualTableTop.Crowd
 
     public interface CrowdMembership
     {
-        new string Name { get; set; }
+        string Name { get; set; }
         int Order { get; set; }
         CharacterCrowd Parent { get; set; }
     }

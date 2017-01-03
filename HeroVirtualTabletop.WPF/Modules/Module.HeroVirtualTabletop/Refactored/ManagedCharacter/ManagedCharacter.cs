@@ -26,6 +26,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             _generator = generator;
             _camera = camera;
             _identities = identities;
+            _identities.Owner = this;
             foreach (Identity id in _identities.Values)
             {
                 id.Owner = this;
@@ -72,6 +73,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
             get
             {
                 DesktopCharacterMemoryInstance targetedInstance = Targeter.TargetedInstance;
+                if (MemoryInstance == null)
+                {
+                    return false;
+                }
                 if (MemoryInstance.MemoryAddress == targetedInstance.MemoryAddress)
                 {
                     return true;
@@ -126,9 +131,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 {
 
                     DesktopCharacterMemoryInstance currentTarget = Targeter.TargetedInstance;
-                    while (currentTarget.Label != string.Empty)
+                    while (currentTarget.Label != string.Empty )
                     {
                         currentTarget = Targeter.TargetedInstance;
+                        if(currentTarget.Label == null) { break; }
                     }
                 }
                 catch
@@ -156,7 +162,8 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Generator.CompleteEvent();
         }
         public void TargetAndMoveCameraToCharacter(bool completeEvent = true) {
-            Camera.MoveToCharacter(this);
+            Target();
+            Camera.MoveToTarget();
         }
 
         private bool _maneuveringWithCamera;
@@ -188,7 +195,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
-        public CharacterActionList<Identity> Identities { get { return _identities; } }
+        public CharacterActionList<Identity> Identities { get { return _identities; } set { _identities = value; } }
 
         public bool IsSpawned { get; set; }
         public void SpawnToDesktop(bool completeEvent = true)
@@ -204,36 +211,40 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             Generator.GenerateDesktopCommandText(DesktopCommand.TargetEnemyNear);
             Generator.GenerateDesktopCommandText(DesktopCommand.NOP); //No operation, let the game untarget whatever it has targeted
-
+            
             IsSpawned = true;
             if (Identities == null)
             {
-                IsSpawned = true;
-                if (Identities == null)
-                {
-                    _identities = (CharacterActionList<Identity>)new CharacterActionListImpl<IdentityImpl>(CharacterActionType.Identity);
-                }
-                if (Identities.Count == 0)
-                {
-                    Identity newId = _identities.CreateNew();
-                    newId.Name = this.Name;
-                    newId.Type = SurfaceType.Costume;
-                    newId.Surface = this.Name;
-                    Identities.Active = newId;
-                }
-                Identity active = Identities.Active;
-                active.Render();
+                _identities = (CharacterActionList<Identity>)new CharacterActionListImpl<IdentityImpl>(CharacterActionType.Identity);
             }
+            if (Identities.Count == 0 && Identities.Active==null)
+            {
+                Identity newId = _identities.CreateNew();
+                newId.Owner= this;
+                newId.Name = this.Name;
+                newId.Type = SurfaceType.Costume;
+                newId.Surface = this.Name;
+                Identities.Active = newId;
+            }
+            Identity active = Identities.Active;
+            Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "model_statesmen", Name);
+            active.Render();
         }
+        
         public void ClearFromDesktop(bool completeEvent = true) {
             Target();
             Generator.GenerateDesktopCommandText(DesktopCommand.DeleteNPC);
             IsSpawned = false;
+            IsTargeted = false;
             IsManueveringWithCamera = false;
             IsFollowed = false;
             this.MemoryInstance = null;
         }
-        public void MoveCharacterToCamera(bool completeEvent = true) { }
+        public void MoveCharacterToCamera(bool completeEvent = true) {
+            Target();
+            Generator.GenerateDesktopCommandText(DesktopCommand.MoveNPC);
+            Generator.CompleteEvent();
+        }
         public CharacterProgressBarStats ProgressBar { get; set; }
     }
     

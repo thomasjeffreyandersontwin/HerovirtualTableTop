@@ -41,7 +41,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         new void SpawnToDesktop(bool completeEvent = true);
 
 
-        CharacterActionList<Identity> Identities { get; }
+        CharacterActionList<Identity> Identities { get; set;}
 
         DesktopCharacterMemoryInstance MemoryInstance { get; set; }
         KeyBindCommandGenerator Generator { get; }
@@ -62,6 +62,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
     }
     public interface CharacterActionList<T>:IDictionary<string,T> where T : CharacterAction 
     {
+        ManagedCharacter Owner { get; set; }
         T Active {get; set;}
         T Default {get; set; }
         string GetNewValidActionName(string name = null);
@@ -76,13 +77,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
     public interface Camera
     {
-        Camera Instance { get; }
         KeyBindCommandGenerator Generator { get; }
-        Position Position { get; }
-        Identity CameraIdentity { get; }
+        Position Position { get; set; }
+        Identity Identity { get; }
 
         ManagedCharacter ManueveringCharacter { get; set; }
-        void MoveToCharacter(ManagedCharacter character);
+        void MoveToTarget(bool completeEvent = true);
         void ActivateCameraIdentity();
         void ActivateManueveringCharacterIdentity();
 
