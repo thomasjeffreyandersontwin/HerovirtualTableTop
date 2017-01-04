@@ -55,7 +55,7 @@ namespace HeroSystemEngine.HeroVirtualTableTop
 
         string RepoFile { get; set; }
         HeroTableTopCharacter TargetedCharacter { get; }
-        HeroTableTopCharacterRepository Instance { get; }
+
         void DeleteCharacter(HeroTableTopCharacter character);
         void AddCharacter(HeroTableTopCharacter character);
 
@@ -72,6 +72,7 @@ namespace HeroSystemEngine.HeroVirtualTableTop
         void DeleteCrowd(CharacterCrowd crowd);
         void AddCrowd(CharacterCrowd crowd);
         CharacterCrowd NewCrowd();
+
 
     }
 

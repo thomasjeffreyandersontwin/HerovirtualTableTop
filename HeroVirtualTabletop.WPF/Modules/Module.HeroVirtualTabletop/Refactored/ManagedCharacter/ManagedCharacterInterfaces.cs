@@ -44,9 +44,9 @@ namespace HeroVirtualTableTop.ManagedCharacter
         CharacterActionList<Identity> Identities { get; set;}
 
         DesktopCharacterMemoryInstance MemoryInstance { get; set; }
-        KeyBindCommandGenerator Generator { get; }
+        KeyBindCommandGenerator Generator { get; set; }
         CharacterProgressBarStats ProgressBar { get; set; }
-        Camera Camera { get; }
+        Camera Camera { get; set;}
 
     }
     

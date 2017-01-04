@@ -15,10 +15,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
         public DesktopCharacterTargeter Targeter { get; set; }
 
         private KeyBindCommandGenerator _generator;
-        public KeyBindCommandGenerator Generator { get { return _generator; } }
+        public KeyBindCommandGenerator Generator { get { return _generator; }  set { _generator = value; }   }
 
         private Camera _camera;
-        public Camera Camera { get { return _camera; } }
+        public Camera Camera { get { return _camera; } set { _camera = value; } }
 
         private CharacterActionList<Identity> _identities;
 
