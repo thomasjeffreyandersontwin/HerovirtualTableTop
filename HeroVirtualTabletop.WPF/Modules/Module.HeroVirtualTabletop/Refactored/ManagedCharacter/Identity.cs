@@ -6,13 +6,7 @@ using System.Threading.Tasks;
 using HeroVirtualTableTop.Desktop;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
-    public class Identities : CharacterActionListImpl<IdentityImpl>
-    {
-        public Identities() : base(CharacterActionType.Identity)
-        { }
-
-
-    }
+    
     public class IdentityImpl : Identity, CharacterAction
     {
         ManagedCharacter _owner;
@@ -22,11 +16,13 @@ namespace HeroVirtualTableTop.ManagedCharacter
         private KeyBindCommandGenerator _generator;
         public KeyBindCommandGenerator Generator { get { return _generator; } set { _generator = value; } }
 
-        public IdentityImpl(KeyBindCommandGenerator generator, ManagedCharacter owner, SurfaceType type)
+        public IdentityImpl(ManagedCharacter owner, string name, string surface, SurfaceType type, KeyBindCommandGenerator generator)
         {
+            Name = name;
             _owner = owner;
             Type = type;
             _generator = generator;
+            Surface = surface;
         }
         public IdentityImpl()
         {
@@ -56,6 +52,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 Generator.CompleteEvent();
             }
             Owner.Target(completeEvent);
+        }
+
+        public CharacterAction Clone()
+        {
+            Identity clone = new IdentityImpl(Owner, Name, Surface, Type, Generator);
+            return clone;
         }
     }
 }

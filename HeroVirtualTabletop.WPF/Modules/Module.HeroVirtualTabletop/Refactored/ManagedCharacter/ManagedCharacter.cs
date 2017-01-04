@@ -4,9 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HeroVirtualTableTop.Desktop;
+using HeroVirtualTableTop.Crowd;
+using Framework.WPF.Library;
+
 namespace HeroVirtualTableTop.ManagedCharacter
 {
-    class ManagedCharacterImpl : ManagedCharacter
+    public class ManagedCharacterImpl : NotifyPropertyChanged, ManagedCharacter
     {
         public DesktopCharacterMemoryInstance MemoryInstance { get; set; }
         public DesktopCharacterTargeter Targeter { get; set; }
@@ -42,7 +45,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
         public string Name { get; set; }
-        public string DesktopLabel
+        public virtual string DesktopLabel
         {
             get
             { if (MemoryInstance != null)
@@ -215,19 +218,25 @@ namespace HeroVirtualTableTop.ManagedCharacter
             IsSpawned = true;
             if (Identities == null)
             {
-                _identities = (CharacterActionList<Identity>)new CharacterActionListImpl<IdentityImpl>(CharacterActionType.Identity);
+                _identities = (CharacterActionList<Identity>)new CharacterActionListImpl<Identity>(CharacterActionType.Identity, Generator);
             }
             if (Identities.Count == 0 && Identities.Active==null)
             {
-                Identity newId = _identities.CreateNew();
+                Identity newId = _identities.AddNew(new IdentityImpl());
                 newId.Owner= this;
                 newId.Name = this.Name;
                 newId.Type = SurfaceType.Costume;
                 newId.Surface = this.Name;
                 Identities.Active = newId;
             }
+            string spawnText = Name;
+            if (DesktopLabel !=null || DesktopLabel != "")
+            {
+                spawnText = Name + "[ " + DesktopLabel + " ]";
+            }
+
             Identity active = Identities.Active;
-            Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "model_statesmen", Name);
+            Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "model_statesmen", spawnText);
             active.Render();
         }
         
@@ -246,6 +255,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Generator.CompleteEvent();
         }
         public CharacterProgressBarStats ProgressBar { get; set; }
+
     }
     
 }

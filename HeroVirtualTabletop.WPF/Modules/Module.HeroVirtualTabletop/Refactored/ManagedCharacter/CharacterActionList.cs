@@ -6,23 +6,40 @@ using System.Threading.Tasks;
 using HeroVirtualTableTop.Desktop;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
-    public class CharacterActionListImpl<T> : Dictionary<string, T>, CharacterActionList<T> where T : CharacterAction, new()
+    public class CharacterActionListImpl<T> : Dictionary<string, T>, CharacterActionList<T> where T : CharacterAction
     {
         public ManagedCharacter Owner { get; set; }
-        public KeyBindCommandGenerator Generator { get; }
+
+        private KeyBindCommandGenerator _generator;
+        public KeyBindCommandGenerator Generator
+        {
+            get { return _generator; }
+            set { _generator = value; }
+        }
         private CharacterActionType _type;
         public CharacterActionType Type
         {
             get
             {
                 return _type;
+            }set
+            {
+                _type = value;
             }
         }
-        public CharacterActionListImpl(CharacterActionType type)
+        public CharacterActionListImpl(CharacterActionType type, KeyBindCommandGenerator generator)
         {
             _type = type;
+            _generator = generator;
+            _listByOrder = new SortedDictionary<int, T>();
         }
         private SortedDictionary<int, T> _listByOrder = new SortedDictionary<int, T>();
+        public IEnumerator<T> ByOrder
+            {
+            get {
+                return _listByOrder.Values.GetEnumerator();
+            }
+        }
         private T _active;
         private T _default;
         public T Active
@@ -49,12 +66,15 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             set
             {
-                if (ContainsValue(value))
-                    _active = value;
-                else
+                if (_active != null)
                 {
-                    throw new ArgumentException("action cant be set to active it doesnt exist for character");
+                    if (ContainsValue(value))
+                        _active = value;
+                    else
+                    {
+                        throw new ArgumentException("action cant be set to active it doesnt exist for character");
 
+                    }
                 }
             }
         }
@@ -75,12 +95,15 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
             set
             {
-                if (ContainsValue(value))
-                    _default = value;
-                else
+                if (_default != null)
                 {
-                    throw new ArgumentException("action cant be set to default it doesnt exist for character");
+                    if (ContainsValue(value))
+                        _default = value;
+                    else
+                    {
+                        throw new ArgumentException("action cant be set to default it doesnt exist for character");
 
+                    }
                 }
             }
         }
@@ -99,7 +122,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             string suffix = string.Empty;
             int i = 0;
 
-            while ((this.Cast<CharacterAction>().Any((CharacterAction action) => { return action.Name == name + suffix; })))
+            while ((this.Values.Cast<CharacterAction>().Any((CharacterAction action) => { return action.Name == name + suffix; })))
             {
                 suffix = string.Format(" ({0})", ++i);
             }
@@ -120,6 +143,15 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         public void Insert(T action)
         {
+            action.Owner = Owner;
+            action.Generator = Generator;
+            int count = 0;
+            if(_listByOrder !=null && _listByOrder.Count >0)
+            {
+                count = _listByOrder.Last().Key;
+
+            }
+            action.Order = count + 1;
             this.Add(action.Name, action);
             _listByOrder.Add(action.Order, action);
         }
@@ -135,8 +167,9 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
                 }
             }
-            actionToInsert.Order = precedingOrder++;
+            actionToInsert.Order = precedingOrder+1;
             _listByOrder[actionToInsert.Order] = actionToInsert;
+            Add(actionToInsert.Name, actionToInsert);
         }
         public void RemoveAction(T actionToRemove)
         {
@@ -152,17 +185,26 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 }
             }
         }
-        public T CreateNew()
+        public T AddNew(T newAction)
         {
-            T newAction = new T();
+           
             newAction.Owner = Owner;
             newAction.Generator = Generator;
             newAction.Order = _listByOrder.Last().Key + 1;
-            newAction.Name = GetNewValidActionName();
+            newAction.Name = GetNewValidActionName(newAction.Name);
             _listByOrder.Add(newAction.Order, newAction);
             Add(newAction.Name, newAction);
             return newAction;
         }
-
+        public CharacterActionList<T> Clone()
+        {
+            CharacterActionListImpl<T> cloneList = new CharacterActionListImpl<T>(_type, _generator);
+            foreach (T anAction in Values)
+            {
+                T clone = (T)anAction.Clone();
+                cloneList.Insert(clone);
+            }
+            return cloneList;
+        }
     }
 }

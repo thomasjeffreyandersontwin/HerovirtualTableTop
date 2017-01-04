@@ -33,6 +33,7 @@ namespace HeroVirtualTableTop.Desktop
         float Roll { get; set; }
         Position Duplicate();
         bool IsWithin(float dist, Position position, out float calculatedDistance);
+        void MoveTo(Position destination);
     }
     public interface DesktopCharacterMemoryInstance
     {

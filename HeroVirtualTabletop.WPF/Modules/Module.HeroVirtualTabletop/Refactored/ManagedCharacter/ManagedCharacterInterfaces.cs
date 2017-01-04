@@ -58,6 +58,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         int Order { get; set; }
         ManagedCharacter Owner { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
+        CharacterAction Clone();
 
     }
     public interface CharacterActionList<T>:IDictionary<string,T> where T : CharacterAction 
@@ -70,8 +71,9 @@ namespace HeroVirtualTableTop.ManagedCharacter
         void Insert(T action);
         void InsertAfter(T action, T precedingAction);
         void RemoveAction(T Action);
-        T CreateNew();
+        T AddNew(T newItem);
         CharacterActionType Type { get; }
+        CharacterActionList<T> Clone();
     }
 
 
@@ -93,6 +95,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
     {
         string Surface { get; set; }
         SurfaceType Type { get; set; }
+        
     }
     public interface CharacterProgressBarStats
     {
