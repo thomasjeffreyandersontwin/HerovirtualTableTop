@@ -15,37 +15,44 @@ namespace HeroVirtualTableTop.Crowd
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
 
     }
-    
+   
+   
+
     public interface CrowdRepository
     {
 
-        HashedObservableCollection<Crowd, string> Crowds { get; set; }
-        void AddCrowd(Crowd crowd);
-        Crowd NewCrowd(Crowd parent=null);
-        CharacterCrowdMember NewCharacterCrowdMember(Crowd parent=null, string name = "Character");
+        Dictionary<string, Crowd> CrowdsByName { get;}
+        List <Crowd> Crowds { get; set; }
+        Crowd NewCrowd(Crowd parent = null, string name = "Character");
+        CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
 
-        Crowd AllMembersCrowd { get; set; }
-        string CreateUniqueName(string name);
+        Crowd AllMembersCrowd { get;  }
+        string CreateUniqueName(string name,CrowdMember member);
     }
 
     public interface Crowd : CrowdMember
     {
         bool UseRelativePositioning { get; set; }
-        HashedObservableCollection<CrowdMemberShip, string> Members {get; set; }       
+        List<CrowdMemberShip> MemberShips { get;}
+        List<CrowdMember> Members { get; }
+        Dictionary<string, CrowdMember> MembersByName { get; }
+        void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdToMove);
         void AddCrowdMember(CrowdMember member);
         void RemoveMember(CrowdMember member);
         bool IsExpanded { get; set; }
         CrowdRepository CrowdRepository { get; set; }
+        
 
     }
 
-    public interface CharacterCrowdMember: ManagedCharacter.ManagedCharacter, CrowdMember
+    public interface CharacterCrowdMember : ManagedCharacter.ManagedCharacter, CrowdMember
     {
         new string Name { get; set; }
-        CrowdMemberShip LoadedParentMembership { get; set; }
+        
     }
     public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged
     {
+        int Order { get; set; }
         bool MatchesFilter { get; set; }
         string OldName { get; set; }
         string Name { get; set; }
@@ -53,8 +60,10 @@ namespace HeroVirtualTableTop.Crowd
         CrowdMember Clone();
         void ApplyFilter(string filter);
         void ResetFilter();
-        bool CheckIfNameIsDuplicate(string updatedName);
-        
+        bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> members);
+        List<CrowdMemberShip> AllCrowdMembershipParents { get; }
+        Crowd Parent { get; set; }
+
     }
     public interface CrowdMemberShip
     {
@@ -70,10 +79,10 @@ namespace HeroVirtualTableTop.Crowd
         void SaveCurrentTableTopPosition();
         void PlaceOnTableTop(Position position = null);
         void PlaceOnTableTopUsingRelativePos();
-        
+
     }
 
-    
+
 
     public interface CrowdClipboard
     {
@@ -86,3 +95,5 @@ namespace HeroVirtualTableTop.Crowd
 
 
 }
+
+

@@ -232,7 +232,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             string spawnText = Name;
             if (DesktopLabel !=null || DesktopLabel != "")
             {
-                spawnText = Name + "[ " + DesktopLabel + " ]";
+                spawnText = Name + " [" + DesktopLabel + "]";
             }
 
             Identity active = Identities.Active;
