@@ -70,7 +70,7 @@ namespace HeroVirtualTableTop.Desktop
     {
 
 
-        public IFixture StandardardaFixture;
+        public IFixture StandardizedFixture;
         public IFixture MockFixture;
         public IFixture CustomizedMockFixture;
 
@@ -83,6 +83,10 @@ namespace HeroVirtualTableTop.Desktop
             CustomizedMockFixture = new Fixture();
             CustomizedMockFixture.Customize(new AutoConfiguredMoqCustomization());
             CustomizedMockFixture.Customizations.Add(new NumericSequenceGenerator());
+
+
+            
+
         }
 
         public IconInteractionUtility GetMockInteractionUtilityForCommand(string command)
@@ -119,6 +123,15 @@ namespace HeroVirtualTableTop.Desktop
             get
             {
                 var mock = CustomizedMockFixture.Create<KeyBindCommandGenerator>();
+                return mock;
+            }
+        }
+
+        public Position MockPosition
+        {
+            get
+            {
+                var mock = CustomizedMockFixture.Create<Position>();
                 return mock;
             }
         }

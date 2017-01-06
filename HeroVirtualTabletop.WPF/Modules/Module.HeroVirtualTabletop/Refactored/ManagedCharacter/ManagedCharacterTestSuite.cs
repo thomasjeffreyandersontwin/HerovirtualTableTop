@@ -6,6 +6,7 @@ using Ploeh.AutoFixture.AutoMoq;
 using Ploeh.AutoFixture;
 using HeroVirtualTableTop.Desktop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Ploeh.AutoFixture.Kernel;
 
 namespace HeroVirtualTableTop.ManagedCharacter
 {
@@ -112,7 +113,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             //assert
             var mocker = Mock.Get<KeyBindCommandGenerator>(CharacterUnderTest.Generator);
-            string[] para = { "model_statesmen", CharacterUnderTest.Name };
+            string[] para = { "model_statesmen", CharacterUnderTest.Name + " [" + CharacterUnderTest.Name +"]" };
             mocker.Verify(x => x.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, para));
 
             Identity active = CharacterUnderTest.Identities.Active;
@@ -432,16 +433,35 @@ namespace HeroVirtualTableTop.ManagedCharacter
     {
         public MockDesktopFactory MockDesktopFactory;
         public IFixture MockFixture;
-        IFixture CustomizedMockFixture;
-        IFixture StandardizedFixture;
+        public IFixture CustomizedMockFixture;
+        public IFixture StandardizedFixture;
         public MockManagedCustomerFactory(MockDesktopFactory desktopFactory)
         {
             MockDesktopFactory = desktopFactory;
             MockFixture = MockDesktopFactory.MockFixture;
+
+            //rescurive mocking
             CustomizedMockFixture = MockDesktopFactory.CustomizedMockFixture;
             CustomizedMockFixture.Behaviors.Add(new OmitOnRecursionBehavior());
-            StandardizedFixture = new Fixture();
+            
             MockFixture.Customize(new MultipleCustomization());
+
+            //always mock out core dependencies
+            StandardizedFixture = new Fixture();
+            StandardizedFixture.Inject<Position>(MockDesktopFactory.MockPosition);
+            StandardizedFixture.Inject<KeyBindCommandGenerator>(MockDesktopFactory.MockKeybindGenerator);
+            StandardizedFixture.Inject<DesktopCharacterTargeter>(MockDesktopFactory.MockDesktopCharacterTargeter);
+
+            //mock managedCharacter dependencies by defalut
+            StandardizedFixture.Inject<Camera>(MockCamera);
+            StandardizedFixture.Inject<CharacterActionList<Identity>>(IdentityListUnderTest);
+            StandardizedFixture.Inject<CharacterProgressBarStats>(MockCharacterProgressBarStats);
+
+            //standardized interface mapping
+            StandardizedFixture.Customizations.Add(
+                new TypeRelay(
+                    typeof(DesktopCharacterMemoryInstance),
+                        typeof(DesktopCharacterMemoryInstanceImpl)));
         }
 
         public ManagedCharacter CharacterUnderTestWithNoIdentities
@@ -549,6 +569,14 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
+        public CharacterProgressBarStats MockCharacterProgressBarStats
+        {
+            get
+            {
+                return MockFixture.Create<CharacterProgressBarStats>();
+
+            }
+        }
         public Identity CostumedIdentityUnderTest
         {
             get {

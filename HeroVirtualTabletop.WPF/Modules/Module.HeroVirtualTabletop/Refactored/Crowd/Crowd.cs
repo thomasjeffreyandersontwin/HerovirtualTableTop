@@ -13,35 +13,88 @@ using System.Text.RegularExpressions;
 namespace HeroVirtualTableTop.Crowd
 {
 
+
+
+
+
     public class CrowdRepositoryImpl : CrowdRepository
     {
-       
-        public Crowd AllMembersCrowd { get; set; }
 
-        public HashedObservableCollection<Crowd, string> Crowds { get; set; }
 
-        public void AddCrowd(Crowd crowd) { }
-        public Crowd NewCrowd(Crowd parent = null)
+        public Crowd AllMembersCrowd
         {
-            Crowd newCrowd=null;
-            AllMembersCrowd.AddCrowdMember(newCrowd);
+            get
+            {
+
+                try
+                {
+                    if (Crowds == null)
+                    {
+                        Crowds = new List<Crowd>();
+                        Crowd allMembersCrowd = new CrowdImpl(this);
+                        Crowds.Add(allMembersCrowd);
+
+                    }
+                    return CrowdsByName[CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME];
+                }
+                catch (KeyNotFoundException e)
+                {
+                    return null;
+                }
+            }
+        }
+
+        public Dictionary<string, Crowd> CrowdsByName
+        {
+            get
+            {
+                Dictionary<string, Crowd> memDict = new Dictionary<string, Crowd>();
+                if (Crowds != null)
+                {
+                    foreach (Crowd crowd in Crowds)
+                    {
+                       memDict.Add(crowd.Name, crowd);
+                        crowd.Parent = null;
+                    }
+                }
+                return memDict;
+            }
+        }
+        public List<Crowd> Crowds { get; set; }
+
+        public CrowdRepositoryImpl()
+        {
+           
+        }
+        public Crowd NewCrowdInstance { get; set; } //for DI to insert
+        public Crowd NewCrowd(Crowd parent = null, string name = "Crowd")
+        {
+            if (name == "Character") {
+                name = "Crowd";
+            }
+            Crowd newCrowd = this.NewCrowdInstance;
+            newCrowd.Name = CreateUniqueName(name, newCrowd);
+           // Crowds.Add(newCrowd);
             parent.AddCrowdMember(newCrowd);
             return newCrowd;
         }
-        public CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character")
+
+        public CharacterCrowdMember NewCharacterCrowdMemberInstance { get; set; } //for DI to insert
+        public CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character") 
         {
-            CharacterCrowdMember newCharacter = null;
-            newCharacter.Name = CreateUniqueName(name);
+            CharacterCrowdMember newCharacter = NewCharacterCrowdMemberInstance;
+            newCharacter.Name = CreateUniqueName(name, newCharacter);
+            
             AllMembersCrowd.AddCrowdMember(newCharacter);
             if (parent != null)
             {
                 parent.AddCrowdMember(newCharacter);
             }
-           
+
             return newCharacter;
         }
 
-        public string CreateUniqueName(string name)
+        public string CreateUniqueName(string name, CrowdMember member)
         {
             string suffix = string.Empty;
             string rootName = name;
@@ -60,22 +113,28 @@ namespace HeroVirtualTableTop.Crowd
                 }
             }
             string newName = rootName + suffix;
-            while (Crowds.ContainsKey(newName))
+            if (member is CharacterCrowdMember) { 
+                while (AllMembersCrowd.MembersByName.ContainsKey(newName))
+                {
+                    suffix = string.Format(" ({0})", ++i);
+                    newName = rootName + suffix;
+                }
+            }else if (member is Crowd)
             {
-                suffix = string.Format(" ({0})", ++i);
-                newName = rootName + suffix;
+                 while (CrowdsByName.ContainsKey(newName))
+                {
+                    suffix = string.Format(" ({0})", ++i);
+                    newName = rootName + suffix;
+                }
             }
             return newName;
         }
-
-        
     }
-    
 
 
-    public class CrowdMemberComparer : IComparer<CrowdMembership>
+    public class CrowdMemberComparer : IComparer<CrowdMemberShip>
     {
-        public int Compare(CrowdMembership cmm1, CrowdMembership cmm2)
+        public int Compare(CrowdMemberShip cmm1, CrowdMemberShip cmm2)
         {
             if (cmm1.Order != cmm2.Order)
                 return cmm1.Order.CompareTo(cmm2.Order);
@@ -102,96 +161,263 @@ namespace HeroVirtualTableTop.Crowd
 
             set
             {
-                if (CheckIfNameIsDuplicate(value) == false)
+                if (CrowdRepository.Crowds != null)
                 {
-                    throw new DuplicateKeyException(value);
+                    if (CheckIfNameIsDuplicate(value, CrowdRepository.Crowds) == true)
+                    {
+                        throw new DuplicateKeyException(value);
+                    }
+                    else {
+                        OldName = value;
+                        _name = value;
+                        OnPropertyChanged("Name");
+                    }
                 }
                 else {
-                    OldName = _name;
+                    OldName = value;
                     _name = value;
                     OnPropertyChanged("Name");
+
                 }
             }
         }
-        public bool CheckIfNameIsDuplicate(string updatedName)
+        public bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> crowdlist )
         {
-            return Members.ContainsKey(updatedName);
+            foreach (CrowdMember member in crowdlist)
+            {
+                if (member is Crowd)
+                {
+                    if (member.Name == updatedName) return true;
+                    Crowd crowd = member as Crowd;
+                    List<Crowd> list = new List<Crowd>();
+                    List<CrowdMember> members= (from crowdMember in crowd.Members where crowdMember is Crowd select crowdMember).ToList();
+                    foreach(CrowdMember m in members)
+                    {
+                        list.Add((Crowd)m);
+                    }
+
+                    if (CheckIfNameIsDuplicate(updatedName, list) == true) return true;
+                }
+            }
+            return false;
+
         }
 
         public CrowdRepository CrowdRepository { get; set; }
+
         public CrowdImpl(CrowdRepository repo)
         {
             CrowdRepository = repo;
+            MemberShips = new List<CrowdMemberShip>();
+            AllCrowdMembershipParents = new List<CrowdMemberShip>();
+
         }
+
         public bool UseRelativePositioning { get; set; }
 
-        private int _order;
+        private CrowdMemberShip _loadedParentMembership;
+
+        public List<CrowdMemberShip> AllCrowdMembershipParents { get; }
+
+        public Crowd Parent
+        {
+            get
+            {
+                return _loadedParentMembership.ParentCrowd;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    Dictionary<string, CrowdMemberShip> parents = AllCrowdMembershipParents.ToDictionary(x => x.ParentCrowd.Name);
+                    if (parents.ContainsKey(value.Name)==false)
+                    {
+                        CrowdMemberShip parent = new CrowdMemberShipImpl(value, this);
+                        AllCrowdMembershipParents.Add(parent);
+                        _loadedParentMembership = parent;
+                    }
+                    _loadedParentMembership.Child = this;
+                }
+                else
+                {
+                    _loadedParentMembership = null;
+                }
+                
+            }
+        }
+
+        public List<CrowdMemberShip> MemberShips { get; }
+        public List<CrowdMember> Members
+        {
+            get
+            {
+                return MemberShips.Select(i =>
+                    {
+                        i.Child.Parent = this;
+                        return i.Child; }
+                    ).ToList();
+            }
+        }
+        public Dictionary<string, CrowdMember> MembersByName
+        {
+            get
+            {
+                Dictionary<string, CrowdMember> memDict = new Dictionary<string, CrowdMember>();
+                foreach (CrowdMemberShip ship in MemberShips)
+                {
+                    memDict.Add(ship.Child.Name, ship.Child);
+                    ship.Child.Parent = ship.ParentCrowd;
+                }
+                return memDict;
+            }
+        }
+        private List<CrowdMember> GetFlattenedMemberList(List<CrowdMember> list)
+        {
+            List<CrowdMember> flattened = new List<CrowdMember>();
+            foreach (CrowdMember crowdMember in list)
+            {
+                if (crowdMember is Crowd)
+                {
+                    Crowd crowd = (crowdMember as Crowd);
+                    if (crowd.Members != null && crowd.Members.Count > 0)
+
+                        flattened.AddRange(GetFlattenedMemberList(crowd.Members));
+                }
+                flattened.Add(crowdMember);
+            }
+            return flattened;
+        }
+
+
+        public void RemoveParent(CrowdMember parent)
+        { 
+           CrowdMemberShip shipToKill = this.AllCrowdMembershipParents.Where(y => y.ParentCrowd.Name == parent.Name).FirstOrDefault();
+            if (shipToKill != null)
+            {
+                this.AllCrowdMembershipParents.Remove(shipToKill);
+            }
+        }
+
+        public void RemoveMember(CrowdMember child)
+        {
+            int removeOrder = child.Order;
+            CrowdMemberShip ship = getMembershipThatAssociatesChildMemberToThis(child);
+            removeMembershipFromThisAndChild(child, ship);
+            decrementOrderForAllMembersAfterTheDeletedOrder(removeOrder);
+            if (child is Crowd)
+            {
+                Crowd crowdBeingDeleted = child as Crowd;
+                deleteAllChildrenIfThisDoesntHaveAnyOtherParentsAndChildrenDoNotHaveOtherParents(crowdBeingDeleted);
+            }
+            child.PropertyChanged -= Member_PropertyChanged;
+        }
+        private void decrementOrderForAllMembersAfterTheDeletedOrder(int removeOrder)
+        {
+            foreach (CrowdMember m in from m in Members orderby m.Order where m.Order > removeOrder select m)
+            {
+                m.Order = m.Order - 1;
+            }
+        }
+        private void removeMembershipFromThisAndChild(CrowdMember member, CrowdMemberShip ship)
+        {
+            if (ship != null)
+            {
+                MemberShips.Remove(ship);
+                member.RemoveParent(this);
+            }
+        }
+        private static void deleteAllChildrenIfThisDoesntHaveAnyOtherParentsAndChildrenDoNotHaveOtherParents(Crowd crowdBeingDeleted)
+        {
+            if (crowdBeingDeleted.AllCrowdMembershipParents.Count == 0)
+            {
+                foreach (CrowdMember childOfCrowdBeingDeleted in crowdBeingDeleted.Members)
+                {
+                    if (childOfCrowdBeingDeleted.AllCrowdMembershipParents.Count <= 2) //parent from this crowd and allcrowds is all thats left
+                    {
+                        crowdBeingDeleted.RemoveMember(childOfCrowdBeingDeleted);
+                    }
+                }
+            }
+        }
+        private CrowdMemberShip getMembershipThatAssociatesChildMemberToThis(CrowdMember member)
+        {
+            return (from membership in MemberShips where member.Name == membership.Child.Name select membership).FirstOrDefault();
+        }
+
+        public void AddCrowdMember(CrowdMember member)
+        {
+            CrowdMemberShip membership = new CrowdMemberShipImpl(this, member);
+            this.MemberShips.Add(membership);
+            this.Members.ElementAt(Members.Count-1).Order = Members.Count ;
+            member.Parent = this;
+            member.PropertyChanged += Member_PropertyChanged;
+        }
         public int Order
         {
             get
             {
-                return _order;
+                if(_loadedParentMembership!=null)
+                 return _loadedParentMembership.Order;
+                else
+                    return 0;
             }
             set
             {
-                _order = value;
+                if(_loadedParentMembership!=null)
+                    _loadedParentMembership.Order = value;
                 OnPropertyChanged("Order");
             }
         }
-
-        CrowdImpl(string name) {
-            Name = name;
-            _members = new HashedObservableCollection<CrowdMembership, string>(x => x.Child.Name, x => x.Order, x => x.Child.Name);
-        }
-
-        private HashedObservableCollection<CrowdMembership, string> _members;
-        public HashedObservableCollection<CrowdMembership, string> Members { get { return _members; } set { Members = value; } }
-        public void RemoveMember(CrowdMember member)
+        public void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember memberToMove)
         {
-            if (_members.ContainsKey(member.Name))
+            int orginalOrder = memberToMove.Order;
+            foreach (CrowdMember member in from member in Members orderby member.Order where member.Order  > orginalOrder select member)
             {
-                _members.Remove(member.Name);
-                member.PropertyChanged -= Member_PropertyChanged;
+                member.Order= member.Order-1;
+
             }
-
-        }
-        public void AddCrowdMember(CrowdMember member)
-        {
-            CrowdMembership membership = new CrowdMemberShipImpl(this, member);
-            this.Members.Add(membership);
-            member.PropertyChanged += Member_PropertyChanged;
-        }
-
-        public void SaveCurrentTableTopPosition() {
-            foreach (CrowdMembership crowdMembership in Members)
+            int destinationOrder = destination.Order + 1;
+            foreach (CrowdMember member in from member in Members orderby  member.Order descending where member.Order >= destinationOrder select member)
             {
-                crowdMembership.Child.SaveCurrentTableTopPosition();
+                member.Order = member.Order + 1;
+
+            }
+            memberToMove.Order = destinationOrder;
+
+
+
+        }
+
+        public void SaveCurrentTableTopPosition()
+        {
+            foreach (CrowdMember crowdMembers in Members)
+            {
+                crowdMembers.SaveCurrentTableTopPosition();
             }
         }
-        public void PlaceOnTableTop(Position pos =null)
+        public void PlaceOnTableTop(Position pos = null)
         {
-            foreach (CrowdMembership crowdMembership in Members)
+            foreach (CrowdMember crowdMember in Members)
             {
-                crowdMembership.Child.PlaceOnTableTop();
+                crowdMember.PlaceOnTableTop();
             }
         }
         public void PlaceOnTableTopUsingRelativePos()
         {
-            foreach (CrowdMembership crowdMember in Members)
+            foreach (CrowdMember crowdMember in Members)
             {
-                crowdMember.Child.PlaceOnTableTopUsingRelativePos();
+                crowdMember.PlaceOnTableTopUsingRelativePos();
             }
         }
 
         public CrowdMember Clone()
         {
             Crowd clone = CrowdRepository.NewCrowd();
-            clone.Name = CrowdRepository.CreateUniqueName(Name);
+            clone.Name = CrowdRepository.CreateUniqueName(Name, clone);
             EliminateDuplicateName();
             clone.UseRelativePositioning = UseRelativePositioning;
-            foreach (CrowdMembership membership in this._members)
+            foreach (CrowdMember member in this.Members)
             {
-                CrowdMember member = membership.Child;
                 clone.AddCrowdMember(member);
             }
             return clone;
@@ -203,27 +429,11 @@ namespace HeroVirtualTableTop.Crowd
                 List<CrowdMember> models = GetFlattenedMemberList(Members.ToList());
                 foreach (var member in models)
                 {
-                    member.Name = CrowdRepository.CreateUniqueName(member.Name);
+                    member.Name = CrowdRepository.CreateUniqueName(member.Name , member);
                 }
             }
         }
-        private List<CrowdMember> GetFlattenedMemberList(List<CrowdMembership> list)
-        {
-            List<CrowdMember> flattened = new List<CrowdMember>();
-            foreach (CrowdMembership crowdMembership in list)
-            {
-                if (crowdMembership.Child is Crowd)
-                {
-                    Crowd crowd = (crowdMembership as Crowd);
-                    if (crowd.Members != null && crowd.Members.Count > 0)
 
-                        flattened.AddRange(GetFlattenedMemberList(crowd.Members.ToList()));
-                }
-                flattened.Add(crowdMembership.Child);
-            }
-            return flattened;
-        }
-        
 
         private bool _matchedFilter = false;
         public bool MatchesFilter
@@ -260,10 +470,9 @@ namespace HeroVirtualTableTop.Crowd
         public void ResetFilter()
         {
             FilterApplied = false;
-            foreach (CrowdMembership crowdMemberShip in Members)
+            foreach (CrowdMember crowdMember in Members)
             {
-                CrowdMember member = crowdMemberShip.Child;
-                member.ResetFilter();
+                crowdMember.ResetFilter();
             }
         }
 
@@ -271,16 +480,16 @@ namespace HeroVirtualTableTop.Crowd
         {
             if (e.PropertyName == "Name")
             {
-                Members.UpdateKey((sender as CrowdMember).OldName, (sender as CrowdMember).Name);
+                //to do MemberShips.Keys.UpdateKey((sender as CrowdMember).OldName, (sender as CrowdMember).Name);
             }
             if (e.PropertyName == "Name" || e.PropertyName == "Order")
             {
-                Members.Sort(ListSortDirection.Ascending, new CrowdMemberComparer());
+                //to do MemberShips.Sort(ListSortDirection.Ascending, new CrowdMemberComparer());
             }
         }
     }
 
-    public class CrowdMemberShipImpl : NotifyPropertyChanged, CrowdMembership
+    public class CrowdMemberShipImpl : NotifyPropertyChanged, CrowdMemberShip
     {
         public CrowdMemberShipImpl(Crowd parent, CrowdMember child)
         {
@@ -288,7 +497,8 @@ namespace HeroVirtualTableTop.Crowd
             Child = child;
         }
         public int Order { get; set; }
-        public Crowd ParentCrowd { get; set; }
+        public Crowd ParentCrowd { get; }
+        private int _order; //has to move to membership
         public CrowdMember Child { get; set; }
         Position _savedPosition;
         public Position SavedPosition
@@ -303,64 +513,65 @@ namespace HeroVirtualTableTop.Crowd
                 OnPropertyChanged("SavedPosition");
             }
         }
-
-        public void RemoveMemberFromParent(bool nested = false)
+        /*
+       public void RemoveMemberFromParent(bool nested = false)
+       {
+           
+           if (Child is CharacterCrowdMember)
+           {
+               // Check if the Character is in All Characters. If so, prompt
+               if (ParentCrowd == ParentCrowd.CrowdRepository.AllMembersCrowd)
+               {
+                   DeleteCrowdMemberFromAllCrowdsByName(Child.Name);
+               }
+               else
+               {
+                   // Delete the Character from all occurances of this crowd
+                   DeleteCrowdMemberFromCrowdByName(ParentCrowd, Child.Name);
+               }
+           }
+           else // Delete Crowd
+           {
+               //If it is a nested crowd, just delete it from the parent
+               if (Child != null)
+               {
+                   string nameOfDeletingCrowd = ParentCrowd.Name;
+                   DeleteNestedCrowdFromCrowdByName(ParentCrowd, nameOfDeletingCrowd);
+               }
+               // Check if there are containing characters. If so, prompt
+               else if (ParentCrowd.MemberShips != null && ParentCrowd.MemberShips.Where(cm => cm is CrowdMember).Count() > 0)
+               {
+                   string nameOfDeletingCrowd = "";
+                   if (nested)
+                   {
+                       // Delete crowd specific characters from All Characters and this crowd
+                       List<CrowdMember> crowdSpecificCharacters = FindCrowdSpecificCrowdMembers((Crowd)this.Child);
+                       nameOfDeletingCrowd = Child.Name;
+                       DeleteCrowdMembersFromAllCrowdsByList(crowdSpecificCharacters);
+                       DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowd);
+                       DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowd);
+                       return;
+                   }
+                   else {
+                       nameOfDeletingCrowd = Child.Name;
+                       DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowd);
+                       DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowd);
+                       return;
+                   }
+               }
+               // or just delete the crowd from crowd collection and other crowds
+               else
+               {
+                   string nameOfDeletingCrowd = Child.Name;
+                   DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowd);
+                   DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowd);
+               }
+           }
+       }
+      
+         private void DeleteCrowdMemberFromAllCrowdsByName(string nameOfDeletingCrowdMember)
         {
-            if (Child is CharacterCrowdMember)
-            {
-                // Check if the Character is in All Characters. If so, prompt
-                if (ParentCrowd == ParentCrowd.CrowdRepository.AllMembersCrowd)
-                {
-                    DeleteCrowdMemberFromAllCrowdsByName(Child.Name);
-                }
-                else
-                {
-                    // Delete the Character from all occurances of this crowd
-                    DeleteCrowdMemberFromCrowdByName(ParentCrowd, Child.Name);
-                }
-            }
-            else // Delete Crowd
-            {
-                //If it is a nested crowd, just delete it from the parent
-                if (Child != null)
-                {
-                    string nameOfDeletingCrowd = ParentCrowd.Name;
-                    DeleteNestedCrowdFromCrowdByName(ParentCrowd, nameOfDeletingCrowd);
-                }
-                // Check if there are containing characters. If so, prompt
-                else if (ParentCrowd.Members != null && ParentCrowd.Members.Where(cm => cm is CrowdMember).Count() > 0)
-                {
-                    string nameOfDeletingCrowd = "";
-                    if (nested)
-                    {
-                        // Delete crowd specific characters from All Characters and this crowd
-                        List<CrowdMember> crowdSpecificCharacters = FindCrowdSpecificCrowdMembers((Crowd)this.Child);
-                        nameOfDeletingCrowd = Child.Name;
-                        DeleteCrowdMembersFromAllCrowdsByList(crowdSpecificCharacters);
-                        DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowd);
-                        DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowd);
-                        return;
-                    }
-                    else {
-                        nameOfDeletingCrowd = Child.Name;
-                        DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowd);
-                        DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowd);
-                        return;
-                    }
-                }
-                // or just delete the crowd from crowd collection and other crowds
-                else
-                {
-                    string nameOfDeletingCrowd = Child.Name;
-                    DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowd);
-                    DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowd);
-                }
-            }
-        }
-
-        private void DeleteCrowdMemberFromAllCrowdsByName(string nameOfDeletingCrowdMember)
-        {
-            foreach (CrowdMembership membership in ParentCrowd.CrowdRepository.AllMembersCrowd.Members)
+            foreach (CrowdMemberShip membership in ParentCrowd.CrowdRepository.AllMembersCrowd.MemberShips)
             {
                 if (membership.Child is Crowd)
                 {
@@ -370,19 +581,18 @@ namespace HeroVirtualTableTop.Crowd
             }
             DeleteCrowdMemberFromCharacterCollectionByName(nameOfDeletingCrowdMember);
         }
-
         private void DeleteCrowdMemberFromNestedCrowdByName(Crowd crowd, string nameOfDeletingCrowdMember)
         {
-            if (crowd.Members != null && crowd.Members.Count > 0)
+            if (crowd.MemberShips != null && crowd.MemberShips.Count > 0)
             {
-                foreach (var membership in crowd.Members)
+                foreach (var membership in crowd.MemberShips)
                 {
                     if (membership.Child is Crowd)
                     {
                         var membershipChild = membership as Crowd;
-                        if (membershipChild.Members != null)
+                        if (membershipChild.MemberShips != null)
                         {
-                            var crm = membershipChild.Members.Where(cmmm => cmmm.Child.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+                            var crm = membershipChild.MemberShips.Where(cmmm => cmmm.Child.Name == nameOfDeletingCrowdMember).FirstOrDefault();
                             if (crm != null)
                                 membershipChild.RemoveMember(crm.Child);
                             DeleteCrowdMemberFromNestedCrowdByName(membershipChild, nameOfDeletingCrowdMember);
@@ -393,30 +603,30 @@ namespace HeroVirtualTableTop.Crowd
         }
         private void DeleteCrowdMemberFromCrowdByName(Crowd Crowd, string nameOfDeletingCrowdMember)
         {
-            if (Crowd.Members != null)
+            if (Crowd.MemberShips != null)
             {
-                var crm = Crowd.Members.Where(cm => cm.Child.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+                var crm = Crowd.MemberShips.Where(cm => cm.Child.Name == nameOfDeletingCrowdMember).FirstOrDefault();
                 Crowd.RemoveMember(crm.Child);
             }
         }
         private void DeleteCrowdMemberFromCharacterCollectionByName(string nameOfDeletingCrowdMember)
         {
-            var charFromAllCrowd = ParentCrowd.CrowdRepository.AllMembersCrowd.Members.Where(c => c.Child.Name == nameOfDeletingCrowdMember).FirstOrDefault();
-            ParentCrowd.CrowdRepository.AllMembersCrowd.Members.Remove(charFromAllCrowd);
+            var charFromAllCrowd = ParentCrowd.CrowdRepository.AllMembersCrowd.MemberShips.Where(c => c.Child.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+            ParentCrowd.CrowdRepository.AllMembersCrowd.MemberShips.Remove(charFromAllCrowd);
         }
         private void DeleteCrowdMemberFromCharacterCollectionByList(List<CrowdMember> crowdMembersToDelete)
         {
             foreach (var crowdMemberToDelete in crowdMembersToDelete)
             {
-                var deletingCrowdMember = ParentCrowd.CrowdRepository.AllMembersCrowd.Members.Where(c => c.Child.Name == crowdMemberToDelete.Name).FirstOrDefault();
-                ParentCrowd.CrowdRepository.AllMembersCrowd.Members.Remove(deletingCrowdMember);
+                var deletingCrowdMember = ParentCrowd.CrowdRepository.AllMembersCrowd.MemberShips.Where(c => c.Child.Name == crowdMemberToDelete.Name).FirstOrDefault();
+                ParentCrowd.CrowdRepository.AllMembersCrowd.MemberShips.Remove(deletingCrowdMember);
             }
         }
         private void DeleteCrowdMembersFromAllCrowdsByList(List<CrowdMember> crowdMembersToDelete)
         {
             if (Child is Crowd)
             {
-                foreach (Crowd crowd in ((Crowd)Child).Members)
+                foreach (Crowd crowd in ((Crowd)Child).MemberShips)
                 {
                     DeleteCrowdMembersFromCrowdByList(crowd, crowdMembersToDelete);
                 }
@@ -425,11 +635,11 @@ namespace HeroVirtualTableTop.Crowd
         }
         private void DeleteCrowdMembersFromCrowdByList(Crowd Crowd, List<CrowdMember> crowdMembersToDelete)
         {
-            if (Crowd.Members != null)
+            if (Crowd.MemberShips != null)
             {
                 foreach (var crowdMemberToDelete in crowdMembersToDelete)
                 {
-                    var deletingCrowdMemberFromModel = Crowd.Members.Where(cm => cm.Child.Name == crowdMemberToDelete.Name).FirstOrDefault();
+                    var deletingCrowdMemberFromModel = Crowd.MemberShips.Where(cm => cm.Child.Name == crowdMemberToDelete.Name).FirstOrDefault();
                     Crowd.RemoveMember(deletingCrowdMemberFromModel.Child);
                 }
             }
@@ -438,7 +648,7 @@ namespace HeroVirtualTableTop.Crowd
         {
             if (Child is Crowd)
             {
-                foreach (Crowd crowd in ((Crowd)Child).Members)
+                foreach (Crowd crowd in ((Crowd)Child).MemberShips)
                 {
                     DeleteNestedCrowdFromCrowdByName(crowd, nameOfDeletingCrowd);
                 }
@@ -446,29 +656,29 @@ namespace HeroVirtualTableTop.Crowd
         }
         private void DeleteNestedCrowdFromCrowdByName(Crowd Crowd, string nameOfDeletingCrowd)
         {
-            if (Crowd.Members != null)
+            if (Crowd.MemberShips != null)
             {
-                var CrowdToDelete = Crowd.Members.Where(cm => cm.Child.Name == nameOfDeletingCrowd).FirstOrDefault();
+                var CrowdToDelete = Crowd.MemberShips.Where(cm => cm.Child.Name == nameOfDeletingCrowd).FirstOrDefault();
                 if (CrowdToDelete != null)
                     Crowd.RemoveMember(CrowdToDelete.Child);
             }
         }
         private void DeleteCrowdFromCrowdCollectionByName(string nameOfDeletingCrowd)
         {
-            var crowdToDelete = ((Crowd)Child).Members.Where(cr => cr.Child.Name == nameOfDeletingCrowd).FirstOrDefault();
-            ((Crowd)Child).Members.Remove(crowdToDelete);
+            var crowdToDelete = ((Crowd)Child).MemberShips.Where(cr => cr.Child.Name == nameOfDeletingCrowd).FirstOrDefault();
+            ((Crowd)Child).MemberShips.Remove(crowdToDelete);
         }
         private List<CrowdMember> FindCrowdSpecificCrowdMembers(Crowd crowdModel)
         {
             List<CrowdMember> crowdSpecificCharacters = new List<CrowdMember>();
-            foreach (CrowdMembership cMember in crowdModel.Members)
+            foreach (CrowdMemberShip cMember in crowdModel.MemberShips)
             {
                 if (cMember.Child is CharacterCrowdMember)
                 {
                     CharacterCrowdMember currentCharacter = cMember as CharacterCrowdMember;
-                    foreach (Crowd crowd in ParentCrowd.CrowdRepository.AllMembersCrowd.Members.Where(cm => cm.Child.Name != ParentCrowd.Name))
+                    foreach (Crowd crowd in ParentCrowd.CrowdRepository.AllMembersCrowd.MemberShips.Where(cm => cm.Child.Name != ParentCrowd.Name))
                     {
-                        var crm = crowd.Members.Where(cm => cm is CharacterCrowdMember && cm.Child.Name == currentCharacter.Name).FirstOrDefault();
+                        var crm = crowd.MemberShips.Where(cm => cm is CharacterCrowdMember && cm.Child.Name == currentCharacter.Name).FirstOrDefault();
                         if (crm == null || crowd.Name == ParentCrowd.CrowdRepository.AllMembersCrowd.Name)
                         {
                             if (crowdSpecificCharacters.Where(csc => csc.Name == currentCharacter.Name).FirstOrDefault() == null)
@@ -479,150 +689,215 @@ namespace HeroVirtualTableTop.Crowd
             }
             return crowdSpecificCharacters;
         }
-
-
-        public class CharacterCrowdMemberImpl : ManagedCharacterImpl, CharacterCrowdMember
-        {
-            public CharacterCrowdMemberImpl(CrowdMembership loadedParent, DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities, CrowdRepository repo) : base(targeter, generator, camera, identities)
-            {
-                LoadedParentMembership = loadedParent;
-                CrowdRepository = repo;
-            }
-
-            CrowdRepository CrowdRepository { get; set; }
-
-            public string OldName { get; set; }
-            private string _name;
-            public new string Name
-            {
-                get
-                {
-                    return _name;
-                }
-
-                set
-                {
-                    if (CheckIfNameIsDuplicate(value) == false)
-                    {
-                        throw new DuplicateKeyException(value);
-                    }
-                    else {
-                        OldName = _name;
-                        _name = value;
-                        OnPropertyChanged("Name");
-                    }
-                }
-            }
-            public bool CheckIfNameIsDuplicate(string updatedName)
-            {
-                return CrowdRepository.AllMembersCrowd.Members.ContainsKey(updatedName);
-            }
-
-            private bool isExpanded;
-            public bool IsExpanded
-            {
-                get
-                {
-                    return isExpanded;
-                }
-                set
-                {
-                    isExpanded = value;
-                    OnPropertyChanged("IsExpanded");
-                }
-            }
-
-            public CrowdMembership LoadedParentMembership { get; set; }
-            public void SaveCurrentTableTopPosition()
-            {
-                LoadedParentMembership.SavedPosition = Position.Duplicate();
-            }
-            public void PlaceOnTableTop(Position position = null)
-            {
-                if (!this.IsSpawned)
-                {
-                    this.SpawnToDesktop();
-                }
-                if (position != null)
-                {
-                    Position.MoveTo(position);
-                }
-                else
-                {
-                    Position.MoveTo(LoadedParentMembership.SavedPosition);
-                }
-            }
-            public void PlaceOnTableTopUsingRelativePos() { }
-
-            public override string DesktopLabel
-            {
-                get
-                {
-
-                    if (MemoryInstance != null)
-                    {
-                        return MemoryInstance.Label;
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                }
-            }
-
-
-            private bool _matchedFilter = false;
-            public bool MatchesFilter
-            {
-                get
-                {
-                    return _matchedFilter;
-                }
-                set
-                {
-                    _matchedFilter = value;
-                    OnPropertyChanged("IsMatched");
-                }
-            }
-            public bool FilterApplied { get; set; }
-            public void ApplyFilter(string filter)
-            {
-                if (FilterApplied == true && MatchesFilter == true)
-                {
-                    return;
-                }
-                if (string.IsNullOrEmpty(filter))
-                {
-                    MatchesFilter = true;
-                }
-                else
-                {
-                    Regex re = new Regex(filter, RegexOptions.IgnoreCase);
-                    MatchesFilter = re.IsMatch(Name);
-                }
-                IsExpanded = MatchesFilter;
-                FilterApplied = true;
-            }
-            public void ResetFilter()
-            {
-                FilterApplied = false;
-            }
-
-            public CrowdMember Clone()
-            {
-                CharacterCrowdMemberImpl clone = (CharacterCrowdMemberImpl)CrowdRepository.NewCharacterCrowdMember();
-
-                clone.Name = CrowdRepository.CreateUniqueName(this.Name);
-                clone.Identities = Identities.Clone();
-                clone.Generator = Generator;
-                clone.Targeter = Targeter;
-                clone.Camera = Camera;
-
-
-                return clone;
-            }
-
-        }
+        */
     }
 
+    public class CharacterCrowdMemberImpl : ManagedCharacterImpl, CharacterCrowdMember
+    {
+        public CharacterCrowdMemberImpl(Crowd parent, DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities, CrowdRepository repo) : base(targeter, generator, camera, identities)
+        {
+            AllCrowdMembershipParents = new List<CrowdMemberShip>();
+            Parent = parent;
+            CrowdRepository = repo;
+        }
+
+        private CrowdMemberShip _loadedParentMembership;
+
+        public List<CrowdMemberShip> AllCrowdMembershipParents { get; }
+
+        public Crowd Parent
+        {
+            get
+            {
+                return _loadedParentMembership.ParentCrowd;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    _loadedParentMembership = null;
+                    return;
+                }
+                Dictionary<string, CrowdMemberShip> parents = AllCrowdMembershipParents.ToDictionary(x => x.ParentCrowd.Name);
+                if (!parents.ContainsKey(value.Name))
+                {
+                    CrowdMemberShip parent = new CrowdMemberShipImpl(value, this);
+                    AllCrowdMembershipParents.Add(parent);
+                    _loadedParentMembership = parent;
+                }
+                else {
+                    _loadedParentMembership = parents[value.Name];
+                }
+                _loadedParentMembership.Child = this;
+            }
+        }
+        public void RemoveParent(CrowdMember parent)
+        {
+            CrowdMemberShip shipToKill = this.AllCrowdMembershipParents.Where(y => y.ParentCrowd.Name == parent.Name).First();
+            this.AllCrowdMembershipParents.Remove(shipToKill);
+            if (this.AllCrowdMembershipParents.Count == 1)//remove from Allmembers crowd
+            {
+                this.CrowdRepository.AllMembersCrowd.RemoveMember(this);
+            }
+        }
+
+        public int Order
+        {
+            get
+            {
+                if (_loadedParentMembership != null)
+                    return _loadedParentMembership.Order;
+                else
+                    return 0;
+            }
+            set
+            {
+                if (_loadedParentMembership != null)
+                    _loadedParentMembership.Order = value;
+                OnPropertyChanged("Order");
+            }
+        }
+        CrowdRepository CrowdRepository { get; set; }
+
+        public string OldName { get; set; }
+        private string _name;
+        public new string Name
+        {
+            get
+            {
+                return _name;
+            }
+
+            set
+            {
+                if (CheckIfNameIsDuplicate(value,null) == true)
+                {
+                    throw new DuplicateKeyException(value);
+                }
+                else {
+                    OldName = _name;
+                    _name = value;
+                    OnPropertyChanged("Name");
+                }
+            }
+        }
+        public bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> member)
+        {
+            if (CrowdRepository.AllMembersCrowd != null)
+            {
+                return CrowdRepository.AllMembersCrowd.MembersByName.ContainsKey(updatedName);
+            }
+
+            else
+            {
+                return false;
+            }
+        }
+
+
+        private bool isExpanded;
+        public bool IsExpanded
+        {
+            get
+            {
+                return isExpanded;
+            }
+            set
+            {
+                isExpanded = value;
+                OnPropertyChanged("IsExpanded");
+            }
+        }
+
+
+        public void SaveCurrentTableTopPosition()
+        {
+            _loadedParentMembership.SavedPosition = Position.Duplicate();
+        }
+        public void PlaceOnTableTop(Position position = null)
+        {
+            if (!this.IsSpawned)
+            {
+                this.SpawnToDesktop();
+            }
+            if (position != null)
+            {
+                Position.MoveTo(position);
+            }
+            else
+            {
+                Position.MoveTo(_loadedParentMembership.SavedPosition);
+            }
+        }
+        public void PlaceOnTableTopUsingRelativePos() { }
+
+        public override string DesktopLabel
+        {
+            get
+            {
+
+                if (MemoryInstance != null)
+                {
+                    return MemoryInstance.Label;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+
+        private bool _matchedFilter = false;
+        public bool MatchesFilter
+        {
+            get
+            {
+                return _matchedFilter;
+            }
+            set
+            {
+                _matchedFilter = value;
+                OnPropertyChanged("IsMatched");
+            }
+        }
+        public bool FilterApplied { get; set; }
+        public void ApplyFilter(string filter)
+        {
+            if (FilterApplied == true && MatchesFilter == true)
+            {
+                return;
+            }
+            if (string.IsNullOrEmpty(filter))
+            {
+                MatchesFilter = true;
+            }
+            else
+            {
+                Regex re = new Regex(filter, RegexOptions.IgnoreCase);
+                MatchesFilter = re.IsMatch(Name);
+            }
+            IsExpanded = MatchesFilter;
+            FilterApplied = true;
+        }
+        public void ResetFilter()
+        {
+            FilterApplied = false;
+        }
+
+        public CrowdMember Clone()
+        {
+            CharacterCrowdMemberImpl clone = (CharacterCrowdMemberImpl)CrowdRepository.NewCharacterCrowdMember();
+
+            clone.Name = CrowdRepository.CreateUniqueName(this.Name, clone);
+            clone.Identities = Identities.Clone();
+            clone.Generator = Generator;
+            clone.Targeter = Targeter;
+            clone.Camera = Camera;
+
+
+            return clone;
+        }
+
+    }
 }

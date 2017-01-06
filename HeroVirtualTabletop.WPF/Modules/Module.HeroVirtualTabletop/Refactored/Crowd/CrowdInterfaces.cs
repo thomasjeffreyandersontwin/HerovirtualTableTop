@@ -7,8 +7,6 @@ using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Desktop;
 using Framework.WPF.Library;
 using System.ComponentModel;
-using HeroVirtualTabletop.AnimatedCharacter;
-using HeroVirtualTabletop.MoveableCharacter;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -17,47 +15,59 @@ namespace HeroVirtualTableTop.Crowd
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
 
     }
-    
+   
+   
+
     public interface CrowdRepository
     {
-        HashedObservableCollection<Crowd, string> Crowds { get; set; }
-        void AddCrowd(Crowd crowd);
-        Crowd NewCrowd(Crowd parent=null);
-        CharacterCrowdMember NewCharacterCrowdMember(Crowd parent=null, string name = "Character");
 
-        Crowd AllMembersCrowd { get; set; }
-        string CreateUniqueName(string name);
+        Dictionary<string, Crowd> CrowdsByName { get;}
+        List <Crowd> Crowds { get; set; }
+        Crowd NewCrowd(Crowd parent = null, string name = "Character");
+        CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
+
+        Crowd AllMembersCrowd { get;  }
+        string CreateUniqueName(string name,CrowdMember member);
     }
 
     public interface Crowd : CrowdMember
     {
         bool UseRelativePositioning { get; set; }
-        HashedObservableCollection<CrowdMembership, string> Members {get; set; }       
+        List<CrowdMemberShip> MemberShips { get;}
+        List<CrowdMember> Members { get; }
+        Dictionary<string, CrowdMember> MembersByName { get; }
+        void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdToMove);
         void AddCrowdMember(CrowdMember member);
         void RemoveMember(CrowdMember member);
         bool IsExpanded { get; set; }
         CrowdRepository CrowdRepository { get; set; }
+        
 
     }
 
-    public interface CharacterCrowdMember: ManagedCharacter.ManagedCharacter, CrowdMember
+    public interface CharacterCrowdMember : ManagedCharacter.ManagedCharacter, CrowdMember
     {
         new string Name { get; set; }
-        CrowdMembership LoadedParentMembership { get; set; }
+        
     }
     public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged
     {
+        int Order { get; set; }
         bool MatchesFilter { get; set; }
         string OldName { get; set; }
+
         string Name { get; set; }
 
         CrowdMember Clone();
         void ApplyFilter(string filter);
         void ResetFilter();
-        bool CheckIfNameIsDuplicate(string updatedName);
-        
+        bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> members);
+        List<CrowdMemberShip> AllCrowdMembershipParents { get; }
+        Crowd Parent { get; set; }
+
+        void RemoveParent(CrowdMember crowdMember);
     }
-    public interface CrowdMembership
+    public interface CrowdMemberShip
     {
         int Order { get; set; }
         Crowd ParentCrowd { get; }
@@ -71,18 +81,10 @@ namespace HeroVirtualTableTop.Crowd
         void SaveCurrentTableTopPosition();
         void PlaceOnTableTop(Position position = null);
         void PlaceOnTableTopUsingRelativePos();
-        
+
     }
 
-    public interface CharacterCrowd : CrowdMembership, ManagedCharacterCommands, CrowdMemberCommands
-    {
-        bool UseRelativePositioning { get; set; }
-        Dictionary<string, CrowdMembership> Members { get; set; }
-        CrowdMember AddCharacter(ManagedCharacter.ManagedCharacter character);
-        CharacterCrowd AddCrowd(CharacterCrowd crowd);
-    }
 
-    
 
     public interface CrowdClipboard
     {
@@ -93,21 +95,7 @@ namespace HeroVirtualTableTop.Crowd
     }
 
 
-    public interface Roster : ManagedCharacterCommands, CrowdMemberCommands, AnimatedCharacterCommands
-    {
-        Dictionary<string, CharacterCrowd> Crowds { get; set; }
-        Dictionary<string, MoveableCharacter> Participants { get; set; }
 
-        List<CrowdMembership> SelectedParticipants { get; set; }
-        void AddMemberToSelection(CrowdMembership member);
-        void RemoveMemberFromSelection(CrowdMembership member);
-        void ClearMembersFromSelection();
-
-        CrowdMember ActiveCharacter { get; set; }
-        void ActivateCharacter(CrowdMember crowdMember);
-        void DeactivateCharacter(CrowdMember crowdMember);
-        void AddMember(MoveableCharacter member);
-        void RemoveMember(MoveableCharacter member);
-
-    }
 }
+
+
