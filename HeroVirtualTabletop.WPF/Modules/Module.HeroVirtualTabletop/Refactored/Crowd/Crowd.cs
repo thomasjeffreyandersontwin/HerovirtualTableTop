@@ -73,9 +73,9 @@ namespace HeroVirtualTableTop.Crowd
     
 
 
-    public class CrowdMemberComparer : IComparer<CrowdMemberShip>
+    public class CrowdMemberComparer : IComparer<CrowdMembership>
     {
-        public int Compare(CrowdMemberShip cmm1, CrowdMemberShip cmm2)
+        public int Compare(CrowdMembership cmm1, CrowdMembership cmm2)
         {
             if (cmm1.Order != cmm2.Order)
                 return cmm1.Order.CompareTo(cmm2.Order);
@@ -141,11 +141,11 @@ namespace HeroVirtualTableTop.Crowd
 
         CrowdImpl(string name) {
             Name = name;
-            _members = new HashedObservableCollection<CrowdMemberShip, string>(x => x.Child.Name, x => x.Order, x => x.Child.Name);
+            _members = new HashedObservableCollection<CrowdMembership, string>(x => x.Child.Name, x => x.Order, x => x.Child.Name);
         }
 
-        private HashedObservableCollection<CrowdMemberShip, string> _members;
-        public HashedObservableCollection<CrowdMemberShip, string> Members { get { return _members; } set { Members = value; } }
+        private HashedObservableCollection<CrowdMembership, string> _members;
+        public HashedObservableCollection<CrowdMembership, string> Members { get { return _members; } set { Members = value; } }
         public void RemoveMember(CrowdMember member)
         {
             if (_members.ContainsKey(member.Name))
@@ -157,27 +157,27 @@ namespace HeroVirtualTableTop.Crowd
         }
         public void AddCrowdMember(CrowdMember member)
         {
-            CrowdMemberShip membership = new CrowdMemberShipImpl(this, member);
+            CrowdMembership membership = new CrowdMemberShipImpl(this, member);
             this.Members.Add(membership);
             member.PropertyChanged += Member_PropertyChanged;
         }
 
         public void SaveCurrentTableTopPosition() {
-            foreach (CrowdMemberShip crowdMembership in Members)
+            foreach (CrowdMembership crowdMembership in Members)
             {
                 crowdMembership.Child.SaveCurrentTableTopPosition();
             }
         }
         public void PlaceOnTableTop(Position pos =null)
         {
-            foreach (CrowdMemberShip crowdMembership in Members)
+            foreach (CrowdMembership crowdMembership in Members)
             {
                 crowdMembership.Child.PlaceOnTableTop();
             }
         }
         public void PlaceOnTableTopUsingRelativePos()
         {
-            foreach (CrowdMemberShip crowdMember in Members)
+            foreach (CrowdMembership crowdMember in Members)
             {
                 crowdMember.Child.PlaceOnTableTopUsingRelativePos();
             }
@@ -189,7 +189,7 @@ namespace HeroVirtualTableTop.Crowd
             clone.Name = CrowdRepository.CreateUniqueName(Name);
             EliminateDuplicateName();
             clone.UseRelativePositioning = UseRelativePositioning;
-            foreach (CrowdMemberShip membership in this._members)
+            foreach (CrowdMembership membership in this._members)
             {
                 CrowdMember member = membership.Child;
                 clone.AddCrowdMember(member);
@@ -207,10 +207,10 @@ namespace HeroVirtualTableTop.Crowd
                 }
             }
         }
-        private List<CrowdMember> GetFlattenedMemberList(List<CrowdMemberShip> list)
+        private List<CrowdMember> GetFlattenedMemberList(List<CrowdMembership> list)
         {
             List<CrowdMember> flattened = new List<CrowdMember>();
-            foreach (CrowdMemberShip crowdMembership in list)
+            foreach (CrowdMembership crowdMembership in list)
             {
                 if (crowdMembership.Child is Crowd)
                 {
@@ -260,7 +260,7 @@ namespace HeroVirtualTableTop.Crowd
         public void ResetFilter()
         {
             FilterApplied = false;
-            foreach (CrowdMemberShip crowdMemberShip in Members)
+            foreach (CrowdMembership crowdMemberShip in Members)
             {
                 CrowdMember member = crowdMemberShip.Child;
                 member.ResetFilter();
@@ -280,7 +280,7 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
-    public class CrowdMemberShipImpl : NotifyPropertyChanged, CrowdMemberShip
+    public class CrowdMemberShipImpl : NotifyPropertyChanged, CrowdMembership
     {
         public CrowdMemberShipImpl(Crowd parent, CrowdMember child)
         {
@@ -288,7 +288,7 @@ namespace HeroVirtualTableTop.Crowd
             Child = child;
         }
         public int Order { get; set; }
-        public Crowd ParentCrowd { get; }
+        public Crowd ParentCrowd { get; set; }
         public CrowdMember Child { get; set; }
         Position _savedPosition;
         public Position SavedPosition
@@ -360,7 +360,7 @@ namespace HeroVirtualTableTop.Crowd
 
         private void DeleteCrowdMemberFromAllCrowdsByName(string nameOfDeletingCrowdMember)
         {
-            foreach (CrowdMemberShip membership in ParentCrowd.CrowdRepository.AllMembersCrowd.Members)
+            foreach (CrowdMembership membership in ParentCrowd.CrowdRepository.AllMembersCrowd.Members)
             {
                 if (membership.Child is Crowd)
                 {
@@ -461,7 +461,7 @@ namespace HeroVirtualTableTop.Crowd
         private List<CrowdMember> FindCrowdSpecificCrowdMembers(Crowd crowdModel)
         {
             List<CrowdMember> crowdSpecificCharacters = new List<CrowdMember>();
-            foreach (CrowdMemberShip cMember in crowdModel.Members)
+            foreach (CrowdMembership cMember in crowdModel.Members)
             {
                 if (cMember.Child is CharacterCrowdMember)
                 {
@@ -483,7 +483,7 @@ namespace HeroVirtualTableTop.Crowd
 
         public class CharacterCrowdMemberImpl : ManagedCharacterImpl, CharacterCrowdMember
         {
-            public CharacterCrowdMemberImpl(CrowdMemberShip loadedParent, DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities, CrowdRepository repo) : base(targeter, generator, camera, identities)
+            public CharacterCrowdMemberImpl(CrowdMembership loadedParent, DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities, CrowdRepository repo) : base(targeter, generator, camera, identities)
             {
                 LoadedParentMembership = loadedParent;
                 CrowdRepository = repo;
@@ -532,7 +532,7 @@ namespace HeroVirtualTableTop.Crowd
                 }
             }
 
-            public CrowdMemberShip LoadedParentMembership { get; set; }
+            public CrowdMembership LoadedParentMembership { get; set; }
             public void SaveCurrentTableTopPosition()
             {
                 LoadedParentMembership.SavedPosition = Position.Duplicate();

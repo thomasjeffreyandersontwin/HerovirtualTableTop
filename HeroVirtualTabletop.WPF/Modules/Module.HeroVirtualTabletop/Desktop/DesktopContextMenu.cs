@@ -26,7 +26,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         public bool IsPlayingAreaEffect=false;
 
         private RosterExplorerViewModel _viewModel;
-        public DesktopContextMenu(RosterExplorerViewModel viewModel) {
+        public DesktopContextMenu(RosterExplorerViewModelRF viewModel) {
             _viewModel = viewModel;
             if (ContextCommandFileWatcher == null)
             {

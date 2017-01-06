@@ -7,6 +7,8 @@ using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Desktop;
 using Framework.WPF.Library;
 using System.ComponentModel;
+using HeroVirtualTabletop.AnimatedCharacter;
+using HeroVirtualTabletop.MoveableCharacter;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -18,7 +20,6 @@ namespace HeroVirtualTableTop.Crowd
     
     public interface CrowdRepository
     {
-
         HashedObservableCollection<Crowd, string> Crowds { get; set; }
         void AddCrowd(Crowd crowd);
         Crowd NewCrowd(Crowd parent=null);
@@ -31,7 +32,7 @@ namespace HeroVirtualTableTop.Crowd
     public interface Crowd : CrowdMember
     {
         bool UseRelativePositioning { get; set; }
-        HashedObservableCollection<CrowdMemberShip, string> Members {get; set; }       
+        HashedObservableCollection<CrowdMembership, string> Members {get; set; }       
         void AddCrowdMember(CrowdMember member);
         void RemoveMember(CrowdMember member);
         bool IsExpanded { get; set; }
@@ -42,7 +43,7 @@ namespace HeroVirtualTableTop.Crowd
     public interface CharacterCrowdMember: ManagedCharacter.ManagedCharacter, CrowdMember
     {
         new string Name { get; set; }
-        CrowdMemberShip LoadedParentMembership { get; set; }
+        CrowdMembership LoadedParentMembership { get; set; }
     }
     public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged
     {
@@ -56,7 +57,7 @@ namespace HeroVirtualTableTop.Crowd
         bool CheckIfNameIsDuplicate(string updatedName);
         
     }
-    public interface CrowdMemberShip
+    public interface CrowdMembership
     {
         int Order { get; set; }
         Crowd ParentCrowd { get; }
@@ -73,6 +74,14 @@ namespace HeroVirtualTableTop.Crowd
         
     }
 
+    public interface CharacterCrowd : CrowdMembership, ManagedCharacterCommands, CrowdMemberCommands
+    {
+        bool UseRelativePositioning { get; set; }
+        Dictionary<string, CrowdMembership> Members { get; set; }
+        CrowdMember AddCharacter(ManagedCharacter.ManagedCharacter character);
+        CharacterCrowd AddCrowd(CharacterCrowd crowd);
+    }
+
     
 
     public interface CrowdClipboard
@@ -84,5 +93,21 @@ namespace HeroVirtualTableTop.Crowd
     }
 
 
+    public interface Roster : ManagedCharacterCommands, CrowdMemberCommands, AnimatedCharacterCommands
+    {
+        Dictionary<string, CharacterCrowd> Crowds { get; set; }
+        Dictionary<string, MoveableCharacter> Participants { get; set; }
 
+        List<CrowdMembership> SelectedParticipants { get; set; }
+        void AddMemberToSelection(CrowdMembership member);
+        void RemoveMemberFromSelection(CrowdMembership member);
+        void ClearMembersFromSelection();
+
+        CrowdMember ActiveCharacter { get; set; }
+        void ActivateCharacter(CrowdMember crowdMember);
+        void DeactivateCharacter(CrowdMember crowdMember);
+        void AddMember(MoveableCharacter member);
+        void RemoveMember(MoveableCharacter member);
+
+    }
 }
