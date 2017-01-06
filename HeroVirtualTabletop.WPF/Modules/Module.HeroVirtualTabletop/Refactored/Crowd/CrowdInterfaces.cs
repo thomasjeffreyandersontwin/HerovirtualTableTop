@@ -55,6 +55,7 @@ namespace HeroVirtualTableTop.Crowd
         int Order { get; set; }
         bool MatchesFilter { get; set; }
         string OldName { get; set; }
+
         string Name { get; set; }
 
         CrowdMember Clone();
@@ -64,6 +65,7 @@ namespace HeroVirtualTableTop.Crowd
         List<CrowdMemberShip> AllCrowdMembershipParents { get; }
         Crowd Parent { get; set; }
 
+        void RemoveParent(CrowdMember crowdMember);
     }
     public interface CrowdMemberShip
     {
