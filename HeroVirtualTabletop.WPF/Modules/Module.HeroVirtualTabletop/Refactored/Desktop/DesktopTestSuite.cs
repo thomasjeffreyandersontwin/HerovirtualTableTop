@@ -83,9 +83,11 @@ namespace HeroVirtualTableTop.Desktop
             CustomizedMockFixture = new Fixture();
             CustomizedMockFixture.Customize(new AutoConfiguredMoqCustomization());
             CustomizedMockFixture.Customizations.Add(new NumericSequenceGenerator());
+       
 
 
-            
+
+
 
         }
 

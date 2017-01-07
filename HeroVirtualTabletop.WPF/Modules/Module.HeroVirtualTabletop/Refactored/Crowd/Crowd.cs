@@ -73,6 +73,10 @@ namespace HeroVirtualTableTop.Crowd
                 name = "Crowd";
             }
             Crowd newCrowd = this.NewCrowdInstance;
+            if (newCrowd== null)
+            {
+                newCrowd = new CrowdImpl(this);
+            }
             newCrowd.Name = CreateUniqueName(name, newCrowd);
            // Crowds.Add(newCrowd);
             parent.AddCrowdMember(newCrowd);
@@ -83,8 +87,12 @@ namespace HeroVirtualTableTop.Crowd
         public CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character") 
         {
             CharacterCrowdMember newCharacter = NewCharacterCrowdMemberInstance;
-            newCharacter.Name = CreateUniqueName(name, newCharacter);
             
+            if (newCharacter == null)
+            {
+                newCharacter = new CharacterCrowdMemberImpl(parent,null, null,null,null,this);
+            }
+            newCharacter.Name = CreateUniqueName(name, newCharacter);
             AllMembersCrowd.AddCrowdMember(newCharacter);
             if (parent != null)
             {
@@ -149,7 +157,6 @@ namespace HeroVirtualTableTop.Crowd
     public class CrowdImpl : NotifyPropertyChanged, Crowd
     {
         public bool IsExpanded { get; set; }
-
         public string OldName { get; set; }
         private string _name;
         public string Name
@@ -202,8 +209,8 @@ namespace HeroVirtualTableTop.Crowd
             return false;
 
         }
-
         public CrowdRepository CrowdRepository { get; set; }
+        public bool UseRelativePositioning { get; set; }
 
         public CrowdImpl(CrowdRepository repo)
         {
@@ -213,12 +220,8 @@ namespace HeroVirtualTableTop.Crowd
 
         }
 
-        public bool UseRelativePositioning { get; set; }
-
         private CrowdMemberShip _loadedParentMembership;
-
         public List<CrowdMemberShip> AllCrowdMembershipParents { get; }
-
         public Crowd Parent
         {
             get
@@ -245,7 +248,6 @@ namespace HeroVirtualTableTop.Crowd
                 
             }
         }
-
         public List<CrowdMemberShip> MemberShips { get; }
         public List<CrowdMember> Members
         {
@@ -255,7 +257,7 @@ namespace HeroVirtualTableTop.Crowd
                     {
                         i.Child.Parent = this;
                         return i.Child; }
-                    ).ToList();
+                    ).OrderBy(x=>x.Order).ToList();
             }
         }
         public Dictionary<string, CrowdMember> MembersByName
@@ -287,8 +289,30 @@ namespace HeroVirtualTableTop.Crowd
             }
             return flattened;
         }
-
-
+        public void AddCrowdMember(CrowdMember member)
+        {
+            CrowdMemberShip membership = new CrowdMemberShipImpl(this, member);
+            this.MemberShips.Add(membership);
+            member.Order = Members.Count;
+            member.Parent = this;
+            member.PropertyChanged += Member_PropertyChanged;
+        }
+        public int Order
+        {
+            get
+            {
+                if (_loadedParentMembership != null)
+                    return _loadedParentMembership.Order;
+                else
+                    return 0;
+            }
+            set
+            {
+                if (_loadedParentMembership != null)
+                    _loadedParentMembership.Order = value;
+                OnPropertyChanged("Order");
+            }
+        }
         public void RemoveParent(CrowdMember parent)
         { 
            CrowdMemberShip shipToKill = this.AllCrowdMembershipParents.Where(y => y.ParentCrowd.Name == parent.Name).FirstOrDefault();
@@ -297,7 +321,6 @@ namespace HeroVirtualTableTop.Crowd
                 this.AllCrowdMembershipParents.Remove(shipToKill);
             }
         }
-
         public void RemoveMember(CrowdMember child)
         {
             int removeOrder = child.Order;
@@ -343,46 +366,30 @@ namespace HeroVirtualTableTop.Crowd
         {
             return (from membership in MemberShips where member.Name == membership.Child.Name select membership).FirstOrDefault();
         }
-
-        public void AddCrowdMember(CrowdMember member)
-        {
-            CrowdMemberShip membership = new CrowdMemberShipImpl(this, member);
-            this.MemberShips.Add(membership);
-            this.Members.ElementAt(Members.Count-1).Order = Members.Count ;
-            member.Parent = this;
-            member.PropertyChanged += Member_PropertyChanged;
-        }
-        public int Order
-        {
-            get
-            {
-                if(_loadedParentMembership!=null)
-                 return _loadedParentMembership.Order;
-                else
-                    return 0;
-            }
-            set
-            {
-                if(_loadedParentMembership!=null)
-                    _loadedParentMembership.Order = value;
-                OnPropertyChanged("Order");
-            }
-        }
         public void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember memberToMove)
         {
-            int orginalOrder = memberToMove.Order;
-            foreach (CrowdMember member in from member in Members orderby member.Order where member.Order  > orginalOrder select member)
+            if (destination.Parent == memberToMove.Parent)
             {
-                member.Order= member.Order-1;
+                int orginalOrder = memberToMove.Order;
+                foreach (CrowdMember member in from member in Members orderby member.Order where member.Order > orginalOrder select member)
+                {
+                    member.Order = member.Order - 1;
 
+                }
+                int destinationOrder = destination.Order + 1;
+                foreach (CrowdMember member in from member in Members orderby member.Order descending where member.Order >= destinationOrder select member)
+                {
+                    member.Order = member.Order + 1;
+
+                }
+                memberToMove.Order = destinationOrder;
             }
-            int destinationOrder = destination.Order + 1;
-            foreach (CrowdMember member in from member in Members orderby  member.Order descending where member.Order >= destinationOrder select member)
+            else
             {
-                member.Order = member.Order + 1;
-
+                memberToMove.Parent.RemoveMember(memberToMove);
+                AddCrowdMember(memberToMove);
+                MoveCrowdMemberAfter(destination, memberToMove);
             }
-            memberToMove.Order = destinationOrder;
 
 
 
@@ -434,7 +441,6 @@ namespace HeroVirtualTableTop.Crowd
             }
         }
 
-
         private bool _matchedFilter = false;
         public bool MatchesFilter
         {
@@ -485,6 +491,27 @@ namespace HeroVirtualTableTop.Crowd
             if (e.PropertyName == "Name" || e.PropertyName == "Order")
             {
                 //to do MemberShips.Sort(ListSortDirection.Ascending, new CrowdMemberComparer());
+            }
+        }
+        public void SpawnToDesktop(bool completeEvent = true)
+        {
+            foreach (CrowdMember crowdMember in Members)
+            {
+                crowdMember.SpawnToDesktop(completeEvent);
+            }
+        }
+        public void ClearFromDesktop(bool completeEvent = true)
+        {
+            foreach (CrowdMember crowdMember in Members)
+            {
+                crowdMember.ClearFromDesktop(completeEvent);
+            }
+        }
+        public void MoveCharacterToCamera(bool completeEvent = true)
+        {
+            foreach (CrowdMember crowdMember in Members)
+            {
+                crowdMember.MoveCharacterToCamera(completeEvent);
             }
         }
     }

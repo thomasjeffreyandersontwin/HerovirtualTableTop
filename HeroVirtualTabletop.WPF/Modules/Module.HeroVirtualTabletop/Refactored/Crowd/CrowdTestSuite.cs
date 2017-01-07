@@ -10,7 +10,7 @@ using HeroVirtualTableTop.ManagedCharacter;
 using System.Linq;
 using Ploeh.AutoFixture.Kernel;
 using Framework.WPF.Library;
-
+using System;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -27,7 +27,7 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         [TestMethod]
-        public void NewCrowd_IsAddedToRootCrowdAndParent()
+        public void NewCrowd_IsAddedToParent()
         {
             //arrange
             CrowdRepository repo = Factory.RepositoryUnderTest;
@@ -37,9 +37,7 @@ namespace HeroVirtualTableTop.Crowd
             Crowd actual = repo.NewCrowd(parent);
 
             //assert
-            bool isPresent = repo.Crowds.Contains(actual);
-            Assert.IsTrue(isPresent);
-            isPresent = parent.Members.Contains(actual);
+            bool isPresent = parent.Members.Contains(actual);
             Assert.IsTrue(isPresent);
 
         }
@@ -256,7 +254,6 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual(movedDown.Order, movedDownOrder - 1);
 
         }
-
         [TestMethod]
         public void Members_returnsProperListBasedOnCrowdMembershipDictionary() {
             Crowd parent = Factory.CrowdUnderTestWithMockRepo;
@@ -273,7 +270,6 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual(child2.Parent, parent);
 
         }
-
         [TestMethod]
         public void Parent_activatesParentMembershipBasedOnParentCalled()
         {
@@ -296,7 +292,6 @@ namespace HeroVirtualTableTop.Crowd
 
 
         }
-
         #region fure
         [TestMethod]
         public void RemoveMember_UpdatesOrderCorrectly() {
@@ -304,8 +299,6 @@ namespace HeroVirtualTableTop.Crowd
            
             Crowd parent = repo.Crowds[0];
             parent.AddCrowdMember(Factory.CharacterUnderTestWithMockDependencies);
-
-
             
             CrowdMember first = parent.Members[0];
             int firstOrder = parent.Members[0].Order;
@@ -329,30 +322,15 @@ namespace HeroVirtualTableTop.Crowd
 
         }
 
-       
         [TestMethod]
         public void RemoveCrowd_LastInstanceOfCrowdDeletesChildrenCharacterCrowdMembers()
         {
             //arrange
             CrowdRepository repo = Factory.RepositoryUnderTestWIthMixedCharactersAndCrowds;
-            Crowd parent = Factory.CrowdUnderTestWithMockRepo;
-            parent.Name = "Parent";
-           
-            Crowd grandParent1 = repo.Crowds[1];
-            Crowd grandParent2 = repo.Crowds[2];
+            Crowd parent, grandParent1, grandParent2;
+            CharacterCrowdMember grandChild1, grandChild2;
+            AddCrodwMemberHierarchyWithParentSharedAcrossTwoGranParentsAndTwoGrandChildrenToRepo(repo, out parent, out grandParent1, out grandParent2, out grandChild1, out grandChild2);
 
-            grandParent1.AddCrowdMember(parent);
-            grandParent2.AddCrowdMember(parent);
-
-            CharacterCrowdMember grandChild1 = Factory.GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
-            grandChild1.Name = "gran 1";
-            repo.AllMembersCrowd.AddCrowdMember(grandChild1);
-            CharacterCrowdMember grandChild2 = Factory.GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
-            grandChild2.Name = "gran 2";
-            repo.AllMembersCrowd.AddCrowdMember(grandChild2);
-
-            parent.AddCrowdMember(grandChild1);
-            parent.AddCrowdMember(grandChild2);
             int parentCount = parent.Members.Count;
             int AllMembersCountBeforeDeletes = repo.AllMembersCrowd.Members.Count;
 
@@ -365,32 +343,206 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual(parent.Members.Count, 0);
             Assert.AreEqual(grandChild1.AllCrowdMembershipParents.Count, 0);
             Assert.AreEqual(grandChild2.AllCrowdMembershipParents.Count, 0);
-            Assert.AreEqual(repo.AllMembersCrowd.Members.Count, AllMembersCountBeforeDeletes-2);
+            Assert.AreEqual(repo.AllMembersCrowd.Members.Count, AllMembersCountBeforeDeletes - 2);
+        }
+        private void AddCrodwMemberHierarchyWithParentSharedAcrossTwoGranParentsAndTwoGrandChildrenToRepo(CrowdRepository repo, out Crowd parent, out Crowd grandParent1, out Crowd grandParent2, out CharacterCrowdMember grandChild1, out CharacterCrowdMember grandChild2)
+        {
+            parent = Factory.CrowdUnderTestWithMockRepo;
+            parent.Name = "Parent";
+
+            grandParent1 = repo.Crowds[1];
+            grandParent2 = repo.Crowds[2];
+            grandParent1.AddCrowdMember(parent);
+            grandParent2.AddCrowdMember(parent);
+
+            grandChild1 = Factory.GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
+            grandChild1.Name = "gran 1";
+            repo.AllMembersCrowd.AddCrowdMember(grandChild1);
+            grandChild2 = Factory.GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
+            grandChild2.Name = "gran 2";
+            repo.AllMembersCrowd.AddCrowdMember(grandChild2);
+
+            parent.AddCrowdMember(grandChild1);
+            parent.AddCrowdMember(grandChild2);
+        }
+
+        [TestMethod]
+        public void MoveMemberToNewCrowd_RemovesFromOriginalAndPlacesInNewCrowdCorrectly()
+        {
+            //arrange
+            CrowdRepository repo = Factory.RepositoryUnderTestWIthMixedCharactersAndCrowds;
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0, out child0_1, out child0_2,  out child0_3,out child1_0, out child1_1, out child1_2, out child1_3);
+
+            int parent0Count = parent0.Members.Count;
+            int parent1Count = parent1.Members.Count;
+
+            int child0_0Order = child0_0.Order;
+            int child0_1Order = child0_1.Order;
+            int child0_2Order = child0_2.Order;
+            int child0_3Order = child0_3.Order;
+
+            int child1_0Order = child1_0.Order;
+            int child1_1Order = child1_1.Order;
+            int child1_2Order = child1_2.Order;
+            int child1_3Order = child1_3.Order;
+
+            //act
+            CrowdMember memberToMove = child0_1;
+            CrowdMember destination = child1_1;
+            parent1.MoveCrowdMemberAfter(destination, memberToMove);
+
+            //assert - did orders update on children
+            Assert.AreEqual(child0_0Order, child0_0.Order); //unchanged
+            Assert.AreEqual(child0_2Order - 1, child0_2.Order); //element moved down
+            Assert.AreEqual(child0_3Order - 1, child0_3.Order); //element moved down
+
+            Assert.AreEqual(child1_0Order, child1_0.Order); //unchanged
+            Assert.AreEqual(child1_1Order , child1_1.Order); //unchanged
+            Assert.AreEqual(child1_2Order + 1, child1_2.Order); //element moved up
+            Assert.AreEqual(child1_3Order + 1, child1_3.Order); //element moved up
+
+            //assert did parent members update
+            Assert.AreEqual(destination.Order + 1, memberToMove.Order); //element now destination +1
+            Assert.AreEqual(parent1.Members[2], memberToMove); //movedMember is a meber of new parent
+            Assert.IsFalse(parent0.Members.Contains(memberToMove)); //movedMember is not a  member of the old parent
+            Assert.AreEqual(memberToMove.Parent, parent1); //movedmember is connected to the parent
+
+            //did child lose old membership and get new one
+            int oldParentCount = memberToMove.AllCrowdMembershipParents.Where(x => x.ParentCrowd.Name == parent0.Name).ToList().Count;
+            Assert.IsFalse(oldParentCount > 0);
+            int newParentCount = memberToMove.AllCrowdMembershipParents.Where(x => x.ParentCrowd.Name == parent1.Name).ToList().Count;
+            Assert.IsTrue(newParentCount == 1);
+
+        }
+        private void AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(CrowdRepository repo, out Crowd parent0, out Crowd parent1,  out CharacterCrowdMember child0_0, out CharacterCrowdMember child0_1, out CharacterCrowdMember child0_2, out CharacterCrowdMember child0_3, out CharacterCrowdMember child1_0, out CharacterCrowdMember child1_1, out CharacterCrowdMember child1_2, out CharacterCrowdMember child1_3)
+        {
+            parent0 = Factory.CrowdUnderTestWithMockRepo;
+            parent0.Name = "Parent0";
+            parent1 = Factory.CrowdUnderTestWithMockRepo;
+            parent1.Name = "Parent1";
+            repo.Crowds.Add(parent0);
+            repo.Crowds.Add(parent1);
+
+            AddChildCrowdMemberToParent(repo, parent0, out child0_0, "child0_0");
+            AddChildCrowdMemberToParent(repo, parent0, out child0_1, "child0_1");
+            AddChildCrowdMemberToParent(repo, parent0, out child0_2, "child0_2");
+            AddChildCrowdMemberToParent(repo, parent0, out child0_3, "child0_3");
+
+            AddChildCrowdMemberToParent(repo, parent1, out child1_0, "child1_0");
+            AddChildCrowdMemberToParent(repo, parent1, out child1_1, "child1_1");
+            AddChildCrowdMemberToParent(repo, parent1, out child1_2, "child1_2");
+            AddChildCrowdMemberToParent(repo, parent1, out child1_3, "child1_3");
+        }
+        private void AddChildCrowdMemberToParent(CrowdRepository repo, Crowd parent, out CharacterCrowdMember child, string name)
+        {
+            child = Factory.GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
+            child.Name = name;
+            parent.AddCrowdMember(child);
+            repo.AllMembersCrowd.AddCrowdMember(child);
         }
 
         [TestMethod]
         public void AddMember_CreatesMembershipAndSetsParentAndOrder()
         {
+            Crowd crowd = Factory.CrowdUnderTestWithMockRepo;
+            CharacterCrowdMember character = Factory.CharacterUnderTestWithMockDependencies;
+            crowd.AddCrowdMember(character);
+
+            character = Factory.CharacterUnderTestWithMockDependencies;
+            crowd.AddCrowdMember(character);
+
+            character = Factory.CharacterUnderTestWithMockDependencies;
+            crowd.AddCrowdMember(character);
+
+            Assert.AreEqual(crowd.Members.Count, 3);
+            Assert.AreEqual(crowd.Members[0].Order, 1);
+            Assert.AreEqual(crowd.Members[1].Order, 2);
+            Assert.AreEqual(crowd.Members[2].Order, 3);
+
+            Assert.AreEqual(crowd.Members[0].Parent, crowd);
+            Assert.AreEqual(crowd.Members[1].Parent, crowd);
+            Assert.AreEqual(crowd.Members[2].Parent, crowd);
+
+
+            CrowdMemberShip membershipAttachedToParent = crowd.MemberShips.Where(x => x.Child.Name == crowd.Members[0].Name).FirstOrDefault();
+            CrowdMemberShip membershipAttachedToChild = crowd.Members[0].AllCrowdMembershipParents.Where(x => x.ParentCrowd.Name == crowd.Name).FirstOrDefault();
+            Assert.AreEqual(membershipAttachedToParent.ParentCrowd.Name, membershipAttachedToChild.ParentCrowd.Name);
+            Assert.AreEqual(membershipAttachedToParent.Child.Name, membershipAttachedToChild.Child.Name);
+
+             membershipAttachedToParent = crowd.MemberShips.Where(x => x.Child.Name == crowd.Members[1].Name).FirstOrDefault();
+             membershipAttachedToChild = crowd.Members[1].AllCrowdMembershipParents.Where(x => x.ParentCrowd.Name == crowd.Name).FirstOrDefault();
+            Assert.AreEqual(membershipAttachedToParent.ParentCrowd.Name, membershipAttachedToChild.ParentCrowd.Name);
+            Assert.AreEqual(membershipAttachedToParent.Child.Name, membershipAttachedToChild.Child.Name);
+
+             membershipAttachedToParent = crowd.MemberShips.Where(x => x.Child.Name == crowd.Members[1].Name).FirstOrDefault();
+             membershipAttachedToChild = crowd.Members[1].AllCrowdMembershipParents.Where(x => x.ParentCrowd.Name == crowd.Name).FirstOrDefault();
+            Assert.AreEqual(membershipAttachedToParent.ParentCrowd.Name, membershipAttachedToChild.ParentCrowd.Name);
+            Assert.AreEqual(membershipAttachedToParent.Child.Name, membershipAttachedToChild.Child.Name);
+
 
         }
 
         [TestMethod]
         public void ManagedCharacterCommands_RunsONAllCharactersInCrowd()
         {
-
+            Crowd crowd = Factory.CrowdUnderTestWithThreeMockCrowdmembers;
+            crowd.SpawnToDesktop();
+            foreach (CrowdMember member in crowd.Members)
+            {
+                Mock.Get<CrowdMember>(member).Verify(x => x.SpawnToDesktop(true));
+            }
+            
         }
 
         [TestMethod]
         public void SaveCurrentTableTopPosition_RunsSavePosOnAllCharactersInCrowd()
         {
-
+            Crowd crowd = Factory.CrowdUnderTestWithThreeMockCharacters;
+            crowd.SaveCurrentTableTopPosition();
+            foreach (CharacterCrowdMember member in crowd.Members)
+            {
+                Mock.Get<CrowdMember>(member).Verify(x => x.SaveCurrentTableTopPosition());
+            }
         }
-        public void PlaceOnTableTop__RunsSavePosOnAllCharactersInCrowd()
+        [TestMethod]
+        public void PlaceOnTableTop__RunsPlaceOnTableTopOnAllchsractersInCrowd()
         {
-
+            Crowd crowd = Factory.CrowdUnderTestWithThreeMockCharacters;
+            crowd.PlaceOnTableTop();
+            foreach (CharacterCrowdMember member in crowd.Members)
+            {
+                Mock.Get<CrowdMember>(member).Verify(x => x.PlaceOnTableTop(null));
+            }
         }
+        [TestMethod]
         public void Clone_CopiesCrowdAndChildrenAndNestedChildren()
         {
+            List<Crowd> nested = Factory.RepositoryUnderTestWIthNestedgraphOfCharactersAndCrowds.Crowds;
+            Crowd original = nested[0];
+            Crowd clone = (Crowd) original.Clone();
+
+            Assert.AreEqual(clone.Name, original.Name);
+            Assert.AreEqual(clone.Order, original.Order);
+            Assert.AreEqual(clone.Members.Count, original.Members.Count);
+
+            CrowdMember cloneMember = null;
+            foreach (CrowdMember originalmember in original.Members)
+            {
+                cloneMember = clone.Members[originalmember.Order - 1];
+                Assert.AreEqual(clone.Name, originalmember.Name);
+            }
+
+            original = (Crowd)((Crowd)original.Members[0]).Members[0];
+            cloneMember = null;
+            foreach (CrowdMember originalmember in original.Members)
+            {
+                cloneMember = clone.Members[originalmember.Order - 1];
+                Assert.AreEqual(clone.Name, originalmember.Name);
+
+            }
 
         }
         public void Clone_CreatesUniqueNamesForAllClonedChildrem() 
@@ -429,7 +581,7 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         [TestMethod]
-        public void ChangeName_FailsIfDuplicateNameExsistsAcrossAllCrowds() // need to check
+        public void ChangeName_FailsIfDuplicateNameExsistsAcrossAllCrowds() 
         {
 
         }
@@ -573,7 +725,6 @@ namespace HeroVirtualTableTop.Crowd
             }
         }
 
-
         public CrowdRepository RepositoryUnderTest
         {
             get
@@ -606,11 +757,10 @@ namespace HeroVirtualTableTop.Crowd
                 StandardizedFixture.Inject<CrowdRepository>(mock);
 
                 
-                mock.Crowds = NestedCrowdTreeUnderTest;
+                mock.Crowds = ThreeCrowdsWithThreeCrowdChildrenInTheFirstTwoCrowdsConnectedToMock;
                 return mock;
             }
         }
-
         public CrowdRepository RepositoryUnderTestWIthMixedCharactersAndCrowds
         {
             get
@@ -667,22 +817,79 @@ namespace HeroVirtualTableTop.Crowd
 
 
         }
-  
-        public List<Crowd> NestedCrowdTreeUnderTest
+        public CrowdRepository RepositoryUnderTestWIthNestedgraphOfCharactersAndCrowds
         {
             get
             {
+                CrowdRepositoryImpl repo = StandardizedFixture.Build<CrowdRepositoryImpl>()
+                    .With(x => x.Crowds, new List<Crowd>())
+                    .Create();
+                StandardizedFixture.Inject<CrowdRepository>(repo);
+               
+                StandardizedFixture.Inject<CrowdRepository>(repo);
+
+                repo.Crowds = StandardizedFixture.CreateMany<Crowd>().ToList();
+                string counter = "0";
+                int count = 0;
+
+                foreach (Crowd c in repo.Crowds)
+                {
+                    c.Name = counter + "." + count.ToString();
+                    c.Order = count;
+                    count++;
+
+                }
+                Crowd allMembers = CrowdUnderTest;
+                allMembers.Name = CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME;
+                repo.Crowds.Add(allMembers);
+
+                counter = "0.0";
+                count = 0;
+                foreach (Crowd child in StandardizedFixture.CreateMany<Crowd>().ToList())
+                {
+                    ((Crowd)repo.Crowds[0]).AddCrowdMember(child);
+
+                    child.Name = counter + "." + count.ToString();
+                    count++;
+                    child.Order = count;
+                }
+
+                count = 0;
+                counter = "0.0.0";
+                foreach (CharacterCrowdMember child in StandardizedFixture.CreateMany<CharacterCrowdMember>().ToList())
+                {
+                    ((Crowd)repo.Crowds[1]).AddCrowdMember(child);
+
+                    child.Name = counter + "." + count.ToString();
+                    count++;
+                    child.Order = count;
+                }
+                return repo;
+
+            }
+
+
+        }
+
+
+        public List<Crowd> ThreeCrowdsWithThreeCrowdChildrenInTheFirstTwoCrowdsConnectedToMock
+        {
+            get
+            {
+                Mock<CrowdRepository> mocker = new Mock<CrowdRepository>();
+                mocker.Setup(x => x.NewCrowd(null, "")).Returns(new Mock<Crowd>().Object);
+                mocker.SetupAllProperties();
+                CrowdRepository mock = mocker.Object;
+
+                StandardizedFixture.Inject<CrowdRepository>(mock);
                 var crowdList = StandardizedFixture.CreateMany<Crowd>().ToList();
                 string counter = "0";
                 int count = 0;
                 foreach (Crowd c in crowdList)
                 {
-
-
                     c.Name = counter + "." + count.ToString();
                     c.Order = count;
                     count++;
-
                 }
 
                 counter = "0.0";
@@ -690,18 +897,15 @@ namespace HeroVirtualTableTop.Crowd
                 foreach (Crowd grandchild in StandardizedFixture.CreateMany<Crowd>().ToList())
                 {
                     crowdList[0].AddCrowdMember(grandchild);
-
                     grandchild.Name = counter + "." + count.ToString();
                     count++;
                     grandchild.Order = count;
-
                 }
                 count = 0;
                 counter = "0.1";
                 foreach (Crowd grandchild in StandardizedFixture.CreateMany<Crowd>().ToList())
                 {
                     crowdList[1].AddCrowdMember(grandchild);
-
                     grandchild.Name = counter + "." + count.ToString();
                     count++;
                     grandchild.Order = count;
@@ -709,7 +913,6 @@ namespace HeroVirtualTableTop.Crowd
                 return crowdList;
             }
         }
-
         public CharacterCrowdMember CharacterUnderTestWithMockDependencies
         {
             get
@@ -722,7 +925,6 @@ namespace HeroVirtualTableTop.Crowd
                 return characterUnderTest;
             }
         }
-
         public CharacterCrowdMember GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(CrowdRepository repo)
         {
             CharacterCrowdMember characterUnderTest = new CharacterCrowdMemberImpl(null, MockManagedCustomerFactory.MockDesktopFactory.MockDesktopCharacterTargeter,
@@ -739,7 +941,31 @@ namespace HeroVirtualTableTop.Crowd
                 return crowd;
             }
         }
-       
+        public Crowd CrowdUnderTestWithThreeMockCrowdmembers
+        {
+            get
+            {
+                Crowd crowd = CrowdUnderTestWithMockRepo;
+                foreach (CrowdMember member in MockFixture.CreateMany<CrowdMember>())
+                {
+                    crowd.AddCrowdMember(member);
+                 }
+                return crowd;
+            }
+        }
+        public Crowd CrowdUnderTestWithThreeMockCharacters
+        {
+            get
+            {
+                Crowd crowd = CrowdUnderTestWithMockRepo;
+                foreach (CharacterCrowdMember member in MockFixture.CreateMany<CharacterCrowdMember>())
+                {
+                    crowd.AddCrowdMember(member);
+                }
+                return crowd;
+            }
+        }
+
         public CrowdMemberShip MockCrowdMembership
         {
             get

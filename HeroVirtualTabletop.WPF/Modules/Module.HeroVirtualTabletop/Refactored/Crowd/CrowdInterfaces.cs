@@ -50,7 +50,7 @@ namespace HeroVirtualTableTop.Crowd
         new string Name { get; set; }
         
     }
-    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged
+    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands
     {
         int Order { get; set; }
         bool MatchesFilter { get; set; }
@@ -58,7 +58,7 @@ namespace HeroVirtualTableTop.Crowd
 
         string Name { get; set; }
 
-        CrowdMember Clone();
+     CrowdMember Clone();
         void ApplyFilter(string filter);
         void ResetFilter();
         bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> members);
