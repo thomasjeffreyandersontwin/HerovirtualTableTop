@@ -186,7 +186,6 @@
     <Compile Include="Desktop\DesktopKeyEventHandler.cs" />
     <Compile Include="Desktop\DesktopMouseEventHandler.cs" />
     <Compile Include="LocalAddin.cs" />
-    <Compile Include="Refactored\AnimatedCharacter\AnimatedCharacterInterfaces.cs" />
     <Compile Include="Refactored\Crowd\CrowdInterfaces.cs" />
     <Compile Include="Refactored\Desktop\DesktopCharacterMemoryInstance.cs" />
     <Compile Include="Refactored\Desktop\DesktopTestSuite.cs" />
@@ -259,7 +258,6 @@
     <Compile Include="Refactored\ManagedCharacter\ManagedCharacter.cs" />
     <Compile Include="Refactored\ManagedCharacter\ManagedCharacterInterfaces.cs" />
     <Compile Include="Refactored\ManagedCharacter\ManagedCharacterTestSuite.cs" />
-    <Compile Include="Refactored\MoveableCharacter\MoveableCharacterInterfaces.cs" />
     <Compile Include="Crowds\CharacterExplorerView.xaml.cs">
       <DependentUpon>CharacterExplorerView.xaml</DependentUpon>
     </Compile>
