@@ -188,9 +188,6 @@
     <Compile Include="LocalAddin.cs" />
     <Compile Include="Refactored\AnimatedCharacter\AnimatedCharacterInterfaces.cs" />
     <Compile Include="Refactored\Crowd\CrowdInterfaces.cs" />
-    <Compile Include="Refactored\Crowd\CrowdTestSuite.cs" />
-    <Compile Include="Refactored\Crowd\Roster.cs" />
-    <Compile Include="Refactored\Crowd\RosterExplorerViewModel.cs" />
     <Compile Include="Refactored\Desktop\DesktopCharacterMemoryInstance.cs" />
     <Compile Include="Refactored\Desktop\DesktopTestSuite.cs" />
     <Compile Include="Refactored\Desktop\DesktopInterfaces.cs" />
