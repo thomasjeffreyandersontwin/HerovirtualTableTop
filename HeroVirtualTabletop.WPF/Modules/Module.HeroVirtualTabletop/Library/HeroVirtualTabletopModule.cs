@@ -100,8 +100,8 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<CrowdFromModelsView, CrowdFromModelsView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<CrowdFromModelsViewModel, CrowdFromModelsViewModel>(new ContainerControlledLifetimeManager());
 
-            this.container.RegisterType<ActiveCharacterWidgetView, ActiveCharacterWidgetView>();
-            this.container.RegisterType<ActiveCharacterWidgetViewModel, ActiveCharacterWidgetViewModel>();
+            this.container.RegisterType<ActiveCharacterWidgetView, ActiveCharacterWidgetView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<ActiveCharacterWidgetViewModel, ActiveCharacterWidgetViewModel>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<ActiveAttackView, ActiveAttackView>();
             this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>();
 

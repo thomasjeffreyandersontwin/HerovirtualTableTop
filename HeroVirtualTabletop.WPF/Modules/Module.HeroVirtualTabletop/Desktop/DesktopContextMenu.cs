@@ -2,32 +2,153 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
-using System.Reflection;
-using System.Windows;
-using Microsoft.Xna.Framework;
-using Module.Shared;
-using Module.Shared.Enumerations;
+using System.Threading.Tasks;
 using Module.HeroVirtualTabletop.Crowds;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Timers;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Roster;
 using Module.HeroVirtualTabletop.Library.Events;
-using Module.HeroVirtualTabletop.Library.GameCommunicator;
+using Microsoft.Xna.Framework;
 
+using Module.Shared;
+using Module.Shared.Enumerations;
+using Module.HeroVirtualTabletop.Library.GameCommunicator;
+using Module.Shared.Events;
 namespace Module.HeroVirtualTabletop.Desktop
 {
-
-    class DesktopContextMenu
+    public enum ContextMenuEvent
+    {
+        AreaAttackContextMenuDisplayed,
+        DefaultContextMenuDisplayed,
+        AreaAttackTargetMenuItemSelected,
+        AreaAttackTargetAndExecuteMenuItemSelect,
+        SpawnMenuItemSelected,
+        PlaceMenuItemSelected,
+        SavePositionMenuItemSelected,
+        MoveCameraToTargetMenuItemSelected,
+        MoveTargetToCameraMenuItemSelected,
+        ResetOrientationMenuItemSelected,
+        ManueverWithCameraMenuItemSelected,
+        ActivateMenuItemSelected,
+        ClearFromDesktopMenuItemSelected,
+        CloneAndLinkMenuItemSelected,
+        MoveTargetToCharacterMenuItemSelected,
+        ActivateCharacterOptionMenuItemSelected
+    }
+    public class DesktopContextMenu
     {
         public static FileSystemWatcher ContextCommandFileWatcher;
-        public CrowdMemberModel Character=null;
-        public bool IsDisplayed=false;
-        public bool IsPlayingAreaEffect=false;
+        public CrowdMemberModel Character = null;
+        public bool IsDisplayed = false;
+        public bool ShowAreaAttackMenu { get; set; }
+        public string AttackingCharacterName { get; set; }
 
-        private RosterExplorerViewModel _viewModel;
-        public DesktopContextMenu(RosterExplorerViewModelRF viewModel) {
-            _viewModel = viewModel;
+        public event EventHandler<CustomEventArgs<Object>> AreaAttackContextMenuDisplayed;
+        public event EventHandler<CustomEventArgs<Object>> DefaultContextMenuDisplayed;
+        public event EventHandler<CustomEventArgs<Object>> AreaAttackTargetMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> AreaAttackTargetAndExecuteMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> SpawnMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> PlaceMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> SavePositionMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> MoveCameraToTargetMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> MoveTargetToCameraMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> ResetOrientationMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> ManueverWithCameraMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> ActivateMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> ClearFromDesktopMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> CloneAndLinkMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> MoveTargetToCharacterMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> ActivateCharacterOptionMenuItemSelected;
+        private void FireContextMenuEvent(ContextMenuEvent contextMenuEvent, object sender, CustomEventArgs<Object> e)
+        {
+            switch (contextMenuEvent)
+            {
+                case ContextMenuEvent.AreaAttackContextMenuDisplayed:
+                    if (AreaAttackContextMenuDisplayed != null)
+                        AreaAttackContextMenuDisplayed(sender, e);
+                    break;
+                case ContextMenuEvent.DefaultContextMenuDisplayed:
+                    if (DefaultContextMenuDisplayed != null)
+                        DefaultContextMenuDisplayed(sender, e);
+                    break;
+                case ContextMenuEvent.AreaAttackTargetMenuItemSelected:
+                    if (AreaAttackTargetMenuItemSelected != null)
+                        AreaAttackTargetMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.AreaAttackTargetAndExecuteMenuItemSelect:
+                    if (AreaAttackTargetAndExecuteMenuItemSelected != null)
+                        AreaAttackTargetAndExecuteMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.SpawnMenuItemSelected:
+                    if (SpawnMenuItemSelected != null)
+                        SpawnMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.PlaceMenuItemSelected:
+                    if (PlaceMenuItemSelected != null)
+                        PlaceMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.SavePositionMenuItemSelected:
+                    if (SavePositionMenuItemSelected != null)
+                        SavePositionMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.MoveCameraToTargetMenuItemSelected:
+                    if (MoveCameraToTargetMenuItemSelected != null)
+                        MoveCameraToTargetMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.MoveTargetToCameraMenuItemSelected:
+                    if (MoveTargetToCameraMenuItemSelected != null)
+                        MoveTargetToCameraMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.ResetOrientationMenuItemSelected:
+                    if (ResetOrientationMenuItemSelected != null)
+                        ResetOrientationMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.ManueverWithCameraMenuItemSelected:
+                    if (ManueverWithCameraMenuItemSelected != null)
+                        ManueverWithCameraMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.ActivateMenuItemSelected:
+                    if (ActivateMenuItemSelected != null)
+                        ActivateMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.ClearFromDesktopMenuItemSelected:
+                    if (ClearFromDesktopMenuItemSelected != null)
+                        ClearFromDesktopMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.CloneAndLinkMenuItemSelected:
+                    if (CloneAndLinkMenuItemSelected != null)
+                        CloneAndLinkMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.MoveTargetToCharacterMenuItemSelected:
+                    if (MoveTargetToCharacterMenuItemSelected != null)
+                        MoveTargetToCharacterMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.ActivateCharacterOptionMenuItemSelected:
+                    if (ActivateCharacterOptionMenuItemSelected != null)
+                        ActivateCharacterOptionMenuItemSelected(sender, e);
+                    break;
+            }
+        }
+
+        public DesktopContextMenu()
+        {
             if (ContextCommandFileWatcher == null)
             {
                 ContextCommandFileWatcher = new FileSystemWatcher();
@@ -35,16 +156,18 @@ namespace Module.HeroVirtualTabletop.Desktop
                 ContextCommandFileWatcher.IncludeSubdirectories = false;
                 ContextCommandFileWatcher.Filter = "*.txt";
                 ContextCommandFileWatcher.NotifyFilter = NotifyFilters.LastWrite;
-                ContextCommandFileWatcher.Changed += LaunchMethodBasedOnFileName;
+                ContextCommandFileWatcher.Changed += fileSystemWatcher_Changed;
             }
-            DesktopContextMenu.ContextCommandFileWatcher.EnableRaisingEvents = false;
+            ContextCommandFileWatcher.EnableRaisingEvents = false;
             CreateBindSaveFilesForContextCommands();
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
-    
-        public void GenerateAndDisplay(CrowdMemberModel character)
+
+        public void GenerateAndDisplay(CrowdMemberModel character, string attackingCharacterName, bool showAreaAttackMenu)
         {
             Character = character;
+            AttackingCharacterName = attackingCharacterName;
+            ShowAreaAttackMenu = showAreaAttackMenu;
             GenerateAndDisplay();
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
@@ -91,6 +214,7 @@ namespace Module.HeroVirtualTabletop.Desktop
                 File.WriteAllText(
                     fileCharacterMenu, sb.ToString()
                     );
+                System.Threading.Thread.Sleep(200); // Delay so that the file write completes before calling the pop menu
             }
         }
         public void DisplayMenu()
@@ -106,22 +230,23 @@ namespace Module.HeroVirtualTabletop.Desktop
 
             if (Character != null)
             {
-                
-                if (IsPlayingAreaEffect)
+
+                if (ShowAreaAttackMenu)
                 {
-                    if (_viewModel.AttackingCharacter != null && _viewModel.AttackingCharacter.Name != Character.Name)
+                    if (AttackingCharacterName != Character.Name)
                     {
-                        _viewModel.AddDesktopTargetToRosterSelection(Character);
+                        System.Threading.Thread.Sleep(200); // Delay so that the file write completes before calling the pop menu
                         DisplayAreaEffectMenu();
                         IsDisplayed = true;
+                        FireContextMenuEvent(ContextMenuEvent.AreaAttackContextMenuDisplayed, null, new CustomEventArgs<object> { Value = Character });
                     }
                 }
                 else
                 {
-                    _viewModel.AddDesktopTargetToRosterSelection(Character);
                     GenerateMenu();
                     DisplayMenu();
                     IsDisplayed = true;
+                    FireContextMenuEvent(ContextMenuEvent.DefaultContextMenuDisplayed, null, new CustomEventArgs<object> { Value = Character });
                 }
             }
         }
@@ -134,103 +259,85 @@ namespace Module.HeroVirtualTabletop.Desktop
             keyBindsGenerator.CompleteEvent();
         }
 
-        private void LaunchMethodBasedOnFileName(object sender, FileSystemEventArgs e)
+        private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            Action action = delegate ()
+            Action action = delegate()
             {
                 IsDisplayed = false;
-                if (IsPlayingAreaEffect)
-                {
 
-                    if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME)
-                    {
-                        _viewModel.TargetCharacterForAreaAttack(null);
-                    }
-                    else if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME)
-                    {
+                ContextCommandFileWatcher.EnableRaisingEvents = false;
+                switch (e.Name)
+                {
+                    case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.AreaAttackTargetMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME:
                         ContextCommandFileWatcher.EnableRaisingEvents = false;
-                        _viewModel.TargetAndExecuteAreaAttack(null);
-                    }
-                }
-                else
-                {
-                    ContextCommandFileWatcher.EnableRaisingEvents = false;
-                    switch (e.Name)
-                    {
-                        case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
-                            _viewModel.Spawn();
+                        FireContextMenuEvent(ContextMenuEvent.AreaAttackTargetAndExecuteMenuItemSelect, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.SpawnMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_PLACE_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.PlaceMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.SavePositionMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.MoveCameraToTargetMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.MoveTargetToCameraMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.ResetOrientationMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.ManueverWithCameraMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.ActivateMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.ClearFromDesktopMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME:
+                        {
+                            FireContextMenuEvent(ContextMenuEvent.CloneAndLinkMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                             break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_PLACE_FILENAME:
-                            _viewModel.Place();
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME:
-                            _viewModel.SavePosition();
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME:
-                            _viewModel.TargetAndFollow(true);
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
-                            _viewModel.MoveTargetToCamera();
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME:
-                            _viewModel.ResetOrientation();
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME:
-                            _viewModel.ToggleManeuverWithCamera();
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME:
-                            _viewModel.ToggleActivateCharacter(null);
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME:
-                            _viewModel.ClearFromDesktop();
-                            break;
-                        case Constants.GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME:
+                        }
+                    default:
+                        {
+                            if (e.Name.StartsWith(Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME))
                             {
-                                Character character = _viewModel.SelectedParticipants != null && _viewModel.SelectedParticipants.Count == 1 ? _viewModel.SelectedParticipants[0] as Character : null;
-                                _viewModel.EventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Publish(character as CrowdMemberModel);
-                                break;
+                                int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                if (index > 0)
+                                {
+                                    string whiteSpceReplacedCharacterName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                    string characterName = whiteSpceReplacedCharacterName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                    FireContextMenuEvent(ContextMenuEvent.MoveTargetToCharacterMenuItemSelected, null, new CustomEventArgs<object> { Value = characterName });
+                                }
                             }
-                        default:
+                            else
                             {
-                                if (e.Name.StartsWith(Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME))
+                                int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                if (index > 0)
                                 {
-                                    int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
-                                    if (index > 0)
-                                    {
-                                        string whiteSpceReplacedCharacterName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
-                                        string characterName = whiteSpceReplacedCharacterName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                        Character character = _viewModel.Participants.FirstOrDefault(p => p.Name == characterName) as Character;
-                                        if (character != null)
-                                        {
-                                            Vector3 destination = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
-                                            foreach (Character c in _viewModel.SelectedParticipants)
-                                            {
-                                                c.MoveToLocation(destination);
-                                            }
-                                        }
-                                    }
+                                    string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
+                                    string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                    string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                    string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                    FireContextMenuEvent(ContextMenuEvent.ActivateCharacterOptionMenuItemSelected, null, new CustomEventArgs<object> { Value = new object[] { Character, optionGroupName, optionName } });
                                 }
-                                else
-                                {
-                                    Character character = _viewModel.SelectedParticipants != null && _viewModel.SelectedParticipants.Count == 1 ? _viewModel.SelectedParticipants[0] as Character : null;
-                                    int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
-                                    if (index > 0 && character != null)
-                                    {
-                                        string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
-                                        string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
-                                        string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                        string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                        _viewModel.ToggleActivateCharacter(character, optionGroupName, optionName);
-                                    }
-                                }
+                            }
 
-                                break;
-                            }
-                    }
+                            break;
+                        }
+
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
-            IsDisplayed = false;
         }
 
         public void CreateBindSaveFilesForContextCommands()

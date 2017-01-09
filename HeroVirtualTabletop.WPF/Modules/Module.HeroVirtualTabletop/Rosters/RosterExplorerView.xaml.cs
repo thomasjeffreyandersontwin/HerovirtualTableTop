@@ -136,14 +136,6 @@ namespace Module.HeroVirtualTabletop.Roster
             } 
         }
 
-        private void RosterViewListBox_PreviewMouseMove(object sender, MouseEventArgs e)
-        {
-            if (e.LeftButton == MouseButtonState.Pressed && !this.viewModel.IsCharacterDragDropInProgress)
-            {
-                //this.viewModel.StartDragFromRosterToDesktop();
-            }
-        }
-
         private void viewModel_RosterMemberAdded(object sender, EventArgs e)
         {
             CollectionViewSource source = (CollectionViewSource)(this.Resources["ParticipantsView"]);

@@ -74,7 +74,7 @@
                 ></characters:CharacterManagementMenuControl>
         <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White" Drop="RosterViewListBox_Drop" DragOver="RosterViewListBox_DragOver"
-                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" PreviewMouseMove="RosterViewListBox_PreviewMouseMove" BorderBrush="Transparent" BorderThickness="0"
+                     SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Transparent" BorderThickness="0"
                                     extensions:DragDropExtension.ScrollOnDragDrop="True">
             <ListBox.GroupStyle>
                 <GroupStyle>
