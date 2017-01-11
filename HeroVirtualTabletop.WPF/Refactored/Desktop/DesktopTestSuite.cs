@@ -1,0 +1,148 @@
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using Ploeh.AutoFixture;
+
+using Ploeh.AutoFixture.AutoMoq;
+using Moq;
+
+
+
+namespace HeroVirtualTableTop.Desktop
+{
+    [TestClass]
+    public class KeybindGeneratorTestSuite
+    {
+        KeyBindCommandGenerator generator;
+        public MockDesktopFactory Factory;
+        
+        public KeybindGeneratorTestSuite()
+        {
+            Factory = new MockDesktopFactory(); 
+        }
+        [TestMethod]
+        public void ExecuteCmd_SendsCommandToIconUtility()
+        {
+            //arrange
+            IconInteractionUtility utility = Factory.GetMockInteractionUtilityThatVerifiesCommand("spawn_npc MODEL_STATESMAN TESTMODEL");
+            //act
+            generator = new KeyBindCommandGeneratorImpl(utility);
+            generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "MODEL_STATESMAN", "TESTMODEL");
+            generator.CompleteEvent();
+            //assert
+            Mock.Get<IconInteractionUtility>(utility).VerifyAll();
+        }
+        [TestMethod]
+        public void ExecuteCmd_SendsMultipleParametersAsTextDividecBySpaces()
+        {
+            //arrange
+            IconInteractionUtility utility = Factory.GetMockInteractionUtilityThatVerifiesCommand("benpc param1 param2");
+            string[] parameters = new string[2] { "param1", "param2" };
+            //act
+            generator = new KeyBindCommandGeneratorImpl(utility);
+            generator.GenerateDesktopCommandText(DesktopCommand.BeNPC, parameters);
+            generator.CompleteEvent();
+            //assert
+            Mock.Get<IconInteractionUtility>(utility).VerifyAll();
+        }
+        [TestMethod]
+        public void GenerateKeyBindsForCommand_ConnectsMultipleCommandsUntilExecuteCmdSent()
+        {
+            //arrange
+            IconInteractionUtility utility = Factory.GetMockInteractionUtilityThatVerifiesCommand("spawn_npc MODEL_STATESMAN TESTMODEL$$load_costume Spyder");
+            generator = new KeyBindCommandGeneratorImpl(utility);
+            
+            //act
+            string[] parameters = new string[2] { "MODEL_STATESMAN", "TESTMODEL" };
+            generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, parameters);
+
+            parameters = new string[1] { "Spyder" };
+            generator.GenerateDesktopCommandText(DesktopCommand.LoadCostume, parameters);
+            generator.CompleteEvent();
+
+            //assert
+            Mock.Get<IconInteractionUtility>(utility).VerifyAll();
+        }
+    }
+
+    public class MockDesktopFactory
+    {
+        public IFixture StandardizedFixture;
+        public IFixture MockFixture;
+        public IFixture CustomizedMockFixture;
+        public MockDesktopFactory()
+        {
+            MockFixture = new Fixture();
+            MockFixture.Customize(new AutoMoqCustomization());
+
+            CustomizedMockFixture = new Fixture();
+            CustomizedMockFixture.Customize(new AutoConfiguredMoqCustomization());
+            CustomizedMockFixture.Customizations.Add(new NumericSequenceGenerator());
+
+            SetupMockFixtureToReturnSinlgetonDesktopCharacterTargeterWithBlankLabel();
+        }
+
+        private void SetupMockFixtureToReturnSinlgetonDesktopCharacterTargeterWithBlankLabel()
+        {
+            DesktopCharacterTargeter mock = CustomizedMockFixture.Create<DesktopCharacterTargeter>();
+           // mock.TargetedInstance = MockMemoryInstance;
+            mock.TargetedInstance.Label = "";
+            CustomizedMockFixture.Inject<DesktopCharacterTargeter>(mock);
+        }
+
+        public IconInteractionUtility GetMockInteractionUtilityThatVerifiesCommand(string command)
+        {
+            var mocker = MockFixture.Freeze<Mock<IconInteractionUtility>>()
+                .Setup(t => t.ExecuteCmd(It.Is<string>(p => p.Equals(command))));
+            var mock = MockFixture.Create<IconInteractionUtility>();
+            MockFixture.Inject<IconInteractionUtility>(mock);
+            return mock;
+
+
+        }
+        public DesktopCharacterTargeter MockDesktopCharacterTargeter
+        {
+            get
+            {
+                return CustomizedMockFixture.Create<DesktopCharacterTargeter>();
+            }
+        }
+        public DesktopCharacterMemoryInstance MockMemoryInstance
+        {
+            get
+            { 
+                return  CustomizedMockFixture.Create<DesktopCharacterMemoryInstance>();
+            }
+        }
+        public KeyBindCommandGenerator MockKeybindGenerator
+        {
+            get
+            {
+                var mock = CustomizedMockFixture.Create<KeyBindCommandGenerator>();
+                return mock;
+            }
+        }
+        public Position MockPosition
+        {
+            get
+            {
+                return CustomizedMockFixture.Create<Position>();
+            }
+        }
+        public KeyBindCommandGenerator GetMockKeyBindCommandGeneratorForCommand(DesktopCommand command, string[] paramters)
+        {
+            var mock = MockFixture.Freeze<Mock<KeyBindCommandGenerator>>();
+            if (paramters == null || paramters.Length == 0)
+                mock.Setup(t => t.GenerateDesktopCommandText(It.Is<DesktopCommand>(p => p.Equals(command))));
+            if (paramters.Length==1)
+                mock.Setup(t => t.GenerateDesktopCommandText(It.Is<DesktopCommand>(p => p.Equals(command)), It.Is<string>(p => p.Equals(paramters[0]))));
+            if (paramters.Length == 2)
+                mock.Setup(t => t.GenerateDesktopCommandText(It.Is<DesktopCommand>(p => p.Equals(command)), It.Is<string>(p => p.Equals(paramters[0])), It.Is<string>(p => p.Equals(paramters[1]))));
+
+
+            return MockFixture.Create<KeyBindCommandGenerator>(); ;
+        }
+    }
+}
