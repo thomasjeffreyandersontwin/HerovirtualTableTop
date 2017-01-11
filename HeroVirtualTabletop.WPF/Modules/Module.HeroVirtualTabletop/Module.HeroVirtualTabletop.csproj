@@ -186,15 +186,6 @@
     <Compile Include="Desktop\DesktopKeyEventHandler.cs" />
     <Compile Include="Desktop\DesktopMouseEventHandler.cs" />
     <Compile Include="LocalAddin.cs" />
-    <Compile Include="Refactored\Crowd\CrowdInterfaces.cs" />
-    <Compile Include="Refactored\Crowd\CrowdTestSuite.cs" />
-    <Compile Include="Refactored\Desktop\DesktopCharacterMemoryInstance.cs" />
-    <Compile Include="Refactored\Desktop\DesktopTestSuite.cs" />
-    <Compile Include="Refactored\Desktop\DesktopInterfaces.cs" />
-    <Compile Include="Refactored\Desktop\DllInjector.cs" />
-    <Compile Include="Refactored\Desktop\IconInteractionUtility.cs" />
-    <Compile Include="Refactored\Desktop\WindowsUtilities.cs" />
-    <Compile Include="Refactored\HeroVirtualTableTop.cs" />
     <Compile Include="Identities\Camera.cs" />
     <Compile Include="Identities\IdentityEditorView.xaml.cs">
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>
@@ -251,14 +242,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Refactored\Desktop\KeyBindCommandGenerator.cs" />
-    <Compile Include="Refactored\ManagedCharacter\Camera.cs" />
-    <Compile Include="Refactored\ManagedCharacter\CharacterActionList.cs" />
-    <Compile Include="Refactored\Crowd\Crowd.cs" />
-    <Compile Include="Refactored\ManagedCharacter\Identity.cs" />
-    <Compile Include="Refactored\ManagedCharacter\ManagedCharacter.cs" />
-    <Compile Include="Refactored\ManagedCharacter\ManagedCharacterInterfaces.cs" />
-    <Compile Include="Refactored\ManagedCharacter\ManagedCharacterTestSuite.cs" />
     <Compile Include="Rosters\ActiveCharacterWidgetView.xaml.cs">
       <DependentUpon>ActiveCharacterWidgetView.xaml</DependentUpon>
     </Compile>
