@@ -24,6 +24,15 @@ namespace Module.HeroVirtualTabletop.Desktop
         public System.Timers.Timer DoubleTripleQuadMouseClicksTracker = new System.Timers.Timer();
         public enum DesktopMouseState { LEFT_CLICK = 1, DOUBLE_CLICK = 2, RIGHT_CLICK = 3, MOUSE_MOVE = 4, RIGHT_CLICK_UP = 5, LEFT_CLICK_UP = 6, TRIPLE_CLICK = 7, QUAD_CLICK = 8 };
         public void stuff() { }
+
+        public bool IsDesktopActive
+        {
+            get
+            {
+                IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                return foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null);
+            }
+        }
         public DesktopMouseEventHandler()
         {
             DoubleTripleQuadMouseClicksTracker.AutoReset = false;

@@ -49,7 +49,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
             if (completeEvent)
             {
-                Generator.CompleteEvent();
+                Generator.CompleteEvent(false);
             }
             Owner.Target(completeEvent);
         }

@@ -75,6 +75,9 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
         private DesktopContextMenu desktopContextMenu;
+        private DesktopMouseEventHandler mouseHandler;
+
+        private System.Timers.Timer timer_RespondToDesktop = new System.Timers.Timer(); 
 
         #endregion
 
@@ -239,7 +242,9 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CancelActiveAttack);
             this.eventAggregator.GetEvent<AddOptionEvent>().Subscribe(this.HandleCharacterOptionAddition);
 
-
+            timer_RespondToDesktop.AutoReset = false;
+            timer_RespondToDesktop.Interval = 50;
+            timer_RespondToDesktop.Elapsed += timer_RespondToDesktop_Elapsed;
 
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Subscribe((obj) =>
             {
@@ -252,7 +257,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
             InitializeCommands();
 
-            DesktopMouseEventHandler mouseHandler = new DesktopMouseEventHandler();
+            mouseHandler = new DesktopMouseEventHandler();
             mouseHandler.OnMouseLeftClick.Add(RespondToMouseClickBasedOnDesktopState);
             mouseHandler.OnMouseLeftClickUp.Add(DropDraggedCharacter);
             mouseHandler.OnMouseRightClickUp.Add(DisplayCharacterPopupMenue);
@@ -660,49 +665,7 @@ namespace Module.HeroVirtualTabletop.Roster
             CrowdMemberModel character = (CrowdMemberModel)GetCurrentTarget();
             desktopContextMenu.GenerateAndDisplay(character, AttackingCharacter != null ? AttackingCharacter.Name : null, isPlayingAreaEffect);
         }
-        private void GenerateMenuFileForCharacter(CrowdMemberModel character) //to do refactor to character and popup
-        {
-            string fileCharacterMenu = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME, Constants.GAME_LANGUAGE_FOLDERNAME, Constants.GAME_MENUS_FOLDERNAME, Constants.GAME_CHARACTER_MENU_FILENAME);
-            var assembly = Assembly.GetExecutingAssembly();
-
-            var resourceName = "Module.HeroVirtualTabletop.Resources.character.mnu";
-            List<string> menuFileLines = new List<string>();
-            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
-            using (StreamReader reader = new StreamReader(stream))
-            {
-                string line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    menuFileLines.Add(line);
-                }
-
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < menuFileLines.Count - 1; i++)
-                {
-                    sb.AppendLine(menuFileLines[i]);
-                }
-                if (character.OptionGroups != null && character.OptionGroups.Count > 0)
-                {
-                    foreach (var optionGroup in character.OptionGroups)
-                    {
-                        sb.AppendLine(string.Format("Menu \"{0}\"", optionGroup.Name));
-                        sb.AppendLine("{");
-                        foreach (ICharacterOption option in optionGroup.Options)
-                        {
-                            string whiteSpaceReplacedOptionGroupName = optionGroup.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
-                            string whiteSpaceReplacedOptionName = option.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
-                            sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", option.Name, whiteSpaceReplacedOptionGroupName, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedOptionName));
-                        }
-                        sb.AppendLine("}");
-                    }
-                }
-                sb.AppendLine(menuFileLines[menuFileLines.Count - 1]);
-
-                File.WriteAllText(
-                    fileCharacterMenu, sb.ToString()
-                    );
-            }
-        }
+        
         private void ContinueDraggingCharacter()
         {
             MemoryElement targetedBeforeMouseCLick = new MemoryElement();
@@ -745,9 +708,10 @@ namespace Module.HeroVirtualTabletop.Roster
                 target.MoveToLocation(mouseDirection);
         }
 
-        public void RespondToMouseClickBasedOnDesktopState()
+        void timer_RespondToDesktop_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (desktopContextMenu.IsDisplayed == false)
+            timer_RespondToDesktop.Stop();
+            if (desktopContextMenu.IsDisplayed == false && mouseHandler.IsDesktopActive)
             {
                 if (isPlayingAttack == false)
                 {
@@ -764,6 +728,13 @@ namespace Module.HeroVirtualTabletop.Roster
                     PlayAttackCycle();
                 }
             }
+            else
+                desktopContextMenu.IsDisplayed = false;
+        }
+
+        public void RespondToMouseClickBasedOnDesktopState()
+        {
+            timer_RespondToDesktop.Start(); // We need this timer to avoid firing click events when desktop is no longer in focus, as click fires before focus lost. This also fixes double attack play bug.
         }
         #region Add Participants
         private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
@@ -1000,16 +971,18 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (member.Name != this.AttackingCharacter.Name && member.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && member.Name != Constants.DEFAULT_CHARACTER_NAME)
                     {
                         if (!isPlayingAreaEffect)
-                        {
-                            if (this.targetCharacters.FirstOrDefault(tc => tc.Name == member.Name) == null)
-                                this.targetCharacters.Add(member);
-                            ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
-                            attackConfig.AttackMode = AttackMode.Defend;
-                            attackConfig.AttackEffectOption = AttackEffectOption.None;
-                            member.ActiveAttackConfiguration = attackConfig;
-                            member.ActiveAttackConfiguration.IsCenterTarget = true;
+                        { 
                             if (PopupService.IsOpen("ActiveAttackView") == false)
+                            {
+                                if (this.targetCharacters.FirstOrDefault(tc => tc.Name == member.Name) == null)
+                                    this.targetCharacters.Add(member);
+                                ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
+                                attackConfig.AttackMode = AttackMode.Defend;
+                                attackConfig.AttackEffectOption = AttackEffectOption.None;
+                                member.ActiveAttackConfiguration = attackConfig;
+                                member.ActiveAttackConfiguration.IsCenterTarget = true;
                                 this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
+                            } 
                         }
                     }
                 }
@@ -1209,13 +1182,13 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool CanToggleManeuverWithCamera(object arg)
         {
             bool canManeuverWithCamera = false;
-            if (this.SelectedParticipants != null && SelectedParticipants.Count == 1 && ((SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned || (SelectedParticipants[0] as CrowdMemberModel).ManeuveringWithCamera))
+            if (!isPlayingAttack && this.SelectedParticipants != null && SelectedParticipants.Count == 1 && ((SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned || (SelectedParticipants[0] as CrowdMemberModel).ManeuveringWithCamera))
             {
                 canManeuverWithCamera = true;
             }
             return canManeuverWithCamera;
         }
-        public void ToggleManeuverWithCamera()
+        private void ToggleManeuverWithCamera(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1228,11 +1201,11 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
 
-        public void ToggleManueverWithCamera()
+        public void ToggleManeuverWithCamera()
         {
             if (this.CanToggleManeuverWithCamera(null))
             {
-                this.ToggleManeuverWithCamera();
+                this.ToggleManeuverWithCamera(null);
             }
         }
 
@@ -1307,7 +1280,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ActivateCharacter()
         {
-            ToggleActivateCharacter();
+            if(CanActivateCharacter(null))
+                ToggleActivateCharacter();
         }
 
         public void ToggleActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
@@ -1394,7 +1368,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             Action d = delegate()
             {
-                if (SelectedParticipants != null && SelectedParticipants.Count == 1)
+                if (!isPlayingAttack && SelectedParticipants != null && SelectedParticipants.Count == 1)
                 {
                     //lastHoveredCharacter != null && previousSelectedCharacter != null && previousSelectedCharacter.HasBeenSpawned
                     Character abilityPlayingCharacter = null;
@@ -1484,10 +1458,6 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                     }
                 }
-                else if (SelectedParticipants != null && SelectedParticipants.Count == 1)
-                {
-
-                }
             };
             Application.Current.Dispatcher.BeginInvoke(d);
         }
@@ -1563,7 +1533,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         if (!this.isPlayingAreaEffect)
                         {
-                            if (targetCharacters.Count == 0)// choose only one character for vanilla attack
+                            if (targetCharacters.Count == 0 && PopupService.IsOpen("ActiveAttackView") == false)// choose only one character for vanilla attack
                             {
                                 this.targetCharacters.Add(currentTarget);
                                 //currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
@@ -1572,8 +1542,8 @@ namespace Module.HeroVirtualTabletop.Roster
                                 attackConfig.AttackEffectOption = AttackEffectOption.None;
                                 currentTarget.ActiveAttackConfiguration = attackConfig;
                                 currentTarget.ActiveAttackConfiguration.IsCenterTarget = true;
-                                if (PopupService.IsOpen("ActiveAttackView") == false)
-                                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
+                                //if (PopupService.IsOpen("ActiveAttackView") == false)
+                                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
                             }
                         }
                     }

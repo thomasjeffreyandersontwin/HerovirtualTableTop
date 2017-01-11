@@ -100,11 +100,11 @@ namespace Module.HeroVirtualTabletop.Roster
 
                 if (isQuadrupleClick)
                 {
-                    this.viewModel.ToggleManueverWithCamera();
+                    this.viewModel.ActivateCharacterCommand.Execute(null);
                 }
                 else if(isTripleClick)
                 {
-                    this.viewModel.ActivateCharacterCommand.Execute(null);
+                    this.viewModel.ToggleManeuverWithCamera();
                 }
                 else if (isDoubleClick)
                 {

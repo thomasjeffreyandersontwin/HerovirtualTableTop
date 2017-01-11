@@ -221,7 +221,7 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         private CrowdMemberShip _loadedParentMembership;
-        public List<CrowdMemberShip> AllCrowdMembershipParents { get; }
+        public List<CrowdMemberShip> AllCrowdMembershipParents { get; set; }
         public Crowd Parent
         {
             get
@@ -248,7 +248,7 @@ namespace HeroVirtualTableTop.Crowd
                 
             }
         }
-        public List<CrowdMemberShip> MemberShips { get; }
+        public List<CrowdMemberShip> MemberShips { get; set; }
         public List<CrowdMember> Members
         {
             get
@@ -524,7 +524,7 @@ namespace HeroVirtualTableTop.Crowd
             Child = child;
         }
         public int Order { get; set; }
-        public Crowd ParentCrowd { get; }
+        public Crowd ParentCrowd { get; set; }
         private int _order; //has to move to membership
         public CrowdMember Child { get; set; }
         Position _savedPosition;
@@ -730,7 +730,7 @@ namespace HeroVirtualTableTop.Crowd
 
         private CrowdMemberShip _loadedParentMembership;
 
-        public List<CrowdMemberShip> AllCrowdMembershipParents { get; }
+        public List<CrowdMemberShip> AllCrowdMembershipParents { get; set; }
 
         public Crowd Parent
         {
