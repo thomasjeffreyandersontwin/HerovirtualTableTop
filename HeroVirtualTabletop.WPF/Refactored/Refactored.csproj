@@ -126,23 +126,23 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Refactored\Crowd\Crowd.cs" />
-    <Compile Include="Refactored\Crowd\CrowdInterfaces.cs" />
-    <Compile Include="Refactored\Crowd\CrowdTestSuite.cs" />
-    <Compile Include="Refactored\Desktop\DesktopCharacterMemoryInstance.cs" />
-    <Compile Include="Refactored\Desktop\DesktopInterfaces.cs" />
-    <Compile Include="Refactored\Desktop\DesktopTestSuite.cs" />
-    <Compile Include="Refactored\Desktop\DllInjector.cs" />
-    <Compile Include="Refactored\Desktop\IconInteractionUtility.cs" />
-    <Compile Include="Refactored\Desktop\KeyBindCommandGenerator.cs" />
-    <Compile Include="Refactored\Desktop\WindowsUtilities.cs" />
-    <Compile Include="Refactored\HeroVirtualTableTop.cs" />
-    <Compile Include="Refactored\ManagedCharacter\Camera.cs" />
-    <Compile Include="Refactored\ManagedCharacter\CharacterActionList.cs" />
-    <Compile Include="Refactored\ManagedCharacter\Identity.cs" />
-    <Compile Include="Refactored\ManagedCharacter\ManagedCharacter.cs" />
-    <Compile Include="Refactored\ManagedCharacter\ManagedCharacterInterfaces.cs" />
-    <Compile Include="Refactored\ManagedCharacter\ManagedCharacterTestSuite.cs" />
+    <Compile Include="Crowd\Crowd.cs" />
+    <Compile Include="Crowd\CrowdInterfaces.cs" />
+    <Compile Include="Crowd\CrowdTestSuite.cs" />
+    <Compile Include="Desktop\DesktopCharacterMemoryInstance.cs" />
+    <Compile Include="Desktop\DesktopInterfaces.cs" />
+    <Compile Include="Desktop\DesktopTestSuite.cs" />
+    <Compile Include="Desktop\DllInjector.cs" />
+    <Compile Include="Desktop\IconInteractionUtility.cs" />
+    <Compile Include="Desktop\KeyBindCommandGenerator.cs" />
+    <Compile Include="Desktop\WindowsUtilities.cs" />
+    <Compile Include="HeroVirtualTableTop.cs" />
+    <Compile Include="ManagedCharacter\Camera.cs" />
+    <Compile Include="ManagedCharacter\CharacterActionList.cs" />
+    <Compile Include="ManagedCharacter\Identity.cs" />
+    <Compile Include="ManagedCharacter\ManagedCharacter.cs" />
+    <Compile Include="ManagedCharacter\ManagedCharacterInterfaces.cs" />
+    <Compile Include="ManagedCharacter\ManagedCharacterTestSuite.cs" />
     <Compile Include="Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
