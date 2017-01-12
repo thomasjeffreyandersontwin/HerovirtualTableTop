@@ -4,6 +4,7 @@ using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Crowds;
+using Module.HeroVirtualTabletop.Desktop;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
@@ -27,12 +28,10 @@ using System.Windows.Input;
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
 {
-    public class CharacterEditorViewModel : Hooker
+    public class CharacterEditorViewModel : BaseViewModel
     {
         #region Private Fields
 
-        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
-        { return null; }
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
@@ -117,7 +116,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
 
-            ActivateKeyboardHook();
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -465,11 +464,11 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Keyboard Hooks
 
-        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (this.EditedCharacter != null)
             {
-                var inputKey = InputKey;
+                //var inputKey = InputKey;
 
                 if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                 {

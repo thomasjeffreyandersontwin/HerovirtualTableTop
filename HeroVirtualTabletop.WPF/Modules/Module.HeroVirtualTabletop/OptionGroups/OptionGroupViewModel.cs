@@ -41,6 +41,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         void InsertOption(int index, ICharacterOption option);
 
         void SaveOptionGroup();
+        void UnloadOptionGroup();
     }
 
     public class OptionGroupViewModel<T> : BaseViewModel, IOptionGroupViewModel where T : ICharacterOption
@@ -334,6 +335,26 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             else
             {
                 customOptionGroupKeyboardHookID = KeyBoardHook.SetHook(CustomOptionGroupKeyboardHook);
+            }
+        }
+
+        public void UnloadOptionGroup()
+        {
+            if (this.OptionGroup.Type == OptionType.Identity)
+            {
+                KeyBoardHook.UnsetHook(identityOptionGroupKeyboardHookID);
+            }
+            else if (this.OptionGroup.Type == OptionType.CharacterMovement)
+            {
+                KeyBoardHook.UnsetHook(movementOptionGroupKeyboardHookID);
+            }
+            else if (this.OptionGroup.Type == OptionType.Ability)
+            {
+                KeyBoardHook.UnsetHook(abilityOptionGroupKeyboardHookID);
+            }
+            else
+            {
+                KeyBoardHook.UnsetHook(customOptionGroupKeyboardHookID);
             }
         }
 

@@ -78,6 +78,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.messageBoxService = messageBoxService;
             InitializeCommands();
             this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Subscribe(this.ConfigureActiveAttack);
+            this.eventAggregator.GetEvent<ConfirmAttackEvent>().Subscribe(this.SetActiveAttack);
         }
         
         #endregion
@@ -138,7 +139,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void SetActiveAttack(object state)
         {
-            foreach(Character ch in this.DefendingCharacters)
+            SetActiveAttack();
+        }
+        private void SetActiveAttack()
+        {
+            foreach (Character ch in this.DefendingCharacters)
             {
                 SetAttackEffect(ch);
             }

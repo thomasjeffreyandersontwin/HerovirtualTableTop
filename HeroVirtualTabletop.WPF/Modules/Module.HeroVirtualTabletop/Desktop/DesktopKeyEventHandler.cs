@@ -21,30 +21,20 @@ using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace Module.HeroVirtualTabletop.Desktop
 {
-    class DesktopKeyEventHandler
+    public class DesktopKeyEventHandler
     {
-            public delegate void MouseSubscriber();
-            public List<MouseSubscriber> OnMouseLeftClick = new List<MouseSubscriber>();
-            public List<MouseSubscriber> OnMouseRightClick = new List<MouseSubscriber>();
-            public List<MouseSubscriber> OnMouseRightClickUp = new List<MouseSubscriber>();
-            public List<MouseSubscriber> OnMouseLeftClickUp = new List<MouseSubscriber>();
-            public List<MouseSubscriber> OnMouseDoubleClick = new List<MouseSubscriber>();
-            public List<MouseSubscriber> OnMouseTripleClick = new List<MouseSubscriber>();
-            public List<MouseSubscriber> OnMouseMove = new List<MouseSubscriber>();
 
             public IntPtr hookID;
             public Keys vkCode;
             public System.Windows.Input.Key _inputKey;
-            private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 2);
-            public System.Timers.Timer DoubleTripleQuadMouseClicksTracker = new System.Timers.Timer();
 
 
             public delegate EventMethod HandleKeyEvent(Keys vkCode, System.Windows.Input.Key inputKey);
             HandleKeyEvent _handleKeyEvent;
             public DesktopKeyEventHandler(HandleKeyEvent d)
             {
-            _handleKeyEvent = d;
-            ActivateKeyboardHook();
+                _handleKeyEvent = d;
+                ActivateKeyboardHook();
             }
             
             public void ActivateKeyboardHook()
@@ -74,8 +64,6 @@ namespace Module.HeroVirtualTabletop.Desktop
                 {
                     uint wndProcId;
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-
                     uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
                     var currentProcId = Process.GetCurrentProcess().Id;
                     return currentProcId == wndProcId;

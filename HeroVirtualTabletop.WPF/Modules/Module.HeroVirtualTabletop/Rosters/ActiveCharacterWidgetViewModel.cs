@@ -21,10 +21,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
+using Module.HeroVirtualTabletop.Desktop;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
-    public class ActiveCharacterWidgetViewModel : Hooker
+    public class ActiveCharacterWidgetViewModel : BaseViewModel
     {
         
         #region Private Fields
@@ -65,8 +66,6 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         #endregion
 
-        internal override EventMethod RetrieveEventHandlerFromMouseInput(Hooker.DesktopMouseState mouseState)
-        { return null; }
         #region Constructor
         public ActiveCharacterWidgetViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
             : base(busyService, container)
@@ -81,6 +80,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
             this.PlayActiveAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.PlayActiveAbility(); }, this.CanPlayActiveAbility);
             this.ToggleMovementCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleMovement(); }, this.CanToggleMovement);
+
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
 
         }
         #endregion
@@ -150,7 +151,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 //Setting hooks for PlayAbilityByKey
 
                 // hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
-                this.ActivateKeyboardHook();
+                
             }
 
         }
@@ -159,8 +160,9 @@ namespace Module.HeroVirtualTabletop.Roster
             if (ActiveCharacter != null)
             {
                 ActiveCharacter.Deactivate();
-                //KeyBoardHook.UnsetHook(hookID);
-                DeactivateKeyboardHook();
+
+                foreach (var ogv in this.OptionGroups)
+                    ogv.UnloadOptionGroup();
             }
                 
             ActiveCharacter = null;
@@ -181,11 +183,11 @@ namespace Module.HeroVirtualTabletop.Roster
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
         }
+        System.Windows.Forms.Keys vkCode;
 
-
-        
-        internal override EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode)
+        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
+            this.vkCode = vkCode;
 
             if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
             {
@@ -216,8 +218,6 @@ namespace Module.HeroVirtualTabletop.Roster
             activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
             activeAbility.Play();
             clickTimer_AbilityPlay.Start();
-
-            
         }
         
 

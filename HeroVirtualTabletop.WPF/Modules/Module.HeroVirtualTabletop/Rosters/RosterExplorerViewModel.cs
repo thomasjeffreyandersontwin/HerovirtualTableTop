@@ -560,7 +560,6 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Event Implementation
         internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-
             if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
             {
                 return this.Place;
@@ -1712,7 +1711,16 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
 
-
+        private void ConfirmAttack(object state)
+        {
+            if(this.isPlayingAttack)
+            {
+                if(PopupService.IsOpen("ActiveAttackView") == true)
+                {
+                    this.eventAggregator.GetEvent<ConfirmAttackEvent>().Publish(null);
+                }
+            }
+        }
 
 
         #endregion
