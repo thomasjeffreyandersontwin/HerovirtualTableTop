@@ -19,8 +19,7 @@ namespace HeroVirtualTableTop.Crowd
     {
         public MockCrowdFactory Factory;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public CrowdRepositoryTestSuite()
         {
             Factory = new MockCrowdFactory(new MockManagedCustomerFactory(new MockDesktopFactory()));
 
@@ -41,7 +40,6 @@ namespace HeroVirtualTableTop.Crowd
             Assert.IsTrue(isPresent);
 
         }
-
         [TestMethod]
         public void NewCharacterCrowdMember_IsAddedToAllMembersAndParent()
         {
@@ -60,7 +58,6 @@ namespace HeroVirtualTableTop.Crowd
             Assert.IsTrue(isPresent);
 
         }
-
         [TestMethod]
         public void NewCharacterMember_CreatesAUniqueNameAcrossCrowds() //need to check
         {
@@ -98,7 +95,6 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual("Character (3)", brotherFromAnotherMother.Name);
             Assert.AreNotEqual(brotherFromAnotherMother.Parent, nextActual.Parent);
         }
-
         [TestMethod]
         public void NewCrowdMember_CreatesAUniqueNameAcrossCrowds() //need to check
         {
@@ -141,8 +137,8 @@ namespace HeroVirtualTableTop.Crowd
     public class CrowdTestSuite
     {
         public MockCrowdFactory Factory;
-        [TestInitialize]
-        public void TestInitialize()
+
+        public CrowdTestSuite()
         {
             Factory = new MockCrowdFactory(new MockManagedCustomerFactory(new MockDesktopFactory()));
 
@@ -667,9 +663,9 @@ namespace HeroVirtualTableTop.Crowd
         public MockCrowdFactory(MockManagedCustomerFactory characterFactory)
         {
             MockManagedCustomerFactory = characterFactory;
+
             MockFixture = MockManagedCustomerFactory.MockFixture;
             CustomizedMockFixture = MockManagedCustomerFactory.CustomizedMockFixture;
-
             StandardizedFixture = MockManagedCustomerFactory.StandardizedFixture;
 
             StandardizedFixture.Behaviors.Add(new OmitOnRecursionBehavior());
@@ -823,6 +819,8 @@ namespace HeroVirtualTableTop.Crowd
             {
                 CrowdRepositoryImpl repo = StandardizedFixture.Build<CrowdRepositoryImpl>()
                     .With(x => x.Crowds, new List<Crowd>())
+                    .With(x => x.NewCrowdInstance, MockCrowd)
+                    .With(x => x.NewCharacterCrowdMemberInstance, MockCharacterCrowdMember)
                     .Create();
                 StandardizedFixture.Inject<CrowdRepository>(repo);
                

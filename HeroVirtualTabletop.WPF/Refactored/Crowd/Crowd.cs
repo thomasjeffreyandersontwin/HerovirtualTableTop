@@ -248,6 +248,7 @@ namespace HeroVirtualTableTop.Crowd
                 
             }
         }
+
         public List<CrowdMemberShip> MemberShips { get; set; }
         public List<CrowdMember> Members
         {

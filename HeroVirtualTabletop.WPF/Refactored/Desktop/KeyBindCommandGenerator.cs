@@ -73,28 +73,10 @@ namespace HeroVirtualTableTop.Desktop
 
             }
         }
-        public string CompleteEvent(bool preventLoadCostumeWithoutTarget = true)
+        public string CompleteEvent()
         {
             string command = string.Empty;
             command = popEvents();
-            if (preventLoadCostumeWithoutTarget)
-            {
-                // HACK: Prevent loading costume without targetting first
-                if (command.Contains(_keyBindsStrings[DesktopCommand.LoadCostume]))
-                {
-                    var loadCostumeIndex = command.IndexOf("$$load_costume");
-                    if (loadCostumeIndex > 0)
-                    {
-                        var prevCommand = command.Substring(0, loadCostumeIndex);
-                        if (string.IsNullOrEmpty(prevCommand) || !prevCommand.Contains(_keyBindsStrings[DesktopCommand.TargetName]))
-                        {
-                            return "";
-                        }
-                    }
-                    else
-                        return "";
-                }
-            }
             _iconInteracter.ExecuteCmd(command);
             return command;
         }

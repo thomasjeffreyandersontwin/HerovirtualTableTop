@@ -70,7 +70,8 @@ namespace Module.HeroVirtualTabletop.Desktop
         {
             fireEvent(OnMouseTripleClick);
         }
-        public void FireMouseRightClickUp() {
+        public void FireMouseRightClickUp()
+        {
             fireEvent(OnMouseRightClickUp);
         }
         private void fireEvent(List<MouseSubscriber> subs)
@@ -81,7 +82,7 @@ namespace Module.HeroVirtualTabletop.Desktop
             }
         }
 
-        
+
         public DesktopMouseState MouseState = DesktopMouseState.MOUSE_MOVE;
         int MouseClickCount = 0;
         internal IntPtr HandleMouseEvent(int nCode, IntPtr wParam, IntPtr lParam)
@@ -90,16 +91,16 @@ namespace Module.HeroVirtualTabletop.Desktop
             {
                 if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
                 {
-                    MouseClickCount ++;
+                    MouseClickCount++;
                     switch (MouseClickCount)
                     {
                         case 1:
                             MouseState = DesktopMouseState.LEFT_CLICK;
-                            Action action = delegate ()
+                            Action action = delegate()
                             {
                                 DoubleTripleQuadMouseClicksTracker.Start();
                             };
-                           System.Windows.Application.Current.Dispatcher.BeginInvoke(action);
+                            System.Windows.Application.Current.Dispatcher.BeginInvoke(action);
                             break;
                         case 2: MouseState = DesktopMouseState.DOUBLE_CLICK;
                             break;
@@ -152,7 +153,7 @@ namespace Module.HeroVirtualTabletop.Desktop
 
     }
 
-    
+
 
     public enum MouseMessage
     {

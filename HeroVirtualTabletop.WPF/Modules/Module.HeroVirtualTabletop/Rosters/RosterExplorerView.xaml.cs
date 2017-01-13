@@ -102,7 +102,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     this.viewModel.ActivateCharacterCommand.Execute(null);
                 }
-                else if(isTripleClick)
+                else if (isTripleClick)
                 {
                     this.viewModel.ToggleManeuverWithCamera();
                 }
@@ -136,6 +136,7 @@ namespace Module.HeroVirtualTabletop.Roster
             } 
         }
 
+        
         private void viewModel_RosterMemberAdded(object sender, EventArgs e)
         {
             CollectionViewSource source = (CollectionViewSource)(this.Resources["ParticipantsView"]);

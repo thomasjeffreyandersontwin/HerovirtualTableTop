@@ -11,7 +11,7 @@ namespace HeroVirtualTableTop.Desktop
         string GeneratedCommandText { get; set; }
         string Command { get; set; }
         void GenerateDesktopCommandText(DesktopCommand command, params string[] parameters);
-        string CompleteEvent(bool preventLoadCostumeWithoutTarget = true);
+        string CompleteEvent();
     }
 
     public interface IconInteractionUtility

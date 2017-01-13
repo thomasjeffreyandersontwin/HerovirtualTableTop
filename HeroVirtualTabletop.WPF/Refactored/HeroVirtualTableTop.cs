@@ -110,6 +110,8 @@ namespace HeroSystemEngine.HeroVirtualTableTop.ManagedCharacter
         void ToggleManueveringWithCamera();
         bool ManueveringWithCamera { get; set; }
 
+        
+
         void AddIdentity(Identity identity);
         void RemoveIdentity(string identityName);
 
@@ -279,6 +281,7 @@ namespace HeroSystemEngine.HeroVirtualTableTop.AnimatedCharacter
         bool Rendered { get; set; }
         void RenderState();
         void RenderRemovalOfState();
+
     }
     public interface AnimatableCharacterStateRepository
     {

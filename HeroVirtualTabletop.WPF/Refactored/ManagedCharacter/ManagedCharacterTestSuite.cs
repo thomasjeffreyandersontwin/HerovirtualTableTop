@@ -15,11 +15,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
     {
         ManagedCharacter CharacterUnderTest;
         public MockManagedCustomerFactory Factory;
-        [TestInitialize]
-        public void TestInitialize()
+
+        public ManagedCharacterTestSuite()
         {
             Factory = new MockManagedCustomerFactory(new MockDesktopFactory());
-
         }
 
         [TestMethod]
@@ -206,8 +205,8 @@ namespace HeroVirtualTableTop.ManagedCharacter
     public class CameraTestSuite
     {
         public MockManagedCustomerFactory Factory;
-        [TestInitialize]
-        public void TestInitialize()
+
+        public CameraTestSuite()
         {
             Factory = new MockManagedCustomerFactory(new MockDesktopFactory());
         }
@@ -338,12 +337,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
     {
         public MockManagedCustomerFactory Factory;
 
-        [TestInitialize]
-        public void TestInitialize()
+        public CharacterActionListTestSuite()
         {
             Factory = new MockManagedCustomerFactory(new MockDesktopFactory());
         }
-
 
         [TestMethod]
         public void Active_ReturnsActiveIfSetOrDefalultIfNotSet()
@@ -630,32 +627,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
     }
 
-    public interface C<T>
-    {
-         i i{ get; set; } 
-    }
-
-    public class owner
-    {
-        public C<i> C { get
-            {
-                return new CC<i>();
-            } set { } }
-
-    }
-
-    public interface i
-    { }
-
-    public class CC<T> : C<T> where T : i
-    {
-        public i i { get; set; }
-    }
-
-    public class ii:i
-    {
-
-    }
 
 }
 

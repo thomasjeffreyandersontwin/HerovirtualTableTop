@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+
 
 namespace HeroVirtualTableTop.Desktop
 {
@@ -55,7 +55,7 @@ namespace HeroVirtualTableTop.Desktop
 
         static IconInteractionUtilityImpl()
         {
-            dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "HookCostume.dll"));
+           //TO DO FIX dllHandle = WindowsUtilities.LoadLibrary(Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "HookCostume.dll"));
             if (dllHandle != null)
             {
                 IntPtr initGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "InitGame");

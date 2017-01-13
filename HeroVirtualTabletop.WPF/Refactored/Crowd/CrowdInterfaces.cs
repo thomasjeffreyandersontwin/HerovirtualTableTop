@@ -58,7 +58,7 @@ namespace HeroVirtualTableTop.Crowd
 
         string Name { get; set; }
 
-     CrowdMember Clone();
+        CrowdMember Clone();
         void ApplyFilter(string filter);
         void ResetFilter();
         bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> members);
