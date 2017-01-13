@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Threading;
+﻿using Framework.WPF.Behaviors;
 using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
@@ -18,26 +6,43 @@ using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Microsoft.Xna.Framework;
-using Prism.Events;
-using Module.Shared;
-using Module.Shared.Enumerations;
-using Module.Shared.Events;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Crowds;
-using Module.HeroVirtualTabletop.Desktop;
-using Module.HeroVirtualTabletop.OptionGroups;
+using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
 using Module.HeroVirtualTabletop.Library.Sevices;
 using Module.HeroVirtualTabletop.Library.Utility;
-
+using Module.HeroVirtualTabletop.Movements;
+using Module.HeroVirtualTabletop.OptionGroups;
+using Module.Shared;
+using Module.Shared.Enumerations;
+using Module.Shared.Events;
+using Prism.Events;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Timers;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
-    public class RosterExplorerViewModel : BaseViewModel
+    public class RosterExplorerViewModel_OLD : BaseViewModel
     {
         #region Private Fields
 
@@ -45,41 +50,45 @@ namespace Module.HeroVirtualTabletop.Roster
         private ITargetObserver targetObserver;
         private EventAggregator eventAggregator;
 
-        //refactor to attacking character
-        private Attack currentAttack = null;
-        public Character AttackingCharacter = null;
         private bool isPlayingAttack = false;
         private bool isPlayingAreaEffect = false;
-
         private bool isCharacterReset = false;
-
-        private bool isCharacterDragDropInProgress = false;
-        private Character currentDraggingCharacter = null;
-        private DateTime lastDesktopMouseDownTime = DateTime.MinValue;
-
+        private bool isMenuDisplayed = false;
+        public bool IsCharacterDragDropInProgress = false;
         private bool stopSyncingWithDesktop = false;
+
+        private Character currentDraggingCharacter = null;
+        private Character currentCyclingCharacter = null;
+        private DateTime lastDesktopMouseDownTime = DateTime.MinValue;
+        private Attack currentAttack = null;
+        private Character attackingCharacter = null;
 
         private List<Character> targetCharactersForMove = new List<Character>();
         private List<Character> targetCharacters = new List<Character>();
-        private List<CrowdMemberModel> _oldSelection = new List<CrowdMemberModel>();
+        private List<CrowdMemberModel> oldSelection = new List<CrowdMemberModel>();
 
-        Character lastTargetedCharacter = null;
+        Vector3 lastMouseDownPosition = new Vector3();
+        Character lastHoveredCharacter = null;
         private Character previousSelectedCharacter = null;
         public bool RosterMouseDoubleClicked = false;
-        public bool CharacterIsMoving
-        {
-            get
-            {
-                return Helper.GlobalVariables_CharacterMovement != null;
-            }
-        }
 
-        private DesktopContextMenu desktopContextMenu;
-        private DesktopMouseEventHandler mouseHandler;
+        private IntPtr mouseHookID;
+        private IntPtr keyboardHookID;
 
-        private System.Timers.Timer timer_RespondToDesktop = new System.Timers.Timer(); 
+        private int clickCount;
+        private bool isDoubleClick = false;
+        private bool isTripleClick = false;
+        private bool isQuadrupleClick = false;
+        private int maxClickTime = (int)(System.Windows.Forms.SystemInformation.DoubleClickTime * 2);
+        private Timer clickTimer_MultipleClick = new Timer();
+        private Timer clickTimer_DesktopInteraction = new Timer();
+        private Timer clickTimer_CharacterDragDrop = new Timer();
+
+        private FileSystemWatcher fileSystemWatcher = new FileSystemWatcher();
 
         #endregion
+
+        #region Events
 
         public event EventHandler RosterMemberAdded;
         public void OnRosterMemberAdded(object sender, EventArgs e)
@@ -88,13 +97,14 @@ namespace Module.HeroVirtualTabletop.Roster
                 RosterMemberAdded(sender, e);
         }
 
+        #endregion
+
         #region Public Properties
 
         public IPopupService PopupService
         {
             get { return this.Container.Resolve<IPopupService>(); }
         }
-
         private HashedObservableCollection<ICrowdMemberModel, string> participants;
         public HashedObservableCollection<ICrowdMemberModel, string> Participants
         {
@@ -110,7 +120,6 @@ namespace Module.HeroVirtualTabletop.Roster
                 OnPropertyChanged("Participants");
             }
         }
-
         private IList selectedParticipants = new ArrayList();
         public IList SelectedParticipants
         {
@@ -167,14 +176,6 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public bool IsSingleSpawnedCharacterSelected
-        {
-            get
-            {
-                return this.SelectedParticipants != null && SelectedParticipants.Count == 1 && (SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned;
-            }
-        }
-
         public bool ShowAttackContextMenu
         {
             get
@@ -194,6 +195,14 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
 
                 return showAttackContextMenu;
+            }
+        }
+
+        public bool IsSingleSpawnedCharacterSelected
+        {
+            get
+            {
+                return this.SelectedParticipants != null && SelectedParticipants.Count == 1 && (SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned;
             }
         }
 
@@ -218,18 +227,14 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand<object> AreaAttackTargetAndExecuteCommand { get; private set; }
         public DelegateCommand<object> ResetOrientationCommand { get; private set; }
         public DelegateCommand<object> CycleCommandsThroughCrowdCommand { get; private set; }
-        public DelegateCommand<object> TargetHoveredCharacterCommand { get; private set; }
-        public DelegateCommand<object> DropDraggedCharacterCommand { get; private set; }
-
-
 
         #endregion
 
-        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, EventAggregator eventAggregator)
+        #region Constructor
+
+        public RosterExplorerViewModel_OLD(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, EventAggregator eventAggregator)
             : base(busyService, container)
         {
-            desktopContextMenu = new DesktopContextMenu();
-
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             this.targetObserver = targetObserver;
@@ -242,10 +247,6 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CancelActiveAttack);
             this.eventAggregator.GetEvent<AddOptionEvent>().Subscribe(this.HandleCharacterOptionAddition);
 
-            timer_RespondToDesktop.AutoReset = false;
-            timer_RespondToDesktop.Interval = 50;
-            timer_RespondToDesktop.Elapsed += timer_RespondToDesktop_Elapsed;
-
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Subscribe((obj) =>
             {
                 this.targetObserver.TargetChanged += TargetObserver_TargetChanged;
@@ -256,161 +257,59 @@ namespace Module.HeroVirtualTabletop.Roster
             });
 
             InitializeCommands();
-
-            mouseHandler = new DesktopMouseEventHandler();
-            mouseHandler.OnMouseLeftClick.Add(RespondToMouseClickBasedOnDesktopState);
-            mouseHandler.OnMouseLeftClickUp.Add(DropDraggedCharacter);
-            mouseHandler.OnMouseRightClickUp.Add(DisplayCharacterPopupMenue);
-            mouseHandler.OnMouseMove.Add(TargetHoveredCharacter);
-            mouseHandler.OnMouseDoubleClick.Add(PlayDefaultAbility);
-            mouseHandler.OnMouseTripleClick.Add(ToggleManeuverWithCamera);
-
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
-
-            desktopContextMenu.ActivateCharacterOptionMenuItemSelected += desktopContextMenu_ActivateCharacterOptionMenuItemSelected;
-            desktopContextMenu.ActivateMenuItemSelected += desktopContextMenu_ActivateMenuItemSelected;
-            desktopContextMenu.AreaAttackContextMenuDisplayed +=desktopContextMenu_AreaAttackContextMenuDisplayed;
-            desktopContextMenu.AreaAttackTargetAndExecuteMenuItemSelected += desktopContextMenu_AreaAttackTargetAndExecuteMenuItemSelected;
-            desktopContextMenu.AreaAttackTargetMenuItemSelected += desktopContextMenu_AreaAttackTargetMenuItemSelected;
-            desktopContextMenu.ClearFromDesktopMenuItemSelected += desktopContextMenu_ClearFromDesktopMenuItemSelected;
-            desktopContextMenu.CloneAndLinkMenuItemSelected += desktopContextMenu_CloneAndLinkMenuItemSelected;
-            desktopContextMenu.DefaultContextMenuDisplayed += desktopContextMenu_DefaultContextMenuDisplayed;
-            desktopContextMenu.ManueverWithCameraMenuItemSelected += desktopContextMenu_ManueverWithCameraMenuItemSelected;
-            desktopContextMenu.MoveCameraToTargetMenuItemSelected += desktopContextMenu_MoveCameraToTargetMenuItemSelected;
-            desktopContextMenu.MoveTargetToCameraMenuItemSelected += desktopContextMenu_MoveTargetToCameraMenuItemSelected;
-            desktopContextMenu.MoveTargetToCharacterMenuItemSelected+=desktopContextMenu_MoveTargetToCharacterMenuItemSelected;
-            desktopContextMenu.PlaceMenuItemSelected += desktopContextMenu_PlaceMenuItemSelected;
-            desktopContextMenu.ResetOrientationMenuItemSelected += desktopContextMenu_ResetOrientationMenuItemSelected;
-            desktopContextMenu.SavePositionMenuItemSelected += desktopContextMenu_SavePositionMenuItemSelected;
-            desktopContextMenu.SpawnMenuItemSelected += desktopContextMenu_SpawnMenuItemSelected;
+            clickCount = 0;
+            clickTimer_MultipleClick.AutoReset = false;
+            clickTimer_MultipleClick.Interval = maxClickTime;
+            clickTimer_MultipleClick.Elapsed +=
+                new ElapsedEventHandler(clickTimer_MultipleClick_Elapsed);
+            clickTimer_DesktopInteraction.AutoReset = false;
+            clickTimer_DesktopInteraction.Interval = 50;
+            clickTimer_DesktopInteraction.Elapsed +=
+                new ElapsedEventHandler(clickTimer_DesktopInteraction_Elapsed);
+            clickTimer_CharacterDragDrop.AutoReset = false;
+            clickTimer_CharacterDragDrop.Interval = 50;
+            clickTimer_CharacterDragDrop.Elapsed +=
+                new ElapsedEventHandler(clickTimer_CharacterDragDrop_Elapsed);
+            mouseHookID = MouseHook.SetHook(clickCharacterInDesktop);
+            keyboardHookID = KeyBoardHook.SetHook(RosterKeyboardHook);
+            fileSystemWatcher.Path = string.Format("{0}\\", Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME));
+            fileSystemWatcher.IncludeSubdirectories = false;
+            fileSystemWatcher.Filter = "*.txt";
+            fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            fileSystemWatcher.Changed += fileSystemWatcher_Changed;
+            //fileSystemWatcher.Created += fileSystemWatcher_Changed;
+            fileSystemWatcher.EnableRaisingEvents = false;
         }
 
-        void desktopContextMenu_SpawnMenuItemSelected(object sender, EventArgs e)
-        {
-            this.Spawn();
-        }
+        #endregion
 
-        void desktopContextMenu_SavePositionMenuItemSelected(object sender, EventArgs e)
-        {
-            this.SavePosition();
-        }
+        #region Initialization
 
-        void desktopContextMenu_ResetOrientationMenuItemSelected(object sender, EventArgs e)
-        {
-            this.ResetOrientation();
-        }
-
-        void desktopContextMenu_PlaceMenuItemSelected(object sender, EventArgs e)
-        {
-            this.Place();
-        }
-
-        private void desktopContextMenu_MoveTargetToCharacterMenuItemSelected(object sender, CustomEventArgs<Object> e)
-        {
-            string destharacterName = e.Value as string;
-            Character character = this.Participants.FirstOrDefault(p => p.Name == destharacterName) as Character;
-            if (character != null)
-            {
-                Vector3 destination = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
-                foreach (Character c in this.SelectedParticipants)
-                {
-                    c.MoveToLocation(destination);
-                }
-            }
-        }
-
-        void desktopContextMenu_MoveTargetToCameraMenuItemSelected(object sender, EventArgs e)
-        {
-            this.MoveTargetToCamera();
-        }
-
-        void desktopContextMenu_MoveCameraToTargetMenuItemSelected(object sender, EventArgs e)
-        {
-            this.TargetAndFollow(true);
-        }
-
-        void desktopContextMenu_ManueverWithCameraMenuItemSelected(object sender, EventArgs e)
-        {
-            this.ToggleManeuverWithCamera();
-        }
-
-        void desktopContextMenu_DefaultContextMenuDisplayed(object sender, CustomEventArgs<Object> e)
-        {
-            Character character = e.Value as Character;
-            if (character != null)
-                AddDesktopTargetToRosterSelection(character);
-        }
-
-        void desktopContextMenu_CloneAndLinkMenuItemSelected(object sender, EventArgs e)
-        {
-            Character character = SelectedParticipants != null && SelectedParticipants.Count == 1 ? SelectedParticipants[0] as Character : null;
-            this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Publish(character as CrowdMemberModel);
-        }
-
-        void desktopContextMenu_ClearFromDesktopMenuItemSelected(object sender, EventArgs e)
-        {
-            this.ClearFromDesktop();
-        }
-
-        void desktopContextMenu_AreaAttackTargetMenuItemSelected(object sender, EventArgs e)
-        {
-            this.TargetCharacterForAreaAttack(null);
-        }
-
-        void desktopContextMenu_AreaAttackTargetAndExecuteMenuItemSelected(object sender, EventArgs e)
-        {
-            this.TargetAndExecuteAreaAttack(null);
-        }
-
-        private void desktopContextMenu_AreaAttackContextMenuDisplayed(object sender, CustomEventArgs<Object> e)
-        {
-            Character character = e.Value as Character;
-            if (character != null)
-                AddDesktopTargetToRosterSelection(character);
-        }
-
-        void desktopContextMenu_ActivateMenuItemSelected(object sender, EventArgs e)
-        {
-            this.ToggleActivateCharacter();
-        }
-
-        private void desktopContextMenu_ActivateCharacterOptionMenuItemSelected(object sender, CustomEventArgs<Object> e)
-        {
-            Object[] parameters = e.Value as Object[];
-            if (parameters != null && parameters.Length == 3)
-            {
-                Character character = parameters[0] as Character;
-                string optionGroupName = parameters[1] as string;
-                string optionName = parameters[2] as string;
-                this.ActivateCharacter(character, optionGroupName, optionName);
-            }
-        }
         private void InitializeCommands()
         {
-            this.SpawnCommand = new DelegateCommand<object>(delegate(object state) { this.Spawn(); });
-            this.ClearFromDesktopCommand = new DelegateCommand<object>(delegate(object state) { this.ClearFromDesktop(); }, this.CanClearFromDesktop);
-            this.ToggleTargetedCommand = new DelegateCommand<object>(delegate(object state) { this.ToggleTargeted(); }, this.CanToggleTargeted);
-            this.SavePositionCommand = new DelegateCommand<object>(delegate(object state) { this.SavePosition(); }, this.CanSavePostion);
-            this.PlaceCommand = new DelegateCommand<object>(delegate(object state) { this.Place(); }, this.CanPlace);
+            this.SpawnCommand = new DelegateCommand<object>(this.Spawn);
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop, this.CanClearFromDesktop);
+            this.ToggleTargetedCommand = new DelegateCommand<object>(this.ToggleTargeted, this.CanToggleTargeted);
+            this.SavePositionCommand = new DelegateCommand<object>(this.SavePostion, this.CanSavePostion);
+            this.PlaceCommand = new DelegateCommand<object>(this.Place, this.CanPlace);
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
-            this.MoveTargetToCameraCommand = new DelegateCommand<object>(delegate(object state) { this.MoveTargetToCamera(); }, this.CanMoveTargetToCamera);
-            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(delegate(object state) { this.MoveTargetToCharacter(); }, this.CanMoveTargetToCharacter);
-            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(delegate(object state) { this.MoveTargetToMouseLocation(); }, this.CanMoveTargetToMouseLocation);
-            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(delegate(object state) { this.ToggleManeuverWithCamera(); }, this.CanToggleManeuverWithCamera);
-            this.EditCharacterCommand = new DelegateCommand<object>(delegate(object state) { this.EditCharacter(); }, this.CanEditCharacter);
-            this.ActivateCharacterCommand = new DelegateCommand<object>(delegate(object state) { this.ActivateCharacter(); }, this.CanActivateCharacter);
+            this.MoveTargetToCameraCommand = new DelegateCommand<object>(this.MoveTargetToCamera, this.CanMoveTargetToCamera);
+            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(this.MoveTargetToCharacter, this.CanMoveTargetToCharacter);
+            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(this.MoveTargetToMouseLocation, this.CanMoveTargetToMouseLocation);
+            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(this.ToggleManeuverWithCamera, this.CanToggleManeuverWithCamera);
+            this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
+            this.ActivateCharacterCommand = new DelegateCommand<object>(this.ActivateCharacter, this.CanActivateCharacter);
             this.ResetCharacterStateCommand = new DelegateCommand<object>(this.ResetCharacterState);
             this.AreaAttackTargetCommand = new DelegateCommand<object>(this.TargetCharacterForAreaAttack);
             this.AreaAttackTargetAndExecuteCommand = new DelegateCommand<object>(this.TargetAndExecuteAreaAttack);
-            this.ResetOrientationCommand = new DelegateCommand<object>(delegate(object state) { this.ResetOrientation(); }, this.CanResetOrientation);
-            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(delegate(object state) { this.CycleCommandsThroughCrowd(); }, this.CanCycleCommandsThroughCrowd);
+            this.ResetOrientationCommand = new DelegateCommand<object>(this.ResetOrientation, this.CanResetOrientation);
+            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(this.CycleCommandsThroughCrowd, this.CanCycleCommandsThroughCrowd);
         }
 
+        #endregion
+
         #region Methods
-        public bool CanDo(object state)
-        {
-            return true;
-        }
+
         private void Commands_RaiseCanExecuteChanged()
         {
             this.ClearFromDesktopCommand.RaiseCanExecuteChanged();
@@ -426,10 +325,12 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ActivateCharacterCommand.RaiseCanExecuteChanged();
             this.ResetOrientationCommand.RaiseCanExecuteChanged();
         }
+
         public void RaiseEventToImportRosterMember()
         {
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Publish(null);
         }
+
         private void CheckRosterConsistency(IEnumerable<CrowdMemberModel> members)
         {
             foreach (CrowdMemberModel member in members)
@@ -450,30 +351,32 @@ namespace Module.HeroVirtualTabletop.Roster
                 return (x as CrowdMemberModel).Label == target.Label;
             });
         }
+
         private void synchSelectionWithGame()
         {
-            List<CrowdMemberModel> unselected = _oldSelection.Except(SelectedParticipants.Cast<CrowdMemberModel>()).ToList();
+            List<CrowdMemberModel> unselected = oldSelection.Except(SelectedParticipants.Cast<CrowdMemberModel>()).ToList();
             unselected.ForEach(
                 (member) =>
                 {
                     if (!member.HasBeenSpawned)
                         return;
-                    if (!(this.isPlayingAttack && this.AttackingCharacter != null && this.AttackingCharacter.Name == member.Name))
+                    if (!(this.isPlayingAttack && this.attackingCharacter != null && this.attackingCharacter.Name == member.Name))
                         member.Deactivate();
-                    _oldSelection.Remove(member);
+                    oldSelection.Remove(member);
                 });
-            List<CrowdMemberModel> selected = SelectedParticipants.Cast<CrowdMemberModel>().Except(_oldSelection).ToList();
+            List<CrowdMemberModel> selected = SelectedParticipants.Cast<CrowdMemberModel>().Except(oldSelection).ToList();
             if (selected.Count > 1)
                 selected.ForEach(
                     (member) =>
                     {
                         if (!member.HasBeenSpawned)
                             return;
-                        if (!(this.isPlayingAttack && this.AttackingCharacter != null && this.AttackingCharacter.Name == member.Name)) // Don't make the attacking character blue
+                        if (!(this.isPlayingAttack && this.attackingCharacter != null && this.attackingCharacter.Name == member.Name)) // Don't make the attacking character blue
                             member.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
-                        _oldSelection.Add(member);
+                        oldSelection.Add(member);
                     });
         }
+
         private void TargetObserver_TargetChanged(object sender, EventArgs e)
         {
             try
@@ -492,7 +395,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
             }
         }
-        public void AddDesktopTargetToRosterSelection(Character currentTarget)
+
+        private void AddDesktopTargetToRosterSelection(CrowdMemberModel currentTarget)
         {
             Dispatcher.Invoke(() =>
             {
@@ -526,219 +430,534 @@ namespace Module.HeroVirtualTabletop.Roster
                 });
             }
         }
-        public Character GetHoveredCharacter(object state)
+
+        #region Mouse Hook - Click on Desktop
+
+        public Character GetHoveredCharacter()
         {
-            MouseElement hoveredElement = new MouseElement();
-            if (hoveredElement.HoveredInfo != "")
+
+            Character hoveredCharacter = null;
+            string hoverCharacterInfo = IconInteractionUtility.GeInfoFromNpcMouseIsHoveringOver();
+            if (hoverCharacterInfo != "")
             {
-                return (Character)this.Participants.FirstOrDefault(p => p.Name == hoveredElement.Name);
+                int start = 7;
+                int end = 1 + hoverCharacterInfo.IndexOf("]", start);
+                string hoveredLabel = hoverCharacterInfo.Substring(start, end - start);
+                if (lastHoveredCharacter == null || lastHoveredCharacter.Label != hoveredLabel)
+                {
+                    foreach (CrowdMemberModel model in this.Participants)
+                    {
+                        if (model.Label == hoveredLabel)
+                        {
+                            hoveredCharacter = model;
+                            break;
+                        }
+                    }
+
+                }
             }
-            return null;
+            return hoveredCharacter;
         }
 
-        public Character GetHoveredOrTargetedCharacter(MemoryElement targetedBeforeMouseCLick)
+        public void TargetHoveredCharacter(Character hoveredCharacter)
         {
-            Character hovered = GetHoveredCharacter(null);
-            if (hovered != null)
+
+            if (hoveredCharacter != null)
             {
-                return hovered;
-            }
-            else
-            {
-                System.Threading.Thread.Sleep(200);
-                MemoryElement target = new MemoryElement();
-                if (target.Label != "" && targetedBeforeMouseCLick.Label != target.Label)
+                if (lastHoveredCharacter == null || hoveredCharacter.Label != lastHoveredCharacter.Label)
                 {
-                    return (CrowdMemberModel)GetCurrentTarget();
+                    if (MouseState != DesktopMouseState.DOWN)
+                    {
+                        hoveredCharacter.Target();
+                    }
+                }
+            }
+        }
+
+        public enum DesktopMouseState { DOWN = 1, UP = 2 };
+        public DesktopMouseState MouseState = DesktopMouseState.UP;
+        IntPtr clickCharacterInDesktop(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                if (MouseState != DesktopMouseState.DOWN)
+                {
+                    Character hoveredCharacter = GetHoveredCharacter();
+                    if (hoveredCharacter != null)
+                    {
+                        TargetHoveredCharacter(hoveredCharacter);
+                        lastHoveredCharacter = hoveredCharacter;
+                    }
+                }
+                if (MouseMessage.WM_LBUTTONDOWN == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.DOWN;
+                    MemoryElement targetedBeforeMouseCLick = new MemoryElement();
+                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        //System.Threading.Thread.Sleep(200);
+                        // possible drag drop
+                        // 1. Determine which character is clicked and save its name and also click time
+                        string hoveredCharacterInfo = IconInteractionUtility.GeInfoFromNpcMouseIsHoveringOver();
+                        CrowdMemberModel hoveredCharacter = null;
+                        if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                        {
+                            string characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                            hoveredCharacter = this.Participants.FirstOrDefault(p => p.Name == characterName) as CrowdMemberModel;
+                            // JEFF hover sucks make it work
+                        }
+                        if (hoveredCharacterInfo == "")
+                        {
+                            System.Threading.Thread.Sleep(200);
+                            MemoryElement target = new MemoryElement();
+                            if (target.Label != "" && targetedBeforeMouseCLick.Label != target.Label)
+                            {
+                                hoveredCharacter = (CrowdMemberModel)GetCurrentTarget();
+                            }
+                        }
+                        if (hoveredCharacter != null)
+                        {
+                            this.currentDraggingCharacter = hoveredCharacter;
+                            this.IsCharacterDragDropInProgress = true;
+                            this.lastDesktopMouseDownTime = DateTime.UtcNow;
+                            this.lastHoveredCharacter = hoveredCharacter;
+                            if (targetedBeforeMouseCLick.Label != (hoveredCharacter as Character).Label)
+                            {
+                                previousSelectedCharacter = this.Participants.FirstOrDefault(p => (p as Character).Label == targetedBeforeMouseCLick.Label) as Character;
+                            }
+                        }
+                        else
+                            this.lastHoveredCharacter = null;
+                        if (!this.isPlayingAttack)
+                        {
+                            if (Helper.GlobalVariables_CharacterMovement == null)
+                            {
+                                //Handle clicks
+                                clickCount += 1;
+                                switch (clickCount)
+                                {
+                                    case 1: Action action = delegate()
+                                    {
+                                        clickTimer_MultipleClick.Start();
+                                    };
+                                        Application.Current.Dispatcher.BeginInvoke(action);
+                                        break;
+                                    case 2:
+                                        {
+                                            isDoubleClick = true;
+                                            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZString();
+                                            lastMouseDownPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                                            break;
+                                        }
+                                    case 3: isTripleClick = true; break;
+                                    case 4: isQuadrupleClick = true; break;
+                                    default: break;
+                                }
+                            }
+                            else
+                            {
+                                clickTimer_DesktopInteraction.Start(); // Get mouse location and move the target character(s) to there
+                            }
+                        }
+                        else
+                        {
+                            if (!this.isMenuDisplayed)
+                            {
+                                bool canFireAttackAnimation = true;
+                                string characterName = null;
+                                if (!string.IsNullOrWhiteSpace(hoveredCharacterInfo))
+                                {
+                                    characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                                }
+                                if (!string.IsNullOrEmpty(characterName))
+                                {
+                                    ICrowdMemberModel model = this.Participants.FirstOrDefault(p => p.Name == characterName);
+                                    if (model != null && this.SelectedParticipants != null && !this.SelectedParticipants.Contains(model))
+                                    {
+                                        canFireAttackAnimation = false;
+                                    }
+                                    //else if(model != null && model.Name != this.attackingCharacter.Name)
+                                    //{
+                                    //    canFireAttackAnimation = false;
+                                    //}
+                                }
+                                if (canFireAttackAnimation)
+                                {
+                                    if (this.currentAttack != null && this.attackingCharacter != null)
+                                    {
+                                        clickTimer_DesktopInteraction.Start();// Doing this in another thread so that if the game window has lost focus, the attack doesn't animate.
+                                    }
+                                }
+
+                            }
+                            else
+                            {
+                                this.isMenuDisplayed = false;
+                            }
+                        }
+                    }
+                }
+                else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.UP;
+                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        // Possible character drag drop
+                        // 1. Check current position and make sure it is away by a min distance and also there is a min gap in time. 
+                        // 2. If conditions satisfy execute move
+
+                        if (this.currentDraggingCharacter != null && lastDesktopMouseDownTime != DateTime.MinValue && this.IsCharacterDragDropInProgress)
+                        {
+                            System.Threading.Thread.Sleep(500);
+                            string mouseXYZInfo = IconInteractionUtility.GetMouseXYZString();
+                            Vector3 mouseUpPosition = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                            var mouseDistance = Vector3.Distance(mouseUpPosition, lastMouseDownPosition);
+                            if (!this.isPlayingAttack && lastMouseDownPosition.X != -10000 && mouseDistance > 5)
+                            {
+                                if (!this.currentDraggingCharacter.HasBeenSpawned)
+                                {
+                                    this.currentDraggingCharacter.Spawn();
+                                }
+                                var characterDistance = Vector3.Distance(this.currentDraggingCharacter.CurrentPositionVector, mouseUpPosition);
+                                if (characterDistance > 5)
+                                {
+                                    this.currentDraggingCharacter.UnFollow();
+                                    this.currentDraggingCharacter.MoveToLocation(mouseUpPosition);
+                                }
+                            }
+                        }
+                        this.currentDraggingCharacter = null;
+                        this.lastDesktopMouseDownTime = DateTime.MinValue;
+                        this.IsCharacterDragDropInProgress = false;
+                        this.lastMouseDownPosition = new Vector3(-10000, -10000, -10000);
+                    }
+                }
+                else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
+                {
+                    MouseState = DesktopMouseState.UP;
+                    if (WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        //System.Threading.Thread.Sleep(1000);
+                        string hoveredCharacterInfo = IconInteractionUtility.GeInfoFromNpcMouseIsHoveringOver();
+                        string characterName = "";
+                        // Jeff right click hover sucks, get the targeted character instead
+                        if (hoveredCharacterInfo == "")
+                        {
+                            System.Threading.Thread.Sleep(1000);
+                            MemoryElement target = new MemoryElement();
+                            if (target.Label != "")
+                            {
+                                characterName = ((Character)GetCurrentTarget()).Name;
+                            }
+                        }
+                        else
+                        {
+                            characterName = GetCharacterNameFromHoveredInfo(hoveredCharacterInfo);
+                        }
+
+
+                        System.Threading.Thread.Sleep(200);
+                        Character character = (Character)GetCurrentTarget();
+
+                        CrowdMemberModel targetedCharacter = (CrowdMemberModel)this.Participants[character.Name];
+                        if (targetedCharacter != null)
+                        {
+                            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+                            if (isPlayingAreaEffect)
+                            {
+                                if (this.attackingCharacter != null && this.attackingCharacter.Name != characterName)
+                                {
+                                    AddDesktopTargetToRosterSelection(targetedCharacter);
+                                    targetedCharacter.Target();
+                                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
+                                    keyBindsGenerator.CompleteEvent();
+                                    this.isMenuDisplayed = true;
+                                }
+                            }
+                            else
+                            {
+                                AddDesktopTargetToRosterSelection(targetedCharacter);
+                                GenerateMenuFileForCharacter(targetedCharacter);
+                                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "character");
+                                fileSystemWatcher.EnableRaisingEvents = true;
+                                keyBindsGenerator.CompleteEvent();
+                                this.isMenuDisplayed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
+        }
+
+        public void StartDragFromRosterToDesktop()
+        {
+            this.clickTimer_CharacterDragDrop.Start();
+        }
+
+        public Vector3 GetDirectionVectorFromMouseXYZInfo(string mouseXYZInfo)
+        {
+            Vector3 vector3 = new Vector3();
+            float f;
+            int xStart = mouseXYZInfo.IndexOf("[");
+            int xEnd = mouseXYZInfo.IndexOf("]");
+            string xStr = mouseXYZInfo.Substring(xStart + 1, xEnd - xStart - 1);
+            if (float.TryParse(xStr, out f))
+                vector3.X = f;
+            int yStart = mouseXYZInfo.IndexOf("[", xEnd);
+            int yEnd = mouseXYZInfo.IndexOf("]", yStart);
+            string yStr = mouseXYZInfo.Substring(yStart + 1, yEnd - yStart - 1);
+            if (float.TryParse(yStr, out f))
+                vector3.Y = f;
+            int zStart = mouseXYZInfo.IndexOf("[", yEnd);
+            int zEnd = mouseXYZInfo.IndexOf("]", zStart);
+            string zStr = mouseXYZInfo.Substring(zStart + 1, zEnd - zStart - 1);
+            if (float.TryParse(zStr, out f))
+                vector3.Z = f;
+            return vector3;
+        }
+        private string GetCharacterNameFromHoveredInfo(string hoveredCharacterInfo)
+        {
+            // Sample : "Name: [Agents of Orisha 3 [Agents]] X:[137.50] Y:[-0.50] Z:[-77.23]"
+            int nameEnd = hoveredCharacterInfo.IndexOf("[", 7);
+            string name = hoveredCharacterInfo.Substring(7, nameEnd - 7).Trim();
+            if (name.EndsWith("] X:"))
+            {
+                name = name.Substring(0, name.LastIndexOf("]"));
+            }
+            return name;
+        }
+
+        private void GenerateMenuFileForCharacter(CrowdMemberModel character)
+        {
+            string fileCharacterMenu = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME, Constants.GAME_LANGUAGE_FOLDERNAME, Constants.GAME_MENUS_FOLDERNAME, Constants.GAME_CHARACTER_MENU_FILENAME);
+            var assembly = Assembly.GetExecutingAssembly();
+
+            var resourceName = "Module.HeroVirtualTabletop.Resources.character.mnu";
+            List<string> menuFileLines = new List<string>();
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    menuFileLines.Add(line);
                 }
 
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < menuFileLines.Count - 1; i++)
+                {
+                    sb.AppendLine(menuFileLines[i]);
+                }
+                //// Add move target to character options
+                //sb.AppendLine(string.Format("Menu \"{0}\"", "Move Target To"));
+                //sb.AppendLine("{");
+                //foreach (Character c in this.Participants)
+                //{
+                //    if(this.SelectedParticipants != null && !this.SelectedParticipants.Contains(c) && c.HasBeenSpawned)
+                //    {
+                //        string whiteSpaceReplacedCharacterName = c.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                //        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", c.Name, Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedCharacterName));
+                //    }
+                //}
+                //sb.AppendLine("}");
+                // now add option groups
+                if (character.OptionGroups != null && character.OptionGroups.Count > 0)
+                {
+                    foreach (var optionGroup in character.OptionGroups)
+                    {
+                        sb.AppendLine(string.Format("Menu \"{0}\"", optionGroup.Name));
+                        sb.AppendLine("{");
+                        foreach (ICharacterOption option in optionGroup.Options)
+                        {
+                            string whiteSpaceReplacedOptionGroupName = optionGroup.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                            string whiteSpaceReplacedOptionName = option.Name.Replace(" ", Constants.SPACE_REPLACEMENT_CHARACTER);
+                            sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", option.Name, whiteSpaceReplacedOptionGroupName, Constants.DEFAULT_DELIMITING_CHARACTER, whiteSpaceReplacedOptionName));
+                        }
+                        sb.AppendLine("}");
+                    }
+                }
+                sb.AppendLine(menuFileLines[menuFileLines.Count - 1]);
+
+                File.WriteAllText(
+                    fileCharacterMenu, sb.ToString()
+                    );
             }
-            return null;
+        }
+
+        void clickTimer_CharacterDragDrop_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            clickTimer_CharacterDragDrop.Stop();
+            Action d = delegate()
+            {
+                if (Mouse.LeftButton == MouseButtonState.Pressed)
+                {
+                    IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    bool bWindow = WindowsUtilities.GetForegroundWindow() == winHandle;
+                    //if (!bWindow)
+                    {
+                        if (this.selectedParticipants != null && this.selectedParticipants.Count == 1)
+                        {
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                            this.currentDraggingCharacter = this.selectedParticipants[0] as Character;
+                            this.IsCharacterDragDropInProgress = true;
+                            this.lastDesktopMouseDownTime = DateTime.UtcNow;
+                        }
+                    }
+                }
+            };
+            Application.Current.Dispatcher.BeginInvoke(d);
+        }
+
+        void clickTimer_DesktopInteraction_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            clickTimer_DesktopInteraction.Stop();
+            bool bWindow = WindowsUtilities.GetForegroundWindow() == WindowsUtilities.FindWindow("CrypticWindow", null);
+            if (bWindow)
+            {
+                string mouseXYZInfo = IconInteractionUtility.GetMouseXYZString();
+                Vector3 mouseDirection = GetDirectionVectorFromMouseXYZInfo(mouseXYZInfo);
+                if (this.isPlayingAttack)
+                {
+                    AttackDirection direction = new AttackDirection(mouseDirection);
+                    this.currentAttack.AnimateAttack(direction, attackingCharacter);
+                }
+                else
+                {
+                    if (Helper.GlobalVariables_CharacterMovement != null && !this.isMenuDisplayed)
+                    {
+                        Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
+                        Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
+                        if (target != null)
+                            target.MoveToLocation(mouseDirection);
+                    }
+                    this.isMenuDisplayed = false;
+                }
+            }
+        }
+
+        void clickTimer_MultipleClick_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            clickTimer_MultipleClick.Stop();
+
+            if (isQuadrupleClick)
+            {
+                ToggleManueverWithCamera();
+            }
+            else if (isTripleClick)
+            {
+                Character character = Participants.FirstOrDefault(p => (p as Character).HasBeenSpawned && (p as Character).gamePlayer.Pointer == targetObserver.CurrentTargetPointer) as Character;
+                if (character != null)
+                    ToggleActivateCharacter(character);
+            }
+            else if (isDoubleClick)
+            {
+                PlayDefaultAbility();
+            }
+
+            clickCount = 0;
+            isDoubleClick = isTripleClick = isQuadrupleClick = false;
         }
 
         #endregion
-        #region Event Implementation
-        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
-        {
-            if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.Place;
-            }
-            else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-            {
-                return this.SavePosition;
-            }
-            else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.Spawn;
-            }
-            else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.ToggleTargeted;
-            }
-            else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.ToggleManeuverWithCamera;
-            }
-            else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.TargetAndFollow;
-            }
-            else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.EditCharacter;
-            }
-            else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-            {
-                return this.MoveTargetToCamera;
-            }
-            else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-            {
-                return this.CycleCommandsThroughCrowd;
-            }
-            else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.ActivateCharacter;
-            }
-            else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.None)
-            {
-                return this.ConfirmActiveAttack;
-            }
-            else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                return this.ResetOrientation;
-            }
-            else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-            {
-                return this.ClearFromDesktop;
-            }
-            else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                //Jeff fixed activating keystroke problem so works without activating a character
-                this.ActivateDefaultMovementToActivate(null);
-                return null;
-            }
-            else if ((inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                WindowsUtilities.SetForegroundWindow(winHandle);
-                return null;
-            }
-            else { return null; }
-        }
 
-        public void TargetHoveredCharacter()
-        {
-            Character hoveredCharacter = GetHoveredCharacter(null);
-            if (hoveredCharacter != null)
-            {
-                if (lastTargetedCharacter == null || hoveredCharacter.Label != lastTargetedCharacter.Label)
-                {
-                    hoveredCharacter.Target();
-                }
-                lastTargetedCharacter = hoveredCharacter;
-            }
-        }
-        private void DropDraggedCharacter()
-        {
-            if (currentDraggingCharacter != null && lastDesktopMouseDownTime != DateTime.MinValue && isCharacterDragDropInProgress)
-            {
-                System.Threading.Thread.Sleep(500);
+        #region Keyboard Hook
 
-                Vector3 mouseUpPosition = new MouseElement().Position;
-                if (!isPlayingAttack)
+        private IntPtr RosterKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
                 {
-                    if (!currentDraggingCharacter.HasBeenSpawned)
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null) || (currentProcId == wndProcId))
                     {
-                        currentDraggingCharacter.Spawn();
-                    }
-                    if (Vector3.Distance(currentDraggingCharacter.CurrentPositionVector, mouseUpPosition) > 5)
-                    {
-                        currentDraggingCharacter.UnFollow();
-                        currentDraggingCharacter.MoveToLocation(mouseUpPosition);
+                        if ((currentProcId == wndProcId) && (inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                        }
+                        else if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.PlaceCommand.CanExecute(null))
+                                this.PlaceCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.P && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.SavePositionCommand.CanExecute(null))
+                                this.SavePositionCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.SpawnCommand.CanExecute(null))
+                                this.SpawnCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.T && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ToggleTargetedCommand.CanExecute(null))
+                                this.ToggleTargetedCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ToggleManeuverWithCameraCommand.CanExecute(null))
+                                this.ToggleManeuverWithCameraCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.TargetAndFollowCommand.CanExecute(null))
+                                this.TargetAndFollowCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.EditCharacterCommand.CanExecute(null))
+                                this.EditCharacterCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.F && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.MoveTargetToCameraCommand.CanExecute(null))
+                                this.MoveTargetToCameraCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.CycleCommandsThroughCrowdCommand.CanExecute(null))
+                                this.CycleCommandsThroughCrowdCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ActivateCharacterCommand.CanExecute(null))
+                                this.ActivateCharacterCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.O && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            if (this.ResetOrientationCommand.CanExecute(null))
+                                this.ResetOrientationCommand.Execute(null);
+                        }
+                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                        {
+                            if (this.ClearFromDesktopCommand.CanExecute(null))
+                                this.ClearFromDesktopCommand.Execute(null);
+                        }
+                        else if (inputKey == Key.CapsLock && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            //Jeff fixed activating keystroke problem so works without activating a characte
+                            this.ActivateDefaultMovementToActivate(null);
+                        }
                     }
                 }
             }
-            currentDraggingCharacter = null;
-            lastDesktopMouseDownTime = DateTime.MinValue;
-            isCharacterDragDropInProgress = false;
-        }
-        private void DisplayCharacterPopupMenue()
-        {
-            CrowdMemberModel character = (CrowdMemberModel)GetCurrentTarget();
-            desktopContextMenu.GenerateAndDisplay(character, AttackingCharacter != null ? AttackingCharacter.Name : null, isPlayingAreaEffect);
-        }
-        
-        private void ContinueDraggingCharacter()
-        {
-            MemoryElement targetedBeforeMouseCLick = new MemoryElement();
-            CrowdMemberModel hoveredCharacter = (CrowdMemberModel)GetHoveredCharacter(null);
-            if (hoveredCharacter != null)
-            {
-                this.currentDraggingCharacter = hoveredCharacter;
-                this.isCharacterDragDropInProgress = true;
-                lastDesktopMouseDownTime = DateTime.UtcNow;
-                this.lastTargetedCharacter = hoveredCharacter;
-                if (targetedBeforeMouseCLick.Label != (hoveredCharacter as Character).Label)
-                {
-                    previousSelectedCharacter = this.Participants.FirstOrDefault(p => (p as Character).Label == targetedBeforeMouseCLick.Label) as Character;
-                }
-            }
-            else
-                this.lastTargetedCharacter = null;
-            return;
-        }
-        private void PlayAttackCycle()
-        {
-            CrowdMemberModel character = (CrowdMemberModel)GetHoveredCharacter(null);
-            if (this.currentAttack != null && this.AttackingCharacter != null)
-            {
-                if (this.isPlayingAttack)
-                {
-                    Vector3 mouseDirection = new MouseElement().Position;
-                    AttackDirection direction = new AttackDirection(mouseDirection);
-                    this.currentAttack.AnimateAttack(direction, AttackingCharacter);
-                }
-            }
 
-        }
-        public void MoveCharacterToDesktopPositionClicked()
-        {
-            Vector3 mouseDirection = new MouseElement().Position;
-            Character activeMovementCharacter = Helper.GlobalVariables_CharacterMovement.Character;
-            Character target = this.Participants.FirstOrDefault(p => p.Name == activeMovementCharacter.Name) as Character;
-            if (target != null)
-                target.MoveToLocation(mouseDirection);
+            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
         }
 
-        void timer_RespondToDesktop_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            timer_RespondToDesktop.Stop();
-            if (desktopContextMenu.IsDisplayed == false && mouseHandler.IsDesktopActive)
-            {
-                if (isPlayingAttack == false)
-                {
-                    if (CharacterIsMoving == true)
-                    {
-                        MoveCharacterToDesktopPositionClicked();
-                    }
-                    else
-                        ContinueDraggingCharacter();
-                }
-                else if (isPlayingAttack == true)
-                {
+        #endregion
 
-                    PlayAttackCycle();
-                }
-            }
-            else
-                desktopContextMenu.IsDisplayed = false;
-        }
-
-        public void RespondToMouseClickBasedOnDesktopState()
-        {
-            timer_RespondToDesktop.Start(); // We need this timer to avoid firing click events when desktop is no longer in focus, as click fires before focus lost. This also fixes double attack play bug.
-        }
         #region Add Participants
         private void AddParticipants(IEnumerable<CrowdMemberModel> crowdMembers)
         {
@@ -773,6 +992,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         #endregion
 
+        #region Delete Participant
         private void DeleteParticipant(ICrowdMemberModel crowdMember)
         {
             if (this.SelectedParticipants == null)
@@ -788,10 +1008,13 @@ namespace Module.HeroVirtualTabletop.Roster
                 foreach (var participant in participants)
                     this.SelectedParticipants.Add(participant);
             }
-            this.ClearFromDesktop();
+            this.ClearFromDesktop(null);
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
-        public void Spawn()
+        #endregion
+
+        #region Spawn
+        private void Spawn(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -800,6 +1023,7 @@ namespace Module.HeroVirtualTabletop.Roster
             SelectNextCharacterInCrowdCycle();
             Commands_RaiseCanExecuteChanged();
         }
+        #endregion
 
         #region Clear from Desktop
         private bool CanClearFromDesktop(object state)
@@ -810,7 +1034,8 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return false;
         }
-        public void ClearFromDesktop()
+
+        private void ClearFromDesktop(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -834,6 +1059,7 @@ namespace Module.HeroVirtualTabletop.Roster
             Commands_RaiseCanExecuteChanged();
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
+
         #endregion
 
         #region Save Positon
@@ -855,7 +1081,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return canSavePosition;
         }
-        public void SavePosition()
+        private void SavePostion(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -894,7 +1120,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return canPlace;
         }
-        public void Place()
+        private void Place(object state)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -917,7 +1143,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canToggleTargeted;
         }
 
-        public void ToggleTargeted()
+        private void ToggleTargeted(object obj)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -928,15 +1154,16 @@ namespace Module.HeroVirtualTabletop.Roster
             SelectNextCharacterInCrowdCycle();
         }
 
-
         #endregion
 
         #region Target And Follow
+
         private bool CanTargetAndFollow(object state)
         {
             return CanToggleTargeted(state);
         }
-        public void TargetAndFollow(object obj)
+
+        private void TargetAndFollow(object obj)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -971,21 +1198,19 @@ namespace Module.HeroVirtualTabletop.Roster
 
                 if (this.isPlayingAttack)
                 {
-                    if (member.Name != this.AttackingCharacter.Name && member.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && member.Name != Constants.DEFAULT_CHARACTER_NAME)
+                    if (member.Name != this.attackingCharacter.Name && member.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && member.Name != Constants.DEFAULT_CHARACTER_NAME)
                     {
                         if (!isPlayingAreaEffect)
-                        { 
+                        {
+                            if (this.targetCharacters.FirstOrDefault(tc => tc.Name == member.Name) == null)
+                                this.targetCharacters.Add(member);
+                            ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
+                            attackConfig.AttackMode = AttackMode.Defend;
+                            attackConfig.AttackEffectOption = AttackEffectOption.None;
+                            member.ActiveAttackConfiguration = attackConfig;
+                            member.ActiveAttackConfiguration.IsCenterTarget = true;
                             if (PopupService.IsOpen("ActiveAttackView") == false)
-                            {
-                                if (this.targetCharacters.FirstOrDefault(tc => tc.Name == member.Name) == null)
-                                    this.targetCharacters.Add(member);
-                                ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
-                                attackConfig.AttackMode = AttackMode.Defend;
-                                attackConfig.AttackEffectOption = AttackEffectOption.None;
-                                member.ActiveAttackConfiguration = attackConfig;
-                                member.ActiveAttackConfiguration.IsCenterTarget = true;
                                 this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
-                            } 
                         }
                     }
                 }
@@ -1024,7 +1249,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canMoveTargetToCamera;
         }
 
-        public void MoveTargetToCamera()
+        private void MoveTargetToCamera(object obj)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1061,7 +1286,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canMoveTargetToCharacter;
         }
 
-        public void MoveTargetToCharacter()
+        private void MoveTargetToCharacter(object obj)
         {
             //this.isMoveToCharacterEnabled = true;
             //this.isMoveToMouseLocationEnabled = false;
@@ -1098,7 +1323,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canMoveTargetToMouseLocation;
         }
 
-        public void MoveTargetToMouseLocation()
+        private void MoveTargetToMouseLocation(object obj)
         {
             //this.isMoveToMouseLocationEnabled = !this.isMoveToMouseLocationEnabled;
         }
@@ -1128,7 +1353,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return canResetOrientation;
         }
 
-        public void ResetOrientation()
+        private void ResetOrientation(object obj)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1182,16 +1407,19 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region ToggleManeuverWithCamera
+
+
         private bool CanToggleManeuverWithCamera(object arg)
         {
             bool canManeuverWithCamera = false;
-            if (!isPlayingAttack && this.SelectedParticipants != null && SelectedParticipants.Count == 1 && ((SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned || (SelectedParticipants[0] as CrowdMemberModel).ManeuveringWithCamera))
+            if (this.SelectedParticipants != null && SelectedParticipants.Count == 1 && ((SelectedParticipants[0] as CrowdMemberModel).HasBeenSpawned || (SelectedParticipants[0] as CrowdMemberModel).ManeuveringWithCamera))
             {
                 canManeuverWithCamera = true;
             }
             return canManeuverWithCamera;
         }
-        private void ToggleManeuverWithCamera(object state)
+
+        private void ToggleManeuverWithCamera(object obj)
         {
             foreach (CrowdMemberModel member in SelectedParticipants)
             {
@@ -1203,8 +1431,7 @@ namespace Module.HeroVirtualTabletop.Roster
             Commands_RaiseCanExecuteChanged();
         }
 
-
-        public void ToggleManeuverWithCamera()
+        public void ToggleManueverWithCamera()
         {
             if (this.CanToggleManeuverWithCamera(null))
             {
@@ -1220,10 +1447,12 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             return true;
         }
-        private void CycleCommandsThroughCrowd()
+
+        private void CycleCommandsThroughCrowd(object state)
         {
             this.IsCyclingCommandsThroughCrowd = !this.IsCyclingCommandsThroughCrowd;
         }
+
         private void SelectNextCharacterInCrowdCycle()
         {
             if (this.IsCyclingCommandsThroughCrowd && this.SelectedParticipants != null && this.SelectedParticipants.Count == 1)
@@ -1265,7 +1494,7 @@ namespace Module.HeroVirtualTabletop.Roster
             return this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 && !this.isPlayingAttack;
         }
 
-        private void EditCharacter()
+        private void EditCharacter(object state)
         {
             CrowdMemberModel c = this.SelectedParticipants[0] as CrowdMemberModel;
             this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(c, null));
@@ -1281,13 +1510,12 @@ namespace Module.HeroVirtualTabletop.Roster
             return !this.isPlayingAttack;
         }
 
-        private void ActivateCharacter()
+        private void ActivateCharacter(object state)
         {
-            if(CanActivateCharacter(null))
-                ToggleActivateCharacter();
+            ToggleActivateCharacter();
         }
 
-        public void ToggleActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
+        private void ToggleActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
         {
             Action action = delegate()
             {
@@ -1367,17 +1595,19 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        public void PlayDefaultAbility()
+        #region Play Default Ability
+
+        public void PlayDefaultAbility(Character target = null)
         {
             Action d = delegate()
             {
-                if (!isPlayingAttack && SelectedParticipants != null && SelectedParticipants.Count == 1)
+                if (SelectedParticipants != null && SelectedParticipants.Count == 1)
                 {
                     //lastHoveredCharacter != null && previousSelectedCharacter != null && previousSelectedCharacter.HasBeenSpawned
                     Character abilityPlayingCharacter = null;
                     Character abilityTargetCharacter = null;
 
-                    if (lastTargetedCharacter == null) // not clicked any character on desktop
+                    if (lastHoveredCharacter == null) // not clicked any character on desktop
                     {
                         if (RosterMouseDoubleClicked)
                         {
@@ -1411,19 +1641,19 @@ namespace Module.HeroVirtualTabletop.Roster
                         if (this.ActiveCharacter != null)
                         {
                             abilityPlayingCharacter = this.ActiveCharacter as Character;
-                            if (this.ActiveCharacter.Name != lastTargetedCharacter.Name)
+                            if (this.ActiveCharacter.Name != lastHoveredCharacter.Name)
                             {
-                                abilityTargetCharacter = lastTargetedCharacter;
+                                abilityTargetCharacter = lastHoveredCharacter;
                             }
                         }
-                        else if (previousSelectedCharacter != null && previousSelectedCharacter.Name != lastTargetedCharacter.Name)
+                        else if (previousSelectedCharacter != null && previousSelectedCharacter.Name != lastHoveredCharacter.Name)
                         {
                             abilityPlayingCharacter = previousSelectedCharacter;
-                            abilityTargetCharacter = lastTargetedCharacter;
+                            abilityTargetCharacter = lastHoveredCharacter;
                         }
                         else
                         {
-                            abilityPlayingCharacter = lastTargetedCharacter;
+                            abilityPlayingCharacter = lastHoveredCharacter;
                         }
                     }
 
@@ -1442,8 +1672,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             if (targetCharacters.Count == 0)
                             {
                                 this.targetCharacters.Add(abilityTargetCharacter);
-                                if (this.currentAttack.IsAreaEffect)
-                                    abilityTargetCharacter.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                                abilityTargetCharacter.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                                 ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                                 attackConfig.AttackMode = AttackMode.Defend;
                                 attackConfig.AttackEffectOption = AttackEffectOption.None;
@@ -1455,17 +1684,23 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         else
                         {
-                            Vector3 lastMouseDownPosition = new MouseElement().Position; ;
                             AttackDirection direction = new AttackDirection(lastMouseDownPosition);
-                            this.currentAttack.AnimateAttack(direction, AttackingCharacter);
+                            this.currentAttack.AnimateAttack(direction, attackingCharacter);
                         }
                     }
+                }
+                else if (SelectedParticipants != null && SelectedParticipants.Count == 1)
+                {
+
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(d);
         }
 
+        #endregion
+
         #region Attack / Area Attack
+
 
         private void InitializeAttackEventHandlers(Attack attack)
         {
@@ -1509,11 +1744,13 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (attack.IsAreaEffect)
                 {
                     this.isPlayingAreaEffect = true;
+                    CreateBindSaveFiles();
+                    this.fileSystemWatcher.EnableRaisingEvents = true;
                 }
                 Commands_RaiseCanExecuteChanged();
                 targetObserver.TargetChanged += RosterTargetUpdated;
                 this.currentAttack = attack;
-                this.AttackingCharacter = attackingCharacter;
+                this.attackingCharacter = attackingCharacter;
                 // Update character properties - icons in roster should show
                 rosterCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
             }
@@ -1532,21 +1769,21 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 if (this.isPlayingAttack && currentTarget != null)
                 {
-                    if (currentTarget.Name != this.AttackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
+                    if (currentTarget.Name != this.attackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
                     {
-                        if (!this.isPlayingAreaEffect)
+                        if (!isPlayingAreaEffect)
                         {
-                            if (targetCharacters.Count == 0 && PopupService.IsOpen("ActiveAttackView") == false)// choose only one character for vanilla attack
+                            if (targetCharacters.Count == 0)// choose only one character for vanilla attack
                             {
                                 this.targetCharacters.Add(currentTarget);
-                                //currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                                currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
                                 ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
                                 attackConfig.AttackMode = AttackMode.Defend;
                                 attackConfig.AttackEffectOption = AttackEffectOption.None;
                                 currentTarget.ActiveAttackConfiguration = attackConfig;
                                 currentTarget.ActiveAttackConfiguration.IsCenterTarget = true;
-                                //if (PopupService.IsOpen("ActiveAttackView") == false)
-                                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
+                                if (PopupService.IsOpen("ActiveAttackView") == false)
+                                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
                             }
                         }
                     }
@@ -1566,12 +1803,6 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
             };
             Application.Current.Dispatcher.BeginInvoke(action);
-        }
-
-        private void ConfirmActiveAttack()
-        {
-            if(isPlayingAttack)
-                this.eventAggregator.GetEvent<ConfirmAttackEvent>().Publish(null);
         }
 
         private void CancelActiveAttack(object state)
@@ -1605,14 +1836,14 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 defender.Deactivate(); // restore original costume
             }
-            attack.AnimateAttackSequence(AttackingCharacter, defendingCharacters);
+            attack.AnimateAttackSequence(attackingCharacter, defendingCharacters);
             this.ResetAttack(defendingCharacters);
         }
 
         private void CancelAttack(List<Character> defendingCharacters)
         {
-            if (this.AttackingCharacter != null)
-                this.AttackingCharacter.Deactivate();
+            if (this.attackingCharacter != null)
+                this.attackingCharacter.Deactivate();
             foreach (var defender in defendingCharacters)
             {
                 defender.Deactivate(); // restore original costume
@@ -1629,9 +1860,9 @@ namespace Module.HeroVirtualTabletop.Roster
             this.currentAttack.Stop();
 
             // Hide attack icon from attacking character
-            if (this.AttackingCharacter != null && this.AttackingCharacter.ActiveAttackConfiguration != null)
-                this.AttackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
-            this.AttackingCharacter = null;
+            if (this.attackingCharacter != null && this.attackingCharacter.ActiveAttackConfiguration != null)
+                this.attackingCharacter.ActiveAttackConfiguration.AttackMode = AttackMode.None;
+            this.attackingCharacter = null;
 
             Helper.GlobalVariables_IsPlayingAttack = false;
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
@@ -1647,6 +1878,7 @@ namespace Module.HeroVirtualTabletop.Roster
             Mouse.OverrideCursor = Cursors.Arrow;
 
             this.currentAttack = null;
+            this.fileSystemWatcher.EnableRaisingEvents = false;
             this.Commands_RaiseCanExecuteChanged();
         }
 
@@ -1682,12 +1914,12 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public void TargetCharacterForAreaAttack(object state)
+        private void TargetCharacterForAreaAttack(object state)
         {
             foreach (var participant in this.SelectedParticipants)
             {
                 Character currentTarget = participant as Character;
-                if (currentTarget.Name != this.AttackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
+                if (currentTarget.Name != this.attackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
                 {
                     if (this.targetCharacters.FirstOrDefault(tc => tc.Name == currentTarget.Name) == null)
                         this.targetCharacters.Add(currentTarget);
@@ -1700,12 +1932,12 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        public void TargetAndExecuteAreaAttack(object state)
+        private void TargetAndExecuteAreaAttack(object state)
         {
             foreach (var participant in this.SelectedParticipants)
             {
                 Character currentTarget = participant as Character;
-                if (currentTarget.Name != this.AttackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
+                if (currentTarget.Name != this.attackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
                 {
                     if (this.targetCharacters.FirstOrDefault(tc => tc.Name == currentTarget.Name) == null)
                         this.targetCharacters.Add(currentTarget);
@@ -1720,22 +1952,122 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
         }
 
-
-        private void ConfirmAttack(object state)
+        private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            if(this.isPlayingAttack)
+            Action action = delegate()
             {
-                if(PopupService.IsOpen("ActiveAttackView") == true)
+                this.isMenuDisplayed = false;
+                if (this.isPlayingAreaEffect)
                 {
-                    this.eventAggregator.GetEvent<ConfirmAttackEvent>().Publish(null);
+
+                    if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME)
+                    {
+                        TargetCharacterForAreaAttack(null);
+                    }
+                    else if (e.Name == Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME)
+                    {
+                        TargetAndExecuteAreaAttack(null);
+                    }
                 }
+                else
+                {
+                    fileSystemWatcher.EnableRaisingEvents = false;
+                    switch (e.Name)
+                    {
+                        case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
+                            Spawn(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_PLACE_FILENAME:
+                            Place(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME:
+                            SavePostion(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MOVECAMERATOTARGET_FILENAME:
+                            TargetAndFollow(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCAMERA_FILENAME:
+                            MoveTargetToCamera(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME:
+                            ResetOrientation(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOMOUSELOCATION_FILENAME:
+                            MoveTargetToMouseLocation(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME:
+                            ToggleManeuverWithCamera(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME:
+                            ToggleActivateCharacter(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME:
+                            ClearFromDesktop(null);
+                            break;
+                        case Constants.GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME:
+                            {
+                                Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
+                                this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Publish(character as CrowdMemberModel);
+                                break;
+                            }
+                        default:
+                            {
+                                if (e.Name.StartsWith(Constants.GAME_CHARACTER_BINDSAVE_MOVETARGETTOCHARACTER_FILENAME))
+                                {
+                                    int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                    if (index > 0)
+                                    {
+                                        string whiteSpceReplacedCharacterName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                        string characterName = whiteSpceReplacedCharacterName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        Character character = this.Participants.FirstOrDefault(p => p.Name == characterName) as Character;
+                                        if (character != null)
+                                        {
+                                            Vector3 destination = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
+                                            foreach (Character c in this.SelectedParticipants)
+                                            {
+                                                c.MoveToLocation(destination);
+                                            }
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    Character character = this.SelectedParticipants != null && this.SelectedParticipants.Count == 1 ? this.SelectedParticipants[0] as Character : null;
+                                    int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
+                                    if (index > 0 && character != null)
+                                    {
+                                        string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
+                                        string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                        string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        ToggleActivateCharacter(character, optionGroupName, optionName);
+                                    }
+                                }
+
+                                break;
+                            }
+                    }
+                }
+            };
+            Application.Current.Dispatcher.BeginInvoke(action);
+        }
+
+        private void CreateBindSaveFiles()
+        {
+            string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME);
+            if (!File.Exists(filePath))
+            {
+                File.Create(filePath);
+            }
+            filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME);
+            if (!File.Exists(filePath))
+            {
+                File.Create(filePath);
             }
         }
 
-
         #endregion
 
         #endregion
-
     }
 }
