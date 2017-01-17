@@ -562,6 +562,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> UpdateReferenceTypeCommand { get; private set; }
         public DelegateCommand<object> ConfigureAttackAnimationCommand { get; private set; }
         public DelegateCommand<object> ConfigureUnitPauseCommand { get; private set; }
+        public DelegateCommand<object> ChangePlayWithNextCommand { get; private set; }
 
         #endregion
 
@@ -622,6 +623,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.EnterAbilityEditModeCommand = new DelegateCommand<object>(this.EnterAbilityEditMode);
             this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
             this.ChangePersistenceCommand = new DelegateCommand<object>(this.ChangePersistence);
+            this.ChangePlayWithNextCommand = new DelegateCommand<object>(this.ChangePlayWithNext);
             this.AddAnimationElementCommand = new DelegateCommand<object>(delegate(object state) { EditingAnimationType = (AnimationElementType) state;  this.AddAnimationElement(); }, this.CanAddAnimationElement);
             this.RemoveAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.RemoveAnimation(); }, this.CanRemoveAnimation);
             this.UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
@@ -1074,6 +1076,37 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     CurrentAbility.Persistent = true;
             }
             SaveAbility();
+        }
+
+        #endregion
+
+        #region Change Play with Next
+
+        private void ChangePlayWithNext(object state)
+        {
+            // first check if play with next is selected for an FX
+            if(SelectedAnimationElement != null && SelectedAnimationElement is FXEffectElement)
+            {
+                var currentFxOrder = SelectedAnimationElement.Order;
+                if (currentFxOrder > 0)
+                {
+                    // check if there is a fx after the current one
+                    var nextFxElement = this.CurrentAbility.AnimationElements.FirstOrDefault(a => a.Order > currentFxOrder && a is FXEffectElement);
+                    if(nextFxElement != null)
+                    {
+                        // now check if this fx is indeed intended to be played on top of the current fx
+                        var nextFxOrder = nextFxElement.Order;
+                        // see if nothing comes between these two fxs except for a pause
+                        var otherAnimationElementExists = this.CurrentAbility.AnimationElements.FirstOrDefault(a => !(a is PauseElement) && a.Order > currentFxOrder && a.Order < nextFxOrder) != null;
+                        if(!otherAnimationElementExists)
+                        {
+                            FXEffectElement fxElement = nextFxElement as FXEffectElement;
+                            fxElement.PlayOnTopOfPreviousFx = SelectedAnimationElement.PlayWithNext;
+                        }
+                    }
+                }
+            }
+            this.SaveAbility();
         }
 
         #endregion

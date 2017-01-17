@@ -483,6 +483,12 @@ namespace Module.HeroVirtualTabletop.Characters
                 return ability;
             }
         }
+        [JsonIgnore]
+        public string LastCostumeFile
+        {
+            get;
+            set;
+        }
 
         public string Spawn(bool completeEvent = true)
         {

@@ -259,7 +259,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override void Stop(Character Target = null)
         {
             IsActive = false;
-            base.Stop(Target);
+            // Commenting out following line so that fx does not get stopped after attack.
+            //base.Stop(Target); 
+            Character target = Target ?? this.Owner;
+            if (IsActive)
+                IsActive = false;
+            if (target != null)
+            {
+                foreach (IAnimationElement item in AnimationElements.Where(x => !(x is FXEffectElement) && x.IsActive))
+                {
+                    item.Stop(target);
+                }
+            }
+            OnPropertyChanged("IsActive");
         }
         public override void DeActivate(Character Target = null)
         {

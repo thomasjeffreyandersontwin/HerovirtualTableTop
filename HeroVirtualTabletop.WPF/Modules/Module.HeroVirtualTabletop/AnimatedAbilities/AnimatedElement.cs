@@ -648,6 +648,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             get;
             set;
         }
+        public bool PlayOnTopOfPreviousFx
+        {
+            get;
+            set;
+        }
 
         [JsonIgnore]
         public string CostumeText
@@ -698,7 +703,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
                 if (File.Exists(origFile))
                 {
-                    insertFXIntoCharacterCostumeFile(origFile, newFile);
+                    if (this.PlayOnTopOfPreviousFx && !string.IsNullOrEmpty(target.LastCostumeFile) && File.Exists(target.LastCostumeFile))
+                        insertFXIntoCharacterCostumeFile(target.LastCostumeFile, newFile);
+                    else
+                        insertFXIntoCharacterCostumeFile(origFile, newFile);
+                    target.LastCostumeFile = newFile;
                     string fxCostume = Path.Combine(name, string.Format("{0}_{1}", name, FXName));
 
 
@@ -737,7 +746,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
-            Stop(Target);
+            if(!PlayOnTopOfPreviousFx)
+                Stop(Target);
             string keybind = PrepareCostumeFile(Target, persistent);
             if (string.IsNullOrEmpty(keybind))
                 return;
@@ -888,6 +898,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             FXEffectElement clonedElement = new FXEffectElement(this.Name, this.Resource, this.Persistent, this.PlayWithNext);
             clonedElement.DisplayName = this.DisplayName;
             clonedElement.Type = this.Type;
+            clonedElement.PlayOnTopOfPreviousFx = this.PlayOnTopOfPreviousFx;
             clonedElement.Colors = this.Colors.DeepClone() as ObservableCollection<System.Windows.Media.Color>;
             return clonedElement;
         }

@@ -187,61 +187,10 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
                         return "";
                 } 
             }
-            
-            //generatedKeyBindText = triggerKey + " " + command;
 
             IconInteractionUtility.ExecuteCmd(command);
 
             return command;
-
-            //try
-            //{
-            //    File.Delete(bindFile);
-            //}
-            //catch { }
-
-            //try
-            //{
-            //    command = PopEvents();
-            //    generatedKeyBindText = triggerKey + " " + command;
-            //    StreamWriter SW = File.AppendText(bindFile);
-            //    SW.WriteLine(generatedKeyBindText);
-            //    SW.Close();
-            //}
-            //catch
-            //{
-            //    System.Windows.MessageBox.Show("Invalid Filename: " + bindFile, "Error");
-            //    return null;
-            //}
-
-            //IntPtr hWnd = Utility.WindowsUtilities.FindWindow("CrypticWindow", null);
-
-            //if (IntPtr.Zero == hWnd) //Game is not running
-            //{
-            //    return command;
-            //}
-            //IntPtr HVThWnd = Process.GetCurrentProcess().MainWindowHandle;
-
-            //Utility.WindowsUtilities.SetForegroundWindow(hWnd);
-            //Utility.WindowsUtilities.SetActiveWindow(hWnd);
-            //Utility.WindowsUtilities.ShowWindow(hWnd, 3); // 3 = SW_SHOWMAXIMIZED
-
-            //System.Threading.Thread.Sleep(250);
-
-            //AutoItX3Lib.AutoItX3 input = new AutoItX3Lib.AutoItX3();
-
-            //input.Send(loaderKey.ToLower());
-
-            //System.Threading.Thread.Sleep(250);
-
-            //input.Send(triggerKey.ToLower());
-
-            //System.Threading.Thread.Sleep(250);
-
-            //Utility.WindowsUtilities.SetForegroundWindow(HVThWnd);
-            //Utility.WindowsUtilities.SetActiveWindow(HVThWnd);
-            
-            //return command;
         }
     }
 }
