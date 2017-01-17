@@ -98,6 +98,7 @@
     <Reference Include="Ploeh.AutoFixture.AutoMoq">
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\Ploeh.AutoFixture.AutoMoq.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="Prism">
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\Prism.dll</HintPath>
     </Reference>
@@ -124,6 +125,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnimatedAbilities\AnimatedAbilityElement.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedAbilityInterface.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedAbilityTestSuite.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedCharacter.cs" />
     <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Crowd\Crowd.cs" />

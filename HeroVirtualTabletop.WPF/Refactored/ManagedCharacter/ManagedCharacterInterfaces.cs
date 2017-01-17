@@ -41,7 +41,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         new void SpawnToDesktop(bool completeEvent = true);
 
 
-        CharacterActionList<Identity> Identities { get; set;}
+        CharacterActionList<Identity> Identities { get;}
 
         DesktopCharacterMemoryInstance MemoryInstance { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
@@ -63,17 +63,22 @@ namespace HeroVirtualTableTop.ManagedCharacter
     }
     public interface CharacterActionList<T>:IDictionary<string,T> where T : CharacterAction 
     {
-        ManagedCharacter Owner { get; set; }
+        ManagedCharacter Owner { get; }
         T Active {get; set;}
+        void Deactivate();
         T Default {get; set; }
         string GetNewValidActionName(string name = null);
         T this[int index] { get; set; }
+
         void Insert(T action);
         void InsertAfter(T action, T precedingAction);
         void RemoveAction(T Action);
         T AddNew(T newItem);
         CharacterActionType Type { get; }
         CharacterActionList<T> Clone();
+        void AddMany(List<T> list);
+        void PlayByKey(string key);
+
     }
 
 

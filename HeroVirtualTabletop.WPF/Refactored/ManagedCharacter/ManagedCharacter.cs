@@ -28,14 +28,22 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Targeter = targeter;
             _generator = generator;
             _camera = camera;
+            if (_identities == null)
+            {
+                identities = new CharacterActionListImpl<Identity>(CharacterActionType.Identity,Generator, this);
+            }
             _identities = identities;
-            _identities.Owner = this;
             foreach (Identity id in _identities.Values)
             {
                 id.Owner = this;
             }
         }
 
+        public ManagedCharacterImpl(DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera):this(targeter, generator, camera, null)
+        {
+
+            
+        }
 
         public Position Position
         {
@@ -114,7 +122,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             else
             {
 
-                Generator.GenerateDesktopCommandText(DesktopCommand.TargetName, DesktopLabel);
+                Generator.GenerateDesktopCommandText(DesktopCommand.TargetName, Name + " ["+DesktopLabel+"]");
                 if (completeEvent)
                 {
                     Generator.CompleteEvent();
@@ -198,7 +206,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
-        public CharacterActionList<Identity> Identities { get { return _identities; } set { _identities = value; } }
+        public CharacterActionList<Identity> Identities { get { return _identities; } }
 
         public bool IsSpawned { get; set; }
         public void SpawnToDesktop(bool completeEvent = true)
@@ -218,7 +226,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             IsSpawned = true;
             if (Identities == null)
             {
-                _identities = (CharacterActionList<Identity>)new CharacterActionListImpl<Identity>(CharacterActionType.Identity, Generator);
+                _identities = (CharacterActionList<Identity>)new CharacterActionListImpl<Identity>(CharacterActionType.Identity, Generator ,this);
             }
             if (Identities.Count == 0 && Identities.Active==null)
             {

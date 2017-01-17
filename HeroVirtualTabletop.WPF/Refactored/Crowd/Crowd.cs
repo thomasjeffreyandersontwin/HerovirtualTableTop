@@ -25,23 +25,24 @@ namespace HeroVirtualTableTop.Crowd
         {
             get
             {
-
-                try
+                if (Crowds == null)
                 {
-                    if (Crowds == null)
-                    {
-                        Crowds = new List<Crowd>();
-                        Crowd allMembersCrowd = new CrowdImpl(this);
-                        Crowds.Add(allMembersCrowd);
-
-                    }
-                    return CrowdsByName[CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME];
+                    Crowds = new List<Crowd>();
                 }
-                catch (KeyNotFoundException e)
+                Dictionary<string, Crowd> crowdsbyname = CrowdsByName;
+                if (crowdsbyname.Keys.Contains(CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME) == false)
                 {
-                    return null;
+                    createAllmembersCrowd();
                 }
+                return CrowdsByName[CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME];
             }
+        }
+
+        private void createAllmembersCrowd()
+        {
+            Crowd allMembersCrowd = new CrowdImpl(this);
+            allMembersCrowd.Name = CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME;
+            Crowds.Add(allMembersCrowd);
         }
 
         public Dictionary<string, Crowd> CrowdsByName
@@ -53,6 +54,7 @@ namespace HeroVirtualTableTop.Crowd
                 {
                     foreach (Crowd crowd in Crowds)
                     {
+        
                        memDict.Add(crowd.Name, crowd);
                         crowd.Parent = null;
                     }
@@ -64,8 +66,10 @@ namespace HeroVirtualTableTop.Crowd
 
         public CrowdRepositoryImpl()
         {
-           
+            Crowds = new List<Crowd>();
+            createAllmembersCrowd();
         }
+
         public Crowd NewCrowdInstance { get; set; } //for DI to insert
         public Crowd NewCrowd(Crowd parent = null, string name = "Crowd")
         {
@@ -73,36 +77,55 @@ namespace HeroVirtualTableTop.Crowd
                 name = "Crowd";
             }
             Crowd newCrowd = this.NewCrowdInstance;
-            if (newCrowd== null)
+            if (!UsingDependencyInjection)
             {
                 newCrowd = new CrowdImpl(this);
+                newCrowd.Name = "Crowd";
             }
-            newCrowd.Name = CreateUniqueName(name, newCrowd);
-           // Crowds.Add(newCrowd);
-            parent.AddCrowdMember(newCrowd);
+
+            // Crowds.Add(newCrowd);
+
+
+            if (parent != null)
+            {
+                newCrowd.Name = CreateUniqueName(name, newCrowd, parent.Members);
+                parent.AddCrowdMember(newCrowd);
+                
+            }
+            else {
+                newCrowd.Name = CreateUniqueName(name, newCrowd, null);
+            }
             return newCrowd;
         }
 
         public CharacterCrowdMember NewCharacterCrowdMemberInstance { get; set; } //for DI to insert
+        public bool UsingDependencyInjection { get;set; }
+
         public CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character") 
         {
             CharacterCrowdMember newCharacter = NewCharacterCrowdMemberInstance;
-            
-            if (newCharacter == null)
+
+            if (!UsingDependencyInjection )
             {
-                newCharacter = new CharacterCrowdMemberImpl(parent,null, null,null,null,this);
+                newCharacter = new CharacterCrowdMemberImpl(parent, null, null, null, null, this);
             }
-            newCharacter.Name = CreateUniqueName(name, newCharacter);
+            else
+            {
+                newCharacter.Parent = parent;
+                newCharacter.CrowdRepository = this;
+               
+            }
+            
+            newCharacter.Name = CreateUniqueName(name, newCharacter, AllMembersCrowd.Members);
             AllMembersCrowd.AddCrowdMember(newCharacter);
             if (parent != null)
             {
                 parent.AddCrowdMember(newCharacter);
             }
-
             return newCharacter;
         }
 
-        public string CreateUniqueName(string name, CrowdMember member)
+        public string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context)
         {
             string suffix = string.Empty;
             string rootName = name;
@@ -121,20 +144,17 @@ namespace HeroVirtualTableTop.Crowd
                 }
             }
             string newName = rootName + suffix;
-            if (member is CharacterCrowdMember) { 
-                while (AllMembersCrowd.MembersByName.ContainsKey(newName))
-                {
-                    suffix = string.Format(" ({0})", ++i);
-                    newName = rootName + suffix;
-                }
-            }else if (member is Crowd)
+            if (context != null)
             {
-                 while (CrowdsByName.ContainsKey(newName))
+                List<CrowdMember> allMatches = (from other in context where other.Name == newName select other).ToList();
+                while(allMatches.Count>0)
                 {
                     suffix = string.Format(" ({0})", ++i);
                     newName = rootName + suffix;
+                    allMatches = ( from other in context where other.Name == newName select other).ToList();
+
                 }
-            }
+            }      
             return newName;
         }
     }
@@ -168,27 +188,20 @@ namespace HeroVirtualTableTop.Crowd
 
             set
             {
-                if (CrowdRepository.Crowds != null)
+                if (Parent != null)
                 {
-                    if (CheckIfNameIsDuplicate(value, CrowdRepository.Crowds) == true)
+                    if (CheckIfNameIsDuplicate(value, Parent.Members) == true)
                     {
                         throw new DuplicateKeyException(value);
                     }
-                    else {
-                        OldName = value;
-                        _name = value;
-                        OnPropertyChanged("Name");
-                    }
                 }
-                else {
-                    OldName = value;
-                    _name = value;
-                    OnPropertyChanged("Name");
+                OldName = value;
+                _name = value;
+                OnPropertyChanged("Name");
 
-                }
             }
         }
-        public bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> crowdlist )
+        public bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> crowdlist )
         {
             foreach (CrowdMember member in crowdlist)
             {
@@ -196,7 +209,7 @@ namespace HeroVirtualTableTop.Crowd
                 {
                     if (member.Name == updatedName) return true;
                     Crowd crowd = member as Crowd;
-                    List<Crowd> list = new List<Crowd>();
+                    List<CrowdMember> list = new List<CrowdMember>();
                     List<CrowdMember> members= (from crowdMember in crowd.Members where crowdMember is Crowd select crowdMember).ToList();
                     foreach(CrowdMember m in members)
                     {
@@ -226,20 +239,31 @@ namespace HeroVirtualTableTop.Crowd
         {
             get
             {
-                return _loadedParentMembership.ParentCrowd;
+                if (_loadedParentMembership == null)
+                {
+                    return null;
+                }
+                else {
+                    return _loadedParentMembership.ParentCrowd;
+                }
             }
             set
             {
                 if (value != null)
                 {
                     Dictionary<string, CrowdMemberShip> parents = AllCrowdMembershipParents.ToDictionary(x => x.ParentCrowd.Name);
-                    if (parents.ContainsKey(value.Name)==false)
+                    if (parents.ContainsKey(value.Name) == false)
                     {
                         CrowdMemberShip parent = new CrowdMemberShipImpl(value, this);
                         AllCrowdMembershipParents.Add(parent);
                         _loadedParentMembership = parent;
+                        _loadedParentMembership.Child = this;
                     }
-                    _loadedParentMembership.Child = this;
+                    else
+                    {
+                        _loadedParentMembership = parents[value.Name];
+                    }
+                    
                 }
                 else
                 {
@@ -297,6 +321,13 @@ namespace HeroVirtualTableTop.Crowd
             member.Order = Members.Count;
             member.Parent = this;
             member.PropertyChanged += Member_PropertyChanged;
+        }
+        public void AddManyCrowdMembers(List<CrowdMember> members)
+        {
+            foreach (CrowdMember member in Members)
+            {
+                AddCrowdMember(member);
+            }
         }
         public int Order
         {
@@ -421,13 +452,17 @@ namespace HeroVirtualTableTop.Crowd
         public CrowdMember Clone()
         {
             Crowd clone = CrowdRepository.NewCrowd();
-            clone.Name = CrowdRepository.CreateUniqueName(Name, clone);
-            EliminateDuplicateName();
+
+            List<CrowdMember> crowds = (from crowd in CrowdRepository.Crowds select crowd as CrowdMember).ToList();
+            clone.Name = CrowdRepository.CreateUniqueName(Name, clone, crowds);
+            
             clone.UseRelativePositioning = UseRelativePositioning;
             foreach (CrowdMember member in this.Members)
             {
-                clone.AddCrowdMember(member);
+                CrowdMember cloneMember = member.Clone();
+                clone.AddCrowdMember(cloneMember);
             }
+            //EliminateDuplicateName();
             return clone;
         }
         private void EliminateDuplicateName()
@@ -437,7 +472,7 @@ namespace HeroVirtualTableTop.Crowd
                 List<CrowdMember> models = GetFlattenedMemberList(Members.ToList());
                 foreach (var member in models)
                 {
-                    member.Name = CrowdRepository.CreateUniqueName(member.Name , member);
+                    member.Name = CrowdRepository.CreateUniqueName(member.Name , member, member.Parent.Members);
                 }
             }
         }
@@ -785,7 +820,7 @@ namespace HeroVirtualTableTop.Crowd
                 OnPropertyChanged("Order");
             }
         }
-        CrowdRepository CrowdRepository { get; set; }
+        public CrowdRepository CrowdRepository { get; set;}
 
         public string OldName { get; set; }
         private string _name;
@@ -809,7 +844,7 @@ namespace HeroVirtualTableTop.Crowd
                 }
             }
         }
-        public bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> member)
+        public bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> members)
         {
             if (CrowdRepository.AllMembersCrowd != null)
             {
@@ -917,8 +952,13 @@ namespace HeroVirtualTableTop.Crowd
         {
             CharacterCrowdMemberImpl clone = (CharacterCrowdMemberImpl)CrowdRepository.NewCharacterCrowdMember();
 
-            clone.Name = CrowdRepository.CreateUniqueName(this.Name, clone);
-            clone.Identities = Identities.Clone();
+            clone.Name = CrowdRepository.CreateUniqueName(this.Name, clone, CrowdRepository.AllMembersCrowd.Members);
+            foreach( Identity id  in Identities.Values)
+            {
+                clone.Identities.Insert((Identity)id.Clone());
+
+            }
+
             clone.Generator = Generator;
             clone.Targeter = Targeter;
             clone.Camera = Camera;
