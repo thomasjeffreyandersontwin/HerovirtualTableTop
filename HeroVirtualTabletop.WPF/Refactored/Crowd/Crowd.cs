@@ -560,8 +560,7 @@ namespace HeroVirtualTableTop.Crowd
             Child = child;
         }
         public int Order { get; set; }
-        public Crowd ParentCrowd { get; }
-        private int _order; //has to move to membership
+        public Crowd ParentCrowd { get; set; }
         public CrowdMember Child { get; set; }
         Position _savedPosition;
         public Position SavedPosition
@@ -763,6 +762,7 @@ namespace HeroVirtualTableTop.Crowd
             Parent = parent;
             CrowdRepository = repo;
         }
+     
 
         private CrowdMemberShip _loadedParentMembership;
 

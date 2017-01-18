@@ -13,7 +13,7 @@ namespace HeroVirtualTableTop.Desktop
         public String Label { get; set; }
         public float MemoryAddress { get; set; }
         public void Target() { }
-        public MemoryManager memoryManager { get; }
+        public MemoryManager memoryManager { get; set; }
         public dynamic GetAttributeFromAdress(float address, string varType) { return null; }
         public void SetTargetAttribute(float offset, dynamic value, string varType){}
 

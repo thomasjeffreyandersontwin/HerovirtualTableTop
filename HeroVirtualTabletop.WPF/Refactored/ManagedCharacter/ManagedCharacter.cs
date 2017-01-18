@@ -45,6 +45,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             
         }
 
+        
         public Position Position
         {
             get

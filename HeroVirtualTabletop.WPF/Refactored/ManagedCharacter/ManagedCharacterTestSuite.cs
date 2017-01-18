@@ -263,6 +263,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         {
             //arrange
             ManagedCharacter characterUnderTest = Factory.CharacterUnderTest;
+            
             characterUnderTest.Identities.Active = Factory.Mockidentity;
             Camera cameraUnderTest = Factory.CameraUnderTest;
 
@@ -449,6 +450,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             StandardizedFixture.Inject<Position>(MockDesktopFactory.MockPosition);
             StandardizedFixture.Inject<KeyBindCommandGenerator>(MockDesktopFactory.MockKeybindGenerator);
             StandardizedFixture.Inject<DesktopCharacterTargeter>(MockDesktopFactory.MockDesktopCharacterTargeter);
+            StandardizedFixture.Inject<DesktopCharacterMemoryInstance>(MockDesktopFactory.MockMemoryInstance);
             StandardizedFixture.Inject<Camera>(MockCamera);
             StandardizedFixture.Inject<CharacterProgressBarStats>(MockCharacterProgressBarStats);
 
@@ -531,6 +533,13 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
+        public List<Identity> MockIdList
+        {
+            get
+            {
+                return CustomizedMockFixture.Create<IEnumerable<Identity>>().ToList();
+            }
+        }
         public Camera MockCamera
         {
             get

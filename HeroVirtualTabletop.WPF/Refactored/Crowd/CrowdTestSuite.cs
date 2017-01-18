@@ -648,7 +648,8 @@ namespace HeroVirtualTableTop.Crowd
                 .Without(x => x.Crowds)
                 .With(x=>x.UsingDependencyInjection, false)
             );
-            
+
+            Crowd a = StandardizedFixture.Create<Crowd>();
 
             List<Crowd> crowds = StandardizedFixture.CreateMany<Crowd>().ToList();
             //now setup again with clildren dependencies as they are referring to a parent with child dependencies removed so it is safe
