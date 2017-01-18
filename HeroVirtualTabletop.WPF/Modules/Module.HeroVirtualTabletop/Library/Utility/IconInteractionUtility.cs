@@ -142,7 +142,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254));
                     //executeCmd("/" + parsedCmd);
                     ParseDirectionalFXAndExecuteCommand(parsedCmd);
-                    System.Threading.Thread.Sleep(500); // Sleep a while after executing a command
+                    System.Threading.Thread.Sleep(500);// Sleep a while after executing a command
                     position += parsedCmd.Length + 2;
                     parsedCmd = command.Substring(position);
                 }
@@ -174,6 +174,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     break;
                 parseCommand = parseCommand.Substring(0, parseCommand.LastIndexOf("$$target_name", secondIndexOfDirectionalCostume));
                 executeCmd("/" + parseCommand);
+                System.Threading.Thread.Sleep(500); // Sleep a while after executing a command
                 position += parseCommand.Length + 2;
                 parseCommand = command.Substring(position);
                 multipleDirectionalFXExist = Regex.Matches(parseCommand, "load_costume").Count > 1 && Regex.Matches(parseCommand, ".fx x=").Count > 1;
