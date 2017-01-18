@@ -1109,20 +1109,39 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             // The following algorithm does not prevail individual playwithnexts, rather chains same animation on all targets, then the next animation on all targets etc. 
             // If needed this algorithm can be improved in future to preserve individual playwithnexts.
+            List<AnimationElement> playWithNextElements = new List<AnimationElement>();
             foreach (AnimationElement element in AnimationElements.OrderBy(x => x.Order))
             {
                 List<Character> targets = characterAnimationMapping[element];
                 if (element.Type == AnimationElementType.FX || element.Type == AnimationElementType.Movement)
                 {
-                    foreach (Character target in targets)
+                    if (element.PlayWithNext)
+                        playWithNextElements.Add(element);
+                    else
                     {
-                        element.GetKeybind(target);
-                    }
-                    if (!element.PlayWithNext)
-                    {
+                        foreach (Character target in targets)
+                        {
+                            if(playWithNextElements.Count > 0)
+                            {
+                                foreach(AnimationElement playWithNextElem in playWithNextElements)
+                                {
+                                    playWithNextElem.GetKeybind(target);
+                                }
+                            }
+                            element.GetKeybind(target);
+                        }
+                        playWithNextElements.Clear();
                         IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-                        //new PauseElement("", 500).Play();
                     }
+                    //foreach (Character target in targets)
+                    //{
+                    //    element.GetKeybind(target);
+                    //}
+                    //if (!element.PlayWithNext)
+                    //{
+                    //    IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
+                    //    //new PauseElement("", 500).Play();
+                    //}
 
                 }
                 else

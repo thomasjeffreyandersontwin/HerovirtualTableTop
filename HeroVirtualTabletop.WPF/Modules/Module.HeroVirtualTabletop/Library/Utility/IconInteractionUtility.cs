@@ -1,4 +1,5 @@
 ﻿using Module.Shared;
+using Module.Shared.Enumerations;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -138,17 +140,46 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 while (parsedCmd.Length > 254)
                 {
                     parsedCmd = parsedCmd.Substring(0, parsedCmd.LastIndexOf("$$", 254));
-                    executeCmd("/" + parsedCmd);
-                    System.Threading.Thread.Sleep(500); // Sleep a while after executing a command
+                    //executeCmd("/" + parsedCmd);
+                    ParseDirectionalFXAndExecuteCommand(parsedCmd);
+                    System.Threading.Thread.Sleep(500);// Sleep a while after executing a command
                     position += parsedCmd.Length + 2;
                     parsedCmd = command.Substring(position);
                 }
-                executeCmd("/" + parsedCmd);
+                //executeCmd("/" + parsedCmd);
+                ParseDirectionalFXAndExecuteCommand(parsedCmd);
             }
             else
             {
-                executeCmd("/" + command);
+                //executeCmd("/" + command);
+                ParseDirectionalFXAndExecuteCommand(command);
             }
+        }
+
+        private static void ParseDirectionalFXAndExecuteCommand(string command)
+        {
+            // Commands like this has to be split:
+            /*/target_name Fire Blast [Primary]$$load_costume Gehenna\Gehenna_RainOfFire.fx x=131.93 y=0.25 z=-107.23
+                     * $$target_name Fire Blast [Primary]$$load_costume Gehenna\Gehenna_RainOfFireHands.fx x=131.93 y=0.25 z=-107.23*/
+            int loadCostumeCount = Regex.Matches(command, "load_costume", RegexOptions.IgnoreCase).Count;
+            int directionalCostumeCount = Regex.Matches(command, "fx x=", RegexOptions.IgnoreCase).Count;
+            string parseCommand = command;
+            bool multipleDirectionalFXExist = loadCostumeCount > 1 && directionalCostumeCount > 1;
+            int position = 0;
+            while(multipleDirectionalFXExist)
+            {
+                int firstIndexOfdirectionalCostume = parseCommand.IndexOf(".fx x=");
+                int secondIndexOfDirectionalCostume = parseCommand.IndexOf(".fx x=", firstIndexOfdirectionalCostume + 1);
+                if(firstIndexOfdirectionalCostume < 0  || secondIndexOfDirectionalCostume < 0)
+                    break;
+                parseCommand = parseCommand.Substring(0, parseCommand.LastIndexOf("$$target_name", secondIndexOfDirectionalCostume));
+                executeCmd("/" + parseCommand);
+                System.Threading.Thread.Sleep(500); // Sleep a while after executing a command
+                position += parseCommand.Length + 2;
+                parseCommand = command.Substring(position);
+                multipleDirectionalFXExist = Regex.Matches(parseCommand, "load_costume").Count > 1 && Regex.Matches(parseCommand, ".fx x=").Count > 1;
+            }
+            executeCmd("/" + parseCommand);
         }
         public static string GeInfoFromNpcMouseIsHoveringOver()
         {

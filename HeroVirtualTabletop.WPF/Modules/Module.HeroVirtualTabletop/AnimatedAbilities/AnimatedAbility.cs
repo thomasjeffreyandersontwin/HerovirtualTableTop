@@ -438,15 +438,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 foreach (AnimationElement element in sequenceElement.AnimationElements)
                 {
-                    sequenceToPlay.AddAnimationElement(element);
+                    var elementToAdd = element.Clone();
+                    sequenceToPlay.AddAnimationElement(elementToAdd);
+                    elementToAdd.PlayWithNext = element.PlayWithNext;// have to do this separately because playwithnext gets overwritten when adding
                 }
             }
-
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, sequenceElement.AnimationElements.Count);
-                sequenceToPlay.AddAnimationElement(sequenceElement.AnimationElements[chosen]);
+                var element = sequenceElement.AnimationElements[chosen];
+                var elementToAdd = element.Clone();
+                sequenceToPlay.AddAnimationElement(elementToAdd);
+                elementToAdd.PlayWithNext = element.PlayWithNext;// have to do this separately because playwithnext gets overwritten when adding
             }
             return sequenceToPlay;
         }
@@ -541,6 +545,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (hitElement.Type == AnimationElementType.Movement || hitElement.Type == AnimationElementType.FX)
                     knockbackPlaySequence = hitElement.Order;
                 hitMissSequenceElement.AddAnimationElement(hitElement);
+                hitElement.PlayWithNext = anim.PlayWithNext;
                 characterAnimationMappingDictionary.Add(hitElement, hitTargets);
             }
             InjectMissAbility(hitMissSequenceElement, characterAnimationMappingDictionary, defendingCharacters);
