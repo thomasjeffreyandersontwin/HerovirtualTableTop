@@ -691,6 +691,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     AnimationElement deadAnimation = animation.Clone();
                     deadAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(deadAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
                     attackEffectSequenceElement.AddAnimationElement(deadAnimation);
+                    deadAnimation.PlayWithNext = animation.PlayWithNext;
                     characterAnimationMappingDictionary.Add(deadAnimation, deadTargets);
                 }
             }
@@ -704,6 +705,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     AnimationElement dyingAnimation = animation.Clone();
                     dyingAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(dyingAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
                     attackEffectSequenceElement.AddAnimationElement(dyingAnimation);
+                    dyingAnimation.PlayWithNext = animation.PlayWithNext;
                     characterAnimationMappingDictionary.Add(dyingAnimation, dyingTargets);
                 }
             }
@@ -717,6 +719,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     AnimationElement unconciousAnimation = animation.Clone();
                     unconciousAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(unconciousAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
                     attackEffectSequenceElement.AddAnimationElement(unconciousAnimation);
+                    unconciousAnimation.PlayWithNext = animation.PlayWithNext;
                     characterAnimationMappingDictionary.Add(unconciousAnimation, unconciousTargets);
                 }
 
@@ -731,6 +734,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     AnimationElement stunnedAnimation = animation.Clone();
                     stunnedAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(stunnedAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
                     attackEffectSequenceElement.AddAnimationElement(stunnedAnimation);
+                    stunnedAnimation.PlayWithNext = animation.PlayWithNext;
                     characterAnimationMappingDictionary.Add(stunnedAnimation, stunnedTargets);
                 }
             }

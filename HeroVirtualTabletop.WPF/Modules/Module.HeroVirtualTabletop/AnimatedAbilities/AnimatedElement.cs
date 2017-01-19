@@ -1118,8 +1118,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public void PlayFlattenedAnimationsOnTargeted(Dictionary<AnimationElement, List<Character>> characterAnimationMapping)
         {
-            // The following algorithm does not prevail individual playwithnexts, rather chains same animation on all targets, then the next animation on all targets etc. 
-            // If needed this algorithm can be improved in future to preserve individual playwithnexts.
             List<AnimationElement> playWithNextElements = new List<AnimationElement>();
             foreach (AnimationElement element in AnimationElements.OrderBy(x => x.Order))
             {
@@ -1127,16 +1125,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (element.Type == AnimationElementType.FX || element.Type == AnimationElementType.Movement)
                 {
                     if (element.PlayWithNext)
-                        playWithNextElements.Add(element);
+                        playWithNextElements.Add(element); // preserve the playwithnexts to chain on same targets in group
                     else
                     {
                         foreach (Character target in targets)
                         {
-                            if(playWithNextElements.Count > 0)
+                            if(playWithNextElements.Count > 0) // now chain playwithnext elements on each target 
                             {
                                 foreach(AnimationElement playWithNextElem in playWithNextElements)
                                 {
-                                    playWithNextElem.GetKeybind(target);
+                                    if(characterAnimationMapping[playWithNextElem] != null && characterAnimationMapping[playWithNextElem].Contains(target))
+                                        playWithNextElem.GetKeybind(target);
                                 }
                             }
                             element.GetKeybind(target);
@@ -1161,9 +1160,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         public void PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, int knockbackPlayIndex, Task playKnockBack)
         {
-            // The following algorithm does not prevail individual playwithnexts, rather chains same animation on all targets, then the next animation on all targets etc. 
-            // If needed this algorithm can be improved in future to preserve individual playwithnexts.
             bool knockbackDue = false;
+            List<AnimationElement> playWithNextElements = new List<AnimationElement>();
             foreach (AnimationElement element in AnimationElements.OrderBy(x => x.Order))
             {
                 if (element.Order == knockbackPlayIndex)
@@ -1171,12 +1169,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 List<Character> targets = characterAnimationMappingDictionary[element];
                 if (element.Type == AnimationElementType.FX || element.Type == AnimationElementType.Movement)
                 {
-                    foreach (Character target in targets)
+                    if (element.PlayWithNext)
+                        playWithNextElements.Add(element);
+                    else
                     {
-                        element.GetKeybind(target);
-                    }
-                    if (!element.PlayWithNext)
-                    { 
+                        foreach (Character target in targets)
+                        {
+                            if (playWithNextElements.Count > 0) // now chain playwithnext elements on each target 
+                            {
+                                foreach (AnimationElement playWithNextElem in playWithNextElements)
+                                {
+                                    if (characterAnimationMappingDictionary[playWithNextElem] != null && characterAnimationMappingDictionary[playWithNextElem].Contains(target))
+                                        playWithNextElem.GetKeybind(target);
+                                }
+                            }
+                            element.GetKeybind(target);
+                        }
+                        playWithNextElements.Clear();
                         IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
                         //new PauseElement("", 500).Play();
                         if (knockbackDue) // Usual case when knockback will be played as soon as first mov or fx is played
