@@ -606,7 +606,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     characterAnimationMappingDictionary.Add(missElement, missTargets);
                     if (missAnimationInjectCurrentPosition >= 0) // already found injection position, so add to the next position
                     {
-                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
+                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition); 
                     }
                     else // find appropriate position if miss animation is mov or fx, else prepend
                     {
@@ -654,6 +654,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             prependMissAnimations.Add(missElement);
                         }
                     }
+                    missElement.PlayWithNext = anim.PlayWithNext;
                 }
 
                 if (prependMissAnimations.Count > 0) // add these before where we appended the first miss mov/fx

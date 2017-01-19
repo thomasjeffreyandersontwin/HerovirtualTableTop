@@ -42,7 +42,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
-        
+
 
         #endregion
 
@@ -186,7 +186,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("SelectedAnimationElement");
                 OnPropertyChanged("IsAnimationElementSelected");
                 OnPropertyChanged("CanPlayWithNext");
-                if(selectedAnimationElement != null)
+                if (selectedAnimationElement != null)
                     SetSavedUIFilter(selectedAnimationElement);
                 OnSelectionChanged(value, null);
                 this.RemoveAnimationCommand.RaiseCanExecuteChanged();
@@ -207,7 +207,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 SaveResources();
                 SaveUISettingsForResouce(element, element.Resource);
                 this.UpdateReferenceTypeCommand.RaiseCanExecuteChanged();
-                
+
             }
         }
 
@@ -419,7 +419,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 filter = value;
                 if (SelectedAnimationElement != null)
-                    if(value.Length > 2 || value.Length== 0) {
+                    if (value.Length > 2 || value.Length == 0)
+                    {
                         switch (SelectedAnimationElement.Type)
                         {
                             case AnimationElementType.Movement:
@@ -501,7 +502,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private bool isAttackSelected=false;
+        private bool isAttackSelected = false;
         public bool IsAttackSelected
         {
             get
@@ -618,26 +619,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CloseEditorCommand = new DelegateCommand<object>(this.UnloadAbility);
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.SubmitAbilityRenameCommand = new DelegateCommand<object>(this.SubmitAbilityRename);
-            this.SaveAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.SaveAbility(); }, this.CanSaveAbility);
+            this.SaveAbilityCommand = new DelegateCommand<object>(delegate(object state) { this.SaveAbility(); }, this.CanSaveAbility);
             this.SaveSequenceCommand = new DelegateCommand<object>(this.SaveSequence, this.CanSaveSequence);
             this.EnterAbilityEditModeCommand = new DelegateCommand<object>(this.EnterAbilityEditMode);
             this.CancelAbilityEditModeCommand = new DelegateCommand<object>(this.CancelAbilityEditMode);
             this.ChangePersistenceCommand = new DelegateCommand<object>(this.ChangePersistence);
             this.ChangePlayWithNextCommand = new DelegateCommand<object>(this.ChangePlayWithNext);
-            this.AddAnimationElementCommand = new DelegateCommand<object>(delegate(object state) { EditingAnimationType = (AnimationElementType) state;  this.AddAnimationElement(); }, this.CanAddAnimationElement);
-            this.RemoveAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.RemoveAnimation(); }, this.CanRemoveAnimation);
+            this.AddAnimationElementCommand = new DelegateCommand<object>(delegate(object state) { EditingAnimationType = (AnimationElementType)state; this.AddAnimationElement(); }, this.CanAddAnimationElement);
+            this.RemoveAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.RemoveAnimation(); }, this.CanRemoveAnimation);
             this.UpdateSelectedAnimationCommand = new DelegateCommand<object>(this.UpdateSelectedAnimation);
             this.SubmitAnimationElementRenameCommand = new DelegateCommand<object>(this.SubmitAnimationElementRename);
             this.EnterAnimationElementEditModeCommand = new DelegateCommand<object>(this.EnterAnimationElementEditMode, this.CanEnterAnimationElementEditMode);
             this.CancelAnimationElementEditModeCommand = new DelegateCommand<object>(this.CancelAnimationElementEditMode);
-            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.DemoAnimatedAbility(); }, this.CanDemoAnimation);
-            this.DemoAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.DemoAnimation(); }, this.CanDemoAnimation);
-            this.CloneAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.CloneAnimation(); }, this.CanCloneAnimation);
-            this.CutAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.CutAnimation(); }, this.CanCutAnimation);
-            this.PasteAnimationCommand = new DelegateCommand<object>(delegate (object state) { this.PasteAnimation(); }, this.CanPasteAnimation);
+            this.DemoAnimatedAbilityCommand = new DelegateCommand<object>(delegate(object state) { this.DemoAnimatedAbility(); }, this.CanDemoAnimation);
+            this.DemoAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.DemoAnimation(); }, this.CanDemoAnimation);
+            this.CloneAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.CloneAnimation(); }, this.CanCloneAnimation);
+            this.CutAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.CutAnimation(); }, this.CanCutAnimation);
+            this.PasteAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.PasteAnimation(); }, this.CanPasteAnimation);
             this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType, this.CanUpdateReferenceType);
-            this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(delegate (object state) { DemoingType = (AnimationType)state; this.ConfigureAttackAnimation();}, this.CanConfigureAttackAnimation);
-            this.ConfigureUnitPauseCommand = new DelegateCommand<object>(delegate (object state) { this.ConfigureUnitPause(); }, this.CanConfigureUnitPause);
+            this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(delegate(object state) { DemoingType = (AnimationType)state; this.ConfigureAttackAnimation(); }, this.CanConfigureAttackAnimation);
+            this.ConfigureUnitPauseCommand = new DelegateCommand<object>(delegate(object state) { this.ConfigureUnitPause(); }, this.CanConfigureUnitPause);
         }
 
         #endregion
@@ -778,7 +779,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void SetCurrentPauseElement()
         {
-            if(this.SelectedAnimationElement is PauseElement)
+            if (this.SelectedAnimationElement is PauseElement)
             {
                 this.CurrentPauseElement = this.SelectedAnimationElement as PauseElement;
                 this.IsPauseElementSelected = true;
@@ -907,14 +908,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanAddAnimationElement(object state)
         {
-            return !Helper.GlobalVariables_IsPlayingAttack; 
+            return !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void AddAnimationElement()
         {
             AnimationElementType animationType = EditingAnimationType;
             animationType = EditingAnimationType; // Poor fix. Will need to change this mechanism later.
-            
+
             AnimationElement animationElement = this.GetAnimationElement(animationType);
             this.AddAnimationElement(animationElement);
             OnAnimationAdded(animationElement, null);
@@ -947,7 +948,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     animationElement = new MOVElement("", "");
                     AnimationResource moveResource = Helper.GetUISettings("Ability_MoveResource") as AnimationResource;
                     fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationElementType.Movement, flattenedList);
-                    if(moveResource == null)
+                    if (moveResource == null)
                     {
                         animationElement.DisplayName = fullName;
                     }
@@ -957,13 +958,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
                     }
                     animationElement.Name = fullName;
-                    
+
                     break;
                 case AnimationElementType.FX:
                     animationElement = new FXEffectElement("", "");
                     AnimationResource fxResource = Helper.GetUISettings("Ability_FxResource") as AnimationResource;
                     fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationElementType.FX, flattenedList);
-                    if(fxResource == null)
+                    if (fxResource == null)
                     {
                         animationElement.DisplayName = fullName;
                     }
@@ -972,7 +973,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         animationElement.Resource = fxResource;
                         animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
                     }
-                   
+
                     animationElement.Name = fullName;
                     break;
                 case AnimationElementType.Sound:
@@ -988,7 +989,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         animationElement.Resource = soundResource;
                         animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
                     }
-                    
+
                     animationElement.Name = fullName;
                     break;
                 case AnimationElementType.Sequence:
@@ -1057,7 +1058,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return order;
         }
-        
+
 
         #endregion
 
@@ -1065,7 +1066,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ChangePersistence(object state)
         {
-            if(!IsAnimationElementSelected)
+            if (!IsAnimationElementSelected)
             {
                 foreach (var element in CurrentAbility.AnimationElements)
                     element.Persistent = CurrentAbility.Persistent;
@@ -1085,20 +1086,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void ChangePlayWithNext(object state)
         {
             // first check if play with next is selected for an FX
-            if(SelectedAnimationElement != null && SelectedAnimationElement is FXEffectElement)
+            if (SelectedAnimationElement != null && SelectedAnimationElement is FXEffectElement)
             {
                 var currentFxOrder = SelectedAnimationElement.Order;
                 if (currentFxOrder > 0)
                 {
                     // check if there is a fx after the current one
                     var nextFxElement = this.CurrentAbility.AnimationElements.FirstOrDefault(a => a.Order > currentFxOrder && a is FXEffectElement);
-                    if(nextFxElement != null)
+                    if (nextFxElement != null)
                     {
                         // now check if this fx is indeed intended to be played on top of the current fx
                         var nextFxOrder = nextFxElement.Order;
                         // see if nothing comes between these two fxs except for a pause
                         var otherAnimationElementExists = this.CurrentAbility.AnimationElements.FirstOrDefault(a => !(a is PauseElement) && a.Order > currentFxOrder && a.Order < nextFxOrder) != null;
-                        if(!otherAnimationElementExists)
+                        if (!otherAnimationElementExists)
                         {
                             FXEffectElement fxElement = nextFxElement as FXEffectElement;
                             fxElement.PlayOnTopOfPreviousFx = SelectedAnimationElement.PlayWithNext;
@@ -1287,7 +1288,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanRemoveAnimation(object state)
         {
-            return this.SelectedAnimationElement != null && !Helper.GlobalVariables_IsPlayingAttack; 
+            return this.SelectedAnimationElement != null && !Helper.GlobalVariables_IsPlayingAttack;
         }
 
         private void RemoveAnimation()
@@ -1414,7 +1415,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool CanCloneAnimation(object state)
         {
-            return (this.SelectedAnimationElement != null || (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0)) && !Helper.GlobalVariables_IsPlayingAttack; 
+            return (this.SelectedAnimationElement != null || (this.SelectedAnimationElement == null && this.CurrentAbility != null && this.CurrentAbility.AnimationElements != null && this.CurrentAbility.AnimationElements.Count > 0)) && !Helper.GlobalVariables_IsPlayingAttack;
         }
         private void CloneAnimation()
         {
@@ -1430,7 +1431,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         #region Cut Animation
         private bool CanCutAnimation(object state)
         {
-            return (this.SelectedAnimationElement != null) && !Helper.GlobalVariables_IsPlayingAttack; 
+            return (this.SelectedAnimationElement != null) && !Helper.GlobalVariables_IsPlayingAttack;
         }
         private void CutAnimation()
         {
@@ -1453,7 +1454,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private bool CanPasteAnimation(object state)
         {
             bool canPaste = false;
-            if(!Helper.GlobalVariables_IsPlayingAttack)
+            if (!Helper.GlobalVariables_IsPlayingAttack)
             {
                 switch (Helper.GlobalClipboardAction)
                 {
@@ -1617,15 +1618,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ConfigureUnitPause()
         {
-            if(this.CurrentPauseElement != null)
+            if (this.CurrentPauseElement != null)
             {
                 if (this.CurrentPauseElement.IsUnitPause)
                     this.CurrentPauseElement.DisplayName = "Pause 1";
                 else
-                    this.CurrentPauseElement.DisplayName = "Pause " + this.CurrentPauseElement.Time.ToString();                
+                    this.CurrentPauseElement.DisplayName = "Pause " + this.CurrentPauseElement.Time.ToString();
             }
             this.SaveAbility();
-        } 
+        }
 
         #endregion
 
@@ -1639,7 +1640,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (DemoingType == AnimationType.Standard)
                     canConfigureAttack = true;
                 else
-                    canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack; 
+                    canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack;
             }
 
             return canConfigureAttack;
@@ -1647,7 +1648,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ConfigureAttackAnimation()
         {
-         if (DemoingType == AnimationType.Standard)
+            if (DemoingType == AnimationType.Standard)
             {
                 if (this.CurrentAttackAbility.IsAttack)
                 {
@@ -1659,21 +1660,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 this.IsHitSelected = false;
                 this.CurrentAbility = this.CurrentAttackAbility;
-                this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
                 this.SaveAbility();
             }
-            else if (DemoingType == AnimationType.Attack) 
+            else if (DemoingType == AnimationType.Attack)
             {
                 this.IsAttackSelected = true;
                 this.IsHitSelected = false;
                 this.CurrentAbility = this.CurrentAttackAbility;
             }
-            else if (DemoingType == AnimationType.OnHit) 
+            else if (DemoingType == AnimationType.OnHit)
             {
                 this.IsAttackSelected = false;
                 this.IsHitSelected = true;
                 this.CurrentAbility = this.CurrentAttackAbility.OnHitAnimation;
             }
+            this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
@@ -1739,12 +1740,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         AnimationElementType EditingAnimationType = AnimationElementType.FX;
         AnimationType DemoingType = AnimationType.Standard;
         internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
-        {          
+        {
             var isAddAnimationElementKeyDown = (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == ModifierKeys.Alt;
             if (inputKey == Key.M && isAddAnimationElementKeyDown)
             {
                 EditingAnimationType = AnimationElementType.Movement;
-                    return AddAnimationElement;
+                return AddAnimationElement;
             }
             else if (inputKey == Key.F && isAddAnimationElementKeyDown)
             {
@@ -1758,8 +1759,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             else if (inputKey == Key.Q && isAddAnimationElementKeyDown)
             {
-               EditingAnimationType = AnimationElementType.Sequence;
-               return AddAnimationElement;
+                EditingAnimationType = AnimationElementType.Sequence;
+                return AddAnimationElement;
             }
             else if (inputKey == Key.R && isAddAnimationElementKeyDown)
             {
@@ -1773,11 +1774,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Alt)
             {
-                 return DemoAnimatedAbility;
+                return DemoAnimatedAbility;
             }
             else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
-                return CloneAnimation; 
+                return CloneAnimation;
             }
             else if (inputKey == Key.X && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
@@ -1800,7 +1801,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 DemoingType = AnimationType.Attack;
                 return ConfigureAttackAnimation;
-                    
+
             }
             else if (inputKey == Key.H && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
             {
@@ -1810,7 +1811,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return null;
         }
 
-     
+
         #endregion
 
         private bool IsAbilityKey(System.Windows.Forms.Keys key)
