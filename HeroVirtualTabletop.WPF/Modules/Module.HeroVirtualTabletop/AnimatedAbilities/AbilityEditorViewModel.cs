@@ -513,6 +513,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 isAttackSelected = value;
                 OnPropertyChanged("IsAttackSelected");
+                this.ToggleAttackCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -537,6 +538,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
         #endregion
+
         #region Commands
 
 
@@ -564,7 +566,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> ConfigureAttackAnimationCommand { get; private set; }
         public DelegateCommand<object> ConfigureUnitPauseCommand { get; private set; }
         public DelegateCommand<object> ChangePlayWithNextCommand { get; private set; }
-
+        public DelegateCommand<object> ToggleAttackCommand { get; private set; }
         #endregion
 
         #region Constructor
@@ -637,6 +639,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CutAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.CutAnimation(); }, this.CanCutAnimation);
             this.PasteAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.PasteAnimation(); }, this.CanPasteAnimation);
             this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType, this.CanUpdateReferenceType);
+            this.ToggleAttackCommand = new DelegateCommand<object>(this.ToggleAttack, this.CanToggleAttack);
             this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(delegate(object state) { DemoingType = (AnimationType)state; this.ConfigureAttackAnimation(); }, this.CanConfigureAttackAnimation);
             this.ConfigureUnitPauseCommand = new DelegateCommand<object>(delegate(object state) { this.ConfigureUnitPause(); }, this.CanConfigureUnitPause);
         }
@@ -800,7 +803,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CurrentAttackAbility = tuple.Item1 as Attack;
             this.CurrentAbility = this.CurrentAttackAbility as AnimatedAbility;
             this.Owner = tuple.Item2 as Character;
-            if (this.CurrentAttackAbility.IsAttack)
+            //if (this.CurrentAttackAbility.IsAttack)
             {
                 this.IsAttackSelected = true;
                 this.IsHitSelected = false;
@@ -1630,39 +1633,55 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        #region Toggle Attack
+
+        private bool CanToggleAttack(object state)
+        {
+            return this.IsAttackSelected && !Helper.GlobalVariables_IsPlayingAttack;
+        }
+
+        private void ToggleAttack(object state)
+        {
+            this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+        }
+
+        #endregion
+
         #region Attack/Defend Animations
 
         private bool CanConfigureAttackAnimation(object state)
         {
-            bool canConfigureAttack = false;
-            if (!Helper.GlobalVariables_IsPlayingAttack)
-            {
-                if (DemoingType == AnimationType.Standard)
-                    canConfigureAttack = true;
-                else
-                    canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack;
-            }
+            return this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack && !Helper.GlobalVariables_IsPlayingAttack;
+            //bool canConfigureAttack = false;
+            //if (!Helper.GlobalVariables_IsPlayingAttack)
+            //{
+            //    if (DemoingType == AnimationType.Standard)
+            //        canConfigureAttack = true;
+            //    else
+            //        canConfigureAttack = this.CurrentAttackAbility != null && this.CurrentAttackAbility.IsAttack;
+            //}
 
-            return canConfigureAttack;
+            //return canConfigureAttack;
         }
 
         private void ConfigureAttackAnimation()
         {
-            if (DemoingType == AnimationType.Standard)
-            {
-                if (this.CurrentAttackAbility.IsAttack)
-                {
-                    this.IsAttackSelected = true;
-                }
-                else
-                {
-                    this.IsAttackSelected = false;
-                }
-                this.IsHitSelected = false;
-                this.CurrentAbility = this.CurrentAttackAbility;
-                this.SaveAbility();
-            }
-            else if (DemoingType == AnimationType.Attack)
+            //if (DemoingType == AnimationType.Standard)
+            //{
+            //    this.IsAttackSelected = true;
+            //    if (this.CurrentAttackAbility.IsAttack)
+            //    {
+            //        this.IsAttackSelected = true;
+            //    }
+            //    else
+            //    {
+            //        this.IsAttackSelected = false;
+            //    }
+            //    this.IsHitSelected = false;
+            //    this.CurrentAbility = this.CurrentAttackAbility;
+            //}
+            //else
+            if (DemoingType == AnimationType.Standard || DemoingType == AnimationType.Attack)
             {
                 this.IsAttackSelected = true;
                 this.IsHitSelected = false;
@@ -1674,7 +1693,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.IsHitSelected = true;
                 this.CurrentAbility = this.CurrentAttackAbility.OnHitAnimation;
             }
+            this.SaveAbility();
             this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+            this.ToggleAttackCommand.RaiseCanExecuteChanged();
         }
 
         #endregion
