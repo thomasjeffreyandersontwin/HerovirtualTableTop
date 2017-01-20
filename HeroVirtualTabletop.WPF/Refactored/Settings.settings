@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="CityOfHeroesGameDirectory" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
+      <Value Profile="(Default)">C:\champions\applications\COH</Value>
     </Setting>
   </Settings>
 </SettingsFile>

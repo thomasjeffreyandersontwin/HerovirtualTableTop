@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HeroVirtualTableTop.Desktop;
 using System.Collections;
-
+using Microsoft.Xna.Framework;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
     class CameraImpl : Camera
@@ -78,5 +78,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         public void ActivateManueveringCharacterIdentity() { }
 
         public void DisableMovement() { }
+        
+
     }
 }

@@ -16,11 +16,11 @@ namespace HeroVirtualTableTop.Desktop
     public class KeybindGeneratorTestSuite
     {
         KeyBindCommandGenerator generator;
-        public MockDesktopFactory Factory;
+        public FakeDesktopFactory Factory;
         
         public KeybindGeneratorTestSuite()
         {
-            Factory = new MockDesktopFactory(); 
+            Factory = new FakeDesktopFactory(); 
         }
         [TestMethod]
         public void ExecuteCmd_SendsCommandToIconUtility()
@@ -67,12 +67,12 @@ namespace HeroVirtualTableTop.Desktop
         }
     }
 
-    public class MockDesktopFactory
+    public class FakeDesktopFactory
     {
         public IFixture StandardizedFixture;
         public IFixture MockFixture;
         public IFixture CustomizedMockFixture;
-        public MockDesktopFactory()
+        public FakeDesktopFactory()
         {
             MockFixture = new Fixture();
             MockFixture.Customize(new AutoMoqCustomization());
