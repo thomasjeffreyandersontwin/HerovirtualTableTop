@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework;
 
 namespace HeroVirtualTableTop.Desktop
 {
@@ -34,6 +35,7 @@ namespace HeroVirtualTableTop.Desktop
         Position Duplicate();
         bool IsWithin(float dist, Position position, out float calculatedDistance);
         void MoveTo(Position destination);
+        Vector3 Vector { get; }
     }
     public interface DesktopCharacterMemoryInstance
     {

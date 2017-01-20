@@ -27,7 +27,7 @@ namespace HeroVirtualTableTop.Crowd
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
 
         Crowd AllMembersCrowd { get;  }
-        string CreateUniqueName(string name,CrowdMember member);
+        string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context);
     }
 
     public interface Crowd : CrowdMember
@@ -36,12 +36,13 @@ namespace HeroVirtualTableTop.Crowd
         List<CrowdMemberShip> MemberShips { get;}
         List<CrowdMember> Members { get; }
         Dictionary<string, CrowdMember> MembersByName { get; }
+
         void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdToMove);
+        void AddManyCrowdMembers(List<CrowdMember> member);
+
         void AddCrowdMember(CrowdMember member);
         void RemoveMember(CrowdMember member);
-        bool IsExpanded { get; set; }
-        CrowdRepository CrowdRepository { get; set; }
-        
+        bool IsExpanded { get; set; }      
 
     }
 
@@ -61,9 +62,10 @@ namespace HeroVirtualTableTop.Crowd
         CrowdMember Clone();
         void ApplyFilter(string filter);
         void ResetFilter();
-        bool CheckIfNameIsDuplicate(string updatedName, List<Crowd> members);
+        bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> members);
         List<CrowdMemberShip> AllCrowdMembershipParents { get; }
         Crowd Parent { get; set; }
+        CrowdRepository CrowdRepository { get; set;}
 
         void RemoveParent(CrowdMember crowdMember);
     }

@@ -8,7 +8,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 {
     public class CharacterActionListImpl<T> : Dictionary<string, T>, CharacterActionList<T> where T : CharacterAction
     {
-        public ManagedCharacter Owner { get; set; }
+        public ManagedCharacter Owner { get; }
 
         private KeyBindCommandGenerator _generator;
         public KeyBindCommandGenerator Generator
@@ -27,11 +27,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 _type = value;
             }
         }
-        public CharacterActionListImpl(CharacterActionType type, KeyBindCommandGenerator generator)
+        public CharacterActionListImpl(CharacterActionType type, KeyBindCommandGenerator generator, ManagedCharacter owner)
         {
             _type = type;
             _generator = generator;
             _listByOrder = new SortedDictionary<int, T>();
+            this.Owner = owner;
         }
         private SortedDictionary<int, T> _listByOrder = new SortedDictionary<int, T>();
         public IEnumerator<T> ByOrder
@@ -66,17 +67,19 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             set
             {
-                if (_active != null)
+                if (value != null)
                 {
-                    if (ContainsValue(value))
-                        _active = value;
-                    else
-                    {
-                        throw new ArgumentException("action cant be set to active it doesnt exist for character");
 
-                    }
+                    _active = value;
+
+
                 }
             }
+        }
+
+        public void Deactivate()
+        {
+            _active = default(T);
         }
 
 
@@ -140,6 +143,13 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 _listByOrder[order] = value;
             }
         }
+        public void AddMany(List<T> list)
+        {
+            foreach(T item in list)
+            {
+                Insert(item);
+            }
+        }
 
         public void Insert(T action)
         {
@@ -173,24 +183,30 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
         public void RemoveAction(T actionToRemove)
         {
+            
+            int deletedOrder = actionToRemove.Order;
             Remove(actionToRemove.Name);
             _listByOrder.Remove(actionToRemove.Order);
-            int deletedOrder = actionToRemove.Order;
-            foreach (var action in _listByOrder)
-            {
-                if (action.Key > deletedOrder)
-                {
-                    action.Value.Order--;
-                    _listByOrder[action.Value.Order] = action.Value;
-                }
-            }
+            _listByOrder.Values.ToList().Where(c => c.Order > deletedOrder).ToList().ForEach(c => c.Order--);
+
+            SortedDictionary < int, T > newDict = new SortedDictionary<int, T>( _listByOrder.Values.ToDictionary(x => x.Order,x=>x));
+            _listByOrder = newDict;
+
+
         }
         public T AddNew(T newAction)
         {
            
             newAction.Owner = Owner;
             newAction.Generator = Generator;
-            newAction.Order = _listByOrder.Last().Key + 1;
+            if (_listByOrder.Count == 0)
+            {
+                newAction.Order = 1;
+            }
+            else
+            {
+                newAction.Order = _listByOrder.Last().Key + 1;
+            }
             newAction.Name = GetNewValidActionName(newAction.Name);
             _listByOrder.Add(newAction.Order, newAction);
             Add(newAction.Name, newAction);
@@ -198,7 +214,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
         public CharacterActionList<T> Clone()
         {
-            CharacterActionListImpl<T> cloneList = new CharacterActionListImpl<T>(_type, _generator);
+            CharacterActionListImpl<T> cloneList = new CharacterActionListImpl<T>(_type, _generator, Owner);
             foreach (T anAction in Values)
             {
                 T clone = (T)anAction.Clone();
@@ -206,5 +222,34 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
             return cloneList;
         }
+
+        public void PlayByKey(string shortcut)
+        { }
+    }
+
+    public abstract class CharacterActionImpl : CharacterAction
+    {
+
+        public CharacterActionImpl(ManagedCharacter owner, string name, KeyBindCommandGenerator generator, string shortcut)
+        {
+            Name = name;
+            _owner = owner;
+            _generator = generator;
+            KeyboardShortcut = shortcut;
+        }
+
+        public CharacterActionImpl() { }
+
+        public string KeyboardShortcut { get; set; }
+        private KeyBindCommandGenerator _generator;
+        public KeyBindCommandGenerator Generator { get { return _generator; } set { _generator = value; } }
+        public string Name { get; set; }
+        public int Order { get; set; }
+        private ManagedCharacter _owner;
+        public ManagedCharacter Owner{ get { return _owner; } set {  _owner = value;} }
+
+        public abstract CharacterAction Clone();
+        public abstract void Render(bool completeEvent = true);
+
     }
 }

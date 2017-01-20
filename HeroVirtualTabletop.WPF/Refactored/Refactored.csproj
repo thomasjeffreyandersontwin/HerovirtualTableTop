@@ -35,6 +35,10 @@
       <HintPath>..\packages\Castle.Core.3.3.3\lib\net45\Castle.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="irrKlang.NET4, Version=1.0.5235.17346, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Modules\Module.HeroVirtualTabletop\Resources\irrKlang.NET4.dll</HintPath>
+    </Reference>
     <Reference Include="log4net">
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\log4net.dll</HintPath>
     </Reference>
@@ -99,6 +103,7 @@
     <Reference Include="Ploeh.AutoFixture.AutoMoq">
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\Ploeh.AutoFixture.AutoMoq.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="Prism">
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\Prism.dll</HintPath>
     </Reference>
@@ -125,7 +130,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnimatedAbilities\AnimatedAbilityElement.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedAbilityInterface.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedAbilityTestSuite.cs" />
+    <Compile Include="AnimatedAbilities\AnimatedCharacter.cs" />
     <Compile Include="Class1.cs" />
+    <Compile Include="Desktop\Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Crowd\Crowd.cs" />
     <Compile Include="Crowd\CrowdInterfaces.cs" />
