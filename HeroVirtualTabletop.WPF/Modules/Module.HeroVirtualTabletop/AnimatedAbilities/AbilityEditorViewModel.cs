@@ -1260,12 +1260,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return true;
             }
+            // Replace non-alphanumeric characters with empty string
+            Regex rgx = new Regex("[^a-zA-Z0-9 ]");
+            string filter = rgx.Replace(Filter, "");
+
             bool caseReferences = false;
             if (animationRes.Reference != null && animationRes.Reference.Owner != null)
             {
-                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Owner.Name);
+                caseReferences = new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name) || new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Owner.Name);
             }
-            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Name) || caseReferences;
+            return new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Name) || caseReferences;
         }
 
         #endregion
