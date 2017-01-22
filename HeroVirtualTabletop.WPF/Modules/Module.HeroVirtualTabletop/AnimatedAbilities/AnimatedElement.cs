@@ -642,6 +642,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private bool isNonDirectional;
+        public bool IsNonDirectional
+        {
+            get
+            {
+                return isNonDirectional;
+            }
+            set
+            {
+                isNonDirectional = value;
+                OnPropertyChanged("IsNonDirectional");
+            }
+        }
+
         [JsonIgnore]
         public AttackDirection AttackDirection
         {
