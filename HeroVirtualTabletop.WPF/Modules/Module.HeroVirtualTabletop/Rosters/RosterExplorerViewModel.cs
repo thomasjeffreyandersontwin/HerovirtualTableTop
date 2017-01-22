@@ -502,7 +502,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
             if (currentTarget == null)
                 return;
-            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control; })))
+            if ((bool)Dispatcher.Invoke(DispatcherPriority.Normal, new Func<bool>(() => { return Keyboard.Modifiers != ModifierKeys.Control && Keyboard.Modifiers != ModifierKeys.Shift; })))
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -1603,7 +1603,8 @@ namespace Module.HeroVirtualTabletop.Roster
             Attack attack = tuple.Item2;
             foreach (var defender in defendingCharacters)
             {
-                defender.Deactivate(); // restore original costume
+                // Commenting out following as we need the fxs to be persisted across attacks
+                //defender.Deactivate(); // restore original costume
             }
             attack.AnimateAttackSequence(AttackingCharacter, defendingCharacters);
             this.ResetAttack(defendingCharacters);

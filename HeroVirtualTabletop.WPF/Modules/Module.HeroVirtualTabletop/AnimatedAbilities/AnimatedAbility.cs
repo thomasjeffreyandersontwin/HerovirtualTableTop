@@ -329,7 +329,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 if (animation is FXEffectElement)
                 {
-                    (animation as FXEffectElement).AttackDirection = direction;
+                    FXEffectElement fxElement = (animation as FXEffectElement);
+                    if (!fxElement.IsNonDirectional)
+                        fxElement.AttackDirection = direction;
+                    else
+                        fxElement.AttackDirection = null;
                 }
             }
         }

@@ -12,7 +12,7 @@ namespace Module.Shared.Converters
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             bool bRet = false;
-            bool bParam = Boolean.Parse(parameter.ToString());
+            bool bParam = parameter != null ? Boolean.Parse(parameter.ToString()) : true;
             if (value != null)
                 bRet = ((bool)value ^ bParam);
             return bRet;
@@ -20,7 +20,7 @@ namespace Module.Shared.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            bool bParam = Boolean.Parse(parameter.ToString());
+            bool bParam = parameter != null ? Boolean.Parse(parameter.ToString()) : true;
             return ((bool)value ^ bParam);
         }
     }

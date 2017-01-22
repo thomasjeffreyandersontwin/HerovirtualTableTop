@@ -269,6 +269,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private bool isFxElementSelected;
+        public bool IsFxElementSelected
+        {
+            get
+            {
+                return isFxElementSelected;
+            }
+            set
+            {
+                isFxElementSelected = value;
+                OnPropertyChanged("IsFxElementSelected");
+            }
+        }
+
         private SequenceElement currentSequenceElement;
         public SequenceElement CurrentSequenceElement
         {
@@ -297,7 +311,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.ConfigureUnitPauseCommand.RaiseCanExecuteChanged();
             }
         }
-
+        private FXEffectElement currentFxElement;
+        public FXEffectElement CurrentFxElement
+        {
+            get
+            {
+                return currentFxElement;
+            }
+            set
+            {
+                currentFxElement = value;
+                OnPropertyChanged("CurrentFxElement");
+                this.ToggleDirectionalFxCommand.RaiseCanExecuteChanged();
+            }
+        }
         private bool isReferenceAbilitySelected;
         public bool IsReferenceAbilitySelected
         {
@@ -567,6 +594,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> ConfigureUnitPauseCommand { get; private set; }
         public DelegateCommand<object> ChangePlayWithNextCommand { get; private set; }
         public DelegateCommand<object> ToggleAttackCommand { get; private set; }
+        public DelegateCommand<object> ToggleDirectionalFxCommand { get; private set; }
         #endregion
 
         #region Constructor
@@ -598,9 +626,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.IsSequenceAbilitySelected = false;
             this.IsReferenceAbilitySelected = false;
             this.IsPauseElementSelected = false;
+            this.IsFxElementSelected = false;
             this.CurrentSequenceElement = null;
             this.CurrentReferenceElement = null;
             this.CurrentPauseElement = null;
+            this.CurrentFxElement = null;
             this.CurrentAbility = null;
             this.CurrentAttackAbility = null;
             this.Owner = null;
@@ -640,6 +670,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.PasteAnimationCommand = new DelegateCommand<object>(delegate(object state) { this.PasteAnimation(); }, this.CanPasteAnimation);
             this.UpdateReferenceTypeCommand = new DelegateCommand<object>(this.UpdateReferenceType, this.CanUpdateReferenceType);
             this.ToggleAttackCommand = new DelegateCommand<object>(this.ToggleAttack, this.CanToggleAttack);
+            this.ToggleDirectionalFxCommand = new DelegateCommand<object>(this.ToggleAttack, this.CanToggleAttack);
             this.ConfigureAttackAnimationCommand = new DelegateCommand<object>(delegate(object state) { DemoingType = (AnimationType)state; this.ConfigureAttackAnimation(); }, this.CanConfigureAttackAnimation);
             this.ConfigureUnitPauseCommand = new DelegateCommand<object>(delegate(object state) { this.ConfigureUnitPause(); }, this.CanConfigureUnitPause);
         }
@@ -699,6 +730,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.SetCurrentSequenceAnimation();
                         this.SetCurrentReferenceAbility();
                         this.SetCurrentPauseElement();
+                        this.SetCurrentFxElement();
                     }
                     else if (selectedAnimationElement == null && (this.CurrentAbility == null || this.CurrentAbility.AnimationElements.Count == 0))
                     {
@@ -707,9 +739,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.IsSequenceAbilitySelected = false;
                         this.IsReferenceAbilitySelected = false;
                         this.IsPauseElementSelected = false;
+                        this.IsFxElementSelected = false;
                         this.CurrentSequenceElement = null;
                         this.CurrentReferenceElement = null;
                         this.CurrentPauseElement = null;
+                        this.CurrentFxElement = null;
                     }
                 }
                 else
@@ -722,9 +756,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.IsSequenceAbilitySelected = false;
                 this.IsReferenceAbilitySelected = false;
                 this.IsPauseElementSelected = false;
+                this.IsFxElementSelected = false;
                 this.CurrentSequenceElement = null;
                 this.CurrentReferenceElement = null;
                 this.CurrentPauseElement = null;
+                this.CurrentFxElement = null;
                 OnAnimationAdded(null, null);
             }
         }
@@ -791,6 +827,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 this.CurrentPauseElement = null;
                 this.IsPauseElementSelected = false;
+            }
+        }
+        private void SetCurrentFxElement()
+        {
+            if (this.SelectedAnimationElement is FXEffectElement)
+            {
+                this.CurrentFxElement = this.SelectedAnimationElement as FXEffectElement;
+                this.IsFxElementSelected = true;
+            }
+            else
+            {
+                this.CurrentFxElement = null;
+                this.IsFxElementSelected = false;
             }
         }
         #endregion
@@ -1260,12 +1309,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return true;
             }
+            // Replace non-alphanumeric characters with empty string
+            Regex rgx = new Regex("[^a-zA-Z0-9 ]");
+            string filter = rgx.Replace(Filter, "");
+
             bool caseReferences = false;
             if (animationRes.Reference != null && animationRes.Reference.Owner != null)
             {
-                caseReferences = new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Owner.Name);
+                caseReferences = new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Name) || new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Reference.Owner.Name);
             }
-            return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Name) || caseReferences;
+            return new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.TagLine) || new Regex(filter, RegexOptions.IgnoreCase).IsMatch(animationRes.Name) || caseReferences;
         }
 
         #endregion
@@ -1642,7 +1695,22 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ToggleAttack(object state)
         {
+            this.SaveAbility();
             this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+        }
+
+        #endregion
+
+        #region Toggle Directional FX
+
+        private bool CanToggleDirectionalFx(object state)
+        {
+            return this.IsFxElementSelected && !Helper.GlobalVariables_IsPlayingAttack;
+        }
+
+        private void ToggleDirectionalFx(object state)
+        {
+            this.SaveAbility();
         }
 
         #endregion
