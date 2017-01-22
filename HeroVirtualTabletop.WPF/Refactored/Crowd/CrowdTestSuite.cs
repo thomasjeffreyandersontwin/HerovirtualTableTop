@@ -592,22 +592,22 @@ namespace HeroVirtualTableTop.Crowd
     }
 
    public class FakeCrowdFactory {
-        public FakeManagedCustomerFactory CustomerFactory;
+        public FakeManagedCustomerFactory CharacterFactory;
         public IFixture MockFixture;
         public IFixture CustomizedMockFixture;
         public IFixture StandardizedFixture;
 
         public FakeCrowdFactory(FakeManagedCustomerFactory characterFactory)
         {
-            CustomerFactory = characterFactory;
+            CharacterFactory = characterFactory;
 
-            MockFixture = CustomerFactory.MockFixture;
-            CustomizedMockFixture = CustomerFactory.CustomizedMockFixture;
+            MockFixture = CharacterFactory.MockFixture;
+            CustomizedMockFixture = CharacterFactory.CustomizedMockFixture;
             setupStandardFixture();
         }
         private void setupStandardFixture()
         {
-            StandardizedFixture = CustomerFactory.StandardizedFixture;
+            StandardizedFixture = CharacterFactory.StandardizedFixture;
             StandardizedFixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
             //map all interfaces to classes
