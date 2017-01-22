@@ -115,15 +115,24 @@ namespace Module.HeroVirtualTabletop.Library
                 double minwidth = 80;
                 style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
                 var desktopWorkingArea = System.Windows.SystemParameters.WorkArea;
-                style.Setters.Add(new Setter(Window.LeftProperty, desktopWorkingArea.Right - 500));
-                style.Setters.Add(new Setter(Window.TopProperty, desktopWorkingArea.Bottom - 80 * character.OptionGroups.Count));
+                double left = desktopWorkingArea.Right - 500;
+                double top = desktopWorkingArea.Bottom - 80 * character.OptionGroups.Count;
+                object savedPos = PopupService.GetPosition("ActiveCharacterWidgetView");
+                if(savedPos != null)
+                {
+                    double[] posArray = (double[])savedPos;
+                    left = posArray[0];
+                    top = posArray[1];
+                }
+                style.Setters.Add(new Setter(Window.LeftProperty, left));
+                style.Setters.Add(new Setter(Window.TopProperty, top));
                 ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
                 PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style, WindowStartupLocation.Manual);
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(tuple);
             }
             else if (character == null && PopupService.IsOpen("ActiveCharacterWidgetView"))
             {
-                PopupService.CloseDialog("ActiveCharacterWidgetView");
+                this.CloseActiveCharacterWidget(null);
             }
         }
 
@@ -172,6 +181,7 @@ namespace Module.HeroVirtualTabletop.Library
 
         private void CloseActiveCharacterWidget(object state)
         {
+            PopupService.SavePosition("ActiveCharacterWidgetView");
             PopupService.CloseDialog("ActiveCharacterWidgetView");
         }
         

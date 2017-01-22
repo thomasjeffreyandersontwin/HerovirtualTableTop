@@ -23,6 +23,7 @@ namespace Framework.WPF.Services.PopupService
         private ImageSource icon;
         private readonly Dictionary<string, Type> registeredPopups;
         private readonly Dictionary<string, Window> openedPopups;
+        private readonly Dictionary<string, Object> savedPositions;
 
         public PopupService(IUnityContainer container)
         {
@@ -30,6 +31,7 @@ namespace Framework.WPF.Services.PopupService
             //this.icon = icon;
             registeredPopups = new Dictionary<string, Type>();
             openedPopups = new Dictionary<string, Window>();
+            savedPositions = new Dictionary<string, object>();
         }
 
         public void Register(string key, Type controlType)
@@ -287,6 +289,32 @@ namespace Framework.WPF.Services.PopupService
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException("key");
             return openedPopups.ContainsKey(key);
+        }
+
+        public void SavePosition(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException("key");
+            if(openedPopups.ContainsKey(key))
+            {
+                Window window = openedPopups[key];
+                double left = window.Left;
+                double top = window.Top;
+                double[] positionArray = new double[] { left, top };
+                if (savedPositions.ContainsKey(key))
+                    savedPositions[key] = positionArray;
+                else
+                    savedPositions.Add(key, positionArray);
+            }
+        }
+
+        public object GetPosition(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                throw new ArgumentNullException("key");
+            if (savedPositions.ContainsKey(key))
+                return savedPositions[key];
+            return null;
         }
     }
 }
