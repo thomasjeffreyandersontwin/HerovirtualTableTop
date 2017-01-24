@@ -76,9 +76,16 @@ namespace Module.HeroVirtualTabletop.Desktop
         }
         private void fireEvent(List<MouseSubscriber> subs)
         {
-            foreach (MouseSubscriber m in subs)
+            try
             {
-                System.Windows.Application.Current.Dispatcher.BeginInvoke(m);
+                foreach (MouseSubscriber m in subs)
+                {
+                    System.Windows.Application.Current.Dispatcher.BeginInvoke(m);
+                }
+            }
+            catch (Exception ex)
+            {
+
             }
         }
 

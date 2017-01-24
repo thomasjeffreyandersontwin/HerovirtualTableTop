@@ -338,6 +338,20 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        private bool hasGravity;
+        public bool HasGravity
+        {
+            get
+            {
+                return hasGravity;
+            }
+            set
+            {
+                hasGravity = value;
+                OnPropertyChanged("HasGravity");
+            }
+        }
+
         public async Task Move(Character target)
         {
             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentMovementDirection);
@@ -720,13 +734,43 @@ namespace Module.HeroVirtualTabletop.Movements
             //    target.MovementInstruction.IsInCollision = true;
             //}
 
-            //// Enable gravity if applicable
-            //if (allowableDestVector.Y > 0.5 && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
-            //{
-            //    Vector3 collisionVectorGround = GetCollisionVector(allowableDestVector, new Vector3(allowableDestVector.X, 0f, allowableDestVector.Z));
-            //    if (collisionVectorGround.Y >= 0f && collisionVectorGround.Y < allowableDestVector.Y)
-            //        allowableDestVector.Y = collisionVectorGround.Y;
-            //}
+            // Enable gravity if applicable
+            if (HasGravity && allowableDestVector.Y > 0 && !target.MovementInstruction.IsPositionAdjustedToAvoidCollision && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
+            {
+                Vector3 collisionGroundUp = new Vector3(allowableDestVector.X, allowableDestVector.Y + 2f, allowableDestVector.Z);
+                Vector3 collisionGroundDown = new Vector3(allowableDestVector.X, -100f, allowableDestVector.Z);
+                Vector3 collisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
+                if (collisionVectorGround.Y < allowableDestVector.Y)
+                {
+                    // check if ground collision result is suspicious. 
+                    if(((collisionVectorGround.X == 0f && collisionVectorGround.Y == 0f && collisionVectorGround.Z == 0f) || collisionVectorGround.Y < 1f) && Vector3.Distance(allowableDestVector, collisionVectorGround) > 1.5)
+                    {
+                        // rest a while and then measure again
+                        Thread.Sleep(500);
+                        var prevCollisionVectorGround = collisionVectorGround;
+                        var newCollisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
+                        if (prevCollisionVectorGround != newCollisionVectorGround && newCollisionVectorGround.Y > prevCollisionVectorGround.Y)
+                            collisionVectorGround = newCollisionVectorGround; // the calculation was wrong, so fix it
+                        else
+                        {
+                            // further check if there is really nothing between this point and ground. To confirm, check ground collisions for two more points - 
+                            // one 0.1 unit ahead and the other 0.1 unit behind
+                            Vector3 destBack = GetDestinationVector(directionVector, -0.1f, allowableDestVector);
+                            Vector3 collisionVectorGroundForBack = GetCollisionVector(new Vector3(destBack.X, destBack.Y + 2, destBack.Z), new Vector3(destBack.X, -100f, destBack.Z));
+                            Vector3 destFront = GetDestinationVector(directionVector, 0.1f, allowableDestVector);
+                            Vector3 collisionVectorGroundForFront = GetCollisionVector(new Vector3(destFront.X, destFront.Y + 2, destFront.Z), new Vector3(destFront.X, -100f, destFront.Z));
+
+                            var newCollisionVectorGroundCalibrated = collisionVectorGroundForFront.Y >= collisionVectorGroundForBack.Y ? collisionVectorGroundForFront : collisionVectorGroundForBack;
+                            if (newCollisionVectorGroundCalibrated.Y > collisionVectorGround.Y)
+                                collisionVectorGround = newCollisionVectorGroundCalibrated;
+                        }
+                    }
+                    if (collisionVectorGround.Y <= 0f)
+                        allowableDestVector.Y = collisionVectorGround.Y + 0.25f;
+                    else
+                        allowableDestVector.Y = collisionVectorGround.Y;
+                }
+            }
             //// Preventing going to absurd locations
             //var finalDistance = Vector3.Distance(currentPositionVector, allowableDestVector);
             //if (finalDistance > 5f)
@@ -1540,7 +1584,12 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private Vector3 GetDestinationVector(Vector3 directionVector, float units, Character target)
         {
-            Vector3 vCurrent = target.CurrentPositionVector;
+            return GetDestinationVector(directionVector, units, target.CurrentPositionVector);
+        }
+
+        private Vector3 GetDestinationVector(Vector3 directionVector, float units, Vector3 positionVector)
+        {
+            Vector3 vCurrent = positionVector;
             directionVector.Normalize();
             var destX = vCurrent.X + directionVector.X * units;
             var destY = vCurrent.Y + directionVector.Y * units;

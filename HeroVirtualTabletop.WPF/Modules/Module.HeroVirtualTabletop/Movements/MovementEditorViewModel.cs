@@ -157,6 +157,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 this.SaveMovement(null);
                 OnPropertyChanged("SelectedMovement");
                 this.RemoveMovementCommand.RaiseCanExecuteChanged();
+                this.ToggleGravityForMovementCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -239,6 +240,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public DelegateCommand<object> DemoDirectionalMoveCommand { get; private set; }
         public DelegateCommand<object> PlayMovementCommand { get; private set; }
         public DelegateCommand<object> LoadAbilityEditorCommand { get; private set; }
+        public DelegateCommand<object> ToggleGravityForMovementCommand { get; private set; }
 
         #endregion
 
@@ -279,6 +281,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.DemoDirectionalMoveCommand = new DelegateCommand<object>(this.DemoDirectionalMovement, this.CanDemoDirectionalMovement);
             this.LoadAbilityEditorCommand = new DelegateCommand<object>(this.LoadAbilityEditor, this.CanLoadAbilityEditor);
             this.PlayMovementCommand = new DelegateCommand<object>(this.PlayMovement, this.CanPlayMovement);
+            this.ToggleGravityForMovementCommand = new DelegateCommand<object>(this.ToggleGravityForMovement, this.CanToggleGravityForMovement);
         }
 
         private void InitializeMovementSelections()
@@ -542,6 +545,20 @@ namespace Module.HeroVirtualTabletop.Movements
                 this.CurrentCharacterMovement.Character.ActiveMovement = this.CurrentCharacterMovement;
                 this.CurrentCharacterMovement.ActivateMovement();
             }
+        }
+
+        #endregion
+
+        #region Toggle Gravity For Movement
+
+        private bool CanToggleGravityForMovement(object state)
+        {
+            return SelectedMovement != null;
+        }
+
+        private void ToggleGravityForMovement(object state)
+        {
+            this.SaveMovement(null);
         }
 
         #endregion
