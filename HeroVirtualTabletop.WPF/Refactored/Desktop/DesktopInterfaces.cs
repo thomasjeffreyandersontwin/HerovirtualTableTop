@@ -36,6 +36,7 @@ namespace HeroVirtualTableTop.Desktop
         bool IsWithin(float dist, Position position, out float calculatedDistance);
         void MoveTo(Position destination);
         Vector3 Vector { get; }
+        float DistanceFrom(Position targetPos);
     }
     public interface DesktopCharacterMemoryInstance
     {
