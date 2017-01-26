@@ -769,53 +769,8 @@ namespace Module.HeroVirtualTabletop.Movements
             //}
 
             // Enable gravity if applicable
-            if (HasGravity && allowableDestVector.Y > 0 && !target.MovementInstruction.IsPositionAdjustedToAvoidCollision && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
-            {
-                Vector3 collisionGroundUp = new Vector3(allowableDestVector.X, allowableDestVector.Y + 2f, allowableDestVector.Z);
-                Vector3 collisionGroundDown = new Vector3(allowableDestVector.X, -100f, allowableDestVector.Z);
-                Vector3 collisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
-                if (collisionVectorGround.Y < allowableDestVector.Y)
-                {
-                    // check if ground collision result is suspicious. 
-                    if(((collisionVectorGround.X == 0f && collisionVectorGround.Y == 0f && collisionVectorGround.Z == 0f) || collisionVectorGround.Y < 1f) && Vector3.Distance(allowableDestVector, collisionVectorGround) > 1.5)
-                    {
-                        // rest a while and then measure again
-                        new PauseElement("", 500).Play();
-                        var prevCollisionVectorGround = collisionVectorGround;
-                        var newCollisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
-                        if (prevCollisionVectorGround != newCollisionVectorGround && newCollisionVectorGround.Y > prevCollisionVectorGround.Y)
-                            collisionVectorGround = newCollisionVectorGround; // the calculation was wrong, so fix it
-                        else
-                        {
-                            // CALIBRATION: further check if there is really nothing between this point and ground. To confirm, check ground collisions for four more points - 
-                            // one 0.1 unit ahead, 0.1 unit back, 0.1 unit left and 0.1 unit right
-                            // If any of the four does not lead to ground and has collision in between, we won't go to ground
-                            Vector3 destLeft= GetDestinationVector(new Vector3(1, 0, 0), -0.5f, allowableDestVector);
-                            Vector3 collisionVectorGroundLeft = GetCollisionVector(new Vector3(destLeft.X, destLeft.Y + 2, destLeft.Z), new Vector3(destLeft.X, -100f, destLeft.Z));
-                            Vector3 desRight = GetDestinationVector(new Vector3(1, 0, 0), 0.5f, allowableDestVector);
-                            Vector3 collisionVectorGroundRight = GetCollisionVector(new Vector3(desRight.X, desRight.Y + 2, desRight.Z), new Vector3(desRight.X, -100f, desRight.Z));
-                            Vector3 destBack = GetDestinationVector(new Vector3(0, 0, 1), -0.5f, allowableDestVector);
-                            Vector3 collisionVectorGroundBack = GetCollisionVector(new Vector3(destBack.X, destBack.Y + 2, destBack.Z), new Vector3(destBack.X, -100f, destBack.Z));
-                            Vector3 destFront = GetDestinationVector(new Vector3(0, 0, 1), 0.5f, allowableDestVector);
-                            Vector3 collisionVectorGroundFront = GetCollisionVector(new Vector3(destFront.X, destFront.Y + 2, destFront.Z), new Vector3(destFront.X, -100f, destFront.Z));
-
-                            List<float> groundCollisionYPositionsForSurroundingPoints = new List<float> { collisionVectorGroundLeft.Y, collisionVectorGroundRight.Y, collisionVectorGroundBack.Y, collisionVectorGroundFront.Y};
-
-                            var maxYPositionForGroundCollisionForSurroundingPoints = groundCollisionYPositionsForSurroundingPoints.Max();
-                            if (maxYPositionForGroundCollisionForSurroundingPoints > collisionVectorGround.Y)
-                                collisionVectorGround.Y = maxYPositionForGroundCollisionForSurroundingPoints;
-                            else 
-                            {
-                                //More Claibration: ???
-                            }
-                        }
-                    }
-                    if (collisionVectorGround.Y <= 0f)
-                        allowableDestVector.Y = collisionVectorGround.Y + 0.25f;
-                    else
-                        allowableDestVector.Y = collisionVectorGround.Y;
-                }
-            }
+            if(this.HasGravity)
+                this.ApplyGravityToDestinationPoint(target, allowableDestVector);
             //// Preventing going to absurd locations
             //var finalDistance = Vector3.Distance(currentPositionVector, allowableDestVector);
             //if (finalDistance > 5f)
@@ -1358,6 +1313,57 @@ namespace Module.HeroVirtualTabletop.Movements
             return bodyPart;
         }
 
+        private void ApplyGravityToDestinationPoint(Character target, Vector3 allowableDestVector)
+        {
+            if (allowableDestVector.Y > 0 && !target.MovementInstruction.IsPositionAdjustedToAvoidCollision && (target.MovementInstruction.CurrentMovementDirection != MovementDirection.Upward && target.MovementInstruction.CurrentMovementDirection != MovementDirection.Downward))
+            {
+                Vector3 collisionGroundUp = new Vector3(allowableDestVector.X, allowableDestVector.Y + 2f, allowableDestVector.Z);
+                Vector3 collisionGroundDown = new Vector3(allowableDestVector.X, -100f, allowableDestVector.Z);
+                Vector3 collisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
+                if (collisionVectorGround.Y < allowableDestVector.Y)
+                {
+                    // check if ground collision result is suspicious. 
+                    if (((collisionVectorGround.X == 0f && collisionVectorGround.Y == 0f && collisionVectorGround.Z == 0f) || collisionVectorGround.Y < 1f) && Vector3.Distance(allowableDestVector, collisionVectorGround) > 1.5)
+                    {
+                        // rest a while and then measure again
+                        new PauseElement("", 500).Play();
+                        var prevCollisionVectorGround = collisionVectorGround;
+                        var newCollisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
+                        if (prevCollisionVectorGround != newCollisionVectorGround && newCollisionVectorGround.Y > prevCollisionVectorGround.Y)
+                            collisionVectorGround = newCollisionVectorGround; // the calculation was wrong, so fix it
+                        else
+                        {
+                            // CALIBRATION: further check if there is really nothing between this point and ground. To confirm, check ground collisions for four more points - 
+                            // one 0.1 unit ahead, 0.1 unit back, 0.1 unit left and 0.1 unit right
+                            // If any of the four does not lead to ground and has collision in between, we won't go to ground
+                            Vector3 destLeft = GetDestinationVector(new Vector3(1, 0, 0), -0.5f, allowableDestVector);
+                            Vector3 collisionVectorGroundLeft = GetCollisionVector(new Vector3(destLeft.X, destLeft.Y + 2, destLeft.Z), new Vector3(destLeft.X, -100f, destLeft.Z));
+                            Vector3 desRight = GetDestinationVector(new Vector3(1, 0, 0), 0.5f, allowableDestVector);
+                            Vector3 collisionVectorGroundRight = GetCollisionVector(new Vector3(desRight.X, desRight.Y + 2, desRight.Z), new Vector3(desRight.X, -100f, desRight.Z));
+                            Vector3 destBack = GetDestinationVector(new Vector3(0, 0, 1), -0.5f, allowableDestVector);
+                            Vector3 collisionVectorGroundBack = GetCollisionVector(new Vector3(destBack.X, destBack.Y + 2, destBack.Z), new Vector3(destBack.X, -100f, destBack.Z));
+                            Vector3 destFront = GetDestinationVector(new Vector3(0, 0, 1), 0.5f, allowableDestVector);
+                            Vector3 collisionVectorGroundFront = GetCollisionVector(new Vector3(destFront.X, destFront.Y + 2, destFront.Z), new Vector3(destFront.X, -100f, destFront.Z));
+
+                            List<float> groundCollisionYPositionsForSurroundingPoints = new List<float> { collisionVectorGroundLeft.Y, collisionVectorGroundRight.Y, collisionVectorGroundBack.Y, collisionVectorGroundFront.Y };
+
+                            var maxYPositionForGroundCollisionForSurroundingPoints = groundCollisionYPositionsForSurroundingPoints.Max();
+                            if (maxYPositionForGroundCollisionForSurroundingPoints > collisionVectorGround.Y)
+                                collisionVectorGround.Y = maxYPositionForGroundCollisionForSurroundingPoints;
+                            else
+                            {
+                                //More Claibration: ???
+                            }
+                        }
+                    }
+                    if (collisionVectorGround.Y <= 0f)
+                        allowableDestVector.Y = collisionVectorGround.Y + 0.25f;
+                    else
+                        allowableDestVector.Y = collisionVectorGround.Y;
+                }
+            }
+        }
+
         private float Get2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn)
         {
             var x = v1.X * v2.Z - v2.X * v1.Z;
@@ -1393,6 +1399,15 @@ namespace Module.HeroVirtualTabletop.Movements
                 if (timer != null)
                     timer.Change(1, Timeout.Infinite);
             }
+        }
+
+        private void ResetMovement(Character target)
+        {
+            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
+            PlayMovementMember(stillMem, target);
+            target.MovementInstruction.IsMovingToDestination = false;
+            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
         }
 
         public void StopMovement(Character target)
@@ -1547,15 +1562,8 @@ namespace Module.HeroVirtualTabletop.Movements
                                     MovementMember downMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
                                     PlayMovementMember(downMem, target);
                                 }
-                                MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
-                                PlayMovementMember(stillMem, target);
-                                target.MovementInstruction.IsMovingToDestination = false;
-                                target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
-                                target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                                this.ResetMovement(target);
                                 this.StopMovement(target);
-                                //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                                //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_ENABLE_CAMERA_FILENAME);
-                                //keyBindsGenerator.CompleteEvent();
                             }
                             else
                             {
@@ -1574,11 +1582,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                         if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
                                         {
                                             target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
-                                            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
-                                            PlayMovementMember(stillMem, target);
-                                            target.MovementInstruction.IsMovingToDestination = false;
-                                            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
-                                            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                                            this.ResetMovement(target);
                                             this.StopMovement(target);
                                         }
                                         else
@@ -1588,11 +1592,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                     {
                                         if (target.MovementInstruction.StopOnCollision)
                                         {
-                                            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
-                                            PlayMovementMember(stillMem, target);
-                                            target.MovementInstruction.IsMovingToDestination = false;
-                                            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
-                                            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                                            this.ResetMovement(target);
                                             this.StopMovement(target);
                                         }
                                     }
