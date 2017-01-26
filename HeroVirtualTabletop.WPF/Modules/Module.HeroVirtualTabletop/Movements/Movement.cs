@@ -770,7 +770,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
             // Enable gravity if applicable
             if(this.HasGravity)
-                this.ApplyGravityToDestinationPoint(target, allowableDestVector);
+                this.ApplyGravityToDestinationPoint(target, ref allowableDestVector);
             //// Preventing going to absurd locations
             //var finalDistance = Vector3.Distance(currentPositionVector, allowableDestVector);
             //if (finalDistance > 5f)
@@ -1313,7 +1313,7 @@ namespace Module.HeroVirtualTabletop.Movements
             return bodyPart;
         }
 
-        private void ApplyGravityToDestinationPoint(Character target, Vector3 allowableDestVector)
+        private void ApplyGravityToDestinationPoint(Character target, ref Vector3 allowableDestVector)
         {
             if (allowableDestVector.Y > 0 && !target.MovementInstruction.IsPositionAdjustedToAvoidCollision && (target.MovementInstruction.CurrentMovementDirection != MovementDirection.Upward && target.MovementInstruction.CurrentMovementDirection != MovementDirection.Downward))
             {
