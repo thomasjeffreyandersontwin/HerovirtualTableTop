@@ -369,9 +369,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 AddDesktopTargetToRosterSelection(character);
         }
 
-        void desktopContextMenu_ActivateMenuItemSelected(object sender, EventArgs e)
+        private void desktopContextMenu_ActivateMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
-            this.ToggleActivateCharacter();
+            Character character = e.Value as Character;
+            if (character != null)
+                this.ToggleActivateCharacter(character);
         }
 
         private void desktopContextMenu_ActivateCharacterOptionMenuItemSelected(object sender, CustomEventArgs<Object> e)
