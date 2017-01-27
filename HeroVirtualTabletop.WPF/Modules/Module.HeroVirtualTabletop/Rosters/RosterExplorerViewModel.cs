@@ -382,7 +382,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 Character character = parameters[0] as Character;
                 string optionGroupName = parameters[1] as string;
                 string optionName = parameters[2] as string;
-                this.ActivateCharacter(character, optionGroupName, optionName);
+                this.ToggleActivateCharacter(character, optionGroupName, optionName);
             }
         }
         private void InitializeCommands()
@@ -1302,6 +1302,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else
                 {
+                    if (this.ActiveCharacter != null)
+                        DeactivateCharacter(this.ActiveCharacter as Character);
                     ActivateCharacter(character, selectedOptionGroupName, selectedOptionName);
                 }
 
@@ -1341,7 +1343,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void DeactivateCharacter(Character character = null)
         {
-            Action action = delegate()
+            //Action action = delegate()
             {
                 if (character == null)
                     if (SelectedParticipants.Count == 0)
@@ -1362,7 +1364,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
 
             };
-            Application.Current.Dispatcher.BeginInvoke(action);
+            //Application.Current.Dispatcher.BeginInvoke(action);
         }
 
         #endregion

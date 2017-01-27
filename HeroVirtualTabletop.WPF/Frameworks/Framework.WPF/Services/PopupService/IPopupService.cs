@@ -18,8 +18,8 @@ namespace Framework.WPF.Services.PopupService
         void ShowDialog(string key, BaseViewModel viewModel, string title, bool isModal, Action<CancelEventArgs> winClosing = null, System.Windows.Media.SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.Ignore);
         void ShowDialog(string key, BaseViewModel viewModel, string title, Dictionary<string, object> ctrlPropertiesToSet,
             Dictionary<string, object> windowPropertiesToSet, bool isModal, Action<CancelEventArgs> winClosing = null, System.Windows.Media.SolidColorBrush background = null, System.Windows.Style customStyle = null, WindowStartupLocation location = WindowStartupLocation.CenterOwner, WindowLocation customLocation = WindowLocation.Ignore);
-        void SavePosition(string key);
-        object GetPosition(string key);
+        void SavePosition(string primaryKey, params string[] secondaryKeys);
+        object GetPosition(string primaryKey, params string[] secondaryKeys);
         void CloseDialog(string key);
         bool IsOpen(string key);
     }

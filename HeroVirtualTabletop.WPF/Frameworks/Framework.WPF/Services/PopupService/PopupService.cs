@@ -291,16 +291,17 @@ namespace Framework.WPF.Services.PopupService
             return openedPopups.ContainsKey(key);
         }
 
-        public void SavePosition(string key)
+        public void SavePosition(string primaryKey, params string[] secondaryKeys)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException("key");
-            if(openedPopups.ContainsKey(key))
+            if (string.IsNullOrEmpty(primaryKey))
+                throw new ArgumentNullException("primaryKey");
+            if (openedPopups.ContainsKey(primaryKey))
             {
-                Window window = openedPopups[key];
+                Window window = openedPopups[primaryKey];
                 double left = window.Left;
                 double top = window.Top;
                 double[] positionArray = new double[] { left, top };
+                string key = ConstructPopupKey(primaryKey, secondaryKeys);
                 if (savedPositions.ContainsKey(key))
                     savedPositions[key] = positionArray;
                 else
@@ -308,13 +309,26 @@ namespace Framework.WPF.Services.PopupService
             }
         }
 
-        public object GetPosition(string key)
+        public object GetPosition(string primaryKey, params string[] secondaryKeys)
         {
-            if (string.IsNullOrEmpty(key))
-                throw new ArgumentNullException("key");
+            if (string.IsNullOrEmpty(primaryKey))
+                throw new ArgumentNullException("primaryKey");
+            string key = ConstructPopupKey(primaryKey, secondaryKeys);
             if (savedPositions.ContainsKey(key))
                 return savedPositions[key];
             return null;
+        }
+
+        private string ConstructPopupKey(string primaryKey, params string[] secondaryKeys)
+        {
+            string key = primaryKey;
+            if(secondaryKeys != null && secondaryKeys.Length > 0)
+            {
+                foreach (var secKey in secondaryKeys)
+                    key += "|" + secKey;
+            }
+
+            return key;
         }
     }
 }

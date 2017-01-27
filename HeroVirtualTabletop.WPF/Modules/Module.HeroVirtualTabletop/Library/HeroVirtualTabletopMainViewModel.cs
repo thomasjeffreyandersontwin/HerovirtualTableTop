@@ -117,7 +117,7 @@ namespace Module.HeroVirtualTabletop.Library
                 var desktopWorkingArea = System.Windows.SystemParameters.WorkArea;
                 double left = desktopWorkingArea.Right - 500;
                 double top = desktopWorkingArea.Bottom - 80 * character.OptionGroups.Count;
-                object savedPos = PopupService.GetPosition("ActiveCharacterWidgetView");
+                object savedPos = PopupService.GetPosition("ActiveCharacterWidgetView", character.Name);
                 if(savedPos != null)
                 {
                     double[] posArray = (double[])savedPos;
@@ -181,7 +181,8 @@ namespace Module.HeroVirtualTabletop.Library
 
         private void CloseActiveCharacterWidget(object state)
         {
-            PopupService.SavePosition("ActiveCharacterWidgetView");
+            Character target = state as Character;
+            PopupService.SavePosition("ActiveCharacterWidgetView", target != null ? target.Name : null);
             PopupService.CloseDialog("ActiveCharacterWidgetView");
         }
         
