@@ -442,6 +442,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
         ISoundEngine engine;
+        ISound music;
 
         public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
@@ -468,11 +469,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             engine.SetListenerPosition(camPositionVector.X, camPositionVector.Y, camPositionVector.Z, 0, 0, 1);
             engine.Default3DSoundMinDistance = 10f;
-            ISound music = engine.Play3D(soundFileName,
+            music = engine.Play3D(soundFileName,
                                          targetPositionVector.X, targetPositionVector.Y, targetPositionVector.Z, playLooped);
             if(playLooped)
             {
-                timer = new Timer(this.timer_Callback, null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+                timer = new Timer(this.timer_Callback, target, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
                 CancellationToken tokenSrc = new CancellationToken();
                 Task.Factory.StartNew(() => 
                 {
@@ -486,8 +487,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void timer_Callback(object state)
         {
-            if(this.IsActive)
+            if(this.IsActive && music != null && state is Character)
             {
+                Character target = state as Character;
+                music.Position = new Vector3D(target.CurrentPositionVector.X, target.CurrentPositionVector.Y, target.CurrentPositionVector.Z); 
                 Vector3 camPositionVector2 = new Camera().GetPositionVector();
                 engine.SetListenerPosition(camPositionVector2.X, camPositionVector2.Y, camPositionVector2.Z, 0, 0, 1);
                 timer.Change(500, System.Threading.Timeout.Infinite);
@@ -505,6 +508,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 timer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
             if (engine != null)
                 engine.StopAllSounds();
+            music = null;
         }
 
         protected override AnimationResource GetResource()

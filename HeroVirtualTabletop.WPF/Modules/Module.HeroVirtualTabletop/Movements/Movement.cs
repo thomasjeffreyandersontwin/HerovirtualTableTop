@@ -658,13 +658,13 @@ namespace Module.HeroVirtualTabletop.Movements
             float distanceFromCollisionPoint = 0f;
             Vector3 collisionBodyPoint = new Vector3();
             bool needToCheckAdjustment = false;
-            //logManager.Info(string.Format("Current position: {0}, {1}, {2}", currentPositionVector.X, currentPositionVector.Y, currentPositionVector.Z));
+            // logManager.Info(string.Format("Current position: {0}, {1}, {2}", currentPositionVector.X, currentPositionVector.Y, currentPositionVector.Z));
             if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f) // Need to recalculate next collision point
             {
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
-                //logManager.Info(string.Format("recalculating collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
+                // logManager.Info(string.Format("recalculating collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
