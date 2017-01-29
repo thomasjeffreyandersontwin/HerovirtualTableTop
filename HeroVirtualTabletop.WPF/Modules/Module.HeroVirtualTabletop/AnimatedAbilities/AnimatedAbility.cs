@@ -416,7 +416,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (unitPauseElement != null)
             {
                 DelayManager delayManager = new DelayManager(unitPauseElement);
-                attackDelay = (int)delayManager.GetDelayForDistance(distance);
+                attackDelay = (int)delayManager.GetDelayForDistance(distance); //here
             }
             AnimateAttack(direction, attackingCharacter);
             System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
