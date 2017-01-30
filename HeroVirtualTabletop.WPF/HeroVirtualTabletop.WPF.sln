@@ -31,7 +31,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shell", "Shell", "{4AEEE9A1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroVirtualTabletop.Shell", "Shell\HeroVirtualTableTop.Shell\HeroVirtualTabletop.Shell.csproj", "{EC8D3F38-CB3A-4E73-AC17-759DC0B26045}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Refactored", "Refactored\Refactored.csproj", "{0683E638-EE3E-40E8-BF99-044F9F0E054F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroVirtualTableTop", "HeroVirtualTableTop\HeroVirtualTableTop.csproj", "{0683E638-EE3E-40E8-BF99-044F9F0E054F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{82861692-EE8C-46B0-9CB2-2B2FB2F671D7}"
 EndProject

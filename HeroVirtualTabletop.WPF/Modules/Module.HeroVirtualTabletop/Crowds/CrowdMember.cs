@@ -94,7 +94,9 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public virtual void Place(IMemoryElementPosition position = null)
         {
-            if (!this.HasBeenSpawned)
+            this.Target();
+            if( new MemoryElement().Position == null || new MemoryElement().Position.Pointer != this.Position.Pointer
+                ||this.HasBeenSpawned)
             {
                 this.Spawn();
             }
