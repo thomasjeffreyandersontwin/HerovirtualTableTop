@@ -140,6 +140,7 @@
     <Compile Include="Attack\AttackDistanceDelayManager.cs" />
     <Compile Include="Attack\AttackIntefaces.cs" />
     <Compile Include="Attack\AttackTestsuite.cs" />
+    <Compile Include="Common\OrderedCollection.cs" />
     <Compile Include="Desktop\Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Crowd\Crowd.cs" />
@@ -159,6 +160,9 @@
     <Compile Include="ManagedCharacter\ManagedCharacter.cs" />
     <Compile Include="ManagedCharacter\ManagedCharacterInterfaces.cs" />
     <Compile Include="ManagedCharacter\ManagedCharacterTestSuite.cs" />
+    <Compile Include="Roster\Roster.cs" />
+    <Compile Include="Roster\RosterInterfaces.cs" />
+    <Compile Include="Roster\RosterTestSuite.cs" />
     <Compile Include="Settings.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>

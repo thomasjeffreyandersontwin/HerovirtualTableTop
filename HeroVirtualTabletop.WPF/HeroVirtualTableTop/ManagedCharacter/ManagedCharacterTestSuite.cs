@@ -335,7 +335,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             //assert - camera has assumed character identity
             var idMocker = Mock.Get(cameraUnderTest.Identity);
-            idMocker.Verify(x => x.Render(true));
+            idMocker.Verify(x => x.Play(true));
             Assert.AreEqual(cameraUnderTest.Identity, characterUnderTest.Identities.Active);
         }
     }
@@ -358,7 +358,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             var id = TestObjectsFactory.CostumedIdentityUnderTest;
 
             //act
-            id.Render();
+            id.Play();
 
             //assert
             var mocker = Mock.Get(id.Generator);
@@ -373,7 +373,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             var id = TestObjectsFactory.ModelIdentityUnderTest;
 
             //act
-            id.Render();
+            id.Play();
 
             //assert
             var mocker = Mock.Get(id.Generator);
@@ -440,7 +440,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             var idList = TestObjectsFactory.IdentityListUnderTest;
             var id = TestObjectsFactory.ModelIdentityUnderTest;
             //act
-            idList.Insert(id);
+            idList.InsertElement(id);
             //assert
             Assert.AreEqual(idList.Owner, id.Owner);
             Assert.AreEqual(idList[idList.Count], id);
@@ -456,7 +456,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             var afterId = idList[3];
             var idToAdd = TestObjectsFactory.ModelIdentityUnderTest;
             //act
-            idList.InsertAfter(idToAdd, prevId);
+            idList.InsertElementAfter(idToAdd, prevId);
 
             Assert.AreEqual(idToAdd.Order, prevId.Order + 1);
             Assert.AreEqual(idList[prevId.Order + 1], idToAdd);
@@ -474,7 +474,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             var lastId = idList[idList.Count];
             var lastOrder = lastId.Order;
             //act
-            idList.RemoveAction(delId);
+            idList.RemoveElement(delId);
             //assert
             Assert.IsFalse(idList.ContainsKey(delId.Name));
             Assert.AreEqual(lastId.Order, lastOrder - 1);
@@ -507,7 +507,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             {
                 return StandardizedFixture.Build<ManagedCharacterImpl>()
                     .Do(
-                        c => c.Identities.AddMany(
+                        c => c.Identities.InsertMany(
                             StandardizedFixture.Build<Identity>()
                                 .With(y => y.Owner, c).CreateMany().ToList()
                         )
@@ -548,7 +548,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             {
                 return StandardizedFixture.Build<CharacterActionListImpl<Identity>>()
                     .With(x => x.Type, CharacterActionType.Identity)
-                    .Do(x => x.AddMany(StandardizedFixture.CreateMany<Identity>().ToList()))
+                    .Do(x => x.InsertMany(StandardizedFixture.CreateMany<Identity>().ToList()))
                     .Create();
             }
         }

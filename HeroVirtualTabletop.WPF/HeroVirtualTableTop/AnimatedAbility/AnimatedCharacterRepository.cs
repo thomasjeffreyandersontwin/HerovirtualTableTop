@@ -5,7 +5,7 @@ using HeroVirtualTableTop.Crowd;
 
 namespace HeroVirtualTableTop.AnimatedAbility
 {
-    internal class AnimatedCharacterRepositoryImpl : CrowdRepositoryImpl, AnimatedCharacterRepository
+    public class AnimatedCharacterRepositoryImpl :  AnimatedCharacterRepository
     {
         public AnimatedCharacterRepositoryImpl()
         {
@@ -18,10 +18,5 @@ namespace HeroVirtualTableTop.AnimatedAbility
         }
 
         public List<AnimatedCharacter> Characters { get; }
-
-        public AnimatedCharacter NewCrowd(string name = "Character")
-        {
-            throw new NotImplementedException();
-        }
     }
 }

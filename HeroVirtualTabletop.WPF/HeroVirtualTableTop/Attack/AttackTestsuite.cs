@@ -440,6 +440,7 @@ namespace HeroVirtualTableTop.Attack
                     typeof(AnimatedAttackImpl)));
         }
 
+        public AnimatedAttack MockAttack => CustomizedMockFixture.Create<AnimatedAttack>(); 
         public AnimatedAttack AttackUnderTestWithMockCharacter
         {
             get
@@ -472,7 +473,7 @@ namespace HeroVirtualTableTop.Attack
                 var attack = AttackUnderTestWithMockCharacter;
                 attack.OnHitAnimation = null;
                 var element = CustomizedMockFixture.Create<AnimationElement>();
-                attack.InsertAnimationElement(element);
+                attack.InsertElement(element);
                 return attack;
             }
         }
@@ -493,7 +494,7 @@ namespace HeroVirtualTableTop.Attack
             {
                 var ability = AttackUnderTestWithCharacterUnderTest;
                 var fx2 = FxElementUnderTestWithAnimatedCharacter;
-                ability.InsertAnimationElement(fx2);
+                ability.InsertElement(fx2);
                 fx2.IsDirectional = true;
                 return ability;
             }
@@ -509,7 +510,7 @@ namespace HeroVirtualTableTop.Attack
                 pauseElementUnderTest.DistanceDelayManager = MockDistanceDelayManager;
                 pauseElementUnderTest.Duration = 100;
                 pauseElementUnderTest.IsUnitPause = true;
-                ability.InsertAnimationElement(pauseElementUnderTest);
+                ability.InsertElement(pauseElementUnderTest);
 
                 return ability;
             }
@@ -542,7 +543,7 @@ namespace HeroVirtualTableTop.Attack
                 var repo =
                     AnimatedCharacterRepositoryWithDefaultAbilitiesLoadedAndCharacterUnderTestWithCustomizedDodge;
                 foreach (var defender in defenders)
-                    defender.CrowdRepository = repo;
+                    defender.Repository = repo;
 
                 return defenders;
             }
@@ -580,7 +581,7 @@ namespace HeroVirtualTableTop.Attack
                     .With(x => x.Target, attacker)
                     .Create();
                 var list = MockAnimationElementList;
-                attack.OnHitAnimation.InsertManyAnimationElements(list);
+                attack.OnHitAnimation.InsertMany(list);
                 return attack;
             }
         }
@@ -589,7 +590,7 @@ namespace HeroVirtualTableTop.Attack
         {
             var ability = MockAnimatedAbility;
             ability.Name = name;
-            character.Abilities.Insert(ability);
+            character.Abilities.InsertElement(ability);
         }
     }
 }

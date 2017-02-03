@@ -1,9 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Windows.Media;
+using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.Crowd;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
-
+using HeroVirtualTableTop.Attack;
 namespace HeroVirtualTableTop.AnimatedAbility
 {
     public interface AnimatedCharacterCommands
@@ -15,44 +16,35 @@ namespace HeroVirtualTableTop.AnimatedAbility
     public class DefaultAbilities
     {
         public static string UnderAttack => "UnderAttack";
-
         public static string Strike => "Strike";
-
         public static string Dodge => "Dodge";
-
         public static string Stunned => "Stunned";
-
         public static string Unconsious => "Unconsious";
-
         public static string Hit => "Hit";
-
         public static string Miss => "Miss";
-
         public static string Dead => "Dead";
-
         public static string Dying => "Dying";
-
         public static string CharacterName => "Default";
     }
 
 
-    public interface AnimatedCharacterRepository : CrowdRepository
+    public interface AnimatedCharacterRepository
     {
         Dictionary<string, AnimatedCharacter> CharacterByName { get; }
         List<AnimatedCharacter> Characters { get; }
-        AnimatedCharacter NewCrowd(string name = "Character");
+        
     }
 
-    public interface AnimatedCharacter : AnimatedCharacterCommands, CharacterCrowdMember
+    public interface AnimatedCharacter : AnimatedCharacterCommands, ManagedCharacter.ManagedCharacter
     {
-        AnimatedCharacterRepository Repository { get; }
+        AnimatedCharacterRepository Repository { get; set; }
         List<FXElement> LoadedFXs { get; }
         CharacterActionList<AnimatedAbility> Abilities { get; }
         List<AnimatedAbility> ActivePersistentAbilities { get; }
         List<AnimatableCharacterState> ActiveStates { get; }
 
         bool IsActive { get; set; }
-        AnimatedAbility ActiveAttack { get; set; }
+        AnimatedAttack ActiveAttack { get; set; }
 
         Position Facing { get; set; }
         void PlayExternalAnimatedAbility(AnimatedAbility ability);
@@ -63,20 +55,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         void ResetAllAbiltitiesAndState();
         void RemoveStateByName(string name);
         void TurnTowards(Position position);
-    }
-
-    public enum AnimatableCharacterStateType
-    {
-        Stunned = 1,
-        Unconsious = 2,
-        Dead = 3,
-        Dying = 4,
-        KnockBacked = 5,
-        KnockedDown = 6,
-        Attacking = 7,
-        Targeted = 8,
-        Selected = 9,
-        Active = 10
     }
 
     public interface AnimatableCharacterState
@@ -97,8 +75,8 @@ namespace HeroVirtualTableTop.AnimatedAbility
     public interface AnimatableCharacterStateRepository
     {
         AnimatableCharacterStateRepository Instance { get; set; }
-        Dictionary<AnimatableCharacterStateType, AnimatableCharacterState> AnimatableCharacterStates { get; set; }
-        AnimatableCharacterState CreateStateFor(AnimatedCharacter character, AnimatableCharacterStateType state);
+        //Dictionary<AnimatableCharacterStateType, AnimatableCharacterState> AnimatableCharacterStates { get; set; }
+        AnimatableCharacterState CreateStateFor(AnimatedCharacter character, AnimatableCharacterState state);
     }
 
     public enum SequenceType
@@ -107,32 +85,33 @@ namespace HeroVirtualTableTop.AnimatedAbility
         Or = 2
     }
 
-    public interface AnimationSequence
+    public interface AnimationSequencer 
     {
         SequenceType Type { get; set; }
         List<AnimationElement> AnimationElements { get; }
 
-        void InsertManyAnimationElements(List<AnimationElement> animationElements);
-        void InsertAnimationElement(AnimationElement animationElement);
-        void RemoveAnimationElement(AnimationElement animationElement);
-        void InsertAnimationElementAfter(AnimationElement toInsert, AnimationElement moveAfter);
+        void InsertMany(List<AnimationElement> animationElements);
+        void InsertElement(AnimationElement toInsert);
+        void RemoveElement(AnimationElement animationElement);
+        void InsertElementAfter(AnimationElement toInsert, AnimationElement moveAfter);
         void Stop(AnimatedCharacter target);
         void Play(AnimatedCharacter target);
         void Play(List<AnimatedCharacter> target);
     }
 
-    public interface AnimatedAbility : AnimationSequence, CharacterAction
+    public interface AnimatedAbility : AnimationSequencer, CharacterAction
     {
         AnimatedCharacter Target { get; set; }
         string KeyboardShortcut { get; set; }
-        bool Persistent { get; set; }
-        AnimationSequence Sequencer { get; }
+        bool Persistant { get; set; }
+        AnimationSequencer Sequencer { get; }
         AnimatedAbility StopAbility { get; set; }
-        void Play();
+        
         new void Play(AnimatedCharacter target);
         new void Play(List<AnimatedCharacter> targets);
         void Stop();
         AnimatedAbility Clone(AnimatedCharacter target);
+       
     }
 
     public interface AnimatedAbilityRepository
@@ -150,7 +129,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
     public interface AttackInstructions
     {
         AnimatedCharacter defender { get; set; }
-        List<AnimatableCharacterStateType> Impacts { get; set; }
+        List<AnimatableCharacterState> Impacts { get; set; }
         int KnockbackDistance { get; set; }
         bool AttackHit { get; set; }
     }
@@ -162,23 +141,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         Air = 3
     }
 
-    public interface AnimatedAttack : AnimatedAbility
-    {
-        AttackInstructions ActiveAttack { get; set; }
-        AnimatedAbility AttackAnimation { get; set; }
-        AnimatedAbility OnHitAnimation { get; set; }
-        AnimatedAbility OnMissAnimation { get; set; }
-        Position Direction { get; set; }
-
-        void StartAttackCycle();
-        KnockbackCollisionInfo PlayCompleteAttackCycle(AttackInstructions instructions);
-        KnockbackCollisionInfo CompleteTheAttackCycle(AttackInstructions instructions);
-
-        void AnimateAttack();
-        void AnimateMiss();
-        void AnimateHit();
-        KnockbackCollisionInfo AnimateKnockBack();
-    }
+    
 
     public interface KnockbackCollisionInfo
     {
@@ -203,10 +166,10 @@ namespace HeroVirtualTableTop.AnimatedAbility
         new List<KnockbackCollisionInfo> CompleteTheAttackCycle(AttackInstructions instructions);
     }
 
-    public interface AnimationElement
+    public interface AnimationElement : OrderedElement
     {
-        AnimationSequence ParentSequence { get; set; }
-        int Order { get; set; }
+        AnimationSequencer ParentSequence { get; set; }
+       
 
         AnimatedCharacter Target { get; set; }
 
@@ -271,9 +234,9 @@ namespace HeroVirtualTableTop.AnimatedAbility
         Color Resource { get; set; }
     }
 
-    public interface SequenceElement : AnimationElement, AnimationSequence
+    public interface SequenceElement : AnimationElement, AnimationSequencer
     {
-        AnimationSequence Sequencer { get; }
+        AnimationSequencer Sequencer { get; }
     }
 
     public interface PauseElement : AnimationElement
@@ -344,7 +307,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         string FullResourcePath { get; set; }
     }
 
-    public interface MovResource
+    public interface MovResource: AnimatedResource
     {
         string FullResourcePath { get; set; }
     }

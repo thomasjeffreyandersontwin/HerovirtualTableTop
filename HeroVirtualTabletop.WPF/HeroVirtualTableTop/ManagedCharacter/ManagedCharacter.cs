@@ -1,6 +1,6 @@
 ﻿using Framework.WPF.Library;
 using HeroVirtualTableTop.Desktop;
-
+using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
     public class ManagedCharacterImpl : NotifyPropertyChanged, ManagedCharacter
@@ -34,7 +34,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         public Position Position => MemoryInstance.Position;
 
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
 
         public virtual string DesktopLabel
         {
@@ -200,7 +200,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             var active = Identities.Active;
             Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "model_statesmen", spawnText);
-            active.Render();
+            active?.Play();
         }
 
         public void ClearFromDesktop(bool completeEvent = true)

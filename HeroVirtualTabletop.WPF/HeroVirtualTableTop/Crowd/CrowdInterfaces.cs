@@ -1,7 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
+using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
+using HeroVirtualTableTop.Common;
+using HeroVirtualTableTop.Roster;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -9,9 +12,8 @@ namespace HeroVirtualTableTop.Crowd
     {
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
     }
-
-
-    public interface CrowdRepository
+    
+    public interface CrowdRepository : AnimatedCharacterRepository
     {
         Dictionary<string, Crowd> CrowdsByName { get; }
         List<Crowd> Crowds { get; set; }
@@ -21,7 +23,6 @@ namespace HeroVirtualTableTop.Crowd
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
         string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context);
     }
-
     public interface Crowd : CrowdMember
     {
         bool UseRelativePositioning { get; set; }
@@ -36,13 +37,11 @@ namespace HeroVirtualTableTop.Crowd
         void AddCrowdMember(CrowdMember member);
         void RemoveMember(CrowdMember member);
     }
-
     public interface CharacterCrowdMember : ManagedCharacter.ManagedCharacter, CrowdMember
     {
         new string Name { get; set; }
     }
-
-    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands
+    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands, RosterParticipant
     {
         int Order { get; set; }
         bool MatchesFilter { get; set; }
@@ -60,7 +59,6 @@ namespace HeroVirtualTableTop.Crowd
 
         void RemoveParent(CrowdMember crowdMember);
     }
-
     public interface CrowdMemberShip
     {
         int Order { get; set; }
@@ -68,16 +66,12 @@ namespace HeroVirtualTableTop.Crowd
         CrowdMember Child { get; set; }
         Position SavedPosition { get; set; }
     }
-
-
-    public interface CrowdMemberCommands
+    public interface CrowdMemberCommands: ManagedCharacterCommands
     {
         void SaveCurrentTableTopPosition();
         void PlaceOnTableTop(Position position = null);
         void PlaceOnTableTopUsingRelativePos();
     }
-
-
     public interface CrowdClipboard
     {
         void CopyToClipboard(CrowdMember member);

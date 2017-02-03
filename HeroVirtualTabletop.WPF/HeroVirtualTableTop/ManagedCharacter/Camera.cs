@@ -53,7 +53,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
                     _manueveringCharacter.ClearFromDesktop();
                     Identity = value.Identities.Active;
-                    Identity.Render();
+                    Identity.Play();
                 }
             }
         }

@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using HeroVirtualTableTop.Desktop;
-
+using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
-    public class CharacterActionListImpl<T> : Dictionary<string, T>, CharacterActionList<T> where T : CharacterAction
+    public class CharacterActionListImpl<T> : OrderedCollectionImpl<T> , CharacterActionList<T> where T : CharacterAction
     {
         private T _active;
         private T _default;
@@ -20,15 +20,9 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
 
         public KeyBindCommandGenerator Generator { get; set; }
-
-        private Dictionary<int, T> ListByOrder
-        {
-            get { return (from action in Values orderby action.Order select action).ToDictionary(x => x.Order); }
-        }
-
-        public IEnumerator<T> ByOrder => ListByOrder.Values.GetEnumerator();
-
-        public ManagedCharacter Owner { get; }
+        
+        
+        public virtual ManagedCharacter Owner { get; }
 
         public CharacterActionType Type { get; set; }
 
@@ -99,48 +93,11 @@ namespace HeroVirtualTableTop.ManagedCharacter
             return $"{name}{suffix}".Trim();
         }
 
-        public T this[int order]
-        {
-            get { return ListByOrder[order]; }
-            set { ListByOrder[order] = value; }
-        }
-
-        public void AddMany(List<T> list)
-        {
-            foreach (var item in list)
-                Insert(item);
-        }
-
-        public void Insert(T action)
+        public override void InsertElement(T action)
         {
             action.Owner = Owner;
             action.Generator = Generator;
-            var count = 0;
-            if (ListByOrder != null && ListByOrder.Count > 0)
-                count = ListByOrder.Last().Key;
-            action.Order = count + 1;
-            Add(action.Name, action);
-        }
-
-        public void InsertAfter(T actionToInsert, T precedingAction)
-        {
-            var precedingOrder = precedingAction.Order;
-            foreach (var action in ListByOrder.Reverse())
-                if (action.Key > precedingOrder)
-                {
-                    action.Value.Order++;
-                    ListByOrder[action.Value.Order] = action.Value;
-                }
-            actionToInsert.Order = precedingOrder + 1;
-            ListByOrder[actionToInsert.Order] = actionToInsert;
-            Add(actionToInsert.Name, actionToInsert);
-        }
-
-        public void RemoveAction(T actionToRemove)
-        {
-            var deletedOrder = actionToRemove.Order;
-            Remove(actionToRemove.Name);
-            ListByOrder.Values.ToList().Where(c => c.Order > deletedOrder).ToList().ForEach(c => c.Order--);
+            base.InsertElement(action);
         }
 
         public T AddNew(T newAction)
@@ -162,7 +119,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             foreach (var anAction in Values)
             {
                 var clone = (T) anAction.Clone();
-                cloneList.Insert(clone);
+                cloneList.InsertElement(clone);
             }
             return cloneList;
         }
@@ -182,7 +139,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Generator = generator;
             KeyboardShortcut = shortcut;
         }
-
+        public virtual ManagedCharacter Owner { get; set; }
         protected CharacterActionImpl()
         {
         }
@@ -192,9 +149,9 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         public string Name { get; set; }
         public int Order { get; set; }
-        public ManagedCharacter Owner { get; set; }
+        
 
         public abstract CharacterAction Clone();
-        public abstract void Render(bool completeEvent = true);
+        public abstract void Play(bool completeEvent=true);
     }
 }

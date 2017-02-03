@@ -4,6 +4,7 @@ using HeroSystemEngine.HeroVirtualTableTop.Crowd;
 using HeroSystemEngine.HeroVirtualTableTop.ManagedCharacter;
 using HeroSystemEngine.HeroVirtualTableTop.MoveableCharacter;
 using HeroSystemEngine.HeroVirtualTableTop.ThreeDeeSpace;
+using HeroVirtualTableTop.Crowd;
 using ThreeDeePositioner = HeroSystemEngine.HeroVirtualTableTop.Desktop.ThreeDeePositioner;
 
 namespace HeroSystemEngine.HeroVirtualTableTop.ThreeDeeSpace
@@ -147,7 +148,7 @@ namespace HeroSystemEngine.HeroVirtualTableTop.ManagedCharacter
         ManagedCharacter Character { get; set; }
         KeyBindCommandGenerator Generator { get; }
         SurfaceType Type { get; set; }
-        void Render();
+        void Play();
     }
 
     public interface CharacterProgressBarStats
@@ -199,19 +200,27 @@ namespace HeroSystemEngine.HeroVirtualTableTop.Crowd
 
     public interface Roster : ManagedCharacterCommands, CrowdMemberCommands, AnimatedCharacterCommands
     {
-        Dictionary<string, CharacterCrowd> Crowds { get; set; }
-        Dictionary<string, AnimatedCharacter.AnimatedCharacter> Participants { get; set; }
+        List<CharacterCrowd> Crowds { get; }
+        List<CharacterCrowdMember> Participants { get; }
+        Dictionary<string, CharacterCrowd> CrowdsByName { get;}
+        Dictionary<string, CharacterCrowdMember> ParticipantsByName { get;} 
 
-        List<CrowdMembership> SelectedParticipants { get; set; }
+        List<CharacterCrowdMember> SelectedParticipants { get; set; }
 
-        CrowdMember ActiveCharacter { get; set; }
-        void AddMemberToSelection(CrowdMembership member);
-        void RemoveMemberFromSelection(CrowdMembership member);
-        void ClearMembersFromSelection();
-        void ActivateCharacter(CrowdMember crowdMember);
-        void DeactivateCharacter(CrowdMember crowdMember);
-        void AddMember(AnimatedCharacter.AnimatedCharacter member);
-        void RemoveMember(AnimatedCharacter.AnimatedCharacter member);
+        CharacterCrowdMember ActiveCharacter { get; set; }
+        void SelectParticipants(CharacterCrowdMember participant);
+        void UnsSelectParticipant(CharacterCrowdMember participant);
+        void ClearAllSelections();
+        void SelectAllParticipants();
+        void ActivateCharacter(CharacterCrowdMember participant);
+        void DeactivateCharacter(CharacterCrowdMember participant);
+        void AddParticipant(CharacterCrowdMember participant);
+        void RemoveParticipant(CharacterCrowdMember participant);
+
+        void AddCrowd(CharacterCrowd crowd);
+        void RemoveCrowd(CharacterCrowd crowd);
+        void SelectCrowd(CharacterCrowd crowd);
+
     }
 
     public interface CrowdMembership
