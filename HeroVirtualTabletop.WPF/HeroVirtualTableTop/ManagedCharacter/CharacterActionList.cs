@@ -153,5 +153,9 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         public abstract CharacterAction Clone();
         public abstract void Play(bool completeEvent=true);
+        public void Stop(bool completeEvent = true)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

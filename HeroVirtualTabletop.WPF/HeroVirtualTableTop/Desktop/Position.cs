@@ -65,5 +65,6 @@ namespace HeroVirtualTableTop.Desktop
             return 0f;
         }
 
+        public Matrix RotationMatrix { get; }
     }
 }

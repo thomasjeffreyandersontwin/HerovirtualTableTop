@@ -218,6 +218,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
             //arrange
             var element = TestObjectsFactory.FxElementUnderTestWithAnimatedCharacter;
+            
             var characters = TestObjectsFactory.MockAnimatedCharacterList;
             foreach (var character in characters)
             {
@@ -273,6 +274,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
             //arrange
             var element = TestObjectsFactory.SoundElementUnderTest;
+            
             element.Target.MemoryInstance = TestObjectsFactory.MockMemoryInstance;
 
             //act
@@ -835,6 +837,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
                     .Without(x => x.Color4)
                     .Without(x => x.AttackDirection)
                     .Create();
+                fx.IsDirectional = false;
                 return fx;
             }
         }
@@ -850,6 +853,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
                     .With(x => x.Sound, MockSoundResource)
                     .With(x => x.ParentSequence, MockAnimatedAbility)
                     .Create();
+                s.Persistent = false;
                 return s;
             }
         }
