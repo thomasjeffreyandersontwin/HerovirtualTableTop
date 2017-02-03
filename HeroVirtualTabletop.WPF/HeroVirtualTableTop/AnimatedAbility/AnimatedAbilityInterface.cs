@@ -12,7 +12,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         void Activate();
         void DeActivate();
     }
-
     public class DefaultAbilities
     {
         public static string UnderAttack => "UnderAttack";
@@ -26,15 +25,12 @@ namespace HeroVirtualTableTop.AnimatedAbility
         public static string Dying => "Dying";
         public static string CharacterName => "Default";
     }
-
-
     public interface AnimatedCharacterRepository
     {
         Dictionary<string, AnimatedCharacter> CharacterByName { get; }
         List<AnimatedCharacter> Characters { get; }
         
     }
-
     public interface AnimatedCharacter : AnimatedCharacterCommands, ManagedCharacter.ManagedCharacter
     {
         AnimatedCharacterRepository Repository { get; set; }
@@ -44,6 +40,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         List<AnimatableCharacterState> ActiveStates { get; }
 
         bool IsActive { get; set; }
+        bool IsSelected { get; set; }
         AnimatedAttack ActiveAttack { get; set; }
 
         Position Facing { get; set; }
@@ -55,8 +52,8 @@ namespace HeroVirtualTableTop.AnimatedAbility
         void ResetAllAbiltitiesAndState();
         void RemoveStateByName(string name);
         void TurnTowards(Position position);
+        void RemoveActiveAttack();
     }
-
     public interface AnimatableCharacterState
     {
         AnimatedCharacter Target { get; set; }
@@ -71,7 +68,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         void RenderRemovalOfState();
     }
-
     public interface AnimatableCharacterStateRepository
     {
         AnimatableCharacterStateRepository Instance { get; set; }
@@ -84,7 +80,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         And = 1,
         Or = 2
     }
-
     public interface AnimationSequencer 
     {
         SequenceType Type { get; set; }
@@ -113,7 +108,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         AnimatedAbility Clone(AnimatedCharacter target);
        
     }
-
     public interface AnimatedAbilityRepository
     {
         AnimatedAbility NewAbility(AnimatedCharacter owner);
@@ -126,46 +120,8 @@ namespace HeroVirtualTableTop.AnimatedAbility
         ReferenceElement NewRefElement(AnimatedAbility parentAbility);
     }
 
-    public interface AttackInstructions
-    {
-        AnimatedCharacter defender { get; set; }
-        List<AnimatableCharacterState> Impacts { get; set; }
-        int KnockbackDistance { get; set; }
-        bool AttackHit { get; set; }
-    }
-
-    public enum KnockbackCollisionType
-    {
-        Wall = 1,
-        Floor = 2,
-        Air = 3
-    }
-
+   
     
-
-    public interface KnockbackCollisionInfo
-    {
-        KnockbackCollisionType Type { get; set; }
-        string CharacterName { get; set; }
-    }
-
-    public interface AreaAttackInstructions : AttackInstructions
-    {
-        List<AttackInstructions> IndividualTargetInstructions { get; set; }
-        AnimatedCharacter CenterTargetCharacter { get; set; }
-        Position AttackCenter { get; set; }
-        void AddDefenders(AnimatedCharacter defender);
-    }
-
-    public interface AreaEffectAttack : AnimatedAttack
-    {
-        new void StartAttackCycle();
-        List<KnockbackCollisionInfo> PlayCompleteAttackCycle(List<AttackInstructions> instructions);
-
-        AreaAttackInstructions DetermineTargetsFromPositionOfAttack(int radius, Position attackCenter);
-        new List<KnockbackCollisionInfo> CompleteTheAttackCycle(AttackInstructions instructions);
-    }
-
     public interface AnimationElement : OrderedElement
     {
         AnimationSequencer ParentSequence { get; set; }
@@ -186,12 +142,10 @@ namespace HeroVirtualTableTop.AnimatedAbility
         void DeactivatePersistent();
         AnimationElement Clone(AnimatedCharacter target);
     }
-
     public interface MovElement : AnimationElement
     {
         MovResource Mov { get; set; }
     }
-
     public interface SoundElement : AnimationElement
     {
         SoundResource Sound { get; set; }
@@ -201,7 +155,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         SoundEngineWrapper SoundEngine { get; set; }
         string SoundFileName { get; }
     }
-
     public interface SoundEngineWrapper
     {
         float Default3DSoundMinDistance { set; }
@@ -209,7 +162,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         void Play3D(string soundFilename, float posX, float posY, float posZ, bool playLooped);
         void StopAllSounds();
     }
-
     public interface FXElement : AnimationElement
     {
         FXResource FX { get; set; }
@@ -228,17 +180,14 @@ namespace HeroVirtualTableTop.AnimatedAbility
         bool IsDirectional { get; set; }
         void BuildCostumeFileThatWillPlayFX();
     }
-
     public interface ColorElement : AnimationElement
     {
         Color Resource { get; set; }
     }
-
     public interface SequenceElement : AnimationElement, AnimationSequencer
     {
         AnimationSequencer Sequencer { get; }
     }
-
     public interface PauseElement : AnimationElement
     {
         int Duration { get; set; }
@@ -250,21 +199,18 @@ namespace HeroVirtualTableTop.AnimatedAbility
         Position TargetPosition { get; set; }
         PauseBasedOnDistanceManager DistanceDelayManager { get; set; }
     }
-
     public interface PauseBasedOnDistanceManager
     {
         PauseElement PauseElement { get; set; }
         double Distance { get; set; }
         double Duration { get; }
     }
-
     public interface ReferenceElement : AnimationElement
     {
         AnimatedAbility Reference { get; set; }
 
         SequenceElement Copy(AnimatedCharacter destination);
     }
-
     public enum AnimationelEmentType
     {
         Mov,
@@ -274,7 +220,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
         Sequence,
         Pause
     }
-
     public interface AnimationElementRepository
     {
         List<SoundResource> SoundElements { get; set; }
@@ -296,22 +241,18 @@ namespace HeroVirtualTableTop.AnimatedAbility
         string Name { get; set; }
         string Tag { get; set; }
     }
-
     public interface SoundResource : AnimatedResource
     {
         string FullResourcePath { get; set; }
     }
-
     public interface FXResource : AnimatedResource
     {
         string FullResourcePath { get; set; }
     }
-
     public interface MovResource: AnimatedResource
     {
         string FullResourcePath { get; set; }
     }
-
     public interface ReferenceResource
     {
         AnimatedCharacter Character { get; set; }

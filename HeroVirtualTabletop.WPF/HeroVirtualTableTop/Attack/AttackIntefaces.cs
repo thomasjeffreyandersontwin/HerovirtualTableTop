@@ -12,7 +12,6 @@ namespace HeroVirtualTableTop.Attack
         bool AttackHit { get; set; }
         bool isCenterOfAreaEffectattack { get; set; }
     }
-
     public class AttackEffects
     {
         public static string Stunned => "Stunned";
@@ -27,14 +26,6 @@ namespace HeroVirtualTableTop.Attack
 
         public static string Dying => "Dying";
     }
-
-    public enum KnockbackCollisionType
-    {
-        Wall = 1,
-        Floor = 2,
-        Air = 3
-    }
-
     public interface AnimatedAttack : AnimatedAbility.AnimatedAbility
     {
         AnimatedAbility.AnimatedAbility OnHitAnimation { get; set; }
@@ -54,13 +45,7 @@ namespace HeroVirtualTableTop.Attack
 
         void FireAtDesktop(Position desktopPosition);
     }
-
-    public interface KnockbackCollisionInfo
-    {
-        KnockbackCollisionType Type { get; set; }
-        string CharacterName { get; set; }
-    }
-
+    
     public interface AreaAttackInstructions : AttackInstructions
     {
         List<AttackInstructions> IndividualTargetInstructions { get; }
@@ -70,7 +55,6 @@ namespace HeroVirtualTableTop.Attack
         List<AnimatedCharacter> DefendersMissed { get; }
         AttackInstructions AddTarget(AnimatedCharacter defender);
     }
-
     public interface AreaEffectAttack : AnimatedAttack
     {
         List<KnockbackCollisionInfo> Attack(List<AttackInstructions> instructions);
@@ -79,4 +63,17 @@ namespace HeroVirtualTableTop.Attack
         List<KnockbackCollisionInfo> PlayCompleteAttackCycle(AreaAttackInstructions instructions);
         List<KnockbackCollisionInfo> CompleteTheAttackCycle(AreaAttackInstructions instructions);
     }
+
+    public enum KnockbackCollisionType
+    {
+        Wall = 1,
+        Floor = 2,
+        Air = 3
+    }
+    public interface KnockbackCollisionInfo
+    {
+        KnockbackCollisionType Type { get; set; }
+        string CharacterName { get; set; }
+    }
+
 }

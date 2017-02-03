@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using HeroVirtualTableTop.AnimatedAbility;
@@ -118,50 +119,66 @@ namespace HeroVirtualTableTop.Roster
 
         private void EnsureOnlyOneActiveOrAttackingCharacterInRoster(object sender, PropertyChangedEventArgs e)
         {
-            AnimatedCharacter p = sender as AnimatedCharacter;
-            if (e.PropertyName == "IsActive")
+            AnimatedCharacter characterThatChanged = sender as AnimatedCharacter;
+            updateRosterCharacterStateBasedOnCharacterChange(e.PropertyName, characterThatChanged, "ActiveCharacter", "IsActive");
+            updateRosterCharacterStateBasedOnCharacterChange(e.PropertyName, characterThatChanged, "TargetedCharacter","IsTargeted");
+            updateRosterCharacterStateBasedOnCharacterChange(e.PropertyName, characterThatChanged, "LastSelectedCharacter", "IsSelected");
+            if (e.PropertyName == "ActiveAttack")
             {
-                if (p.IsActive == true)
+                if (characterThatChanged != AttackingCharacter)
                 {
-                    if (ActiveCharacter != p)
+                    if (characterThatChanged.ActiveAttack != null)
                     {
-                        if (ActiveCharacter != null)
-                        {
-                            ((AnimatedCharacter) ActiveCharacter).IsActive = false;
+                        if (AttackingCharacter != null) { 
+                            ((AnimatedCharacter) AttackingCharacter).ActiveAttack?.Stop();                 
                         }
-                        ActiveCharacter = p as RosterParticipant;
                     }
+                    AttackingCharacter = characterThatChanged as RosterParticipant;
                 }
                 else
                 {
-                    if (ActiveCharacter == p)
+                    if (AttackingCharacter == characterThatChanged)
                     {
-                        p.IsActive = false;
-                        ActiveCharacter = null;
-                    }
-                }
-            }
-            if (e.PropertyName == "IsAttacking")
-            {
-                if (p != AttackingCharacter)
-                {
-                    if (p.ActiveAttack != null)
-                    {
-                        ((AnimatedCharacter) AttackingCharacter).ActiveAttack.Stop();
-                        AttackingCharacter = p as RosterParticipant;
-                    }
-                }
-                else
-                {
-                    if (AttackingCharacter == p)
-                    {
-                        p.ActiveAttack = null;
+                        characterThatChanged.ActiveAttack = null;
                         AttackingCharacter = null;
                     }
                 }
             }
         }
 
+        private void updateRosterCharacterStateBasedOnCharacterChange(string propertyName, AnimatedCharacter characterThatChanged, string rosterStateToChangeProperty, string characterStateThatchanged)
+        {
+            PropertyInfo propertyInfoforStateToChange = this.GetType().GetProperty(rosterStateToChangeProperty);
+            RosterParticipant rosterStateToChange = (RosterParticipant)
+                propertyInfoforStateToChange.GetValue(this);
+
+            PropertyInfo propertyInfoForCharacterThatchanged = characterThatChanged.GetType().GetProperty(characterStateThatchanged);
+            bool changedVal = (bool) propertyInfoForCharacterThatchanged.GetValue(characterThatChanged);
+            if (changedVal == true)
+            {
+                if (rosterStateToChange != characterThatChanged)
+                {
+                    if (rosterStateToChange != null)
+                    {
+                        propertyInfoForCharacterThatchanged.SetValue(rosterStateToChange,false);
+                    }
+                    rosterStateToChange = characterThatChanged as RosterParticipant;
+                    propertyInfoforStateToChange.SetValue(this, characterThatChanged);
+                }
+            }
+            else
+            {
+                if (rosterStateToChange == characterThatChanged)
+                {
+                    (characterThatChanged as CrowdMember).PropertyChanged -=EnsureOnlyOneActiveOrAttackingCharacterInRoster;
+                    propertyInfoForCharacterThatchanged.SetValue(characterThatChanged, false);
+                   // characterThatChanged.IsActive = false;
+                    propertyInfoforStateToChange.SetValue(this, null);
+                    (characterThatChanged as CrowdMember).PropertyChanged +=EnsureOnlyOneActiveOrAttackingCharacterInRoster;
+                }
+            }
+
+        }
 
 
         private RosterGroup createRosterGroup(Crowd.Crowd crowd)
@@ -217,13 +234,33 @@ namespace HeroVirtualTableTop.Roster
             }
         }
 
-        public void SaveAsCrowd()
+        public Crowd.Crowd SaveAsCrowd()
         {
-            throw new NotImplementedException();
+            CrowdRepository repo = new CrowdRepositoryImpl();
+            Crowd.Crowd rosterClone = repo.NewCrowd(null, Name);
+            foreach (RosterGroup group in Groups.Values)
+            {
+                Crowd.Crowd groupClone = repo.NewCrowd(rosterClone, group.Name);
+                groupClone.Order = group.Order;
+                foreach(RosterParticipant participant in group.Values)
+                {
+                    groupClone.AddCrowdMember(participant as CrowdMember);
+                }
+            }
+            return rosterClone;
         }
 
         public RosterParticipant ActiveCharacter { get; set; }
         public RosterParticipant AttackingCharacter { get; set; }
+        public RosterParticipant TargetedCharacter { get; set; }
+       
+        public RosterParticipant LastSelectedCharacter {
+            get { return SelectedParticipants.LastOrDefault(); }
+            set
+            {
+              SelectParticipant(value);  
+            } 
+        }
         public List<AnimatedAbility.AnimatedAbility> CommonAbilitiesForActiveCharacters { get; }
         public void GroupSelectedParticpants()
         {

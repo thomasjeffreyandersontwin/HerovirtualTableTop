@@ -720,7 +720,10 @@ namespace HeroVirtualTableTop.Crowd
 
         public Crowd Parent
         {
-            get { return _loadedParentMembership.ParentCrowd; }
+            get
+            {
+                return _loadedParentMembership.ParentCrowd;
+            }
             set
             {
                 if (value == null)
@@ -859,5 +862,7 @@ namespace HeroVirtualTableTop.Crowd
 
             return clone;
         }
+
+        
     }
 }

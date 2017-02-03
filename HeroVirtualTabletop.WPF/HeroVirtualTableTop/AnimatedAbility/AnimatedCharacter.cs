@@ -34,6 +34,29 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         }
 
+        public override void Target(bool completeEvent = true)
+        {
+            
+            base.Target();
+            NotifyPropertyChanged();
+        }
+
+        public override void UnTarget(bool completeEvent = true)
+        {
+            base.UnTarget();
+            NotifyPropertyChanged();
+        }
+
+        private bool _isSelected;
+        public bool IsSelected {
+            get { return _isSelected; }
+            set
+            {
+                _isSelected=value;
+                NotifyPropertyChanged();
+            }
+        }
+
         private AnimatedCharacterRepository _repo;
 
         public AnimatedCharacterRepository Repository
@@ -56,6 +79,11 @@ namespace HeroVirtualTableTop.AnimatedAbility
             }
         }
 
+        public void RemoveActiveAttack()
+        {
+            _activeAttack = null;
+        }
+
         public Position Facing { get; set; }
 
         private bool isActive;
@@ -71,7 +99,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public void Activate()
         {
-            throw new NotImplementedException();
+            IsActive = true;
         }
 
         public List<AnimatedAbility> ActivePersistentAbilities

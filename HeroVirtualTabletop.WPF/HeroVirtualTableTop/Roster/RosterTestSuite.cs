@@ -270,7 +270,7 @@ namespace HeroVirtualTableTop.Roster
             Assert.IsTrue(r.SelectedParticipants.Contains(c));
         }
         [TestMethod]
-        public void UnselectCharacter_CharacterIsRemovedFromSelectedParticipants()
+        public void UnSelectCharacter_CharacterIsRemovedFromSelectedParticipants()
         {
             //arrange
             Roster r = TestObjectsFactory.RosterUnderTestWithThreeParticipantsUnderTest;

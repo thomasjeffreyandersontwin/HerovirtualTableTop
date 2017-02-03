@@ -36,12 +36,14 @@ namespace HeroVirtualTableTop.Roster
         void ClearAllSelections();
         void SelectAllParticipants();
 
-        void SaveAsCrowd();
+        Crowd.Crowd SaveAsCrowd();
 
         RosterParticipant ActiveCharacter { get; }
         RosterParticipant AttackingCharacter { get; }
+        RosterParticipant LastSelectedCharacter { get; }
 
         List<AnimatedAbility.AnimatedAbility> CommonAbilitiesForActiveCharacters { get; }
+        RosterParticipant TargetedCharacter { get; set; }
 
         void GroupSelectedParticpants();
 

@@ -70,9 +70,10 @@ namespace HeroVirtualTableTop.AnimatedAbility
             }
         }
 
-        public void Stop()
+        public virtual void Stop()
         {
             Stop(Target);
+            
         }
         public void Stop(AnimatedCharacter target)
         {

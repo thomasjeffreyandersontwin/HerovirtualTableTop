@@ -25,7 +25,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         {
         }
 
-        public DesktopCharacterMemoryInstance MemoryInstance { get; set; }
+        public DesktopMemoryCharacter MemoryInstance { get; set; }
         public DesktopCharacterTargeter Targeter { get; set; }
         public KeyBindCommandGenerator Generator { get; set; }
 
@@ -54,7 +54,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 Target();
         }
 
-        public bool IsTargeted
+        public virtual bool IsTargeted
         {
             get
             {
@@ -77,7 +77,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
-        public void Target(bool completeEvent = true)
+        public virtual void Target(bool completeEvent = true)
         {
             if (MemoryInstance != null)
             {
@@ -96,7 +96,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
-        public void UnTarget(bool completeEvent = true)
+        public virtual void UnTarget(bool completeEvent = true)
         {
             Generator.GenerateDesktopCommandText(DesktopCommand.TargetEnemyNear);
             UnFollow();

@@ -26,7 +26,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         CharacterActionList<Identity> Identities { get; }
 
-        DesktopCharacterMemoryInstance MemoryInstance { get; set; }
+        DesktopMemoryCharacter MemoryInstance { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
         CharacterProgressBarStats ProgressBar { get; set; }
         Camera Camera { get; set; }
@@ -56,6 +56,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         ManagedCharacter Owner { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
         void Play(bool completeEvent=true);
+        void Stop(bool completeEvent = true);
         CharacterAction Clone();
     }
 

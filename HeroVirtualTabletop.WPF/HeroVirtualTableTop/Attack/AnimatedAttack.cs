@@ -54,6 +54,13 @@ namespace HeroVirtualTableTop.Attack
             return new AttackInstructionsImpl();
         }
 
+        public void Stop()
+        {
+            Stop(Target);
+            Attacker.RemoveActiveAttack();
+
+        }
+
         public KnockbackCollisionInfo CompleteTheAttackCycle(AttackInstructions instructions)
         {
             turnTowards(instructions.Defender.Position);

@@ -631,8 +631,8 @@ namespace HeroVirtualTableTop.ManagedCharacter
             //map interfaces to classes 
             StandardizedFixture.Customizations.Add(
                 new TypeRelay(
-                    typeof(DesktopCharacterMemoryInstance),
-                    typeof(DesktopCharacterMemoryInstanceImpl)));
+                    typeof(DesktopMemoryCharacter),
+                    typeof(DesktopMemoryCharacterImpl)));
             StandardizedFixture.Customizations.Add(
                 new TypeRelay(
                     typeof(ManagedCharacter),

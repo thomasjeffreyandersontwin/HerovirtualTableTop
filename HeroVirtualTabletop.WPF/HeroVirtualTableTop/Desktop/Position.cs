@@ -8,35 +8,24 @@ namespace HeroVirtualTableTop.Desktop
     {
         
         public float Facing { get; set; }
-
-
         public float Pitch { get; set; }
-
         public float Roll { get; set; }
-
         public Vector3 Vector => new Vector3(X, Y, Z);
-
         public float X { get; set; }
-
         public float Y { get; set; }
-
         public float Z { get; set; }
-
         public Position Duplicate()
         {
             throw new NotImplementedException();
         }
-
         public bool IsWithin(float dist, Position position, out float calculatedDistance)
         {
             throw new NotImplementedException();
         }
-
         public void MoveTo(Position destination)
         {
             throw new NotImplementedException();
         }
-
         public Position JustMissedPosition
         {
             get
@@ -59,7 +48,6 @@ namespace HeroVirtualTableTop.Desktop
             set { }
         }
 
-
         public float DistanceFrom(Position targetPos)
         {
             var targetV = targetPos.Vector;
@@ -70,5 +58,12 @@ namespace HeroVirtualTableTop.Desktop
         {
             throw new NotImplementedException();
         }
+
+        public float Calculate2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn)
+        {
+            isClockwiseTurn = false;
+            return 0f;
+        }
+
     }
 }
