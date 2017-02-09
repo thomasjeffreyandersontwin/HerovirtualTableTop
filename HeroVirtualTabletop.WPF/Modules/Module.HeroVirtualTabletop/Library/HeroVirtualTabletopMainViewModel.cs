@@ -35,6 +35,7 @@ namespace Module.HeroVirtualTabletop.Library
         #region Private Fields
 
         private EventAggregator eventAggregator;
+        Module.Shared.Logging.ILogManager logService = new Module.Shared.Logging.FileLogManager(typeof(HeroVirtualTabletopMainViewModel));
 
         #endregion
 
@@ -65,10 +66,13 @@ namespace Module.HeroVirtualTabletop.Library
             LaunchGame();
 
             LoadModelsFile();
+            //logService.Info("Models loaded");
 
             LoadCostumeFiles();
+            //logService.Info("Costumes loaded");
 
             LoadSoundFiles();
+            //logService.Info("Sounds loaded");
 
             ClearTempFilesFromDataFolder();
 
@@ -76,8 +80,10 @@ namespace Module.HeroVirtualTabletop.Library
 
             // Load camera on start
             new Camera().Render();
+            //logService.Info("Camera rendered");
 
             LoadMainView();
+            //logService.Info("MainView displayed");
 
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
             this.eventAggregator.GetEvent<DeactivateCharacterEvent>().Subscribe(this.CloseActiveCharacterWidget);
@@ -187,10 +193,11 @@ namespace Module.HeroVirtualTabletop.Library
             bool directoryExists = CheckGameDirectory();
             if (!directoryExists)
                 SetGameDirectory();
-
+            //logService.Info("Launching game...");
             IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
-
+            //logService.Info("Game launched");
             LoadRequiredKeybinds();
+            //logService.Info("Keybinds loaded");
             CreateCameraFilesIfNotExists();
             CreateAreaAttackPopupMenuIfNotExists();
         }
@@ -200,26 +207,6 @@ namespace Module.HeroVirtualTabletop.Library
             CheckRequiredKeybindsFileExists();
 
             IconInteractionUtility.ExecuteCmd("bind_load_file required_keybinds.txt");
-
-            //IntPtr hWnd = WindowsUtilities.FindWindow("CrypticWindow", null);
-
-            //if (IntPtr.Zero == hWnd) //Game is not running
-            //{
-            //    return;
-            //}
-            //WindowsUtilities.SetForegroundWindow(hWnd);
-            //WindowsUtilities.SetActiveWindow(hWnd);
-            //WindowsUtilities.ShowWindow(hWnd, 3); // 3 = SW_SHOWMAXIMIZED
-
-            //System.Threading.Thread.Sleep(250);
-
-            //AutoItX3 input = new AutoItX3();
-
-            //input.Send("{ENTER}");
-            //System.Threading.Thread.Sleep(250);
-            //input.Send("/bind_load_file required_keybinds.txt");
-            //System.Threading.Thread.Sleep(250);
-            //input.Send("{ENTER}");
         }
 
         private bool CheckGameDirectory()
