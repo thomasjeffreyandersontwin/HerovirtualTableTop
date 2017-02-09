@@ -1,55 +1,105 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using HeroVirtualTableTop.Crowd;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
-
+using HeroVirtualTableTop.Attack;
 namespace HeroVirtualTableTop.AnimatedAbility
 {
-    internal class AnimatedCharacterImpl : CharacterCrowdMemberImpl, AnimatedCharacter
+    public class AnimatedCharacterImpl : ManagedCharacterImpl, AnimatedCharacter, INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
         private List<AnimatableCharacterState> _activeStates;
 
         private List<FXElement> _loadedFXs;
 
-        public AnimatedCharacterImpl(Crowd.Crowd parent, DesktopCharacterTargeter targeter,
+        public AnimatedCharacterImpl( DesktopCharacterTargeter targeter,
             KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities,
-            AnimatedCharacterRepository repo) : base(parent, targeter, generator, camera, identities, repo)
+            AnimatedCharacterRepository repo) : base( targeter, generator, camera, identities)
         {
             _loadedFXs = new List<FXElement>();
             Abilities = new CharacterActionListImpl<AnimatedAbility>(CharacterActionType.Ability, generator, this);
             loadDefaultAbilities();
+            _repo = repo;
+
         }
 
-        public AnimatedCharacterRepository AnimatedCharacterRepository
+        public override void Target(bool completeEvent = true)
         {
-            get
+            
+            base.Target();
+            NotifyPropertyChanged();
+        }
+
+        public override void UnTarget(bool completeEvent = true)
+        {
+            base.UnTarget();
+            NotifyPropertyChanged();
+        }
+
+        private bool _isSelected;
+        public bool IsSelected {
+            get { return _isSelected; }
+            set
             {
-                try
-                {
-                    return (AnimatedCharacterRepositoryImpl) CrowdRepository;
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
+                _isSelected=value;
+                NotifyPropertyChanged();
             }
         }
 
-        public AnimatedCharacterRepository Repository => CrowdRepository as AnimatedCharacterRepository;
+        private AnimatedCharacterRepository _repo;
+
+        public AnimatedCharacterRepository Repository
+        {
+            get { return _repo ?? null; }
+            set { _repo = value; }
+        }
 
         public CharacterActionList<AnimatedAbility> Abilities { get; }
 
-        public AnimatedAbility ActiveAttack { get; set; }
+        private AnimatedAttack _activeAttack;
+
+        public AnimatedAttack ActiveAttack
+        {
+            get { return _activeAttack; }
+            set
+            {
+                _activeAttack = value;
+                NotifyPropertyChanged();
+            }
+        }
+
+        public void RemoveActiveAttack()
+        {
+            _activeAttack = null;
+        }
 
         public Position Facing { get; set; }
 
-        public bool IsActive { get; set; }
+        private bool isActive;
+        public bool IsActive {
+            get { return isActive; }
+            set
+            {
+                isActive = value;
+                NotifyPropertyChanged();
+            }
+
+        }
 
         public void Activate()
         {
-            throw new NotImplementedException();
+            IsActive = true;
         }
 
         public List<AnimatedAbility> ActivePersistentAbilities
@@ -73,19 +123,19 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public void AddDefaultState(string defaultState, bool playImmediately = true)
         {
-            if (AnimatedCharacterRepository != null)
+            if (Repository.CharacterByName.ContainsKey(DefaultAbilities.CharacterName))
             {
-                var defaultAbility =
-                (from s in AnimatedCharacterRepository.CharacterByName[DefaultAbilities.CharacterName]
-                        .Abilities.Values
-                    where s.Name == DefaultAbilities.UnderAttack
-                    select s).FirstOrDefault();
+
+                AnimatedAbility defaultAbility = Repository?.CharacterByName?[DefaultAbilities.CharacterName]
+                    ?.Abilities?[defaultState];
+
                 if (defaultAbility != null)
                 {
                     AnimatableCharacterState state = new AnimatableCharacterStateImpl(defaultAbility, this);
                     AddState(state);
                 }
             }
+
         }
 
         public void DeActivate()
@@ -133,10 +183,10 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public void loadDefaultAbilities()
         {
-            if (AnimatedCharacterRepository != null)
-                if (AnimatedCharacterRepository.CharacterByName.ContainsKey(DefaultAbilities.CharacterName))
+            if (Repository != null)
+                if (Repository.CharacterByName.ContainsKey(DefaultAbilities.CharacterName))
                 {
-                    var defaultCharacter = AnimatedCharacterRepository.CharacterByName[DefaultAbilities.CharacterName];
+                    var defaultCharacter = Repository.CharacterByName[DefaultAbilities.CharacterName];
                     foreach (var defaultAbility in defaultCharacter.Abilities.Values)
                         if (Abilities.ContainsKey(defaultAbility.Name) == false)
                             if (defaultCharacter.Abilities.ContainsKey(defaultAbility.Name))

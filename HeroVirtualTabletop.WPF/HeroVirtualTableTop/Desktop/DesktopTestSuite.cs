@@ -109,11 +109,11 @@ namespace HeroVirtualTableTop.Desktop
 
         public DesktopCharacterTargeter MockDesktopCharacterTargeter => CustomizedMockFixture.Create<DesktopCharacterTargeter>();
 
-        public DesktopCharacterMemoryInstance MockMemoryInstance
+        public DesktopMemoryCharacter MockMemoryInstance
         {
             get
             {
-                var instance = CustomizedMockFixture.Create<DesktopCharacterMemoryInstance>();
+                var instance = CustomizedMockFixture.Create<DesktopMemoryCharacter>();
                 instance.Position.JustMissedPosition = MockPosition;
                 return instance;
             }

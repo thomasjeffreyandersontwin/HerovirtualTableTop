@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Framework.WPF.Library;
+using HeroVirtualTableTop.AnimatedAbility;
+using HeroVirtualTableTop.Attack;
 using HeroVirtualTableTop.ManagedCharacter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
@@ -97,7 +99,7 @@ namespace HeroVirtualTableTop.Crowd
             var parent = TestObjectsFactory.CrowdUnderTest;
 
             //act
-            var actual = repo.NewCrowd(parent);
+            repo.NewCrowd(parent);
 
             //((CrowdRepositoryImpl)repo).NewCrowdInstance = TestObjectsFactory.MockCrowd;
             var nextActual = repo.NewCrowd(parent);
@@ -281,7 +283,7 @@ namespace HeroVirtualTableTop.Crowd
             var parent1Count = parent1.Members.Count;
 
             var child0_0Order = child0_0.Order;
-            var child0_1Order = child0_1.Order;
+            
             var child0_2Order = child0_2.Order;
             var child0_3Order = child0_3.Order;
 
@@ -369,14 +371,12 @@ namespace HeroVirtualTableTop.Crowd
             var first = parent.Members[0];
             var firstOrder = parent.Members[0].Order;
 
-            var second = parent.Members[1];
             var secondOrder = parent.Members[1].Order;
 
             var third = parent.Members[2];
             var thirdOrder = parent.Members[2].Order;
 
             var fourth = parent.Members[3];
-            var fourthOrder = parent.Members[3].Order;
 
             var toRemove = parent.Members[1];
 
@@ -398,8 +398,7 @@ namespace HeroVirtualTableTop.Crowd
                 out grandParent1, out grandParent2, out grandChild1, out grandChild2);
 
             var parentCount = parent.Members.Count;
-            var AllMembersCountBeforeDeletes = repo.AllMembersCrowd.Members.Count;
-
+            
             //act-assert
             grandParent1.RemoveMember(parent);
             Assert.AreEqual(parent.Members.Count, parentCount);
@@ -519,6 +518,58 @@ namespace HeroVirtualTableTop.Crowd
             foreach (var member in crowd.Members)
                 Mock.Get(member).Verify(x => x.SpawnToDesktop(true));
         }
+   
+        //to do
+        public void Identities_ReturnsIdentitiesThatAllCrowdMembersHaveInCommon()
+        {
+            ;
+        }
+
+        //to do
+        public void Abilities_ReturnsAbilitiesThatAllCrowdMembersHaveInCommon()
+        {
+            ;
+        }
+
+        //to do
+        public void Movs_ReturnsMovThatAllCrowdMembersHaveInCommon()
+        {
+            
+        }
+
+        //to do
+        public void PlayDefaultAbility_PlaysDefaultAbilityOfAllParticipants()
+        {
+            ;
+        }
+
+        //to do
+        public void PlayDefaultMov_PlaysDefaultMovOfAllParticipants()
+        {
+            
+        }
+
+        //to do
+        public void PlayDefaultIdentity_PlaysDefaultIdentityvOfAllParticipants()
+        {
+
+        }
+        //to do
+        public void PlayAbility_RunsAbilityOnAllCharactersThatHaveThatAbility()
+        {
+            ;
+        }
+        //to do
+        public void PlayMov_RunsMovOnAllCharactersThatHaveThatMov()
+        {
+            ;
+        }
+        public void PlayIdentity_RunsIdentityOnAllCharactersThatHaveThatIdentity()
+        {
+            ;
+        }
+
+
 
         [TestMethod]
         public void ExecutingSaveCurrentTableTopPositionOnCrowd_RunsSavePosOnAllCharactersInCrowd()
@@ -573,6 +624,7 @@ namespace HeroVirtualTableTop.Crowd
             }
         }
 
+        //to do
         public void ApplyFIlter_IncludesAllMatchedCrowdsAndCharactersAsWellAsCharactersPartOfMatchedCrowds()
             // need to verify
         {
@@ -583,7 +635,8 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
-    internal class CharacterCrowdMemberTestSuite
+    //to do
+    public class CharacterCrowdMemberTestSuite
     {
         public CrowdTestObjectsFactory TestObjectsFactory;
 
@@ -607,6 +660,7 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
+ 
     //to do
     internal class CrowdClipboardTestSuite
     {
@@ -650,7 +704,7 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
-    public class CrowdTestObjectsFactory : ManagedCustomerTestObjectsFactory
+    public class CrowdTestObjectsFactory : AttackTestObjectsFactory
     {
         public CrowdTestObjectsFactory()
         {
@@ -707,7 +761,6 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         public CharacterCrowdMember CharacterCrowdMemberUnderTest => StandardizedFixture.Create<CharacterCrowdMember>();
-
         public CharacterCrowdMember CharacterCrowdMemberUnderTestWithNoParent
         {
             get
@@ -718,7 +771,6 @@ namespace HeroVirtualTableTop.Crowd
                 return chara;
             }
         }
-
         public CharacterCrowdMember MockCharacterCrowdMember => CustomizedMockFixture.Create<CharacterCrowdMember>();
 
         public Crowd MockCrowd => CustomizedMockFixture.Create<Crowd>();
@@ -748,20 +800,17 @@ namespace HeroVirtualTableTop.Crowd
                 return crowd;
             }
         }
-
         public Crowd CrowdUnderTestWithThreeMockCharacters
         {
             get
             {
                 var crowd = CrowdUnderTest;
-                foreach (var member in MockFixture.CreateMany<CharacterCrowdMember>())
+                foreach (var member in CustomizedMockFixture.CreateMany<CharacterCrowdMember>())
                     crowd.AddCrowdMember(member);
                 return crowd;
             }
         }
-
         public CrowdMemberShip MockCrowdMembership => MockFixture.Create<CrowdMemberShip>();
-
         public CrowdMemberShip MemberShipWithCharacterUnderTest => new CrowdMemberShipImpl(CrowdUnderTest, CharacterCrowdMemberUnderTest);
 
         private void setupStandardFixture()
@@ -794,7 +843,6 @@ namespace HeroVirtualTableTop.Crowd
 
             setupFixtureToBuildCrowdRepositories();
         }
-
         private void setupFixtureToBuildCrowdRepositories()
         {
             //setup repository with dependencies that have cicruclar ref back to repo removed

@@ -658,13 +658,12 @@ namespace Module.HeroVirtualTabletop.Movements
             float distanceFromCollisionPoint = 0f;
             Vector3 collisionBodyPoint = new Vector3();
             bool needToCheckAdjustment = false;
-            // logManager.Info(string.Format("Current position: {0}, {1}, {2}", currentPositionVector.X, currentPositionVector.Y, currentPositionVector.Z));
-            if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
+              if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y == -10000f
-                && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f) // Need to recalculate next collision point
+                && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f)
+                // Need to recalculate next collision point
             {
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
-                // logManager.Info(string.Format("recalculating collision at {0}", DateTime.Now.ToString("HH:mm:ss.fff")));
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -676,14 +675,10 @@ namespace Module.HeroVirtualTabletop.Movements
                     target.MovementInstruction.IsCollisionAhead = false;
                 }
             }
-            //else
             {
-                //logManager.Info(string.Format("CollisionPoint: {0}, {1}, {2}", target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X, target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y, target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z));
                 collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
-                //logManager.Info(string.Format("CollisionBodyPoint: {0}, {1}, {2}", collisionBodyPoint.X, collisionBodyPoint.Y, collisionBodyPoint.Z));
-                distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
-
-                //logManager.Info("Distance from collision: " + distanceFromCollisionPoint.ToString());
+               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
+               
                 if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)// Collision point nearer, so can't move to destination without checking first
                 {
                     if (target.MovementInstruction.IsCollisionAhead) // the LastCollisionFreePointInCurrentDirection is a collision point
@@ -702,18 +697,12 @@ namespace Module.HeroVirtualTabletop.Movements
                         {
                             target.MovementInstruction.IsInCollision = true;
                         }
-                        ////logManager.Info("Collision ahead true");
-                        //if (distanceFromDest > distanceFromCollisionPoint)
-                        //    collisionVector = currentPositionVector; // stay where you are
-                        //else
-                        //    collisionVector = destinationVectorNext; // just go to next point, but no further
-                        //target.MovementInstruction.IsInCollision = true;
+
                     }
                     else // the LastCollisionFreePointInCurrentDirection is just the last calculated point, so we need to recalculate the collisions in the current direction
                     {
-                        //logManager.Info("Collision ahead false, recalculating");
+                        
                         collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
-                        //logManager.Info(string.Format("Recalculated Collision Point: {0}, {1}, {2}", collisionVector.X, collisionVector.Y, collisionVector.Z));
                         if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                         {
                             target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -730,25 +719,14 @@ namespace Module.HeroVirtualTabletop.Movements
                     needToCheckAdjustment = true;
             }
 
-
-            // Enable climbing up
-            //if (vectorsWithCollisionAllExceptBottom.Count == 0) // only bottom portion collision, so can climb
-            //{
-            //    destinationVectorNext.Y += 0.25f;
-            //}
             Vector3 allowableDestVector = new Vector3();
             // Now we should move to the next destination point or the LastCollisionFreePointInCurrentDirection - whichever is nearer
             collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
             distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             if ((distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1) && target.MovementInstruction.IsInCollision)
             {
-                //var targetPosition = target.MovementInstruction.LastCollisionFreePointInCurrentDirection;
-                //if (distanceFromDest > distanceFromCollisionPoint)
-                //    allowableDestVector = currentPositionVector;
-                //else
-                //    allowableDestVector = destinationVectorNext;
+               
                 allowableDestVector = collisionVector;
-                //logManager.Info("Collision detected and stopping");
             }
             else
             {
@@ -757,27 +735,10 @@ namespace Module.HeroVirtualTabletop.Movements
                     allowableDestVector = GetNextTravelPointToAvoidCollision(target, out canAvoidCollision);
                 else
                     allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
-                //logManager.Info("No collision, carrying on");
             }
-            //logManager.Info(string.Format("On {0}, {1}, {2} At {3}", allowableDestVector.X, allowableDestVector.Y, allowableDestVector.Z, DateTime.Now.ToString("HH:mm:ss.fff")));
-            //if (!HasCollision(collisionVector)) // No collision - move to destination
-            //    allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
-            //else // Move to collision point
-            //{
-            //    allowableDestVector = new Vector3(collisionVector.X, collisionVector.Y, collisionVector.Z);
-            //    target.MovementInstruction.IsInCollision = true;
-            //}
 
-            // Enable gravity if applicable
             if(this.HasGravity)
                 this.ApplyGravityToDestinationPoint(target, ref allowableDestVector);
-            //// Preventing going to absurd locations
-            //var finalDistance = Vector3.Distance(currentPositionVector, allowableDestVector);
-            //if (finalDistance > 5f)
-            //    allowableDestVector = currentPositionVector;
-            //// Preventing from character's feet going under ground
-            //if (allowableDestVector.Y < 0.25f && (direction != MovementDirection.Upward && direction != MovementDirection.Downward))
-            //    allowableDestVector.Y = 0.25f;
 
             return allowableDestVector;
         }
@@ -1800,6 +1761,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        //to do understand
         private async Task PlaySupportingMovementAnimationsAsync(Character target)
         {
             int interval = GetSupportingAnimationInterval(target);
@@ -1982,6 +1944,7 @@ namespace Module.HeroVirtualTabletop.Movements
     }
     public class MovementInstruction
     {
+        //to do
         private object lockObj = new object();
         public bool IsMoving { get; set; }
         public bool IsTurning { get; set; }

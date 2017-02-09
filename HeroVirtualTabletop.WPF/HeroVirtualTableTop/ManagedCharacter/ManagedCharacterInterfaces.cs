@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using HeroVirtualTableTop.Desktop;
-
+using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
     public interface ManagedCharacterCommands
@@ -26,7 +26,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         CharacterActionList<Identity> Identities { get; }
 
-        DesktopCharacterMemoryInstance MemoryInstance { get; set; }
+        DesktopMemoryCharacter MemoryInstance { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
         CharacterProgressBarStats ProgressBar { get; set; }
         Camera Camera { get; set; }
@@ -50,32 +50,28 @@ namespace HeroVirtualTableTop.ManagedCharacter
         Ability
     }
 
-    public interface CharacterAction
+    public interface CharacterAction : OrderedElement
     {
-        string Name { get; set; }
-        int Order { get; set; }
+ 
         ManagedCharacter Owner { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
-        void Render(bool completeEvent = true);
+        void Play(bool completeEvent=true);
+        void Stop(bool completeEvent = true);
         CharacterAction Clone();
     }
 
-    public interface CharacterActionList<T> : IDictionary<string, T> where T : CharacterAction
+    public interface CharacterActionList<T> : OrderedCollection<T> where T : CharacterAction
     {
         ManagedCharacter Owner { get; }
         T Active { get; set; }
         T Default { get; set; }
-        T this[int index] { get; set; }
         CharacterActionType Type { get; }
         void Deactivate();
         string GetNewValidActionName(string name = null);
 
-        void Insert(T action);
-        void InsertAfter(T action, T precedingAction);
-        void RemoveAction(T Action);
+
         T AddNew(T newItem);
         CharacterActionList<T> Clone();
-        void AddMany(List<T> list);
         void PlayByKey(string key);
     }
 

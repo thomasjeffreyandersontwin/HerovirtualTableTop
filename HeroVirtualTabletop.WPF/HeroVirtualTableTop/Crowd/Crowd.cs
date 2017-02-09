@@ -3,13 +3,14 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Framework.WPF.Library;
+using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace HeroVirtualTableTop.Crowd
 {
-    public class CrowdRepositoryImpl : CrowdRepository
+    public class CrowdRepositoryImpl : AnimatedCharacterRepositoryImpl, CrowdRepository
     {
         public CrowdRepositoryImpl()
         {
@@ -136,21 +137,6 @@ namespace HeroVirtualTableTop.Crowd
             Crowds.Add(allMembersCrowd);
         }
     }
-
-
-    public class CrowdMemberComparer : IComparer<CrowdMemberShip>
-    {
-        public int Compare(CrowdMemberShip cmm1, CrowdMemberShip cmm2)
-        {
-            if (cmm1.Order != cmm2.Order)
-                return cmm1.Order.CompareTo(cmm2.Order);
-            var s1 = cmm1.Child.Name;
-            var s2 = cmm2.Child.Name;
-
-            return Helper.CompareStrings(s1, s2);
-        }
-    }
-
 
     public class CrowdImpl : NotifyPropertyChanged, Crowd
     {
@@ -698,7 +684,7 @@ namespace HeroVirtualTableTop.Crowd
         */
     }
 
-    public class CharacterCrowdMemberImpl : ManagedCharacterImpl, CharacterCrowdMember
+    public class CharacterCrowdMemberImpl : AnimatedCharacterImpl, CharacterCrowdMember
     {
         private CrowdMemberShip _loadedParentMembership;
 
@@ -711,7 +697,7 @@ namespace HeroVirtualTableTop.Crowd
 
         public CharacterCrowdMemberImpl(Crowd parent, DesktopCharacterTargeter targeter,
             KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities,
-            CrowdRepository repo) : base(targeter, generator, camera, identities)
+            CrowdRepository repo) : base(targeter, generator, camera, identities, repo)
         {
             AllCrowdMembershipParents = new List<CrowdMemberShip>();
             Parent = parent;
@@ -734,7 +720,10 @@ namespace HeroVirtualTableTop.Crowd
 
         public Crowd Parent
         {
-            get { return _loadedParentMembership.ParentCrowd; }
+            get
+            {
+                return _loadedParentMembership.ParentCrowd;
+            }
             set
             {
                 if (value == null)
@@ -864,7 +853,7 @@ namespace HeroVirtualTableTop.Crowd
 
             clone.Name = CrowdRepository.CreateUniqueName(Name, clone, CrowdRepository.AllMembersCrowd.Members);
             foreach (var id  in Identities.Values)
-                clone.Identities.Insert((Identity) id.Clone());
+                clone.Identities.InsertElement((Identity) id.Clone());
 
             clone.Generator = Generator;
             clone.Targeter = Targeter;
@@ -873,5 +862,7 @@ namespace HeroVirtualTableTop.Crowd
 
             return clone;
         }
+
+        
     }
 }

@@ -18,7 +18,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         public string Surface { get; set; }
         public SurfaceType Type { get; set; }
 
-        public override void Render(bool completeEvent = true)
+        public override void Play(bool completeEvent)
         {
             switch (Type)
             {

@@ -218,6 +218,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
             //arrange
             var element = TestObjectsFactory.FxElementUnderTestWithAnimatedCharacter;
+            
             var characters = TestObjectsFactory.MockAnimatedCharacterList;
             foreach (var character in characters)
             {
@@ -273,6 +274,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
             //arrange
             var element = TestObjectsFactory.SoundElementUnderTest;
+            
             element.Target.MemoryInstance = TestObjectsFactory.MockMemoryInstance;
 
             //act
@@ -463,7 +465,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
             var insertAfterOrder = insertAfter.Order;
 
             //act
-            element.InsertAnimationElementAfter(toInsert, insertAfter);
+            element.InsertElementAfter(toInsert, insertAfter);
 
 
             //assert
@@ -489,13 +491,13 @@ namespace HeroVirtualTableTop.AnimatedAbility
             var insertAfterOrder = insertAfter.Order;
 
             //act
-            elementDestination.InsertAnimationElementAfter(toInsert, insertAfter);
+            elementDestination.InsertElementAfter(toInsert, insertAfter);
 
             //assert
 
             Assert.AreEqual(sourceCount - 1, elementsource.AnimationElements.Count);
             //do all the source elements still have a valid order?
-            var counter = 0;
+            var counter = 1;
             foreach (var sourceElement in from element in elementsource.AnimationElements
                 where element.Order > toInsertOrder
                 select element)
@@ -527,7 +529,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
             var countBeforeRemove = element.AnimationElements.Count;
             
             //act
-            element.RemoveAnimationElement(toRemove);
+            element.RemoveElement(toRemove);
 
 
             //assert
@@ -621,7 +623,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         public void StoppingPersistentAbility_RemovesStateFromCharacter()
         {
             //arrange
-            var ability = TestObjectsFactory.AnimatedAbilityUnderTestWithPersistentElements;
+            AnimatedAbility ability = TestObjectsFactory.AnimatedAbilityUnderTestWithPersistentElements;
 
             //act
             ability.Play();
@@ -757,7 +759,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         }
     }
 
-    public class AnimatedAbilityTestObjectsFactory : CrowdTestObjectsFactory
+    public class AnimatedAbilityTestObjectsFactory : ManagedCustomerTestObjectsFactory
     {
         public AnimatedAbilityTestObjectsFactory()
         {
@@ -773,7 +775,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
             {
                 var a = AnimatedCharacterUnderTest;
                 var i = StandardizedFixture.CreateMany<Identity>().ToList();
-                a.Identities.AddMany(i);
+                a.Identities.InsertMany(i);
                 return a;
             }
         }
@@ -835,6 +837,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
                     .Without(x => x.Color4)
                     .Without(x => x.AttackDirection)
                     .Create();
+                fx.IsDirectional = false;
                 return fx;
             }
         }
@@ -850,6 +853,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
                     .With(x => x.Sound, MockSoundResource)
                     .With(x => x.ParentSequence, MockAnimatedAbility)
                     .Create();
+                s.Persistent = false;
                 return s;
             }
         }
@@ -882,7 +886,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
                 var list = MockAnimationElementList;
                 foreach (var e in list)
-                    element.InsertAnimationElement(e);
+                    element.InsertElement(e);
                 return element;
             }
         }
@@ -897,7 +901,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
                 var list = MockAnimationElementList;
                 foreach (var e in list)
                 {
-                    ability.InsertAnimationElement(e);
+                    ability.InsertElement(e);
                     e.Persistent = true;
                 }
                 return ability;
@@ -909,7 +913,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
             {
                 return StandardizedFixture.Build<AnimatedAbilityImpl>()
                     .With(x => x.Target, AnimatedCharacterUnderTest)
-                    .With(x => x.Persistent, true)
+                    .With(x => x.Persistant, true)
                     .Without(x => x.Owner)
                     .Create();
             }
@@ -922,7 +926,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
                 var list = MockAnimationElementList;
                 foreach (var e in list)
-                    ability.InsertAnimationElement(e);
+                    ability.InsertElement(e);
                 return ability;
             }
         }
@@ -936,10 +940,10 @@ namespace HeroVirtualTableTop.AnimatedAbility
                     .With(x => x.ParentSequence, MockAnimatedAbility)
                     .With(x => x.Reference, AnimatedAbilityUnderTest)
                     .Create();
-                r.Reference.AnimationElements.Clear();
-                r.Reference.InsertAnimationElement(FxElementUnderTestWithAnimatedCharacter);
-                r.Reference.InsertAnimationElement(MovElementUnderTest);
-                r.Reference.InsertAnimationElement(SoundElementUnderTest);
+                r.Reference.AnimationElements?.Clear();
+                r.Reference.InsertElement(FxElementUnderTestWithAnimatedCharacter);
+                r.Reference.InsertElement(MovElementUnderTest);
+                r.Reference.InsertElement(SoundElementUnderTest);
                 return r;
             }
         }
@@ -979,29 +983,29 @@ namespace HeroVirtualTableTop.AnimatedAbility
                 AnimatedCharacterRepository repo = StandardizedFixture.Create<AnimatedCharacterRepositoryImpl>();
 
                 var defaultCharacter = AnimatedCharacterUnderTest;
-                defaultCharacter.CrowdRepository = repo;
+                defaultCharacter.Repository = repo;
                 defaultCharacter.Name = DefaultAbilities.CharacterName;
 
                 var defaultAbility = MockAnimatedAbility;
                 defaultAbility.Name = DefaultAbilities.Dodge;
-                defaultCharacter.Abilities.Insert(defaultAbility);
+                defaultCharacter.Abilities.InsertElement(defaultAbility);
 
                 defaultAbility = MockAnimatedAbility;
                 defaultAbility.Name = DefaultAbilities.Strike;
-                defaultCharacter.Abilities.Insert(defaultAbility);
+                defaultCharacter.Abilities.InsertElement(defaultAbility);
 
                 defaultAbility = MockAnimatedAbility;
                 defaultAbility.Name = DefaultAbilities.Miss;
-                defaultCharacter.Abilities.Insert(defaultAbility);
+                defaultCharacter.Abilities.InsertElement(defaultAbility);
 
                 defaultAbility = MockAnimatedAbility;
                 defaultAbility.Name = DefaultAbilities.UnderAttack;
-                defaultCharacter.Abilities.Insert(defaultAbility);
+                defaultCharacter.Abilities.InsertElement(defaultAbility);
 
                 repo.Characters.Add(defaultCharacter);
 
                 var character = AnimatedCharacterUnderTest;
-                character.CrowdRepository = repo;
+                character.Repository = repo;
                 ((AnimatedCharacterImpl) character).loadDefaultAbilities();
 
                 var dodge = MockAnimatedAbility;
@@ -1058,6 +1062,11 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public class FakeAnimatedElement : AnimationElementImpl
         {
+            public override string Name
+            {
+                get { return ""; }
+                set { }
+            }
             public FakeAnimatedElement(AnimatedCharacter owner) : base(owner)
             {
             }

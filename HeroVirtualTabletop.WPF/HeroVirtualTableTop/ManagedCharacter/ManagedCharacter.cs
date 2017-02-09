@@ -1,6 +1,6 @@
 ﻿using Framework.WPF.Library;
 using HeroVirtualTableTop.Desktop;
-
+using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
     public class ManagedCharacterImpl : NotifyPropertyChanged, ManagedCharacter
@@ -25,7 +25,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         {
         }
 
-        public DesktopCharacterMemoryInstance MemoryInstance { get; set; }
+        public DesktopMemoryCharacter MemoryInstance { get; set; }
         public DesktopCharacterTargeter Targeter { get; set; }
         public KeyBindCommandGenerator Generator { get; set; }
 
@@ -34,7 +34,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
         public Position Position => MemoryInstance.Position;
 
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
 
         public virtual string DesktopLabel
         {
@@ -54,7 +54,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 Target();
         }
 
-        public bool IsTargeted
+        public virtual bool IsTargeted
         {
             get
             {
@@ -77,7 +77,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
-        public void Target(bool completeEvent = true)
+        public virtual void Target(bool completeEvent = true)
         {
             if (MemoryInstance != null)
             {
@@ -96,7 +96,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
-        public void UnTarget(bool completeEvent = true)
+        public virtual void UnTarget(bool completeEvent = true)
         {
             Generator.GenerateDesktopCommandText(DesktopCommand.TargetEnemyNear);
             UnFollow();
@@ -200,7 +200,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
 
             var active = Identities.Active;
             Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "model_statesmen", spawnText);
-            active.Render();
+            active?.Play();
         }
 
         public void ClearFromDesktop(bool completeEvent = true)

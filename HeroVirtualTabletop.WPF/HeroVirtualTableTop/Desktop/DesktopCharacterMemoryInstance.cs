@@ -1,6 +1,6 @@
 ﻿namespace HeroVirtualTableTop.Desktop
 {
-    internal class DesktopCharacterMemoryInstanceImpl : DesktopCharacterMemoryInstance
+    internal class DesktopMemoryCharacterImpl : DesktopMemoryCharacter
     {
         public Position Position { get; set; }
         public string Label { get; set; }
@@ -21,14 +21,14 @@
         {
         }
 
-        public DesktopCharacterMemoryInstance WaitUntilTargetIsRegistered()
+        public DesktopMemoryCharacter WaitUntilTargetIsRegistered()
         {
             var w = 0;
-            var currentTarget = new DesktopCharacterMemoryInstanceImpl();
+            var currentTarget = new DesktopMemoryCharacterImpl();
             while (Label != currentTarget.Label)
             {
                 w++;
-                currentTarget = new DesktopCharacterMemoryInstanceImpl();
+                currentTarget = new DesktopMemoryCharacterImpl();
                 if (w > 5)
                 {
                     currentTarget = null;

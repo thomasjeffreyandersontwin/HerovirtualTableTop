@@ -8,11 +8,14 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using HeroVirtualTableTop.Desktop;
 using IrrKlang;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using HeroVirtualTableTop.Common;
 
 namespace HeroVirtualTableTop.AnimatedAbility
 {
     public abstract class AnimationElementImpl : AnimationElement
     {
+        public abstract string Name { get; set; }
         protected bool completeEvent;
 
         protected AnimationElementImpl(AnimatedCharacter owner)
@@ -28,7 +31,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         public AnimatedCharacter Target { get; set; }
         public bool PlayWithNext { get; set; }
         public bool Persistent { get; set; }
-        public AnimationSequence ParentSequence { get; set; }
+        public AnimationSequencer ParentSequence { get; set; }
 
         public void DeactivatePersistent()
         {
@@ -102,6 +105,11 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
         }
 
+        public override string Name
+        {
+            get { return Mov.Name; }
+            set { }
+        }
         public MovResource Mov { get; set; }
 
         public override void Play(List<AnimatedCharacter> targets)
@@ -153,6 +161,11 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
     public class FXElementImpl : AnimationElementImpl, FXElement
     {
+        public override string Name
+        {
+            get { return FX.Name; }
+            set { }
+        }
         public static string COSTUME_DIR = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "costumes");
 
         public FXElementImpl(AnimatedCharacter owner, FXResource resource) : base(owner)
@@ -388,6 +401,11 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
     public class SoundElementImpl : AnimationElementImpl, SoundElement
     {
+        public override string Name
+        {
+            get { return Sound.Name; }
+            set { }
+        }
         public static string SOUND_DIR = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "sound");
 
         private bool _active;
@@ -531,6 +549,11 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
     public class PauseElementImpl : AnimationElementImpl, PauseElement
     {
+        public override string Name
+        {
+            get { return "Pause " + Duration; }
+            set { }
+        }
         private PauseBasedOnDistanceManager _distancemanager;
 
         private int _dur;
@@ -732,20 +755,24 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
     public class SequenceElementImpl : AnimationElementImpl, SequenceElement
     {
-        private AnimationSequence _sequencer;
+        public override string Name
+        {
+            get { return "Sequencer " + Order; }
+            set { }
+        }
+        private AnimationSequencer _sequencer;
 
-        public SequenceElementImpl(AnimationSequence cloneedSequence)
+        public SequenceElementImpl(AnimationSequencer cloneedSequence)
         {
             _sequencer = cloneedSequence;
         }
-
         public SequenceElementImpl()
         {
         }
 
         public List<AnimationElement> AnimationElements => Sequencer.AnimationElements;
 
-        public AnimationSequence Sequencer => _sequencer ?? (_sequencer = new AnimationSequenceImpl(Target));
+        public AnimationSequencer Sequencer => _sequencer ?? (_sequencer = new AnimationSequencerImpl(Target));
 
         public SequenceType Type
         {
@@ -753,49 +780,43 @@ namespace HeroVirtualTableTop.AnimatedAbility
             set { Sequencer.Type = value; }
         }
 
-        public void InsertManyAnimationElements(List<AnimationElement> elements)
+        public void InsertMany(List<AnimationElement> elements)
         {
-            Sequencer.InsertManyAnimationElements(elements);
+            Sequencer.InsertMany(elements);
         }
-
-        public void InsertAnimationElement(AnimationElement animationElement)
+        public void InsertElement(AnimationElement animationElement)
         {
-            Sequencer.InsertAnimationElement(animationElement);
+            Sequencer.InsertElement(animationElement);
         }
-
-        public void InsertAnimationElementAfter(AnimationElement toInsert, AnimationElement moveAfter)
+        public void InsertElementAfter(AnimationElement toInsert, AnimationElement moveAfter)
         {
-            _sequencer.InsertAnimationElementAfter(toInsert, moveAfter);
+            _sequencer.InsertElementAfter(toInsert, moveAfter);
         }
-
-        public void RemoveAnimationElement(AnimationElement animationElement)
+        public void RemoveElement(AnimationElement animationElement)
         {
-            _sequencer.RemoveAnimationElement(animationElement);
+            _sequencer.RemoveElement(animationElement);
         }
 
         public override void Play(List<AnimatedCharacter> targets)
         {
             Sequencer.Play(targets);
         }
-
         public override void StopResource(AnimatedCharacter target)
         {
             _sequencer.Stop(target);
         }
-
-        public override AnimationElement Clone(AnimatedCharacter target)
-        {
-            var sequencer = (Sequencer as AnimationSequenceImpl)?.Clone(target) as AnimationSequence;
-            var clone = new SequenceElementImpl(sequencer);
-            clone = (SequenceElementImpl) cloneBaseAttributes(clone);
-            return clone;
-        }
-
         public override void PlayResource(AnimatedCharacter target)
         {
             _sequencer.Play(target);
         }
 
+        public override AnimationElement Clone(AnimatedCharacter target)
+        {
+            var sequencer = (Sequencer as AnimationSequencerImpl)?.Clone(target) as AnimationSequencer;
+            var clone = new SequenceElementImpl(sequencer);
+            clone = (SequenceElementImpl) cloneBaseAttributes(clone);
+            return clone;
+        }     
         public override bool Equals(object other)
         {
             if (other is SequenceElementImpl == false)
@@ -807,89 +828,44 @@ namespace HeroVirtualTableTop.AnimatedAbility
         }
     }
 
-    public class AnimationSequenceImpl : AnimationElementImpl, AnimationSequence
+    public class AnimationSequencerImpl : AnimationElementImpl, AnimationSequencer
     {
-        private List<AnimationElement> _animationElements;
-       
-        public AnimationSequenceImpl(AnimatedCharacter target)
+        public override string Name
+        {
+            get { return "Sequencer "+ Order; }
+            set { }
+        }
+
+        private OrderedCollectionImpl<AnimationElement> _animationElements;
+        private OrderedCollectionImpl<AnimationElement> animationCollection => 
+            _animationElements ?? (_animationElements =  new OrderedCollectionImpl<AnimationElement>());
+            
+        public AnimationSequencerImpl(AnimatedCharacter target)
         {
             Target = target;
         }
-
-
-        public override void StopResource(AnimatedCharacter target)
-        {
-            //to do add asyncronous code
-            if (Type == SequenceType.And)
-            {
-                foreach (var e in from e in AnimationElements orderby e.Order select e)
-                    e.Stop(target);
-            }
-            else
-            {
-                var rnd = new Random();
-                var chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(target);
-            }
-        }
-
-        public override AnimationElement Clone(AnimatedCharacter target)
-        {
-            AnimationSequence clone = new AnimationSequenceImpl(target);
-            clone = (AnimationSequence) cloneBaseAttributes(clone as AnimationElement);
-            clone.Type = Type;
-            foreach (var element in AnimationElements)
-                clone.InsertAnimationElement(element.Clone(target));
-            return clone as AnimationElement;
-        }
-
-        public List<AnimationElement> AnimationElements
-        {
-            get
-            {
-                if (_animationElements == null)
-                    _animationElements = new List<AnimationElement>();
-                return (from element in _animationElements orderby element.Order select element).ToList();
-            }
-        }
-
+        
         public SequenceType Type { get; set; }
 
-        public void InsertManyAnimationElements(List<AnimationElement> animationElements)
+        public List<AnimationElement> AnimationElements => (from e in animationCollection.Values orderby e.Order select e).ToList();
+        public void InsertMany(List<AnimationElement> animationElements)
         {
             foreach (var e in animationElements)
-                InsertAnimationElement(e);
+                InsertElement(e);
         }
-
-        public void InsertAnimationElement(AnimationElement animationElement)
+        public void InsertElement(AnimationElement animationElement)
         {
-            animationElement.Order = AnimationElements.Count;
             animationElement.Target = Target;
             animationElement.ParentSequence = this;
-            _animationElements.Add(animationElement);
+           animationCollection.InsertElement(animationElement);
         }
-
-        public void InsertAnimationElementAfter(AnimationElement toInsert, AnimationElement insertAfter)
+        public void InsertElementAfter(AnimationElement toInsert, AnimationElement insertAfter)
         {
             if (toInsert.ParentSequence == insertAfter.ParentSequence)
             {
                 if (insertAfter.ParentSequence == this)
                 {
-                    var originalOrder = toInsert.Order;
-                    foreach (var element in from element in AnimationElements
-                        orderby element.Order
-                        where element.Order > originalOrder
-                        select element)
-                        element.Order = element.Order - 1;
-
-                    var destinationOrder = insertAfter.Order + 1;
-                    var list = (from element in AnimationElements
-                        orderby element.Order descending
-                        where element.Order >= destinationOrder
-                        select element).ToList();
-                    foreach (var element in list)
-                        element.Order = element.Order + 1;
-                    toInsert.Order = destinationOrder;
+                    animationCollection.InsertElementAfter( toInsert,  insertAfter);
                 }
                 else
                 {
@@ -901,10 +877,8 @@ namespace HeroVirtualTableTop.AnimatedAbility
             {
                 if (insertAfter.ParentSequence == this)
                 {
-                    toInsert.ParentSequence.RemoveAnimationElement(toInsert);
-                    InsertAnimationElement(toInsert);
-
-                    InsertAnimationElementAfter(toInsert, insertAfter);
+                    toInsert.ParentSequence.RemoveElement(toInsert);
+                    animationCollection.InsertElementAfter(toInsert, insertAfter);
                 }
                 else
                 {
@@ -913,14 +887,9 @@ namespace HeroVirtualTableTop.AnimatedAbility
                 }
             }
         }
-
-        public void RemoveAnimationElement(AnimationElement animationElement)
+        public void RemoveElement(AnimationElement animationElement)
         {
-            _animationElements.Remove(animationElement);
-
-            var removeOrder = animationElement.Order;
-            foreach (var e in from e in AnimationElements orderby e.Order where e.Order > removeOrder select e)
-                e.Order = e.Order - 1;
+            animationCollection.RemoveElement(animationElement);;
         }
 
         public override void Play(List<AnimatedCharacter> targets)
@@ -937,7 +906,6 @@ namespace HeroVirtualTableTop.AnimatedAbility
                 AnimationElements[chosen].Play(targets);
             }
         }
-
         public override void PlayResource(AnimatedCharacter target)
         {
             //to do add asyncronous code
@@ -953,13 +921,27 @@ namespace HeroVirtualTableTop.AnimatedAbility
                 AnimationElements[chosen].Play(target);
             }
         }
-
+        public override void StopResource(AnimatedCharacter target)
+        {
+            //to do add asyncronous code
+            if (Type == SequenceType.And)
+            {
+                foreach (var e in from e in AnimationElements orderby e.Order select e)
+                    e.Stop(target);
+            }
+            else
+            {
+                var rnd = new Random();
+                var chosen = rnd.Next(0, AnimationElements.Count);
+                AnimationElements[chosen].Play(target);
+            }
+        }
 
         public override bool Equals(object other)
         {
-            if (other is AnimationSequenceImpl == false)
+            if (other is AnimationSequencerImpl == false)
                 return false;
-            var otherSequence = other as AnimationSequence;
+            var otherSequence = other as AnimationSequencer;
             if (otherSequence.Type != Type) return false;
             if (otherSequence.AnimationElements.Count != AnimationElements.Count) return false;
             foreach (var otherElement in otherSequence.AnimationElements)
@@ -973,10 +955,26 @@ namespace HeroVirtualTableTop.AnimatedAbility
             }
             return true;
         }
+        public override AnimationElement Clone(AnimatedCharacter target)
+        {
+            AnimationSequencer clone = new AnimationSequencerImpl(target);
+            clone = (AnimationSequencer)cloneBaseAttributes(clone as AnimationElement);
+            clone.Type = Type;
+            foreach (var element in AnimationElements)
+                clone.InsertElement(element.Clone(target));
+            return clone as AnimationElement;
+        }
+
     }
 
-    public class ReferenceElementImpl : AnimationElementImpl, ReferenceElement, AnimationSequence
+    public class ReferenceElementImpl : AnimationElementImpl, ReferenceElement, AnimationSequencer
     {
+        public override string Name
+        {
+            get { return Reference.Name; }
+            set { }
+        }
+
         public List<AnimationElement> AnimationElements => Reference.AnimationElements;
 
         public SequenceType Type
@@ -991,24 +989,24 @@ namespace HeroVirtualTableTop.AnimatedAbility
         }
 
 
-        public void InsertManyAnimationElements(List<AnimationElement> elements)
+        public void InsertMany(List<AnimationElement> elements)
         {
-            Reference.InsertManyAnimationElements(elements);
+            Reference.InsertMany(elements);
         }
 
-        public void InsertAnimationElement(AnimationElement animationElement)
+        public void InsertElement(AnimationElement animationElement)
         {
-            Reference.InsertAnimationElement(animationElement);
+            Reference.InsertElement(animationElement);
         }
 
-        public void InsertAnimationElementAfter(AnimationElement toInsert, AnimationElement moveAfter)
+        public void InsertElementAfter(AnimationElement toInsert, AnimationElement moveAfter)
         {
-            Reference.InsertAnimationElementAfter(toInsert, moveAfter);
+            Reference.InsertElementAfter(toInsert, moveAfter);
         }
 
-        public void RemoveAnimationElement(AnimationElement animationElement)
+        public void RemoveElement(AnimationElement animationElement)
         {
-            Reference.RemoveAnimationElement(animationElement);
+            Reference.RemoveElement(animationElement);
         }
 
         public AnimatedAbility Reference { get; set; }
@@ -1025,7 +1023,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public SequenceElement Copy(AnimatedCharacter target)
         {
-            var clonedSequence = (Reference.Sequencer as AnimationSequenceImpl)?.Clone(target) as AnimationSequence;
+            var clonedSequence = (Reference.Sequencer as AnimationSequencerImpl)?.Clone(target) as AnimationSequencer;
 
             SequenceElement clone = new SequenceElementImpl(clonedSequence);
             clone = (SequenceElement) cloneBaseAttributes(clone);
