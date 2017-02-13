@@ -147,7 +147,7 @@ namespace HeroVirtualTableTop.ManagedCharacter
         public string KeyboardShortcut { get; set; }
         public KeyBindCommandGenerator Generator { get; set; }
 
-        public string Name { get; set; }
+        public virtual string Name { get; set; }
         public int Order { get; set; }
         
 

@@ -45,7 +45,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
             base.UnTarget();
             NotifyPropertyChanged();
-        }
+        }         
 
         private bool _isSelected;
         public bool IsSelected {

@@ -308,6 +308,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         //public bool IsPlaying { get; set; }
 
+
         private string name;
         public string Name
         {
@@ -352,6 +353,34 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+
+        private double GetRotationAngle(MovementDirection direction)
+        {
+            double rotationAngle = 0d;
+            switch (direction)
+            {
+                case MovementDirection.Still:
+                case MovementDirection.Forward:
+                    rotationAngle = 0d;
+                    break;
+                case MovementDirection.Backward:
+                    rotationAngle = 180d;
+                    break;
+                case MovementDirection.Left:
+                    rotationAngle = 270d;
+                    break;
+                case MovementDirection.Right:
+                    rotationAngle = 90d;
+                    break;
+                case MovementDirection.Upward:
+                    rotationAngle = 90d;
+                    break;
+                case MovementDirection.Downward:
+                    rotationAngle = -90d;
+                    break;
+            }
+            return rotationAngle;
+        }
         public async Task Move(Character target)
         {
             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentMovementDirection);
@@ -369,23 +398,22 @@ namespace Module.HeroVirtualTabletop.Movements
                         target.MovementInstruction.IsDestinationPointAdjusted = false;
                     }
                 }
+
+                //determine facing vector from current and target
                 facingToDest = target.MovementInstruction.DestinationVector - target.CurrentPositionVector;
                 facingToDest.Normalize();
                 directionVector = GetDirectionVector(0, target.MovementInstruction.CurrentMovementDirection, facingToDest);
             }
             else
             {
-                //facingToDest = new Vector3(target.CurrentFacingVector.X, target.CurrentFacingVector.Y, target.CurrentFacingVector.Z); // disable vertical movement
-                //facingToDest.Normalize();
-                //directionVector = GetDirectionVector(rotationAngle, target.MovementInstruction.CurrentMovementDirection, facingToDest);
                 directionVector = GetDirectionVector(target);
             }
             target.MovementInstruction.CurrentDirectionVector = directionVector;
             if (directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
             {
+                //increment character
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 target.CurrentPositionVector = allowableDestinationVector;
-                //await PlaySupportingMovementAnimationsAsync(target);
             }
         }
 
@@ -433,19 +461,15 @@ namespace Module.HeroVirtualTabletop.Movements
 
         public void Move(Character target, Vector3 destinationVector)
         {
-            if (target.CurrentPositionVector == destinationVector)
-                return;
+            if (target.CurrentPositionVector == destinationVector)//
+                return;//
 
-            if (target.MovementInstruction == null)
+            if (target.MovementInstruction == null)//
                 target.MovementInstruction = new MovementInstruction();
 
             SetFacingToDestination(target, destinationVector);
-            //// Disable Camera
-            //KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.BindLoadFile, Constants.GAME_DISABLE_CAMERA_FILENAME);
-            //keyBindsGenerator.CompleteEvent();
-            // Start Movement
-            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
+            
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision  //c
             target.MovementInstruction.IsMovingToDestination = true;
             target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
@@ -476,7 +500,6 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
             this.StartMovment(target);
         }
-
         private void SetFacingToDestination(Character target, Vector3 destinationVector)
         {
             Vector3 currentPositionVector = target.CurrentPositionVector;
@@ -535,8 +558,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 Thread.Sleep(5);
             }
         }
-
-        public void Turn(Character target, float angle = 5)
+        public void Turn(Character target, float angle = 5) //
         {
             Vector3 currentPositionVector = target.CurrentModelMatrix.Translation;
             Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
@@ -546,12 +568,7 @@ namespace Module.HeroVirtualTabletop.Movements
             Vector3 currentUpVector = target.CurrentModelMatrix.Up;
             Vector3 currentDownVector = target.CurrentModelMatrix.Down;
             Matrix rotatedMatrix = new Matrix();
-            //var rotMatrix = Matrix.CreateFromAxisAngle(currentFacing, (float)GetRadianAngle(10));
-            //target.CurrentModelMatrix *= rotMatrix;
 
-            //target.CurrentPositionVector = currentPosition;
-            //Vector3 targetFacing = Vector3.Transform(currentFacing, Matrix.CreateRotationY((float)GetRadianAngle(10)));
-            //target.CurrentFacingVector = currentPosition + targetFacing;
             switch (target.MovementInstruction.CurrentRotationAxisDirection)
             {
                 case MovementDirection.Upward: // Rotate against Up Axis, e.g. Y axis for a vertically aligned model
@@ -578,7 +595,7 @@ namespace Module.HeroVirtualTabletop.Movements
             target.CurrentPositionVector = currentPositionVector; // Keep position intact;
 
         }
-
+#region calc
         private float GetMovementUnit(Character target)
         {
             var movementSpeed = GetMovementSpeed(target);
@@ -605,7 +622,6 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             return unit;
         }
-
         private double GetMovementSpeed(Character target)
         {
             double movementSpeed = 1;
@@ -621,7 +637,6 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return movementSpeed;
         }
-
         private Vector3 GetCollisionVector(Vector3 sourceVector, Vector3 destVector)
         {
             float distance = Vector3.Distance(sourceVector, destVector);
@@ -645,20 +660,21 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             return collisionVector;
         }
-
         private Vector3 GetAllowableDestinationVector(Character target, Vector3 directionVector)
         {
             // TODO: need to take into account the pitch yaw roll etc. in future
             Vector3 currentPositionVector = target.CurrentPositionVector;
-            Vector3 destinationVectorNext = GetDestinationVector(directionVector, target.MovementInstruction.MovementUnit, target);
-            Vector3 destinationVectorFar = GetDestinationVector(directionVector, 20f, target);
-            Vector3 collisionVector = new Vector3();
-            MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;
-            float distanceFromDest = Vector3.Distance(currentPositionVector, destinationVectorNext);
+            Vector3 destinationVectorNext = GetDestinationVector(directionVector, target.MovementInstruction.MovementUnit, target);//
+            Vector3 destinationVectorFar = GetDestinationVector(directionVector, 20f, target);//
+
+                        MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;//
+            float distanceFromDest = Vector3.Distance(currentPositionVector, destinationVectorNext);//
             float distanceFromCollisionPoint = 0f;
             Vector3 collisionBodyPoint = new Vector3();
             bool needToCheckAdjustment = false;
-              if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
+            Vector3 collisionVector = new Vector3();// cc
+
+            if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f)
                 // Need to recalculate next collision point
@@ -675,49 +691,53 @@ namespace Module.HeroVirtualTabletop.Movements
                     target.MovementInstruction.IsCollisionAhead = false;
                 }
             }
-            {
-                collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
-               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
-               
-                if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)// Collision point nearer, so can't move to destination without checking first
-                {
-                    if (target.MovementInstruction.IsCollisionAhead) // the LastCollisionFreePointInCurrentDirection is a collision point
-                    {
-                        bool canAvoidCollision;
-                        Vector3 nextTravelPointToAvoidCollision = GetNextTravelPointToAvoidCollision(target, out canAvoidCollision);
-                        collisionVector = nextTravelPointToAvoidCollision;
-                        target.MovementInstruction.IsInCollision = !canAvoidCollision;
-                        if (canAvoidCollision)
-                        {
-                            destinationVectorNext = nextTravelPointToAvoidCollision;
-                            //target.MovementInstruction.CollisionAhead = false;
-                            //target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // we adjusted position, so force recalculation of collision at next iteration
-                        }
-                        else
-                        {
-                            target.MovementInstruction.IsInCollision = true;
-                        }
 
-                    }
-                    else // the LastCollisionFreePointInCurrentDirection is just the last calculated point, so we need to recalculate the collisions in the current direction
+            collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
+               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
+
+            if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)
+                // Collision point nearer, so can't move to destination without checking first
+            {
+                if (target.MovementInstruction.IsCollisionAhead)
+                    // the LastCollisionFreePointInCurrentDirection is a collision point
+                {
+                    bool canAvoidCollision;
+                    Vector3 nextTravelPointToAvoidCollision = GetNextTravelPointToAvoidCollision(target,
+                        out canAvoidCollision);
+                    collisionVector = nextTravelPointToAvoidCollision;
+                    target.MovementInstruction.IsInCollision = !canAvoidCollision;
+                    if (canAvoidCollision)
                     {
-                        
-                        collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
-                        if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
-                        {
-                            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
-                            target.MovementInstruction.IsCollisionAhead = true;
-                        }
-                        else // No collision in 20 units, so free to move next 20 units
-                        {
-                            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = destinationVectorFar;
-                            target.MovementInstruction.IsCollisionAhead = false;
-                        }
+                        destinationVectorNext = nextTravelPointToAvoidCollision;
+                        //target.MovementInstruction.CollisionAhead = false;
+                        //target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // we adjusted position, so force recalculation of collision at next iteration
                     }
+                    else
+                    {
+                        target.MovementInstruction.IsInCollision = true;
+                    }
+
                 }
                 else
-                    needToCheckAdjustment = true;
+                    // the LastCollisionFreePointInCurrentDirection is just the last calculated point, so we need to recalculate the collisions in the current direction
+                {
+
+                    collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
+                    if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
+                    {
+                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
+                        target.MovementInstruction.IsCollisionAhead = true;
+                    }
+                    else // No collision in 20 units, so free to move next 20 units
+                    {
+                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = destinationVectorFar;
+                        target.MovementInstruction.IsCollisionAhead = false;
+                    }
+                }
             }
+            else
+                needToCheckAdjustment = true;
+
 
             Vector3 allowableDestVector = new Vector3();
             // Now we should move to the next destination point or the LastCollisionFreePointInCurrentDirection - whichever is nearer
@@ -742,7 +762,6 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return allowableDestVector;
         }
-
         private Vector3 GetNextTravelPointToAvoidCollision(Character target, out bool canAvoidCollision)
         {
             Vector3 nextTravelPoint = new Vector3();
@@ -752,9 +771,6 @@ namespace Module.HeroVirtualTabletop.Movements
             Vector3 collisionBodyPoint = Vector3.Add(target.CurrentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
             float distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             float distanceFromDest = Vector3.Distance(target.CurrentPositionVector, destinationVectorNext);
-            //if (distanceFromDest > distanceFromCollisionPoint)
-            //    nextTravelPoint = target.CurrentPositionVector;
-            //else
             nextTravelPoint = destinationVectorNext;
 
             canAvoidCollision = false;
@@ -915,7 +931,6 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return nextTravelPoint;
         }
-
         private Dictionary<BodyPart, CollisionInfo> GetCollisionPointsForBodyParts(Character target, Vector3 destinationVector, Dictionary<BodyPart, bool> bodyPartMap)
         {
             Dictionary<BodyPart, CollisionInfo> bodyPartCollisionMap = new Dictionary<BodyPart, CollisionInfo>();
@@ -1077,7 +1092,6 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return bodyPartCollisionMap;
         }
-
         private Vector3 CalculateNextCollisionPoint(Character target, Vector3 destinationVector)
         {
             Vector3 collisionVector = new Vector3();
@@ -1222,7 +1236,6 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return collisionVector;
         }
-
         private Vector3 GetBodyPartOffsetVector(Character target, BodyPart bodyPart)
         {
             Vector3 bodyPartOffsetVector = new Vector3(-10000, -10000, -10000);
@@ -1249,13 +1262,11 @@ namespace Module.HeroVirtualTabletop.Movements
             }
 
             return bodyPartOffsetVector;
-        }
-
+        } 
         private bool HasCollision(Vector3 collisionVector)
         {
             return !(collisionVector.X == 0f && collisionVector.Y == 0f && collisionVector.Z == 0f);
         }
-
         private BodyPart GetBodyPartFromOffsetVector(Vector3 bodyPartOffsetVector)
         {
             BodyPart bodyPart = BodyPart.None;
@@ -1273,7 +1284,6 @@ namespace Module.HeroVirtualTabletop.Movements
                 bodyPart = BodyPart.Top;
             return bodyPart;
         }
-
         private void ApplyGravityToDestinationPoint(Character target, ref Vector3 allowableDestVector)
         {
             if (allowableDestVector.Y > 0 && !target.MovementInstruction.IsPositionAdjustedToAvoidCollision && (target.MovementInstruction.CurrentMovementDirection != MovementDirection.Upward && target.MovementInstruction.CurrentMovementDirection != MovementDirection.Downward))
@@ -1337,7 +1347,8 @@ namespace Module.HeroVirtualTabletop.Movements
             var y = (float)Math.Acos(dotProduct);
             return y;
         }
-
+        #endregion
+#region pause-reset
         public void PauseMovement(Character target)
         {
             if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
@@ -1382,21 +1393,21 @@ namespace Module.HeroVirtualTabletop.Movements
                 target.IsMoving = false;
             }
         }
-
-        public void StartMovment(Character target)
+#endregion
+        public void StartMovment(Character target) //
         {
-            if (this.characterMovementTimerDictionary == null)
-                this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
-            StopMovement(target);
-            target.UnFollow();
-            target.IsMoving = true;
-            System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);
-            if (this.characterMovementTimerDictionary.ContainsKey(target))
-                this.characterMovementTimerDictionary[target] = timer;
+            if (this.characterMovementTimerDictionary == null) //
+                this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();//
+            StopMovement(target);//
+            target.UnFollow();//
+            target.IsMoving = true;//
+            System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);//
+            if (this.characterMovementTimerDictionary.ContainsKey(target))//
+                this.characterMovementTimerDictionary[target] = timer;//
             else
-                this.characterMovementTimerDictionary.Add(target, timer);
-            target.MovementInstruction.MovementUnit = this.GetMovementUnit(target);
-            timer.Change(1, Timeout.Infinite);
+                this.characterMovementTimerDictionary.Add(target, timer);//
+            target.MovementInstruction.MovementUnit = this.GetMovementUnit(target);//
+            timer.Change(1, Timeout.Infinite);//
         }
 
         private void timer_Elapsed(object state)
@@ -1409,170 +1420,194 @@ namespace Module.HeroVirtualTabletop.Movements
                     if (target.MovementInstruction != null && target.MovementInstruction.IsMoving)
                     {
                         MovementMember movementMember = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.CurrentMovementDirection);
-                        // if last direction is current direction, increment position
                         if (target.MovementInstruction.CurrentMovementDirection == target.MovementInstruction.LastMovementDirection)
                         {
-                            if (!target.MovementInstruction.IsInCollision)
-                            {
-                                bool changeDir = false;
-                                if (target.MovementInstruction.CurrentMovementDirection != target.MovementInstruction.LastMovementDirection) {
-                                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                                }
-                                Key key = movementMember.AssociatedKey;
-                                if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
-                                {
-                                    await Move(target);
-                                }
-                                else 
-                                {
-                                    MovementDirection otherDirection = MovementDirection.None;
-                                    MovementMember otherMember = null;
-                                    foreach(MovementMember mm in this.MovementMembers)
-                                    {
-                                        if(Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
-                                        {
-                                            otherDirection = mm.MovementDirection;
-                                            otherMember = mm;
-                                            changeDir = true;
-                                            break;
-                                        }
-                                    }
-                                    if(otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
-                                    {
-                                        target.MovementInstruction.IsInCollision = false;
-                                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
-                                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
-                                        // Play movement
-                                        PlayMovementMember(otherMember, target);
-                                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
-                                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                                    }
-                                }
-                                await Task.Delay(5);
-                                var timer = this.characterMovementTimerDictionary[target];
-                                if (timer != null)
-                                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
-                            }
+                            await incrementPosition(target, movementMember); //
                         }
-                        else // else change direction and increment position
+                        else
                         {
-                            target.MovementInstruction.IsInCollision = false;
-                            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
-                            target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
-                            // Play movement
-                            PlayMovementMember(movementMember, target);
-                            target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                            target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                            var timer = this.characterMovementTimerDictionary[target];
-                            if (timer != null)
-                                timer.Change(1, Timeout.Infinite);
+                            changeDirectionAndIncrement(target, movementMember);
                         }
                     }
                     else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
                     {
-                        bool changeDir = false;
-                        bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);
-                        if (associatedKeyPressed)
-                        {
-                            Turn(target);
-                        }
-                        else
-                        {
-                            MovementDirection otherDirection = MovementDirection.None;
-                            MovementMember otherMember = null;
-                            foreach (MovementMember mm in this.MovementMembers)
-                            {
-                                if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
-                                {
-                                    otherDirection = mm.MovementDirection;
-                                    otherMember = mm;
-                                    changeDir = true;
-                                    break;
-                                }
-                            }
-                            if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
-                            {
-                                target.MovementInstruction.IsMoving = true;
-                                target.MovementInstruction.IsTurning = false;
-                                target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
-                                target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
-                                target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                                target.MovementInstruction.IsInCollision = false;
-                                target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
-                                target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
-                                // Play movement
-                               // PlayMovementMember(otherMember, target); Jeff -  this was interfering with clean move, turn, move 
-                                target.MovementInstruction.CurrentMovementDirection = otherDirection;
-                                target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                            }
-                        }
-                        await Task.Delay(5);
-                        var timer = this.characterMovementTimerDictionary[target];
-                        if (timer != null)
-                            timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+                        await turnCharacter(target);//
                     }
                     else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
                     {
-                        if (target.MovementInstruction.DestinationVector.X != -10000f && target.MovementInstruction.DestinationVector.Y != -10000f && target.MovementInstruction.DestinationVector.Z != -10000f)
-                        {
-                            var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
-                            if (dist < 5)
-                            {
-                                if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
-                                {
-                                    MovementMember downMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
-                                    PlayMovementMember(downMem, target);
-                                }
-                                this.ResetMovement(target);
-                                this.StopMovement(target);
-                            }
-                            else
-                            {
-                                if (target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
-                                {
-                                    MovementMember directionMem = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
-                                    PlayMovementMember(directionMem, target);
-                                    target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
-                                    target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                                }
-                                else
-                                {
-
-                                    if (!target.MovementInstruction.IsInCollision)
-                                    {
-                                        if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
-                                        {
-                                            target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
-                                            this.ResetMovement(target);
-                                            this.StopMovement(target);
-                                        }
-                                        else
-                                            await Move(target);
-                                    }
-                                    else
-                                    {
-                                        if (target.MovementInstruction.StopOnCollision)
-                                        {
-                                            this.ResetMovement(target);
-                                            this.StopMovement(target);
-                                        }
-                                    }
-                                }
-                            }
-                            await Task.Delay(5);
-                            //if (this.IsPlaying)
-                            {
-                                var timer = this.characterMovementTimerDictionary[target];
-                                if (timer != null)
-                                    timer.Change(5, Timeout.Infinite);
-                            }
-                        }
+                        await moveTodestination(target);
                     }
                 }
 
             };
             System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
 
+        }
+        private async Task moveTodestination(Character target)
+        {
+            if (target.MovementInstruction.DestinationVector.X != -10000f &&
+                target.MovementInstruction.DestinationVector.Y != -10000f &&
+                target.MovementInstruction.DestinationVector.Z != -10000f)
+            {
+                var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
+                if (dist < 5)
+                {
+                    if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                    {
+                        MovementMember downMem =
+                            this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
+                        PlayMovementMember(downMem, target);
+                    }
+                    this.ResetMovement(target);
+                    this.StopMovement(target);
+                }
+                else
+                {
+                    if (target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
+                    {
+                        MovementMember directionMem =
+                            this.MovementMembers.First(
+                                mm =>
+                                    mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
+                        PlayMovementMember(directionMem, target);
+                        target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        if (!target.MovementInstruction.IsInCollision)
+                        {
+                            if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
+                            {
+                                target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
+                                this.ResetMovement(target);
+                                this.StopMovement(target);
+                            }
+                            else
+                                await Move(target); //
+                        }
+                        else
+                        {
+                            if (target.MovementInstruction.StopOnCollision)
+                            {
+                                this.ResetMovement(target);
+                                this.StopMovement(target);
+                            }
+                        }
+                    }
+                }
+                await Task.Delay(5);
+                //if (this.IsPlaying)
+                {
+                    var timer = this.characterMovementTimerDictionary[target];
+                    if (timer != null)
+                        timer.Change(5, Timeout.Infinite);
+                }
+            }
+        }
+        private async Task turnCharacter(Character target)
+        {
+            bool changeDir = false;
+            bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);//
+            if (associatedKeyPressed)//
+            {
+                Turn(target);//
+            }//
+            else//
+            {
+                MovementDirection otherDirection = MovementDirection.None;
+                MovementMember otherMember = null;
+                foreach (MovementMember mm in this.MovementMembers)
+                {
+                    if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                    {
+                        otherDirection = mm.MovementDirection;
+                        otherMember = mm;
+                        changeDir = true;
+                        break;
+                    }
+                }
+                if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
+                {
+                    target.MovementInstruction.IsMoving = true;
+                    target.MovementInstruction.IsTurning = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                        // reset collision
+                    target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
+                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                    target.MovementInstruction.IsInCollision = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                    target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                    // Play movement
+                    // PlayMovementMember(otherMember, target); Jeff -  this was interfering with clean move, turn, move 
+                    target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                    target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                }
+            }
+            await Task.Delay(5);
+            var timer = this.characterMovementTimerDictionary[target];
+            if (timer != null)
+                timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+        }
+        private void changeDirectionAndIncrement(Character target, MovementMember movementMember)
+        {
+            target.MovementInstruction.IsInCollision = false;
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+            target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+            // Play movement
+            PlayMovementMember(movementMember, target);
+            target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+            target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+            var timer = this.characterMovementTimerDictionary[target];
+            if (timer != null)
+                timer.Change(1, Timeout.Infinite);
+        }
+        private async Task incrementPosition(Character target, MovementMember movementMember)
+        {
+            if (!target.MovementInstruction.IsInCollision)
+            {
+                bool changeDir = false;
+                if (target.MovementInstruction.CurrentMovementDirection != target.MovementInstruction.LastMovementDirection)
+                {
+                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                }
+                Key key = movementMember.AssociatedKey;
+                if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
+                {
+                    await Move(target);
+                }
+                else
+                {
+                    MovementDirection otherDirection = MovementDirection.None;
+                    MovementMember otherMember = null;
+                    foreach (MovementMember mm in this.MovementMembers)
+                    {
+                        if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                        {
+                            otherDirection = mm.MovementDirection;
+                            otherMember = mm;
+                            changeDir = true;
+                            break;
+                        }
+                    }
+                    if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still &&
+                        otherMember != null)
+                    {
+                        target.MovementInstruction.IsInCollision = false;
+                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f,
+                            -10000f);
+                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                        // Play movement
+                        PlayMovementMember(otherMember, target);
+                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                    }
+                }
+                await Task.Delay(5);
+                var timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+            }
         }
 
         private bool CheckIfAssociatedTurnKeysPressed(MovementDirection turnAxisDirection)
@@ -1836,33 +1871,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        private double GetRotationAngle(MovementDirection direction)
-        {
-            double rotationAngle = 0d;
-            switch (direction)
-            {
-                case MovementDirection.Still:
-                case MovementDirection.Forward:
-                    rotationAngle = 0d;
-                    break;
-                case MovementDirection.Backward:
-                    rotationAngle = 180d;
-                    break;
-                case MovementDirection.Left:
-                    rotationAngle = 270d;
-                    break;
-                case MovementDirection.Right:
-                    rotationAngle = 90d;
-                    break;
-                case MovementDirection.Upward:
-                    rotationAngle = 90d;
-                    break;
-                case MovementDirection.Downward:
-                    rotationAngle = -90d;
-                    break;
-            }
-            return rotationAngle;
-        }
+       
     }
 
     public class MovementMember : NotifyPropertyChanged

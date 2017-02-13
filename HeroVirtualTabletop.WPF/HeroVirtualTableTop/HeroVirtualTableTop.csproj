@@ -142,8 +142,11 @@
     <Compile Include="Attack\AttackIntefaces.cs" />
     <Compile Include="Attack\AttackTestsuite.cs" />
     <Compile Include="Common\OrderedCollection.cs" />
+    <Compile Include="Desktop\DesktopCharacterNavigator.cs" />
     <Compile Include="Desktop\Position.cs" />
+    <Compile Include="Movement\MovableCharacter.cs" />
     <Compile Include="Movement\MovableCharacterInterfaces.cs" />
+    <Compile Include="Movement\MovableCharacterTestSuite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Crowd\Crowd.cs" />
     <Compile Include="Crowd\CrowdInterfaces.cs" />

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using HeroVirtualTableTop.Movement;
 using Microsoft.Xna.Framework;
+using Newtonsoft.Json;
 
 namespace HeroVirtualTableTop.Desktop
 {
@@ -50,27 +51,44 @@ namespace HeroVirtualTableTop.Desktop
         void ExecuteCmd(string command);
         string GeInfoFromNpcMouseIsHoveringOver();
         string GetMouseXYZString();
-        string GetCollisionInfo(float sourceX, float sourceY, float sourceZ, float destX, float destY, float destZ);
+        Vector3 Destination { get; set; }
+        Vector3 Start { get; set; }
+        Vector3 Collision { get; set; }
     }
 
     public interface Position
-    {
+    {   
         float X { get; set; }
         float Y { get; set; }
         float Z { get; set; }
-        float Facing { get; set; }
-        float Pitch { get; set; }
+        double Yaw { get; set; }
+        double Pitch { get; set; }
         float Roll { get; set; }
-        Vector3 Vector { get; }
+        float Unit { get; set; }
+        Vector3 Vector { get; set; }
+
         Position JustMissedPosition { get; set; }
         Position Duplicate();
         bool IsWithin(float dist, Position position, out float calculatedDistance);
-        void MoveTo(Position destination);
+        //void MoveTo(Position destination);
         float DistanceFrom(Position targetPos);
-        void TurnTowards(Position position);
-        Matrix RotationMatrix { get; }
+        void TurnTowards(Position lookingAt);
+        Matrix RotationMatrix { get; set; }
+        Vector3 FacingVector { get; set; }
+        
         float Calculate2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn);
+        
+        double GetRadianAngle(double rotaionAngle);
+        Vector3 GetRoundedVector(Vector3 vector3, int i);        
 
+        void Turn(TurnDirection turnDirection, float rotationAngle);
+        void Move(Direction direction, float distance=0f);
+        void MoveTo(Position destination);
+        Vector3 CalculateDirectionVector(Direction direction);
+        Vector3 CalculateDirectionVector(Vector3 directionVector);
+        Vector3 CalculateDestinationVector(Vector3 directionVector);
+
+        void Face(Position target);
     }
 
     public interface DesktopMemoryCharacter
@@ -85,8 +103,6 @@ namespace HeroVirtualTableTop.Desktop
 
         DesktopMemoryCharacter WaitUntilTargetIsRegistered();
     }
-
-
     public interface DesktopCharacterTargeter
     {
         DesktopMemoryCharacter TargetedInstance { get; set; }
@@ -105,38 +121,32 @@ namespace HeroVirtualTableTop.Desktop
         public float CollisionDistance { get; set; }
         public Vector3 CollisionPoint { get; set; }
     }
-
-   
-    public interface DesktopCharacter
+  
+    public interface DesktopNavigator
     {
+        bool IsMovingToDestination { get; set; }
         DesktopMemoryCharacter MemoryInstance { get; set; }
-        List<DesktopCharacterBodyPart> BodyParts { get; set; }
-        Position Position { get; set; }
+        //todoList<DesktopCharacterBodyPart> BodyParts { get; set; }
 
-        DesktopDirection LastDirection { get; set; }
-        DesktopDirection CurrentDirection { get; set; }
-        Position Direction { get; set; }
-        void TurnTowardsDestination();
-        void TurnTowardFacing(int facing);
-
-        Position Collision { get; }
-        bool WillCollide { get; }
+        Direction Direction { get; set; }
 
         Position Destination { get; set; }
         Desktop.Position OriginalDestination { get; set; }
-        Position AllowableDestination { get; }
-        Position NextTravelPointThatAvoidsCollision { get; }
-        Position NextCollision { get; set; }
 
-        float MovementUnit { get; }
-
+        bool WillCollide { get; }
+        Vector3 Collision { get; }
 
         bool UsingGravity { get; set; }
         void ApplyGravityToDestination();
 
+        Position NearestAvailableIncrementalPositionTowardsDestination { get; }      
 
-
-        int Distance { get; set; }
+        float Distance { get; set; }
+        IconInteractionUtility IconInteractionUtility { get; set; }
+        Position PositionBeingNavigated { get; set; }
+        float Speed { get; set; }
+        void Navigate();
+        void NavigateCollisionsToDestination(Position characterPosition, Direction direction, Position destination, float speed, bool hasGravity);
     }
     public enum BodyPart
     {
@@ -154,21 +164,28 @@ namespace HeroVirtualTableTop.Desktop
         Position CollisionPoint { get; }
         Position OffestPosition { get; set; }
     }
-    public enum Direction
+    public enum Direction 
     {
         Left = 1,
         Right = 2,
         Forward = 3,
         Backward = 4,
-        Up = 5,
-        Down = 6,
-        Still = 7
-    }
-    public interface DesktopDirection
-    {
-        Direction Direction { get; set; }
-        double RotationAngle { get; }
+        Still = 7,
+        Upward,
+        Downward,
+        None,
     }
 
-    
+    public enum TurnDirection
+    {
+        Left = 1,
+
+        Right = 2,
+        Up = 3,
+        Down = 4,
+        LeanLeft,
+        LeanRight,
+        None
+    }
+
 }
