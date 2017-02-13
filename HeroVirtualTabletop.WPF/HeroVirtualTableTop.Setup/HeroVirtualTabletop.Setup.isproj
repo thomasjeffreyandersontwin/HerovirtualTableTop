@@ -28,4 +28,26 @@
 		</TaggedOutputs> -->
 	</ItemGroup>
 	<Import Project="$(MSBuildExtensionsPath32)\InstallShield\2015Limited\InstallShield.targets"/>
+	<ItemGroup>
+		<ProjectReference Include="..\Frameworks\Framework.WPF\Framework.WPF.csproj">
+			<Name>Framework.WPF</Name>
+			<Project>{8AF7C885-3D47-4837-84B1-9761B9737F3F}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\HeroVirtualTabletop.InstallationHelper\HeroVirtualTabletop.InstallationHelper.csproj">
+			<Name>HeroVirtualTabletop.InstallationHelper</Name>
+			<Project>{3858DE58-83C8-4812-A50A-59B95F73C85F}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\Shell\HeroVirtualTableTop.Shell\HeroVirtualTabletop.Shell.csproj">
+			<Name>HeroVirtualTabletop.Shell</Name>
+			<Project>{EC8D3F38-CB3A-4E73-AC17-759DC0B26045}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\Modules\Module.HeroVirtualTabletop\Module.HeroVirtualTabletop.csproj">
+			<Name>Module.HeroVirtualTabletop</Name>
+			<Project>{04917CD0-ADF4-41BB-B5E8-139A09E43722}</Project>
+		</ProjectReference>
+		<ProjectReference Include="..\Modules\Module.Shared\Module.Shared.csproj">
+			<Name>Module.Shared</Name>
+			<Project>{13AA1A7E-BF19-4823-AE8B-B8D7C9693AEC}</Project>
+		</ProjectReference>
+	</ItemGroup>
 </Project>

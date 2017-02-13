@@ -52,7 +52,7 @@
 	<summary>
 		<codepage>1252</codepage>
 		<title>Installation Database</title>
-		<subject>HeroVirtualTabletop</subject>
+		<subject>HeroVirtualDesktop</subject>
 		<author>##ID_STRING4##</author>
 		<keywords>Installer,MSI,Database</keywords>
 		<comments>Contact:  Your local administrator</comments>
@@ -226,7 +226,6 @@
 		<col key="yes" def="s72">Property</col>
 		<col key="yes" def="s72">Signature_</col>
 		<row><td>CITYOFHEROES</td><td>NewSignature1</td></row>
-		<row><td>DOTNETVERSION40CLIENT</td><td>DotNet40Client</td></row>
 	</table>
 
 	<table name="BBControl">
@@ -253,6 +252,7 @@
 		<col def="V0">Data</col>
 		<col def="S255">ISBuildSourcePath</col>
 		<row><td>ISExpHlp.dll</td><td/><td>&lt;ISRedistPlatformDependentFolder&gt;\ISExpHlp.dll</td></row>
+		<row><td>ISSELFREG.DLL</td><td/><td>&lt;ISRedistPlatformDependentFolder&gt;\isregsvr.dll</td></row>
 		<row><td>NewBinary1</td><td/><td>&lt;ISProductFolder&gt;\Support\Themes\InstallShield Blue Theme\banner.jpg</td></row>
 		<row><td>NewBinary10</td><td/><td>&lt;ISProductFolder&gt;\Redist\Language Independent\OS Independent\CompleteSetupIco.ibd</td></row>
 		<row><td>NewBinary11</td><td/><td>&lt;ISProductFolder&gt;\Redist\Language Independent\OS Independent\CustomSetupIco.ibd</td></row>
@@ -340,6 +340,12 @@
 		<col def="S0">ISDotNetInstallerArgsCommit</col>
 		<col def="S0">ISDotNetInstallerArgsUninstall</col>
 		<col def="S0">ISDotNetInstallerArgsRollback</col>
+		<row><td>Framework.WPF.Primary_output</td><td>{9B947AF1-4515-4EEC-AED8-43465F89C53B}</td><td>INSTALLDIR</td><td>2</td><td/><td>framework.wpf.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>HeroVirtualTabletop.InstallationHelper.Primary_output</td><td>{66C93878-50D7-448F-A293-462C6B8AD762}</td><td>INSTALLDIR</td><td>2</td><td/><td>herovirtualtabletop.installa</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>HeroVirtualTabletop.Shell.Primary_output</td><td>{3EA72BBA-6E1E-4D7B-B750-0D3FA2A5103E}</td><td>INSTALLDIR</td><td>2</td><td/><td>herovirtualtabletop.shell.pr</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>ISX_DEFAULTCOMPONENT</td><td>{D8A4CE9E-F0B4-4187-A25B-CBEBFB325905}</td><td>INSTALLDIR</td><td>2</td><td/><td/><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Module.HeroVirtualTabletop.Primary_output</td><td>{88A4D969-CFAC-4952-8EAE-17801B463594}</td><td>INSTALLDIR</td><td>2</td><td/><td>module.herovirtualtabletop.p</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
+		<row><td>Module.Shared.Primary_output</td><td>{25269331-7C55-45B0-9A98-226351722551}</td><td>INSTALLDIR</td><td>2</td><td/><td>module.shared.primary_output</td><td>17</td><td/><td/><td/><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td><td>/LogFile=</td></row>
 	</table>
 
 	<table name="Condition">
@@ -911,7 +917,7 @@
 		<row><td>CustomerInformation</td><td>Back</td><td>NewDialog</td><td>LicenseAgreement</td><td>1</td><td>1</td></row>
 		<row><td>CustomerInformation</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>CustomerInformation</td><td>Next</td><td>EndDialog</td><td>Exit</td><td>(SERIALNUMVALRETRYLIMIT) And (SERIALNUMVALRETRYLIMIT&lt;0) And (SERIALNUMVALRETURN&lt;&gt;SERIALNUMVALSUCCESSRETVAL)</td><td>2</td></row>
-		<row><td>CustomerInformation</td><td>Next</td><td>NewDialog</td><td>ReadyToInstall</td><td>(Not SERIALNUMVALRETURN) OR (SERIALNUMVALRETURN=SERIALNUMVALSUCCESSRETVAL)</td><td>3</td></row>
+		<row><td>CustomerInformation</td><td>Next</td><td>NewDialog</td><td>DestinationFolder</td><td>(Not SERIALNUMVALRETURN) OR (SERIALNUMVALRETURN=SERIALNUMVALSUCCESSRETVAL)</td><td>3</td></row>
 		<row><td>CustomerInformation</td><td>Next</td><td>[ALLUSERS]</td><td>1</td><td>ApplicationUsers = "AllUsers" And Privileged</td><td>1</td></row>
 		<row><td>CustomerInformation</td><td>Next</td><td>[ALLUSERS]</td><td>{}</td><td>ApplicationUsers = "OnlyCurrentUser" And Privileged</td><td>2</td></row>
 		<row><td>DatabaseFolder</td><td>Back</td><td>NewDialog</td><td>CustomerInformation</td><td>1</td><td>1</td></row>
@@ -919,7 +925,7 @@
 		<row><td>DatabaseFolder</td><td>ChangeFolder</td><td>SpawnDialog</td><td>InstallChangeFolder</td><td>1</td><td>1</td></row>
 		<row><td>DatabaseFolder</td><td>ChangeFolder</td><td>[_BrowseProperty]</td><td>DATABASEDIR</td><td>1</td><td>2</td></row>
 		<row><td>DatabaseFolder</td><td>Next</td><td>NewDialog</td><td>SetupType</td><td>1</td><td>1</td></row>
-		<row><td>DestinationFolder</td><td>Back</td><td>NewDialog</td><td>CustomerInformation</td><td>1</td><td>0</td></row>
+		<row><td>DestinationFolder</td><td>Back</td><td>NewDialog</td><td>InstallWelcome</td><td>NOT Installed</td><td>0</td></row>
 		<row><td>DestinationFolder</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>1</td></row>
 		<row><td>DestinationFolder</td><td>ChangeFolder</td><td>SpawnDialog</td><td>InstallChangeFolder</td><td>1</td><td>1</td></row>
 		<row><td>DestinationFolder</td><td>ChangeFolder</td><td>[_BrowseProperty]</td><td>INSTALLDIR</td><td>1</td><td>2</td></row>
@@ -936,11 +942,11 @@
 		<row><td>InstallChangeFolder</td><td>Up</td><td>DirectoryListUp</td><td>0</td><td>1</td><td>0</td></row>
 		<row><td>InstallWelcome</td><td>Back</td><td>NewDialog</td><td>SplashBitmap</td><td>Display_IsBitmapDlg</td><td>0</td></row>
 		<row><td>InstallWelcome</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
-		<row><td>InstallWelcome</td><td>Next</td><td>NewDialog</td><td>LicenseAgreement</td><td>1</td><td>0</td></row>
+		<row><td>InstallWelcome</td><td>Next</td><td>NewDialog</td><td>DestinationFolder</td><td>1</td><td>0</td></row>
 		<row><td>LicenseAgreement</td><td>Back</td><td>NewDialog</td><td>InstallWelcome</td><td>1</td><td>0</td></row>
 		<row><td>LicenseAgreement</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>LicenseAgreement</td><td>ISPrintButton</td><td>DoAction</td><td>ISPrint</td><td>1</td><td>0</td></row>
-		<row><td>LicenseAgreement</td><td>Next</td><td>NewDialog</td><td>CustomerInformation</td><td>AgreeToLicense = "Yes"</td><td>0</td></row>
+		<row><td>LicenseAgreement</td><td>Next</td><td>NewDialog</td><td>DestinationFolder</td><td>AgreeToLicense = "Yes"</td><td>0</td></row>
 		<row><td>MaintenanceType</td><td>Back</td><td>NewDialog</td><td>MaintenanceWelcome</td><td>1</td><td>0</td></row>
 		<row><td>MaintenanceType</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>MaintenanceType</td><td>Next</td><td>NewDialog</td><td>CustomSetup</td><td>_IsMaintenance = "Change"</td><td>12</td></row>
@@ -971,7 +977,7 @@
 		<row><td>ReadmeInformation</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>1</td></row>
 		<row><td>ReadmeInformation</td><td>Next</td><td>NewDialog</td><td>CustomerInformation</td><td>1</td><td>1</td></row>
 		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>CustomSetup</td><td>Installed OR _IsSetupTypeMin = "Custom"</td><td>2</td></row>
-		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>CustomerInformation</td><td>NOT Installed</td><td>1</td></row>
+		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>DestinationFolder</td><td>NOT Installed</td><td>1</td></row>
 		<row><td>ReadyToInstall</td><td>Back</td><td>NewDialog</td><td>MaintenanceType</td><td>Installed AND _IsMaintenance = "Reinstall"</td><td>3</td></row>
 		<row><td>ReadyToInstall</td><td>Cancel</td><td>SpawnDialog</td><td>CancelSetup</td><td>1</td><td>0</td></row>
 		<row><td>ReadyToInstall</td><td>InstallNow</td><td>EndDialog</td><td>Return</td><td>OutOfNoRbDiskSpace &lt;&gt; 1</td><td>0</td></row>
@@ -1048,6 +1054,12 @@
 	<table name="CreateFolder">
 		<col key="yes" def="s72">Directory_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>INSTALLDIR</td><td>Framework.WPF.Primary_output</td></row>
+		<row><td>INSTALLDIR</td><td>HeroVirtualTabletop.InstallationHelper.Primary_output</td></row>
+		<row><td>INSTALLDIR</td><td>HeroVirtualTabletop.Shell.Primary_output</td></row>
+		<row><td>INSTALLDIR</td><td>ISX_DEFAULTCOMPONENT</td></row>
+		<row><td>INSTALLDIR</td><td>Module.HeroVirtualTabletop.Primary_output</td></row>
+		<row><td>INSTALLDIR</td><td>Module.Shared.Primary_output</td></row>
 	</table>
 
 	<table name="CustomAction">
@@ -1060,6 +1072,11 @@
 		<row><td>ISPreventDowngrade</td><td>19</td><td/><td>[IS_PREVENT_DOWNGRADE_EXIT]</td><td/><td>Exits install when a newer version of this product is found</td></row>
 		<row><td>ISPrint</td><td>1</td><td>SetAllUsers.dll</td><td>PrintScrollableText</td><td/><td>Prints the contents of a ScrollableText control on a dialog.</td></row>
 		<row><td>ISRunSetupTypeAddLocalEvent</td><td>1</td><td>ISExpHlp.dll</td><td>RunSetupTypeAddLocalEvent</td><td/><td>Run the AddLocal events associated with the Next button on the Setup Type dialog.</td></row>
+		<row><td>ISSelfRegisterCosting</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterCosting</td><td/><td/></row>
+		<row><td>ISSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFiles</td><td/><td/></row>
+		<row><td>ISSelfRegisterFinalize</td><td>1</td><td>ISSELFREG.DLL</td><td>ISSelfRegisterFinalize</td><td/><td/></row>
+		<row><td>ISUnSelfRegisterFiles</td><td>3073</td><td>ISSELFREG.DLL</td><td>ISUnSelfRegisterFiles</td><td/><td/></row>
+		<row><td>NewCustomAction1</td><td>1042</td><td>herovirtualtabletop.installa</td><td>"[INSTALLDIR]\coh.exe"</td><td/><td/></row>
 		<row><td>SetARPINSTALLLOCATION</td><td>51</td><td>ARPINSTALLLOCATION</td><td>[INSTALLDIR]</td><td/><td/></row>
 		<row><td>SetAllUsersProfileNT</td><td>51</td><td>ALLUSERSPROFILE</td><td>[%SystemRoot]\Profiles\All Users</td><td/><td/></row>
 		<row><td>ShowMsiLog</td><td>226</td><td>SystemFolder</td><td>[SystemFolder]notepad.exe "[MsiLogFileLocation]"</td><td/><td>Shows Property-driven MSI Log</td></row>
@@ -1134,10 +1151,11 @@
 		<row><td>FontsFolder</td><td>TARGETDIR</td><td>.:Fonts</td><td/><td>0</td><td/></row>
 		<row><td>GlobalAssemblyCache</td><td>TARGETDIR</td><td>.:Global~1|GlobalAssemblyCache</td><td/><td>0</td><td/></row>
 		<row><td>HEROVIRTUAL</td><td>ProgramFilesFolder</td><td>HEROVI~1|HeroVirtual</td><td/><td>0</td><td/></row>
+		<row><td>HEROVIRTUALDESKTOP</td><td>HEROVIRTUAL</td><td>HEROVI~1|HeroVirtualDesktop</td><td/><td>0</td><td/></row>
 		<row><td>HEROVIRTUALTABLETOP</td><td>ISMyCompanyDir</td><td>HEROVI~1|HeroVirtualTabletop</td><td/><td>0</td><td/></row>
 		<row><td>HEROVIRTUALTABLETOP1</td><td>JEFF_ANDERSON</td><td>HEROVI~1|HeroVirtualTabletop</td><td/><td>0</td><td/></row>
 		<row><td>HEROVIRTUALTABLETOP2</td><td>HEROVIRTUAL</td><td>HEROVI~1|HeroVirtualTabletop</td><td/><td>0</td><td/></row>
-		<row><td>INSTALLDIR</td><td>HEROVIRTUALTABLETOP2</td><td>.</td><td/><td>0</td><td/></row>
+		<row><td>INSTALLDIR</td><td>HEROVIRTUALDESKTOP</td><td>.</td><td/><td>0</td><td/></row>
 		<row><td>ISCommonFilesFolder</td><td>CommonFilesFolder</td><td>Instal~1|InstallShield</td><td/><td>0</td><td/></row>
 		<row><td>ISMyCompanyDir</td><td>ProgramFilesFolder</td><td>MYCOMP~1|My Company Name</td><td/><td>0</td><td/></row>
 		<row><td>ISMyProductDir</td><td>ISMyCompanyDir</td><td>MYPROD~1|My Product Name</td><td/><td>0</td><td/></row>
@@ -1165,6 +1183,8 @@
 		<row><td>USERPROFILE</td><td>TARGETDIR</td><td>.:USERPR~1|UserProfile</td><td/><td>0</td><td/></row>
 		<row><td>WindowsFolder</td><td>TARGETDIR</td><td>.:Windows</td><td/><td>0</td><td/></row>
 		<row><td>WindowsVolume</td><td>TARGETDIR</td><td>.:WinRoot</td><td/><td>0</td><td/></row>
+		<row><td>herovi_1_herovirtual</td><td>ProgramMenuFolder</td><td>HEROVI~1|HeroVirtual</td><td/><td>1</td><td/></row>
+		<row><td>herovi_1_herovirtualdesktop</td><td>herovi_1_herovirtual</td><td>HEROVI~1|HeroVirtualDesktop</td><td/><td>1</td><td/></row>
 	</table>
 
 	<table name="DrLocator">
@@ -1857,6 +1877,12 @@
 	<table name="FeatureComponents">
 		<col key="yes" def="s38">Feature_</col>
 		<col key="yes" def="s72">Component_</col>
+		<row><td>AlwaysInstall</td><td>Framework.WPF.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>HeroVirtualTabletop.InstallationHelper.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>HeroVirtualTabletop.Shell.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>ISX_DEFAULTCOMPONENT</td></row>
+		<row><td>AlwaysInstall</td><td>Module.HeroVirtualTabletop.Primary_output</td></row>
+		<row><td>AlwaysInstall</td><td>Module.Shared.Primary_output</td></row>
 	</table>
 
 	<table name="File">
@@ -1871,6 +1897,15 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
+		<row><td>crowdrepo.data</td><td>ISX_DEFAULTCOMPONENT</td><td>CROWDR~1.DAT|CrowdRepo.data</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\CrowdRepo.data</td><td>1</td><td/></row>
+		<row><td>framework.wpf.primary_output</td><td>Framework.WPF.Primary_output</td><td>Framework.WPF.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Framework.WPF&gt;|Built</td><td>3</td><td/></row>
+		<row><td>herovirtualtabletop.installa</td><td>HeroVirtualTabletop.InstallationHelper.Primary_output</td><td>HeroVirtualTabletop.InstallationHelper.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;HeroVirtualTabletop.InstallationHelper&gt;|Built</td><td>3</td><td/></row>
+		<row><td>herovirtualtabletop.shell.pr</td><td>HeroVirtualTabletop.Shell.Primary_output</td><td>HeroVirtualTabletop.Shell.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;HeroVirtualTabletop.Shell&gt;|Built</td><td>3</td><td/></row>
+		<row><td>hookcostume.xyz</td><td>ISX_DEFAULTCOMPONENT</td><td>HOOKCO~1.XYZ|HookCostume.xyz</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\HookCostume.xyz</td><td>1</td><td/></row>
+		<row><td>log4net.config</td><td>ISX_DEFAULTCOMPONENT</td><td>LOG4NE~1.CON|log4net.config</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\HeroVirtualTabletop.WPF\Modules\Module.Shared\log4net.config</td><td>1</td><td/></row>
+		<row><td>module.herovirtualtabletop.p</td><td>Module.HeroVirtualTabletop.Primary_output</td><td>Module.HeroVirtualTabletop.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Module.HeroVirtualTabletop&gt;|Built</td><td>3</td><td/></row>
+		<row><td>module.shared.primary_output</td><td>Module.Shared.Primary_output</td><td>Module.Shared.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Module.Shared&gt;|Built</td><td>3</td><td/></row>
+		<row><td>xnafx40_redist.msi</td><td>ISX_DEFAULTCOMPONENT</td><td>XNAFX4~1.MSI|xnafx40_redist.msi</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\xnafx40_redist.msi</td><td>1</td><td/></row>
 	</table>
 
 	<table name="FileSFPCatalog">
@@ -1886,6 +1921,7 @@
 	<table name="ISAssistantTag">
 		<col key="yes" def="s72">Tag</col>
 		<col def="S255">Data</col>
+		<row><td>_Built</td><td/></row>
 	</table>
 
 	<table name="ISBillBoard">
@@ -2012,6 +2048,12 @@
 		<col def="S0">FTPLocation</col>
 		<col def="S0">HTTPLocation</col>
 		<col def="S0">Miscellaneous</col>
+		<row><td>Framework.WPF.Primary_output</td><td/><td/><td>_5873ABAB_B954_4E36_80F6_4F4FAFE93CBD_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>HeroVirtualTabletop.InstallationHelper.Primary_output</td><td/><td/><td>_64C9277F_52BD_4B44_818F_914D12FBC639_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>HeroVirtualTabletop.Shell.Primary_output</td><td/><td/><td>_D994DB05_E165_4505_8561_ADE6813F98FA_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>ISX_DEFAULTCOMPONENT</td><td/><td/><td>_CB50E80F_8C0D_4114_B532_1DBA47BD1D45_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Module.HeroVirtualTabletop.Primary_output</td><td/><td/><td>_F787DE36_0330_401C_9581_EF4A416B4976_FILTER</td><td/><td/><td/><td/></row>
+		<row><td>Module.Shared.Primary_output</td><td/><td/><td>_FE7F7767_37AA_46F0_B10C_5208760809F6_FILTER</td><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="ISCustomActionReference">
@@ -2290,10 +2332,15 @@
 		<col def="S255">TestValue</col>
 		<col def="i4">Type</col>
 		<row><td>CommonFilesFolder</td><td/><td/><td>1</td></row>
+		<row><td>Framework.WPF</td><td>Frameworks\Framework.WPF\Framework.WPF.csproj</td><td/><td>2</td></row>
+		<row><td>HeroVirtualTabletop.InstallationHelper</td><td>HeroVirtualTabletop.InstallationHelper\HeroVirtualTabletop.InstallationHelper.csproj</td><td/><td>2</td></row>
+		<row><td>HeroVirtualTabletop.Shell</td><td>Shell\HeroVirtualTableTop.Shell\HeroVirtualTabletop.Shell.csproj</td><td/><td>2</td></row>
 		<row><td>ISPROJECTDIR</td><td/><td/><td>1</td></row>
 		<row><td>ISProductFolder</td><td/><td/><td>1</td></row>
 		<row><td>ISProjectDataFolder</td><td/><td/><td>1</td></row>
 		<row><td>ISProjectFolder</td><td/><td/><td>1</td></row>
+		<row><td>Module.HeroVirtualTabletop</td><td>Modules\Module.HeroVirtualTabletop\Module.HeroVirtualTabletop.csproj</td><td/><td>2</td></row>
+		<row><td>Module.Shared</td><td>Modules\Module.Shared\Module.Shared.csproj</td><td/><td>2</td></row>
 		<row><td>ProgramFilesFolder</td><td/><td/><td>1</td></row>
 		<row><td>SystemFolder</td><td/><td/><td>1</td></row>
 		<row><td>WindowsFolder</td><td/><td/><td>1</td></row>
@@ -2566,6 +2613,7 @@
 		<col def="I2">Order</col>
 		<col def="I2">ISSetupLocation</col>
 		<col def="S255">ISReleaseFlags</col>
+		<row><td>_FBEF19A8_F373_4FC7_B664_8BD5FF3B2007_</td><td>Microsoft .NET Framework 4.5 Full.prq</td><td/><td/><td/></row>
 	</table>
 
 	<table name="ISSetupType">
@@ -3413,6 +3461,7 @@
 		<row><td>IDS_PROGMSG_XML_UPDATE_FILE</td><td>1033</td><td>Updating XML file %s...</td><td>0</td><td/><td>-526017010</td></row>
 		<row><td>IDS_SETUPEXE_EXPIRE_MSG</td><td>1033</td><td>This setup works until %s. The setup will now exit.</td><td>0</td><td/><td>-526017010</td></row>
 		<row><td>IDS_SETUPEXE_LAUNCH_COND_E</td><td>1033</td><td>This setup was built with an evaluation version of InstallShield and can only be launched from setup.exe.</td><td>0</td><td/><td>-526017010</td></row>
+		<row><td>IDS_SHORTCUT_DISPLAY_NAME1</td><td>1033</td><td>Hero Virtual Desktop</td><td>0</td><td/><td>690338048</td></row>
 		<row><td>IDS_SQLBROWSE_INTRO</td><td>1033</td><td>From the list of servers below, select the database server you would like to target.</td><td>0</td><td/><td>-526017010</td></row>
 		<row><td>IDS_SQLBROWSE_INTRO_DB</td><td>1033</td><td>From the list of catalog names below, select the database catalog you would like to target.</td><td>0</td><td/><td>-526017010</td></row>
 		<row><td>IDS_SQLBROWSE_INTRO_TEMPLATE</td><td>1033</td><td>[IS_SQLBROWSE_INTRO]</td><td>0</td><td/><td>-526017010</td></row>
@@ -3703,8 +3752,9 @@
 		<row><td>IDS__TargetReq_DESC_RESOLUTION</td><td>1033</td><td>The screen resolution is not adequate for running [ProductName].</td><td>0</td><td/><td>-526017010</td></row>
 		<row><td>ID_STRING1</td><td>1033</td><td/><td>0</td><td/><td>-526014962</td></row>
 		<row><td>ID_STRING2</td><td>1033</td><td/><td>0</td><td/><td>-526039025</td></row>
-		<row><td>ID_STRING3</td><td>1033</td><td>www.herovirtual.com</td><td>0</td><td/><td>-526053519</td></row>
+		<row><td>ID_STRING3</td><td>1033</td><td>www.HeroVirtualDesktop.com</td><td>0</td><td/><td>153423350</td></row>
 		<row><td>ID_STRING4</td><td>1033</td><td>HeroVirtual</td><td>0</td><td/><td>-526041327</td></row>
+		<row><td>ID_STRING5</td><td>1033</td><td>HeroVirtualDesktop</td><td>0</td><td/><td>153464438</td></row>
 		<row><td>IIDS_UITEXT_FeatureUninstalled</td><td>1033</td><td>This feature will remain uninstalled.</td><td>0</td><td/><td>-526017010</td></row>
 	</table>
 
@@ -3818,7 +3868,7 @@
 		<col def="V0">Data</col>
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I2">ISIconIndex</col>
-		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;ISProductFolder&gt;\redist\Language Independent\OS Independent\setupicon.ico</td><td>0</td></row>
+		<row><td>ARPPRODUCTICON.exe</td><td/><td>&lt;VSSolutionFolder&gt;\Shell\HeroVirtualTableTop.Shell\HeroVirtual.ico</td><td>0</td></row>
 	</table>
 
 	<table name="IniFile">
@@ -3861,6 +3911,10 @@
 		<row><td>FindRelatedProducts</td><td>NOT ISSETUPDRIVEN</td><td>420</td><td>FindRelatedProducts</td><td/></row>
 		<row><td>ISPreventDowngrade</td><td>ISFOUNDNEWERPRODUCTVERSION</td><td>450</td><td>ISPreventDowngrade</td><td/></row>
 		<row><td>ISRunSetupTypeAddLocalEvent</td><td>Not Installed And Not ISRUNSETUPTYPEADDLOCALEVENT</td><td>1050</td><td>ISRunSetupTypeAddLocalEvent</td><td/></row>
+		<row><td>ISSelfRegisterCosting</td><td/><td>2201</td><td/><td/></row>
+		<row><td>ISSelfRegisterFiles</td><td/><td>5601</td><td/><td/></row>
+		<row><td>ISSelfRegisterFinalize</td><td/><td>6601</td><td/><td/></row>
+		<row><td>ISUnSelfRegisterFiles</td><td/><td>2202</td><td/><td/></row>
 		<row><td>InstallFiles</td><td/><td>4000</td><td>InstallFiles</td><td/></row>
 		<row><td>InstallFinalize</td><td/><td>6600</td><td>InstallFinalize</td><td/></row>
 		<row><td>InstallInitialize</td><td/><td>1501</td><td>InstallInitialize</td><td/></row>
@@ -3874,6 +3928,7 @@
 		<row><td>MsiConfigureServices</td><td>VersionMsi &gt;= "5.00"</td><td>5850</td><td>MSI5 MsiConfigureServices</td><td/></row>
 		<row><td>MsiPublishAssemblies</td><td/><td>6250</td><td>MsiPublishAssemblies</td><td/></row>
 		<row><td>MsiUnpublishAssemblies</td><td/><td>1750</td><td>MsiUnpublishAssemblies</td><td/></row>
+		<row><td>NewCustomAction1</td><td>Not Installed</td><td>6405</td><td/><td/></row>
 		<row><td>PatchFiles</td><td/><td>4090</td><td>PatchFiles</td><td/></row>
 		<row><td>ProcessComponents</td><td/><td>1600</td><td>ProcessComponents</td><td/></row>
 		<row><td>PublishComponents</td><td/><td>6200</td><td>PublishComponents</td><td/></row>
@@ -3947,7 +4002,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>ISTheme</td><td>InstallShield Blue.theme</td></row>
 		<row><td>ISUSLock</td><td>{368B6EFF-3B7D-41BD-836D-4090E48864D8}</td></row>
 		<row><td>ISUSSignature</td><td>{8A7BA5D0-0E2F-4F3D-857B-C06DA75BD5B9}</td></row>
-		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewSystemSearch,viewAppFiles,viewObjects</td></row>
+		<row><td>ISVisitedViews</td><td>viewAssistant,viewISToday,viewSystemSearch,viewAppFiles,viewObjects,viewCustomActions</td></row>
 		<row><td>Limited</td><td>1</td></row>
 		<row><td>LockPermissionMode</td><td>1</td></row>
 		<row><td>MsiExecCmdLineOptions</td><td/></row>
@@ -4005,8 +4060,6 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 	<table name="LaunchCondition">
 		<col key="yes" def="s255">Condition</col>
 		<col def="l255">Description</col>
-		<row><td>CITYOFHEROES</td><td>##IDPROP_EXPRESS_LAUNCH_CONDITION_CITYOFHEROES##</td></row>
-		<row><td>DOTNETVERSION40CLIENT&gt;="#1"</td><td>##IDPROP_EXPRESS_LAUNCH_CONDITION_DOTNETVERSION40CLIENT##</td></row>
 	</table>
 
 	<table name="ListBox">
@@ -4322,7 +4375,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>PROGMSG_IIS_ROLLBACKVROOTS</td><td>##IDS_PROGMSG_IIS_ROLLBACKVROOTS##</td><td/></row>
 		<row><td>PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS</td><td>##IDS_PROGMSG_IIS_ROLLBACKWEBSERVICEEXTENSIONS##</td><td/></row>
 		<row><td>ProductCode</td><td>{195E8601-AC90-461A-8C2D-B289D1D2EE6B}</td><td/></row>
-		<row><td>ProductName</td><td>HeroVirtualTabletop</td><td/></row>
+		<row><td>ProductName</td><td>HeroVirtualDesktop</td><td/></row>
 		<row><td>ProductVersion</td><td>1.0.0.0</td><td/></row>
 		<row><td>ProgressType0</td><td>install</td><td/></row>
 		<row><td>ProgressType1</td><td>Installing</td><td/></row>
@@ -4335,7 +4388,7 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<row><td>RestartManagerOption</td><td>CloseRestart</td><td/></row>
 		<row><td>SERIALNUMBER</td><td/><td/></row>
 		<row><td>SERIALNUMVALSUCCESSRETVAL</td><td>1</td><td/></row>
-		<row><td>SecureCustomProperties</td><td>ISFOUNDNEWERPRODUCTVERSION;USERNAME;COMPANYNAME;ISX_SERIALNUM;SUPPORTDIR;DOTNETVERSION40CLIENT;CITYOFHEROES</td><td/></row>
+		<row><td>SecureCustomProperties</td><td>ISFOUNDNEWERPRODUCTVERSION;USERNAME;COMPANYNAME;ISX_SERIALNUM;SUPPORTDIR;CITYOFHEROES</td><td/></row>
 		<row><td>SelectedSetupType</td><td>##IDS__DisplayName_Typical##</td><td/></row>
 		<row><td>SetupType</td><td>Typical</td><td/></row>
 		<row><td>UpgradeCode</td><td>{203506DF-912C-4DD2-963B-124BF9B30C15}</td><td/></row>
@@ -4380,7 +4433,6 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="s255">Key</col>
 		<col def="S255">Name</col>
 		<col def="I2">Type</col>
-		<row><td>DotNet40Client</td><td>2</td><td>SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Client</td><td>Install</td><td>2</td></row>
 	</table>
 
 	<table name="Registry">
@@ -4399,6 +4451,9 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="L255">FileName</col>
 		<col def="s72">DirProperty</col>
 		<col def="i2">InstallMode</col>
+		<row><td>FileKey1</td><td>HeroVirtualTabletop.Shell.Primary_output</td><td/><td>herovi_1_herovirtual</td><td>2</td></row>
+		<row><td>FileKey2</td><td>HeroVirtualTabletop.Shell.Primary_output</td><td/><td>herovi_1_herovirtualdesktop</td><td>2</td></row>
+		<row><td>_Built</td><td>HeroVirtualTabletop.Shell.Primary_output</td><td/><td>herovi_1_herovirtualdesktop</td><td>2</td></row>
 	</table>
 
 	<table name="RemoveIniFile">
@@ -4484,6 +4539,8 @@ UwBpAG4AZwBsAGUASQBtAGEAZwBlAAEARQB4AHAAcgBlAHMAcwA=
 		<col def="S255">ISComments</col>
 		<col def="S255">ISShortcutName</col>
 		<col def="I4">ISAttributes</col>
+		<row><td>_Built</td><td>herovi_1_herovirtualdesktop</td><td>##IDS_SHORTCUT_DISPLAY_NAME1##</td><td>HeroVirtualTabletop.Shell.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td/><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
+		<row><td>_Built1</td><td>DesktopFolder</td><td>##IDS_SHORTCUT_DISPLAY_NAME1##</td><td>HeroVirtualTabletop.Shell.Primary_output</td><td>AlwaysInstall</td><td/><td/><td/><td/><td>0</td><td>1</td><td/><td/><td/><td/><td/><td/><td/><td/></row>
 	</table>
 
 	<table name="Signature">

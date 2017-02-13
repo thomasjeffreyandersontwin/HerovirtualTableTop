@@ -185,7 +185,6 @@
     <Compile Include="Desktop\DesktopContextMenu.cs" />
     <Compile Include="Desktop\DesktopKeyEventHandler.cs" />
     <Compile Include="Desktop\DesktopMouseEventHandler.cs" />
-    <Compile Include="LocalAddin.cs" />
     <Compile Include="Identities\Camera.cs" />
     <Compile Include="Identities\IdentityEditorView.xaml.cs">
       <DependentUpon>IdentityEditorView.xaml</DependentUpon>

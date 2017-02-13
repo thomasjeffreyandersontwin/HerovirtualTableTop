@@ -1,6 +1,0 @@
-
-
-namespace Module.HeroVirtualTabletop
-{
-
-}
