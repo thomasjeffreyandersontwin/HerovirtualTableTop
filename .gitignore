@@ -252,3 +252,6 @@ paket-files/
 .idea/
 *.sln.iml
 /HeroVirtualTabletop.WPF/Modules/Module.HeroVirtualTabletop/Resources/FXElementsback.csv
+/Deployment Package
+*.gitattributes
+/ConsoleApplicationCOH/Exe File

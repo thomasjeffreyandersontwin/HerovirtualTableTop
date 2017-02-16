@@ -22,6 +22,9 @@ namespace HeroVirtualTableTop.Crowd
         Crowd NewCrowd(Crowd parent = null, string name = "Character");
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
         string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context);
+        void AddDefaultCharacters();
+        void LoadCrowds();
+        void SaveCrowds();
     }
     public interface Crowd : CrowdMember
     {
@@ -78,5 +81,27 @@ namespace HeroVirtualTableTop.Crowd
         void LinkToClipboard(CrowdMember member);
         void CutToClipboard(CrowdMember member);
         void PasteFromClipboard(CrowdMember member);
+    }
+
+    public interface CharacterExplorerViewModel
+    {
+        CrowdRepository CrowdRepository { get; set; }
+        CrowdMember SelectedCrowdMember { get; set; }
+        CrowdClipboard CrowdClipboard { get; set; }
+        ClipboardAction CurrentClipboardAction { get; set; }
+        //KeyBoardHook keyBoardHook { get; set; } // To do under desktops
+        void AddCrowd();
+        void AddCharacterCrowd();
+        void DeleteCrowdMember();
+        void RenameCrowdMember(CrowdMember member, string newName);
+        void MoveCrowdMember(CrowdMember movingCrowdMember, Crowd destinationCrowd);
+        void CloneCrowdMember(CrowdMember member);
+        void CutCrowdMember(CrowdMember member);
+        void LinkCrowdMember(CrowdMember member);
+        void PasteCrowdMember(CrowdMember member);
+        void AddCrowdMemberToRoster(CrowdMember member);
+        void AddCrowdFromModels();
+        void ApplyFilter();
+        void SortCrowds();
     }
 }

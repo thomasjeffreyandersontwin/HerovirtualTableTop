@@ -61,9 +61,9 @@ namespace HeroVirtualTableTop.Crowd
             var parent = TestObjectsFactory.CrowdUnderTest;
 
             //act
-           repo.NewCharacterCrowdMember(parent);
+            repo.NewCharacterCrowdMember(parent);
 
-            ((CrowdRepositoryImpl) repo).NewCharacterCrowdMemberInstance = TestObjectsFactory.MockCharacterCrowdMember;
+            ((CrowdRepositoryImpl)repo).NewCharacterCrowdMemberInstance = TestObjectsFactory.MockCharacterCrowdMember;
             var nextActual = repo.NewCharacterCrowdMember(parent);
 
             //assert
@@ -71,7 +71,7 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual("Character (1)", nextActual.Name);
 
             //arrange
-            ((CrowdRepositoryImpl) repo).NewCharacterCrowdMemberInstance = TestObjectsFactory.MockCharacterCrowdMember;
+            ((CrowdRepositoryImpl)repo).NewCharacterCrowdMemberInstance = TestObjectsFactory.MockCharacterCrowdMember;
 
             //act
             nextActual = repo.NewCharacterCrowdMember(parent);
@@ -81,7 +81,7 @@ namespace HeroVirtualTableTop.Crowd
 
             //arrange
             var parent2 = TestObjectsFactory.CrowdUnderTest;
-            ((CrowdRepositoryImpl) repo).NewCharacterCrowdMemberInstance = TestObjectsFactory.MockCharacterCrowdMember;
+            ((CrowdRepositoryImpl)repo).NewCharacterCrowdMemberInstance = TestObjectsFactory.MockCharacterCrowdMember;
 
             //act
             var brotherFromAnotherMother = repo.NewCharacterCrowdMember(parent2);
@@ -109,13 +109,28 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual("Crowd (1)", nextActual.Name);
 
             //arrange
-            ((CrowdRepositoryImpl) repo).NewCrowdInstance = TestObjectsFactory.MockCrowd;
+            ((CrowdRepositoryImpl)repo).NewCrowdInstance = TestObjectsFactory.MockCrowd;
 
             //act
             nextActual = repo.NewCrowd(parent);
 
             //assert
             Assert.AreEqual("Crowd (2)", nextActual.Name);
+        }
+        [TestMethod]
+        public void AddDefaultCharacters_AddsDefaultAndCombatEffectsCharacters()
+        {
+
+        }
+        [TestMethod]
+        public void LoadCrowds_PopulatesCrowdCollection()
+        {
+
+        }
+        [TestMethod]
+        public void SaveCrowds_SavesCrowdCollection()
+        {
+
         }
     }
 
@@ -150,7 +165,7 @@ namespace HeroVirtualTableTop.Crowd
         {
             //arrange
             var repo = TestObjectsFactory.RepositoryUnderTestWithCrowdsOnly;
-            var crowdToChange = (Crowd) repo.Crowds[0].Members[0];
+            var crowdToChange = (Crowd)repo.Crowds[0].Members[0];
 
             DuplicateKeyException ex = null;
 
@@ -199,7 +214,7 @@ namespace HeroVirtualTableTop.Crowd
         {
             //arrange
             var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
-            var characterToChange = (CharacterCrowdMember) repo.Crowds[0].Members[1];
+            var characterToChange = (CharacterCrowdMember)repo.Crowds[0].Members[1];
 
             DuplicateKeyException ex = null;
 
@@ -283,7 +298,7 @@ namespace HeroVirtualTableTop.Crowd
             var parent1Count = parent1.Members.Count;
 
             var child0_0Order = child0_0.Order;
-            
+
             var child0_2Order = child0_2.Order;
             var child0_3Order = child0_3.Order;
 
@@ -398,7 +413,7 @@ namespace HeroVirtualTableTop.Crowd
                 out grandParent1, out grandParent2, out grandChild1, out grandChild2);
 
             var parentCount = parent.Members.Count;
-            
+
             //act-assert
             grandParent1.RemoveMember(parent);
             Assert.AreEqual(parent.Members.Count, parentCount);
@@ -518,7 +533,7 @@ namespace HeroVirtualTableTop.Crowd
             foreach (var member in crowd.Members)
                 Mock.Get(member).Verify(x => x.SpawnToDesktop(true));
         }
-   
+
         //to do
         public void Identities_ReturnsIdentitiesThatAllCrowdMembersHaveInCommon()
         {
@@ -534,7 +549,7 @@ namespace HeroVirtualTableTop.Crowd
         //to do
         public void Movs_ReturnsMovThatAllCrowdMembersHaveInCommon()
         {
-            
+
         }
 
         //to do
@@ -546,7 +561,7 @@ namespace HeroVirtualTableTop.Crowd
         //to do
         public void PlayDefaultMov_PlaysDefaultMovOfAllParticipants()
         {
-            
+
         }
 
         //to do
@@ -578,7 +593,7 @@ namespace HeroVirtualTableTop.Crowd
             crowd.SaveCurrentTableTopPosition();
             foreach (var crowdMember in crowd.Members)
             {
-                var member = (CharacterCrowdMember) crowdMember;
+                var member = (CharacterCrowdMember)crowdMember;
                 Mock.Get<CrowdMember>(member).Verify(x => x.SaveCurrentTableTopPosition());
             }
         }
@@ -590,7 +605,7 @@ namespace HeroVirtualTableTop.Crowd
             crowd.PlaceOnTableTop();
             foreach (var crowdMember in crowd.Members)
             {
-                var member = (CharacterCrowdMember) crowdMember;
+                var member = (CharacterCrowdMember)crowdMember;
                 Mock.Get<CrowdMember>(member).Verify(x => x.PlaceOnTableTop(null));
             }
         }
@@ -600,7 +615,7 @@ namespace HeroVirtualTableTop.Crowd
         {
             var nested = TestObjectsFactory.RepositoryUnderTestWithNestedgraphOfCharactersAndCrowds.Crowds;
             var original = nested[0];
-            var clone = (Crowd) original.Clone();
+            var clone = (Crowd)original.Clone();
 
             var expected = original.Name + " (1)";
             Assert.AreEqual(expected, clone.Name);
@@ -614,9 +629,9 @@ namespace HeroVirtualTableTop.Crowd
                 Assert.AreEqual(cloneMember.Name, originalmember.Name + " (1)");
             }
 
-            original = (Crowd) original.Members[0];
-            
-            clone = (Crowd) clone.Members[0];
+            original = (Crowd)original.Members[0];
+
+            clone = (Crowd)clone.Members[0];
             foreach (var originalmember in original.Members)
             {
                 cloneMember = clone.Members[originalmember.Order - 1];
@@ -626,7 +641,7 @@ namespace HeroVirtualTableTop.Crowd
 
         //to do
         public void ApplyFIlter_IncludesAllMatchedCrowdsAndCharactersAsWellAsCharactersPartOfMatchedCrowds()
-            // need to verify
+        // need to verify
         {
         }
 
@@ -660,7 +675,7 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
- 
+
     //to do
     internal class CrowdClipboardTestSuite
     {
@@ -679,7 +694,7 @@ namespace HeroVirtualTableTop.Crowd
 
         [TestMethod]
         public void CutAndPaste_ToDifferentCrowdRemovesMembershipFromSourceCrowdANdAddsNewMembershipToDestination()
-            //validate name
+        //validate name
         {
         }
 
@@ -701,6 +716,94 @@ namespace HeroVirtualTableTop.Crowd
         [TestMethod]
         public void LinkPasteCrowd_ClonesAllNestedCrowdChildren()
         {
+        }
+    }
+
+    public class CharacterExplorerViewModelTestSuite
+    {
+        public void AddCrowd_AddsCrowdToRepository()
+        {
+
+        }
+        public void AddCrowd_AddsCrowdUnderSelectedCrowd()
+        {
+
+        }
+        public void AddCrowd_AddsCrowdToCrowdCollectionIfNoSelectedCrowd()
+        {
+
+        }
+        public void AddCharacterCrowd_AddsCharacterCrowdToRepository()
+        {
+
+        }
+        public void AddCharacterCrowd_AddsCharacterCrowdUnderSelectedCrowd()
+        {
+
+        }
+        public void AddCharacterCrowd_AddsCharacterCrowdUnderAllCharactersIfNoSelectedCrowd()
+        {
+
+        }
+        public void DeleteCrowdMember_DeletesCrowdMemberFromRepository()
+        {
+
+        }
+        public void DeleteCrowdMember_DeletesCrowdMemberFromSelectedCrowd()
+        {
+
+        }
+        public void DeleteCrowdMember_DeletesAllOccurencesOfCharacterCrowdMemberIfDeletedFromAllCharacters()
+        {
+
+        }
+        public void RenameCrowdMember_UpdatesNameForCrowdMember()
+        {
+
+        }
+        public void MoveCrowdMember_MovesCrowdMemberToDestinationCrowd()
+        {
+
+        }
+        public void CloneCrowdMember_SetsCloneClipboardAction()
+        {
+
+        }
+        public void CutCrowdMember_SetsCutClipboardAction()
+        {
+
+        }
+        public void LinkCrowdMember_SetsLinkClipboardAction()
+        {
+
+        }
+        public void PasteCrowdMember_ClonesSelectedCrowdMemberWhenCloneActionChosen()
+        {
+
+        }
+        public void PasteCrowdMember_CutsSelectedCrowdMemberWhenCutActionChosen()
+        {
+
+        }
+        public void PasteCrowdMember_LinksSelectedCrowdMemberWhenLinkActionChosen()
+        {
+
+        }
+        public void AddCrowdMemberToRoster_AddsCrowdMemberToRoster()
+        {
+
+        }
+        public void AddCrowdFromModels_CreatesCrowdFromModels()
+        {
+
+        }
+        public void ApplyFilter_FiltersCrowdCollectionWithProvidedFilter()
+        {
+
+        }
+        public void SortCrowds_SortsCrowdCollectionAlphaNumerically()
+        {
+
         }
     }
 
