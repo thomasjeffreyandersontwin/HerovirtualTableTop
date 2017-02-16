@@ -87,6 +87,8 @@ namespace HeroVirtualTableTop.Crowd
     {
         CrowdRepository CrowdRepository { get; set; }
         CrowdMember SelectedCrowdMember { get; set; }
+        CrowdClipboard CrowdClipboard { get; set; }
+        ClipboardAction CurrentClipboardAction { get; set; }
         //KeyBoardHook keyBoardHook { get; set; } // To do under desktops
         void AddCrowd();
         void AddCharacterCrowd();

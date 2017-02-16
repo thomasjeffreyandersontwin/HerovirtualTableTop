@@ -137,6 +137,13 @@ namespace HeroVirtualTableTop.Crowd
             Crowds.Add(allMembersCrowd);
         }
     }
+    public enum ClipboardAction
+    {
+        Clone,
+        Cut,
+        Link,
+        CloneLink
+    }
 
     public class CrowdImpl : NotifyPropertyChanged, Crowd
     {
