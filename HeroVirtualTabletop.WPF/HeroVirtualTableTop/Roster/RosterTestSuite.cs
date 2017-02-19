@@ -10,6 +10,9 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Ploeh.AutoFixture;
 using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Attack;
+using HeroVirtualTableTop.ManagedCharacter;
+using Moq;
+
 namespace HeroVirtualTableTop.Roster
 {
     [TestClass]
@@ -128,11 +131,11 @@ namespace HeroVirtualTableTop.Roster
             RosterParticipant selected = r.Participants[0];
 
             r.SelectParticipant(selected);
-            Assert.AreEqual(r.SelectedParticipants[0], selected);
+            Assert.AreEqual(r.Selected.Participants[0], selected);
 
             selected = r.Participants[1];
             r.SelectParticipant(selected);
-            Assert.AreEqual(r.SelectedParticipants[1], selected);
+            Assert.AreEqual(r.Selected.Participants[1], selected);
 
 
         }
@@ -146,7 +149,7 @@ namespace HeroVirtualTableTop.Roster
             r.SelectParticipant(r.Participants[1]);
 
             r.UnsSelectParticipant(r.Participants[1]);
-            Assert.IsFalse(r.SelectedParticipants.Contains(r.Participants[1]));
+            Assert.IsFalse(r.Selected.Participants.Contains(r.Participants[1]));
         }
         [TestMethod]
         public void SelectGroup_AddsAllParticipantsInGroupToRosterSelectedParticipants()
@@ -158,7 +161,7 @@ namespace HeroVirtualTableTop.Roster
             int counter = 0;
             foreach (var p in selected.Values)
             {
-                Assert.AreEqual(p, r.SelectedParticipants[counter]);
+                Assert.AreEqual(p, r.Selected.Participants[counter]);
                 counter++;
             }
         }
@@ -173,7 +176,7 @@ namespace HeroVirtualTableTop.Roster
             int counter = 0;
             foreach (var p in selected.Values)
             {
-                Assert.IsFalse(r.SelectedParticipants.Contains(p));
+                Assert.IsFalse(r.Selected.Participants.Contains(p));
                 counter++;
             }
         }
@@ -188,7 +191,7 @@ namespace HeroVirtualTableTop.Roster
             int counter = 0;
             foreach (var p in selected.Values)
             {
-                Assert.IsFalse(r.SelectedParticipants.Contains(p));
+                Assert.IsFalse(r.Selected.Participants.Contains(p));
                 counter++;
             }
         }
@@ -200,7 +203,7 @@ namespace HeroVirtualTableTop.Roster
             int counter = 0;
             foreach (var p in r.Participants)
             {
-                Assert.AreEqual(p, r.SelectedParticipants[counter]);
+                Assert.AreEqual(p, r.Selected.Participants[counter]);
                 counter++;
             }
         }
@@ -267,7 +270,7 @@ namespace HeroVirtualTableTop.Roster
             c.IsSelected= true;
 
             //assert
-            Assert.IsTrue(r.SelectedParticipants.Contains(c));
+            Assert.IsTrue(r.Selected.Participants.Contains(c));
         }
         [TestMethod]
         public void UnSelectCharacter_CharacterIsRemovedFromSelectedParticipants()
@@ -281,8 +284,91 @@ namespace HeroVirtualTableTop.Roster
             c.IsSelected = false;
 
             //assert
-            Assert.IsFalse(r.SelectedParticipants.Contains(c));
+            Assert.IsFalse(r.Selected.Participants.Contains(c));
         }
+    }
+
+    [TestClass]
+    public class RosterSelectionTest
+    {
+        public RosterTestObjectsFactory TestObjectsFactory = new RosterTestObjectsFactory();
+
+        [TestMethod]
+        public void SelectionWithMultipleCharacters_InvokeIdentitiesWhereAllSelectedHaveIdentityWithCommonName()
+        {
+            //arrange
+            Roster r = TestObjectsFactory.RosterUnderTestWithThreeParticipantsWhereTwoHaveCommonIdNames;
+            
+            r.SelectAllParticipants();
+            ManagedCharacterCommands selected = r.Selected;
+            string identityNameofSelected = selected?.IdentitiesList?.FirstOrDefault().Value?.Name;
+            Identity identityOfAllSelected = selected?.IdentitiesList?[identityNameofSelected];
+            //act
+            identityOfAllSelected?.Play();
+            //assert - all played
+            foreach (RosterParticipant participant in r.Selected.Participants)
+            {
+                Identity id = participant.IdentitiesList.Values.Where(x=>x.Name==identityNameofSelected).FirstOrDefault();
+                if (id != null)
+                {
+                    Mock.Get<Identity>(id).Verify(x => x.Play(true));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void SelectionWithMultipleCharacters_CanInvokeAbilititesWhereSelectedHasAbilitieswithCommonName()
+        {
+            Roster r = TestObjectsFactory.RosterUnderTestWithThreeParticipantsWhereTwoHaveCommonAbilityNames;
+
+            r.SelectAllParticipants();
+            AnimatedCharacterCommands selected = r.Selected;
+            string abilityName = selected.AbilitiesList.FirstOrDefault().Value.Name;
+            CharacterAction actionOnSelected = selected.AbilitiesList[abilityName];
+
+
+            actionOnSelected.Play();
+            foreach (RosterParticipant participant in r.Selected.Participants)
+            {
+                AnimatedAbility.AnimatedAbility ability = participant.AbilitiesList.Values.Where(x => x.Name == abilityName).FirstOrDefault();
+                if (ability != null)
+                {
+                    Mock.Get<AnimatedAbility.AnimatedAbility>(ability).Verify(x => x.Play(true));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void SelectionWithMultipleCharacters_CanInvokeMovementsWhereSelectedHasMovementswithCommonName()
+        {
+            Roster r = TestObjectsFactory.RosterUnderTestWithThreeParticipantsWhereTwoHaveCommonAbilityNames;
+            r.Selected.SpawnToDesktop();
+            foreach (RosterParticipant participant in r.Selected.Participants)
+            {
+                  Mock.Get<CharacterCrowdMember>((CharacterCrowdMember)participant).Verify(x => x.SpawnToDesktop(true));
+            }
+
+        }
+
+        public void SelectionWithMultipleCharacters_CanRemoveStatesWhereSelectedHasCommonStates() { }
+
+        public void SelectionWithMultipleCharacters_CanInvokeManagedCharacterCommandsonAllSelected()
+        {
+            
+        }
+        public void SelectionWithMultipleCharacters_CanInvokeCrowdCommandsOnAllSelected() { }
+        public void SelectionWithMultipleCharactersOfCommonCrowd_NameEqualsCrowdName() { }
+        public void SelectionWithMultipleCharactersOfDifferentCrowd_NameEqualsTheWordSelected() { }
+        public void SelectionWithMultipleCharactersOfDifferentCrowdButSameCharacterName_NameEqualsCharacterName() { }
+
+        public void SelectionWithMultipleCharacters_DefaultCharacterActionsWillPlayDefaultsAcrossSelectedCharacters()
+        {
+        }
+
+        public void SelectionWithMultipleCharactersThatAttack_CommonAttackWillWithCommonAttackInstructions()
+        {
+        }
+
     }
 
     public class RosterTestObjectsFactory : CrowdTestObjectsFactory
@@ -335,6 +421,43 @@ namespace HeroVirtualTableTop.Roster
                 rosterUnderTest.AddCrowdMemberAsParticipant(CharacterCrowdMemberUnderTest);
                 rosterUnderTest.AddCrowdMemberAsParticipant(CharacterCrowdMemberUnderTest);
                 rosterUnderTest.AddCrowdMemberAsParticipant(CharacterCrowdMemberUnderTest);
+                return rosterUnderTest;
+            }
+        }
+
+        public Roster RosterUnderTestWithThreeParticipantsWhereTwoHaveCommonIdNames {
+            get
+            {
+                Roster rosterUnderTest = RosterUnderTestWithThreeParticipantsUnderTest;
+                CharacterCrowdMember c = rosterUnderTest.Participants[0] as CharacterCrowdMember;
+                Identity i = Mockidentity;
+                String n = i.Name;
+                c.Identities.AddNew(i);
+
+
+                c = rosterUnderTest.Participants.LastOrDefault() as CharacterCrowdMember;
+                i = Mockidentity;
+                i.Name = n;
+                c.Identities.AddNew(i);
+                return rosterUnderTest;
+
+            }
+        }
+
+        public Roster RosterUnderTestWithThreeParticipantsWhereTwoHaveCommonAbilityNames {
+            get
+            {
+                Roster rosterUnderTest = RosterUnderTestWithThreeParticipantsUnderTest;
+                CharacterCrowdMember c = rosterUnderTest.Participants[0] as CharacterCrowdMember;
+                AnimatedAbility.AnimatedAbility a = MockAnimatedAbility;
+                String n = a.Name;
+                c.Abilities.AddNew(a);
+
+
+                c = rosterUnderTest.Participants.LastOrDefault() as CharacterCrowdMember;
+                a = MockAnimatedAbility;
+                a.Name = n;
+                c.Abilities.AddNew(a);
                 return rosterUnderTest;
             }
         }

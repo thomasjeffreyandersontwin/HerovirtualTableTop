@@ -29,7 +29,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
             }
         }
          
-        public override ManagedCharacter.ManagedCharacter Owner
+        public override CharacterActionContainer Owner
         {
             get { return Target as ManagedCharacter.ManagedCharacter; }
 
@@ -70,7 +70,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
             }
         }
 
-        public virtual void Stop()
+        public virtual void Stop(bool completedEvent = true)
         {
             Stop(Target);
             

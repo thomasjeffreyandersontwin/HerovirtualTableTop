@@ -1,12 +1,14 @@
-﻿using Framework.WPF.Library;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Castle.Core.Internal;
+using Framework.WPF.Library;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.ManagedCharacter
 {
-    public class ManagedCharacterImpl : NotifyPropertyChanged, ManagedCharacter
+    public class ManagedCharacterImpl : NotifyPropertyChanged, ManagedCharacter, CharacterActionContainer
     {
         private bool _maneuveringWithCamera;
-
         public ManagedCharacterImpl(DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera,
             CharacterActionList<Identity> identities)
         {
@@ -19,7 +21,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
             foreach (var id in Identities.Values)
                 id.Owner = this;
         }
-
         public ManagedCharacterImpl(DesktopCharacterTargeter targeter, KeyBindCommandGenerator generator, Camera camera)
             : this(targeter, generator, camera, null)
         {
@@ -28,14 +29,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
         public DesktopMemoryCharacter MemoryInstance { get; set; }
         public DesktopCharacterTargeter Targeter { get; set; }
         public KeyBindCommandGenerator Generator { get; set; }
-
         public Camera Camera { get; set; }
 
-
         public Position Position => MemoryInstance.Position;
-
         public virtual string Name { get; set; }
-
         public virtual string DesktopLabel
         {
             get
@@ -53,7 +50,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
             else
                 Target();
         }
-
         public virtual bool IsTargeted
         {
             get
@@ -76,7 +72,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 }
             }
         }
-
         public virtual void Target(bool completeEvent = true)
         {
             if (MemoryInstance != null)
@@ -95,7 +90,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 }
             }
         }
-
         public virtual void UnTarget(bool completeEvent = true)
         {
             Generator.GenerateDesktopCommandText(DesktopCommand.TargetEnemyNear);
@@ -119,7 +113,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
 
         public bool IsFollowed { get; set; }
-
         public void UnFollow(bool completeEvent = true)
         {
             if (IsFollowed)
@@ -129,7 +122,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 IsFollowed = false;
             }
         }
-
         public void Follow(bool completeEvent = true)
         {
             IsFollowed = true;
@@ -142,12 +134,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Target();
             Camera.MoveToTarget();
         }
-
         public void ToggleManueveringWithCamera()
         {
             IsManueveringWithCamera = !IsManueveringWithCamera;
         }
-
         public bool IsManueveringWithCamera
         {
             get { return _maneuveringWithCamera; }
@@ -167,10 +157,30 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
+        
         public CharacterActionList<Identity> Identities { get; private set; }
+        public virtual Dictionary<CharacterActionType, Dictionary<string, CharacterAction>> CharacterActionGroups
+        {
+            get
+            {
+                Dictionary<string, CharacterAction> actions = new Dictionary<string, CharacterAction>();
+                Identities.Values.ForEach(x => actions[x.Name] = x);
+                Dictionary<CharacterActionType, Dictionary<string, CharacterAction>> actionsList
+                    = new Dictionary<CharacterActionType, Dictionary<string, CharacterAction>>();
+                actionsList.Add(CharacterActionType.Identity, actions);
+                return actionsList;
+            }
+        }
+        public Dictionary<string, Identity> IdentitiesList {
+            get
+            {
+                var i = new Dictionary<string, Identity>();
+                Identities.ForEach(x => i[x.Key]= x.Value);
+                return i;
+            }
+        }
 
         public bool IsSpawned { get; set; }
-
         public void SpawnToDesktop(bool completeEvent = true)
         {
             if (IsManueveringWithCamera)
@@ -202,7 +212,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Generator.GenerateDesktopCommandText(DesktopCommand.SpawnNpc, "model_statesmen", spawnText);
             active?.Play();
         }
-
         public void ClearFromDesktop(bool completeEvent = true)
         {
             Target();
@@ -213,7 +222,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
             IsFollowed = false;
             MemoryInstance = null;
         }
-
         public void MoveCharacterToCamera(bool completeEvent = true)
         {
             Target();
@@ -222,5 +230,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
 
         public CharacterProgressBarStats ProgressBar { get; set; }
-    }
+
+        }
 }

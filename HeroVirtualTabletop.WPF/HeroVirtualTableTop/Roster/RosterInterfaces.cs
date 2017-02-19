@@ -12,17 +12,17 @@ using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.Roster
 {
     public enum RosterCommandMode { Standard, CycleCharacter, OnRosterClick }
-    public interface Roster : ManagedCharacterCommands, CrowdMemberCommands, AnimatedCharacterCommands
+    public interface Roster 
     {
         string Name { get; set; }
         RosterCommandMode ComandMode { get; set; }
         OrderedCollection<RosterGroup> Groups { get; }
         List<RosterParticipant> Participants { get; }
-        Dictionary<string, RosterGroup> GroupsByName { get; }
-        Dictionary<string, RosterParticipant> ParticipantsByName { get; }
+        //Dictionary<string, RosterGroup> GroupsByName { get; }
+       // Dictionary<string, RosterParticipant> ParticipantsByName { get; }
 
-        // List<CharacterCrowdMember> SelectedParticipants { get; set; }
-        List<RosterParticipant> SelectedParticipants { get; }
+        // List<CharacterCrowdMember> Participants { get; set; }
+        RosterSelection Selected { get; }
         void SelectParticipant(RosterParticipant participant);
         void UnsSelectParticipant(RosterParticipant participant);
         void AddCrowdMemberAsParticipant(CharacterCrowdMember participant);
@@ -42,7 +42,6 @@ namespace HeroVirtualTableTop.Roster
         RosterParticipant AttackingCharacter { get; }
         RosterParticipant LastSelectedCharacter { get; }
 
-        List<AnimatedAbility.AnimatedAbility> CommonAbilitiesForActiveCharacters { get; }
         RosterParticipant TargetedCharacter { get; set; }
 
         void GroupSelectedParticpants();
@@ -56,10 +55,15 @@ namespace HeroVirtualTableTop.Roster
 
     }
 
-    public interface RosterParticipant: OrderedElement, INotifyPropertyChanged
-
+    public interface RosterParticipant: OrderedElement, ManagedCharacterCommands, AnimatedCharacterCommands
     {
        
+    }
+
+    public interface RosterSelection : CharacterActionContainer, ManagedCharacterCommands, AnimatedCharacterCommands
+    {
+        List<RosterParticipant> Participants { get;set; }
+
     }
 
 

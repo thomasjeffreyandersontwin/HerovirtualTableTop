@@ -54,7 +54,7 @@ namespace HeroVirtualTableTop.Attack
             return new AttackInstructionsImpl();
         }
 
-        public void Stop()
+        public void Stop(bool completedEvent = true)
         {
             Stop(Target);
             Attacker.RemoveActiveAttack();

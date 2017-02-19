@@ -11,6 +11,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
     {
         void Activate();
         void DeActivate();
+        Dictionary<string, AnimatedAbility> AbilitiesList { get; }
     }
     public class DefaultAbilities
     {
@@ -104,7 +105,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         
         new void Play(AnimatedCharacter target);
         new void Play(List<AnimatedCharacter> targets);
-        void Stop();
+        void Stop(bool completedEvent = true);
         AnimatedAbility Clone(AnimatedCharacter target);
        
     }

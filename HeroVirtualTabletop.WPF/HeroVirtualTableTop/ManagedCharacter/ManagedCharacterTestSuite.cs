@@ -645,7 +645,10 @@ namespace HeroVirtualTableTop.ManagedCharacter
                 new TypeRelay(
                     typeof(Identity),
                     typeof(IdentityImpl)));
-
+            StandardizedFixture.Customizations.Add(
+                new TypeRelay(
+                    typeof(CharacterActionContainer),
+                    typeof(ManagedCharacterImpl)));
             //handle recursion
             StandardizedFixture.Behaviors.Add(new OmitOnRecursionBehavior());
         }

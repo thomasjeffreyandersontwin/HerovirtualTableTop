@@ -35,12 +35,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
             if (completeEvent)
                 Generator.CompleteEvent();
-            Owner.Target(completeEvent);
+            ((ManagedCharacter)Owner).Target(completeEvent);
         }
 
         public override CharacterAction Clone()
         {
-            Identity clone = new IdentityImpl(Owner, Name, Surface, Type, Generator, KeyboardShortcut);
+            Identity clone = new IdentityImpl(((ManagedCharacter)Owner), Name, Surface, Type, Generator, KeyboardShortcut);
             return clone;
         }
     }

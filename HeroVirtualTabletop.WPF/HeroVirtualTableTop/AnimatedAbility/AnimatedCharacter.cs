@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Castle.Core.Internal;
 using HeroVirtualTableTop.Crowd;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
@@ -12,6 +13,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
     public class AnimatedCharacterImpl : ManagedCharacterImpl, AnimatedCharacter, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
+
         private void NotifyPropertyChanged([CallerMemberName] String propertyName = "")
         {
             if (PropertyChanged != null)
@@ -19,13 +21,14 @@ namespace HeroVirtualTableTop.AnimatedAbility
                 PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
             }
         }
+
         private List<AnimatableCharacterState> _activeStates;
 
         private List<FXElement> _loadedFXs;
 
-        public AnimatedCharacterImpl( DesktopCharacterTargeter targeter,
+        public AnimatedCharacterImpl(DesktopCharacterTargeter targeter,
             KeyBindCommandGenerator generator, Camera camera, CharacterActionList<Identity> identities,
-            AnimatedCharacterRepository repo) : base( targeter, generator, camera, identities)
+            AnimatedCharacterRepository repo) : base(targeter, generator, camera, identities)
         {
             _loadedFXs = new List<FXElement>();
             Abilities = new CharacterActionListImpl<AnimatedAbility>(CharacterActionType.Ability, generator, this);
@@ -36,7 +39,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public override void Target(bool completeEvent = true)
         {
-            
+
             base.Target();
             NotifyPropertyChanged();
         }
@@ -45,14 +48,16 @@ namespace HeroVirtualTableTop.AnimatedAbility
         {
             base.UnTarget();
             NotifyPropertyChanged();
-        }         
+        }
 
         private bool _isSelected;
-        public bool IsSelected {
+
+        public bool IsSelected
+        {
             get { return _isSelected; }
             set
             {
-                _isSelected=value;
+                _isSelected = value;
                 NotifyPropertyChanged();
             }
         }
@@ -87,7 +92,9 @@ namespace HeroVirtualTableTop.AnimatedAbility
         public Position Facing { get; set; }
 
         private bool isActive;
-        public bool IsActive {
+
+        public bool IsActive
+        {
             get { return isActive; }
             set
             {
@@ -109,7 +116,8 @@ namespace HeroVirtualTableTop.AnimatedAbility
 
         public List<FXElement> LoadedFXs => _loadedFXs ?? (_loadedFXs = new List<FXElement>());
 
-        public List<AnimatableCharacterState> ActiveStates => _activeStates ?? (_activeStates = new List<AnimatableCharacterState>());
+        public List<AnimatableCharacterState> ActiveStates
+            => _activeStates ?? (_activeStates = new List<AnimatableCharacterState>());
 
         public void AddState(AnimatableCharacterState state, bool playImmediately = true)
         {
@@ -195,9 +203,31 @@ namespace HeroVirtualTableTop.AnimatedAbility
                     //to do load the rest of the default abilities
                 }
         }
-    }
 
-    internal class AnimatableCharacterStateImpl : AnimatableCharacterState
+        public override Dictionary<CharacterActionType, Dictionary<string,CharacterAction>> CharacterActionGroups
+        {
+            get
+            {
+                var actions = new Dictionary<string,CharacterAction>();
+                Abilities.Values.ForEach(x => actions[x.Name]=x);
+                var actionsList
+                    = base.CharacterActionGroups;
+                actionsList.Add(CharacterActionType.Ability, actions);
+                return actionsList;
+            }
+        }
+
+        public Dictionary<string, AnimatedAbility> AbilitiesList
+        {
+            get
+            {
+                var i = new Dictionary<string, AnimatedAbility>();
+                Abilities.ForEach(x => i[x.Key] = x.Value);
+                return i;
+            }
+        }
+    }
+    public class AnimatableCharacterStateImpl : AnimatableCharacterState
     {
         public AnimatableCharacterStateImpl(AnimatedAbility ability, AnimatedCharacter target)
         {

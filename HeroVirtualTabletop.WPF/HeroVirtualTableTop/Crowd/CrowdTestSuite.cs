@@ -525,14 +525,7 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual(membershipAttachedToParent?.Child.Name, membershipAttachedToChild?.Child.Name);
         }
 
-        [TestMethod]
-        public void ExecutingAnyManagedCharacterCommandOncrowd_RunsMethodOnAllCharactersInCrowd()
-        {
-            var crowd = TestObjectsFactory.CrowdUnderTestWithThreeMockCrowdmembers;
-            crowd.SpawnToDesktop();
-            foreach (var member in crowd.Members)
-                Mock.Get(member).Verify(x => x.SpawnToDesktop(true));
-        }
+        
 
         //to do
         public void Identities_ReturnsIdentitiesThatAllCrowdMembersHaveInCommon()
