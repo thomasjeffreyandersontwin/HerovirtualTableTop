@@ -180,6 +180,8 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
         }
 
+        public Identity DefaultIdentity => Identities.Default;
+
         public bool IsSpawned { get; set; }
         public void SpawnToDesktop(bool completeEvent = true)
         {
@@ -230,6 +232,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
         }
 
         public CharacterProgressBarStats ProgressBar { get; set; }
-
-        }
+        
+    }
 }

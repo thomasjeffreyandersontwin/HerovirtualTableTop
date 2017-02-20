@@ -5,17 +5,19 @@ namespace HeroVirtualTableTop.ManagedCharacter
 {
     public interface ManagedCharacterCommands
     {
+        string Name { get; set; }
         void SpawnToDesktop(bool completeEvent = true);
         void ClearFromDesktop(bool completeEvent = true);
         void MoveCharacterToCamera(bool completeEvent = true);
-        Dictionary<string,Identity> IdentitiesList { get; }
-
+        Dictionary<string, Identity> IdentitiesList { get; }
+        Identity DefaultIdentity { get; }
     }
 
     public interface ManagedCharacter : ManagedCharacterCommands, CharacterActionContainer
     {
+        
         DesktopCharacterTargeter Targeter { get; set; }
-        string Name { get; set; }
+        
         string DesktopLabel { get; }
         Position Position { get; }
         bool IsTargeted { get; set; }

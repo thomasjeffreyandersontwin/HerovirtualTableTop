@@ -12,7 +12,12 @@ namespace HeroVirtualTableTop.AnimatedAbility
         void Activate();
         void DeActivate();
         Dictionary<string, AnimatedAbility> AbilitiesList { get; }
+        AnimatedAbility DefaultAbility { get; }
+
+        List<AnimatableCharacterState> ActiveStates { get; }
+        void RemoveStateByName(string stateName);
     }
+
     public class DefaultAbilities
     {
         public static string UnderAttack => "UnderAttack";

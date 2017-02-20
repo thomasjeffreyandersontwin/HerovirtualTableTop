@@ -66,11 +66,11 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
             set
             {
-                if (_default != null)
+               // if (value != null)
                     if (ContainsValue(value))
                         _default = value;
-                    else
-                        throw new ArgumentException("action cant be set to default it doesnt exist for character");
+                    //else
+                      //  throw new ArgumentException("action cant be set to default it doesnt exist for character");
             }
         }
 

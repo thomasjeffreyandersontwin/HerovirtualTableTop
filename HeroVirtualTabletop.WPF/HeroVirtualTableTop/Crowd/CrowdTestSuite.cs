@@ -4,6 +4,7 @@ using Framework.WPF.Library;
 using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Attack;
 using HeroVirtualTableTop.ManagedCharacter;
+using HeroVirtualTableTop.Roster;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
@@ -117,7 +118,7 @@ namespace HeroVirtualTableTop.Crowd
             //assert
             Assert.AreEqual("Crowd (2)", nextActual.Name);
         }
-        [TestMethod]
+        
         public void AddDefaultCharacters_AddsDefaultAndCombatEffectsCharacters()
         {
 
@@ -936,7 +937,10 @@ namespace HeroVirtualTableTop.Crowd
                 new TypeRelay(
                     typeof(CrowdRepository),
                     typeof(CrowdRepositoryImpl)));
-
+            StandardizedFixture.Customizations.Add(
+             new TypeRelay(
+                 typeof(RosterGroup),
+                 typeof(RostergroupImpl)));
             setupFixtureToBuildCrowdRepositories();
         }
         private void setupFixtureToBuildCrowdRepositories()

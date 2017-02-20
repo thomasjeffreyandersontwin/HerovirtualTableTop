@@ -22,7 +22,7 @@ namespace HeroVirtualTableTop.Crowd
         Crowd AllMembersCrowd { get; }
         Crowd NewCrowd(Crowd parent = null, string name = "Character");
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
-        string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context);
+        string CreateUniqueName(string name, List<CrowdMember> context);
         void AddDefaultCharacters();
         void LoadCrowds();
         void SaveCrowds();
@@ -45,7 +45,7 @@ namespace HeroVirtualTableTop.Crowd
     {
         new string Name { get; set; }
     }
-    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, RosterParticipant
+    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands, AnimatedCharacterCommands,RosterParticipant
     {
         int Order { get; set; }
         bool MatchesFilter { get; set; }
