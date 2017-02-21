@@ -84,11 +84,17 @@ namespace HeroVirtualTableTop.Desktop
         void Turn(TurnDirection turnDirection, float rotationAngle);
         void Move(Direction direction, float distance=0f);
         void MoveTo(Position destination);
+        void MoveTo(Vector3 destination);
+        bool IsAtLocation(Vector3 location);
         Vector3 CalculateDirectionVector(Direction direction);
         Vector3 CalculateDirectionVector(Vector3 directionVector);
         Vector3 CalculateDestinationVector(Vector3 directionVector);
 
         void Face(Position target);
+        void Face(Vector3 facing);
+        int Size { get; set; }
+
+        Dictionary<PositionBodyLocation, PositionLocationPart> BodyLocations { get; }
     }
 
     public interface DesktopMemoryCharacter
@@ -117,38 +123,30 @@ namespace HeroVirtualTableTop.Desktop
     public class Collision
     {
         public Vector3 BodyCollisionOffsetVector { get; set; }
-        public BodyPart CollisionBodyPart { get; set; }
+        public PositionBodyLocation CollisionPositionBodyLocation { get; set; }
         public float CollisionDistance { get; set; }
         public Vector3 CollisionPoint { get; set; }
     }
   
     public interface DesktopNavigator
     {
-        bool IsMovingToDestination { get; set; }
-        DesktopMemoryCharacter MemoryInstance { get; set; }
-        //todoList<DesktopCharacterBodyPart> BodyParts { get; set; }
-
+       
         Direction Direction { get; set; }
-
         Position Destination { get; set; }
-        Desktop.Position OriginalDestination { get; set; }
+        float Speed { get; set; }
+        Position PositionBeingNavigated { get; set; }
 
-        bool WillCollide { get; }
-        Vector3 Collision { get; }
+        Vector3 Collision { get; }  
+        Vector3 OffsetOfPositionBodyLocationClosestToCollision { get; }
+        Vector3 NearestAvailableIncrementalVectorTowardsDestination { get; }
 
         bool UsingGravity { get; set; }
-        void ApplyGravityToDestination();
-
-        Position NearestAvailableIncrementalPositionTowardsDestination { get; }      
-
-        float Distance { get; set; }
-        IconInteractionUtility IconInteractionUtility { get; set; }
-        Position PositionBeingNavigated { get; set; }
-        float Speed { get; set; }
+      
+        IconInteractionUtility CityOfHeroesInteractionUtility { get; set; }      
         void Navigate();
         void NavigateCollisionsToDestination(Position characterPosition, Direction direction, Position destination, float speed, bool hasGravity);
     }
-    public enum BodyPart
+    public enum PositionBodyLocation
     {
         None,
         Top,
@@ -158,11 +156,14 @@ namespace HeroVirtualTableTop.Desktop
         BottomSemiMiddle,
         Bottom
     }
-    public interface DesktopCharacterBodyPart
+    public interface PositionLocationPart
     {
-        BodyPart Part { get; set; }
-        Position CollisionPoint { get; }
-        Position OffestPosition { get; set; }
+        PositionBodyLocation Part { get; set; }
+        Vector3 GetDestinationVector(Vector3 destination);
+        Vector3 OffsetVector { get; }
+        Vector3 Vector { get; }
+        float Size { get; set; }
+        Position ParentPosition { get; }
     }
     public enum Direction 
     {

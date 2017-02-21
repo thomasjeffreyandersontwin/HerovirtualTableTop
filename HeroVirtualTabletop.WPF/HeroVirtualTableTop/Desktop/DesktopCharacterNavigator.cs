@@ -17,47 +17,126 @@ namespace HeroVirtualTableTop.Desktop
         public float Speed { get; set; }
         public float Distance { get; set; }
 
-        public DesktopMemoryCharacter MemoryInstance { get; set; }
-        //public List<DesktopCharacterBodyPart> BodyParts { get; set; }
-
         public Position PositionBeingNavigated { get; set; }
 
-        public Position StopPosition
+        public Vector3 StopLocation
         {
             get
             {
                 if (Collision == Vector3.Zero)
                 {
-                    return Destination;
+                    return Destination.Vector;
                 }
                 else
                 {
-                    return new PositionImpl(Collision);
+                    return Collision;
                 }
             }
         }
         public Position Destination { get; set; }     
         public Direction Direction { get; set; }
        
-
-        public Desktop.Position OriginalDestination { get; set; }
-
-        public bool WillCollide { get; }
-        
+        public bool WillCollide { get; }       
         public Vector3 Collision
         {
             get
             {
-                float distance = Vector3.Distance(PositionBeingNavigated.Vector, Destination.Vector);
-                IconInteractionUtility.Start = PositionBeingNavigated.Vector;
-                IconInteractionUtility.Destination = Destination.Vector;
-                Vector3 collision = IconInteractionUtility.Collision;
-                float collisionDistance = Vector3.Distance(PositionBeingNavigated.Vector, collision);
-                if (collision.Length()!=0f && collisionDistance <= distance) // proper collision
-                    return collision;            
-                return new Vector3();            
+                if(CollisionDistanceForEachPositionBodyLocation.Values.Count > 0)
+                {
+                    float minDistance = CollisionDistanceForEachPositionBodyLocation.Values.Max(x => x);
+                    Vector3 collision = Vector3.Zero;
+                    foreach (var part in CollisionDistanceForEachPositionBodyLocation)
+                    {
+                        if (part.Value < minDistance || part.Value == minDistance)
+                        {
+                            minDistance = part.Value;
+                            collision = CollisionsForEachPositionBodyLocation[part.Key];
+                            Vector3 offset = PositionBeingNavigated.BodyLocations[part.Key].OffsetVector;
+                            collision = new Vector3(collision.X - offset.X,
+                               collision.Y - offset.Y, collision.Z - offset.Z);
+                        }
+                    }
+                    return collision;
+                }
+                else
+                {
+                    return Vector3.Zero;
+                }
             }
         }
+
+        private Vector3 calculateCollision(Vector3 start, Vector3 destination)
+        {
+            float distance = Vector3.Distance(start, destination);
+
+            CityOfHeroesInteractionUtility.Start = start;
+            CityOfHeroesInteractionUtility.Destination = destination;
+            Vector3 collision = CityOfHeroesInteractionUtility.Collision;
+            float collisionDistance = Vector3.Distance(start, collision);
+            if (collision.Length() != 0f && collisionDistance <= distance) // proper collision
+                return collision;
+            return new Vector3();
+        }
+
+        public Dictionary<PositionBodyLocation, Vector3> CollisionsForEachPositionBodyLocation
+        {
+            get
+            {
+                var bodyPartCollisions = new Dictionary<PositionBodyLocation, Vector3>();
+                foreach (var part in PositionBeingNavigated.BodyLocations)
+                {
+                    Vector3 startForBodyPart = part.Value.Vector;
+                    Vector3 destinationForBodyPart = part.Value.GetDestinationVector(Destination.Vector);
+                    Vector3 collisionForBodyPart = calculateCollision(startForBodyPart, destinationForBodyPart);
+                    if (collisionForBodyPart != Vector3.Zero)
+                    {
+                        bodyPartCollisions[part.Key] = collisionForBodyPart;
+                    }
+                }
+                return bodyPartCollisions;
+            }
+        }
+        public Dictionary<PositionBodyLocation, float> CollisionDistanceForEachPositionBodyLocation
+        {
+            get
+            {
+                var bodyPartCollisionDistances = new Dictionary<PositionBodyLocation, float>();
+                foreach (var part in PositionBeingNavigated.BodyLocations)
+                {
+                    Vector3 startForBodyPart = part.Value.Vector;
+                    Vector3 destinationForBodyPart = part.Value.GetDestinationVector(Destination.Vector);
+                    Vector3 collisionForBodyPart = calculateCollision(startForBodyPart, destinationForBodyPart);
+                    if (collisionForBodyPart != Vector3.Zero)
+                    {
+                        float distance = Vector3.Distance(startForBodyPart, collisionForBodyPart);
+                        bodyPartCollisionDistances[part.Key] = distance;
+                    }
+                }
+                return bodyPartCollisionDistances;
+            }
+        }
+        public Vector3 OffsetOfPositionBodyLocationClosestToCollision
+        {
+            get
+            {
+                if (CollisionDistanceForEachPositionBodyLocation.Values.Count > 0)
+                {
+                    float minDistance = CollisionDistanceForEachPositionBodyLocation.Values.Max(x => x);
+                    Vector3 offset = Vector3.Zero;
+                    foreach (var part in CollisionDistanceForEachPositionBodyLocation)
+                    {
+                        if (part.Value < minDistance || part.Value == minDistance)
+                        {
+                            minDistance = part.Value;
+                            offset = PositionBeingNavigated.BodyLocations[part.Key].OffsetVector;
+                        }
+                    }
+                    return offset;
+                }
+                return Vector3.Zero;
+            }
+        }
+
         public void NavigateCollisionsToDestination(Position characterPosition, Direction direction, Position destination, float speed,
             bool hasGravity)
         {
@@ -68,20 +147,20 @@ namespace HeroVirtualTableTop.Desktop
             UsingGravity = hasGravity;
             Navigate();
         }
-        private Position _allowableDestination;
-        public Position NearestAvailableIncrementalPositionTowardsDestination
+        private Vector3 _allowableDestination=Vector3.Zero;
+        public Vector3 NearestAvailableIncrementalVectorTowardsDestination
         {
             get
             {
-                float distance = PositionBeingNavigated.DistanceFrom(StopPosition);
+                float distance = Vector3.Distance(PositionBeingNavigated.Vector,StopLocation);
                 if (distance < Speed)
                 {
-                    return StopPosition;
+                    return StopLocation;
                 }
                 Vector3 destinationVectorNext = NearestIncrementalVectorTowardsDestination;                   
-                if (_allowableDestination == null)
+                if (_allowableDestination == Vector3.Zero)
                 {
-                    _allowableDestination = new PositionImpl(destinationVectorNext);
+                    _allowableDestination = destinationVectorNext;
 
                 }
                 else
@@ -121,17 +200,17 @@ namespace HeroVirtualTableTop.Desktop
             float actual = 0f;
             if (PositionBeingNavigated.Equals(Destination))
                 return;
-            PositionBeingNavigated.Face(StopPosition);
+            PositionBeingNavigated.Face(StopLocation);
             float calc = 0f;
-            while (PositionBeingNavigated.Equals(StopPosition)==false)
+            while (PositionBeingNavigated.IsAtLocation(StopLocation)==false)
             {
-               PositionBeingNavigated.MoveTo(NearestAvailableIncrementalPositionTowardsDestination);
+               PositionBeingNavigated.MoveTo(NearestAvailableIncrementalVectorTowardsDestination);
             }
         }
 
 
 
-        public IconInteractionUtility IconInteractionUtility { get; set; }
+        public IconInteractionUtility CityOfHeroesInteractionUtility { get; set; }
 
         
     }

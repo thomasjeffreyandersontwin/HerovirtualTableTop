@@ -762,6 +762,8 @@ namespace Module.HeroVirtualTabletop.Movements
 
             return allowableDestVector;
         }
+
+
         private Vector3 GetNextTravelPointToAvoidCollision(Character target, out bool canAvoidCollision)
         {
             Vector3 nextTravelPoint = new Vector3();
@@ -817,7 +819,7 @@ namespace Module.HeroVirtualTabletop.Movements
                         }
 
                     }
-                    if (hasCollision)
+                    if (hasCollision) //todo
                     {
                         // Check if Collision is only bottom semi middle and no other parts, then we can still adjust
                         if (bodyPartCollisionMap[BodyPart.BottomSemiMiddle] != null && bodyPartCollisionMap[BodyPart.BottomMiddle] == null && bodyPartCollisionMap[BodyPart.Middle] == null
