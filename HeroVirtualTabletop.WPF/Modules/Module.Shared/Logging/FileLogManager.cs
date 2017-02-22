@@ -24,6 +24,15 @@ namespace Module.Shared.Logging
             var log4NetConfigFilePath = Path.Combine(log4NetConfigDirectory, Constants.LOG_CONFIGURATION_FILENAME);
             log4net.Config.XmlConfigurator.ConfigureAndWatch(new FileInfo(log4NetConfigFilePath));
         }
+        /// <summary>
+        /// Hack method to forcefully write log from anywhere
+        /// </summary>
+        /// <param name="text"></param>
+        public static void ForceLog(string text)
+        {
+            var logger = LogManager.GetLogger("");
+            logger.Info(text);
+        }
 
         public FileLogManager(Type logClass)
         {

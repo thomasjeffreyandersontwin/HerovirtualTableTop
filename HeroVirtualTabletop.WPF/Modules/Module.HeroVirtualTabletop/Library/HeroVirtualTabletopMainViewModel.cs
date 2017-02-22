@@ -36,6 +36,7 @@ namespace Module.HeroVirtualTabletop.Library
 
         private EventAggregator eventAggregator;
         Module.Shared.Logging.ILogManager logService = new Module.Shared.Logging.FileLogManager(typeof(HeroVirtualTabletopMainViewModel));
+        System.Threading.Timer gameInitializeTimer;
 
         #endregion
 
@@ -62,28 +63,9 @@ namespace Module.HeroVirtualTabletop.Library
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            gameInitializeTimer = new System.Threading.Timer(gameInitializeTimer_Callback, null, System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
 
             LaunchGame();
-
-            LoadModelsFile();
-            //logService.Info("Models loaded");
-
-            LoadCostumeFiles();
-            //logService.Info("Costumes loaded");
-
-            LoadSoundFiles();
-            //logService.Info("Sounds loaded");
-
-            ClearTempFilesFromDataFolder();
-
-            //LoadSoundFiles();
-
-            // Load camera on start
-            new Camera().Render();
-            //logService.Info("Camera rendered");
-
-            LoadMainView();
-            //logService.Info("MainView displayed");
 
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
             this.eventAggregator.GetEvent<DeactivateCharacterEvent>().Subscribe(this.CloseActiveCharacterWidget);
@@ -187,21 +169,67 @@ namespace Module.HeroVirtualTabletop.Library
             PopupService.SavePosition("ActiveCharacterWidgetView", target != null ? target.Name : null);
             PopupService.CloseDialog("ActiveCharacterWidgetView");
         }
-        
+
+       
         private void LaunchGame()
         {
             bool directoryExists = CheckGameDirectory();
             if (!directoryExists)
                 SetGameDirectory();
-            //logService.Info("Launching game...");
-            IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
-            //logService.Info("Game launched");
-            LoadRequiredKeybinds();
-            //logService.Info("Keybinds loaded");
-            CreateCameraFilesIfNotExists();
-            CreateAreaAttackPopupMenuIfNotExists();
+            logService.Info("Launching game...");
+            //IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+            IconInteractionUtility.InitializeGame(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
+            gameInitializeTimer.Change(50, System.Threading.Timeout.Infinite);
         }
 
+        private void DoPostGameLaunchOperations()
+        {
+            Action d = delegate(){
+                logService.Info("Game launched");
+                LoadRequiredKeybinds();
+                logService.Info("Keybinds loaded");
+                CreateCameraFilesIfNotExists();
+                CreateAreaAttackPopupMenuIfNotExists();
+
+                LoadModelsFile();
+                //logService.Info("Models loaded");
+
+                LoadCostumeFiles();
+                //logService.Info("Costumes loaded");
+
+                LoadSoundFiles();
+                //logService.Info("Sounds loaded");
+
+                ClearTempFilesFromDataFolder();
+
+                //LoadSoundFiles();
+
+                // Load camera on start
+                new Camera().Render();
+                //logService.Info("Camera rendered");
+
+                LoadMainView();
+                logService.Info("MainView displayed");
+            };
+            Application.Current.Dispatcher.BeginInvoke(d);
+        }
+
+        private void gameInitializeTimer_Callback(object state)
+        {
+            bool gameLoaded = IconInteractionUtility.IsGameLoaded();
+            if(gameLoaded)
+            {
+                IconInteractionUtility.DoPostInitialization();
+                DoPostGameLaunchOperations();
+                gameInitializeTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
+            }
+            else
+            {
+                gameInitializeTimer.Change(100, System.Threading.Timeout.Infinite);
+            }
+        }
+
+        
         private void LoadRequiredKeybinds()
         {
             CheckRequiredKeybindsFileExists();
@@ -213,10 +241,12 @@ namespace Module.HeroVirtualTabletop.Library
         {
             bool directoryExists = false;
             string gameDir = Module.Shared.Settings.Default.CityOfHeroesGameDirectory;
+            logService.Info("Current Game Dir: " + gameDir);
             if (!string.IsNullOrEmpty(gameDir) && Directory.Exists(gameDir) && File.Exists(Path.Combine(gameDir, Constants.GAME_EXE_FILENAME)))
             {
                 directoryExists = true;
             }
+            logService.Info("Dir Exists: " + directoryExists.ToString());
             return directoryExists;
         }
 
