@@ -282,16 +282,14 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         [TestMethod]
-        public void
-            MoveMemberFromOneParentToNewParent_RemovesFromOriginalAndPlacesInNewCrowdAndUpdatesOrderForMembersInOldAndNewparent
-            ()
+        public void MoveMemberFromOneParentToNewParent_RemovesFromOriginalAndPlacesInNewCrowdAndUpdatesOrderForMembersInOldAndNewparent()
         {
             //arrange
             var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
             Crowd parent0, parent1;
             CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
             CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
-            AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
                 out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
 
             var parent0Count = parent0.Members.Count;
@@ -448,37 +446,7 @@ namespace HeroVirtualTableTop.Crowd
             parent.AddCrowdMember(grandChild2);
         }
 
-        private void AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(CrowdRepository repo, out Crowd parent0,
-            out Crowd parent1, out CharacterCrowdMember child0_0, out CharacterCrowdMember child0_1,
-            out CharacterCrowdMember child0_2, out CharacterCrowdMember child0_3, out CharacterCrowdMember child1_0,
-            out CharacterCrowdMember child1_1, out CharacterCrowdMember child1_2, out CharacterCrowdMember child1_3)
-        {
-            parent0 = TestObjectsFactory.CrowdUnderTest;
-            parent0.Name = "Parent0";
-            parent1 = TestObjectsFactory.CrowdUnderTest;
-            parent1.Name = "Parent1";
-            repo.Crowds.Add(parent0);
-            repo.Crowds.Add(parent1);
-
-            AddChildCrowdMemberToParent(repo, parent0, out child0_0, "child0_0");
-            AddChildCrowdMemberToParent(repo, parent0, out child0_1, "child0_1");
-            AddChildCrowdMemberToParent(repo, parent0, out child0_2, "child0_2");
-            AddChildCrowdMemberToParent(repo, parent0, out child0_3, "child0_3");
-
-            AddChildCrowdMemberToParent(repo, parent1, out child1_0, "child1_0");
-            AddChildCrowdMemberToParent(repo, parent1, out child1_1, "child1_1");
-            AddChildCrowdMemberToParent(repo, parent1, out child1_2, "child1_2");
-            AddChildCrowdMemberToParent(repo, parent1, out child1_3, "child1_3");
-        }
-
-        private void AddChildCrowdMemberToParent(CrowdRepository repo, Crowd parent, out CharacterCrowdMember child,
-            string name)
-        {
-            child = TestObjectsFactory.GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
-            child.Name = name;
-            parent.AddCrowdMember(child);
-            repo.AllMembersCrowd.AddCrowdMember(child);
-        }
+        
 
         [TestMethod]
         public void AddMember_CreatesMembershipAndUpdatesParentAndOrderOfMember()
@@ -675,9 +643,8 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
-
-    //to do
-    internal class CrowdClipboardTestSuite
+    [TestClass]
+    public class CrowdClipboardTestSuite
     {
         public CrowdTestObjectsFactory TestObjectsFactory;
 
@@ -690,32 +657,128 @@ namespace HeroVirtualTableTop.Crowd
         [TestMethod]
         public void CutAndPaste_ToSameCrowdDoesNothing()
         {
+            // arrange
+            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
+            var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
+
+            var parent0Count = parent0.Members.Count;
+            var parent1Count = parent1.Members.Count;
+
+            var child0_0Order = child0_0.Order;
+
+            //act
+
+            crowdClipboard.CutToClipboard(child0_0);
+            crowdClipboard.PasteFromClipboard(parent0);
+
+            //assert
+            Assert.AreEqual(child0_0Order, child0_0.Order); //unchanged
+            Assert.AreEqual(parent0, child0_0.Parent); //unchanged
+            Assert.AreEqual(parent0Count, parent0.Members.Count);// unchanged
+            Assert.AreEqual(parent1Count, parent1.Members.Count);// unchanged
         }
 
         [TestMethod]
         public void CutAndPaste_ToDifferentCrowdRemovesMembershipFromSourceCrowdANdAddsNewMembershipToDestination()
-        //validate name
         {
-        }
+            // arrange
+            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
+            var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
 
-        [TestMethod]
-        public void CutAndPaste_ToDifferentCrowdIsRetriveableInCorrectOrder()
-        {
+            //act
+            CrowdMember memberToMove = child0_1;
+            CrowdMember destination = child1_1;
+
+            crowdClipboard.CutToClipboard(child0_0);
+            crowdClipboard.PasteFromClipboard(parent1);
+
+            //assert
+            Assert.AreEqual(parent1, child0_0.Parent); // new parent
+            Assert.AreNotEqual(parent0, child0_0.Parent); // no longer Parent
+            var oldMem = parent0.MemberShips.FirstOrDefault(m => m.Child == child0_0);
+            var newMem = parent1.MemberShips.FirstOrDefault(m => m.Child == child0_0);
+            Assert.IsNull(oldMem);
+            Assert.IsNotNull(newMem);
         }
 
         [TestMethod]
         public void CopyndPaste_ToSameCrowdCreatesACloneAndNewMembershipAndUniqueName()
         {
+            // arrange
+            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
+            var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
+
+            var parent0Count = parent0.Members.Count;
+            var parent1Count = parent1.Members.Count;
+
+            //act
+            CrowdMember memberToMove = child0_1;
+            CrowdMember destination = child1_1;
+
+            crowdClipboard.CopyToClipboard(child0_0);
+            crowdClipboard.PasteFromClipboard(parent0);
+
+            //assert
+            Mock.Get<CharacterCrowdMember>(child0_0).Verify(c => c.Clone());
+            Assert.AreEqual(parent0Count + 1, parent0.Members.Count);// a new member added
+            var newMem = parent0.MemberShips.FirstOrDefault(m => m.Child.Name == "child0_0 (1)");
         }
 
         [TestMethod]
-        public void CopyAndPasteCrowd_CLonesAllNestedCrowdChildren()
+        public void CopyAndPasteCrowd_ClonesAllNestedCrowdChildren()
         {
+            // arrange
+            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
+            var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
+
+            var crowd1 = repo.Crowds[0];
+            var crowd2 = repo.Crowds[1];
+
+            var nestedCrowd1 = crowd1.Members[0];
+            var nestedCrowd2 = crowd1.Members[1];
+
+            //act
+            crowdClipboard.CopyToClipboard(crowd1);
+            crowdClipboard.PasteFromClipboard(crowd2);
+
+            //assert
+            Mock.Get<Crowd>(crowd1).Verify(c => c.Clone());
+            Mock.Get<CrowdMember>(nestedCrowd1).Verify(c => c.Clone());
+            Mock.Get<CrowdMember>(nestedCrowd2).Verify(c => c.Clone());
         }
 
         [TestMethod]
-        public void LinkPasteCrowd_ClonesAllNestedCrowdChildren()
+        public void LinkPasteCrowd_InvokesAddCrowdMemberForDestinationCrowd()
         {
+            // arrange
+            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
+            var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
+
+            crowdClipboard.LinkToClipboard(parent0);
+            crowdClipboard.PasteFromClipboard(parent1);
+
+            //assert
+            Mock.Get<Crowd>(parent1).Verify(c => c.AddCrowdMember(parent0));
         }
     }
 
@@ -880,6 +943,8 @@ namespace HeroVirtualTableTop.Crowd
 
         public Crowd CrowdUnderTest => StandardizedFixture.Create<CrowdImpl>();
 
+        public CrowdClipboard CrowdClipboardUnderTest => StandardizedFixture.Create<CrowdClipboardImpl>();
+
         public List<Crowd> ThreeCrowdsWithThreeCrowdChildrenInTheFirstTwoCrowdsAllLabeledByOrder
         {
             get
@@ -943,7 +1008,10 @@ namespace HeroVirtualTableTop.Crowd
                 new TypeRelay(
                     typeof(CrowdRepository),
                     typeof(CrowdRepositoryImpl)));
-
+            StandardizedFixture.Customizations.Add(
+                new TypeRelay(
+                    typeof(CrowdClipboard),
+                    typeof(CrowdClipboardImpl)));
             setupFixtureToBuildCrowdRepositories();
         }
         private void setupFixtureToBuildCrowdRepositories()
@@ -977,7 +1045,37 @@ namespace HeroVirtualTableTop.Crowd
 
             StandardizedFixture.Inject<CrowdRepository>(repo);
         }
+        public void AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(CrowdRepository repo, out Crowd parent0,
+            out Crowd parent1, out CharacterCrowdMember child0_0, out CharacterCrowdMember child0_1,
+            out CharacterCrowdMember child0_2, out CharacterCrowdMember child0_3, out CharacterCrowdMember child1_0,
+            out CharacterCrowdMember child1_1, out CharacterCrowdMember child1_2, out CharacterCrowdMember child1_3)
+        {
+            parent0 = CrowdUnderTest;
+            parent0.Name = "Parent0";
+            parent1 = CrowdUnderTest;
+            parent1.Name = "Parent1";
+            repo.Crowds.Add(parent0);
+            repo.Crowds.Add(parent1);
 
+            AddChildCrowdMemberToParent(repo, parent0, out child0_0, "child0_0");
+            AddChildCrowdMemberToParent(repo, parent0, out child0_1, "child0_1");
+            AddChildCrowdMemberToParent(repo, parent0, out child0_2, "child0_2");
+            AddChildCrowdMemberToParent(repo, parent0, out child0_3, "child0_3");
+
+            AddChildCrowdMemberToParent(repo, parent1, out child1_0, "child1_0");
+            AddChildCrowdMemberToParent(repo, parent1, out child1_1, "child1_1");
+            AddChildCrowdMemberToParent(repo, parent1, out child1_2, "child1_2");
+            AddChildCrowdMemberToParent(repo, parent1, out child1_3, "child1_3");
+        }
+
+        private void AddChildCrowdMemberToParent(CrowdRepository repo, Crowd parent, out CharacterCrowdMember child,
+            string name)
+        {
+            child = GetCharacterUnderTestWithMockDependenciesAnddOrphanedWithRepo(repo);
+            child.Name = name;
+            parent.AddCrowdMember(child);
+            repo.AllMembersCrowd.AddCrowdMember(child);
+        }
         private void addChildCrowdsLabeledByOrder(CrowdRepository repo)
         {
             repo.Crowds.AddRange(StandardizedFixture.CreateMany<Crowd>().ToList());

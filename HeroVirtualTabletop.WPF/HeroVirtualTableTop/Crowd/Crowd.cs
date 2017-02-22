@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -10,6 +11,13 @@ using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace HeroVirtualTableTop.Crowd
 {
+    public enum ClipboardAction
+    {
+        Clone,
+        Cut,
+        Link,
+        CloneLink
+    }
     public class CrowdRepositoryImpl : AnimatedCharacterRepositoryImpl, CrowdRepository
     {
         public CrowdRepositoryImpl()
@@ -136,13 +144,21 @@ namespace HeroVirtualTableTop.Crowd
             allMembersCrowd.Name = CROWD_CONSTANTS.ALL_CHARACTER_CROWD_NAME;
             Crowds.Add(allMembersCrowd);
         }
-    }
-    public enum ClipboardAction
-    {
-        Clone,
-        Cut,
-        Link,
-        CloneLink
+
+        public void AddDefaultCharacters()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LoadCrowds()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SaveCrowds()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class CrowdImpl : NotifyPropertyChanged, Crowd
@@ -871,5 +887,81 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         
+    }
+
+    public class CrowdClipboardImpl : CrowdClipboard
+    {
+        private object clipboardObject;
+        public ClipboardAction CurrentClipboardAction
+        {
+            get;set;
+        }
+
+        public void CopyToClipboard(CrowdMember member)
+        {
+            this.CurrentClipboardAction = ClipboardAction.Clone;
+            this.clipboardObject = member;
+        }
+
+        public void CutToClipboard(CrowdMember member)
+        {
+            this.CurrentClipboardAction = ClipboardAction.Cut;
+            this.clipboardObject = member;
+        }
+
+        public void LinkToClipboard(CrowdMember member)
+        {
+            this.CurrentClipboardAction = ClipboardAction.Link;
+            this.clipboardObject = member;
+        }
+
+        public void PasteFromClipboard(CrowdMember member)
+        {
+            switch(this.CurrentClipboardAction)
+            {
+                case ClipboardAction.Clone:
+                    cloneAndPaste(member);
+                    break;
+                case ClipboardAction.Cut:
+                    cutAndPaste(member);
+                    break;
+                case ClipboardAction.Link:
+                    linkAndPaste(member);
+                    break;
+            }
+        }
+
+        private void cloneAndPaste(CrowdMember member)
+        {
+            var destCrowd = getDestinationCrowdForPaste(member);
+            var cloningMember = this.clipboardObject as CrowdMember;
+            var clonedMember = cloningMember.Clone();
+            destCrowd.AddCrowdMember(clonedMember);
+        }
+
+        private void cutAndPaste(CrowdMember member)
+        {
+            var destCrowd = getDestinationCrowdForPaste(member);
+            var cuttingMember = this.clipboardObject as CrowdMember;
+            if (destCrowd != cuttingMember.Parent)
+            {
+                cuttingMember.Parent.RemoveMember(cuttingMember);
+                destCrowd.AddCrowdMember(cuttingMember);
+            }
+        }
+
+        private void linkAndPaste(CrowdMember member)
+        {
+            var destCrowd = getDestinationCrowdForPaste(member);
+            var linkingMember = this.clipboardObject as CrowdMember;
+            destCrowd.AddCrowdMember(linkingMember);
+        }
+
+        private Crowd getDestinationCrowdForPaste(CrowdMember member)
+        {
+            if (member is CharacterCrowdMember)
+                return (member as CharacterCrowdMember).Parent;
+            else return member as Crowd;
+        }
     }
 }

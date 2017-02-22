@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Xna.Framework;
 
 namespace HeroVirtualTableTop.Desktop
 {
@@ -16,6 +17,40 @@ namespace HeroVirtualTableTop.Desktop
         private static readonly CheckIfGameLoaded checkIfGameLoaded;
         private static readonly DetectCollision detectCollision;
 
+        public Vector3 Start { get; set; }
+        public Vector3 Destination { get; set; }
+        public Vector3 Collision
+        {
+            get
+            {
+                string collisionInfo = Marshal.PtrToStringAnsi(detectCollision(Start.X, Start.Y, Start.Z, Destination.X, Destination.Y, Destination.Z));
+
+                float X = 0f, Y = 0f, Z = 0f;
+                try
+                {
+                    int indexXStart = collisionInfo.IndexOf("[");
+                    int indexXEnd = collisionInfo.IndexOf("]");
+                    string xStr = collisionInfo.Substring(indexXStart + 1, indexXEnd - indexXStart - 1);
+                    X = float.Parse(xStr);
+
+                    int indexYStart = collisionInfo.IndexOf("[", indexXEnd);
+                    int indexYEnd = collisionInfo.IndexOf("]", indexYStart);
+                    string yStr = collisionInfo.Substring(indexYStart + 1, indexYEnd - indexYStart - 1);
+                    Y = float.Parse(yStr);
+
+                    int indexZStart = collisionInfo.IndexOf("[", indexYEnd);
+                    int indexZEnd = collisionInfo.IndexOf("]", indexZStart);
+                    string zStr = collisionInfo.Substring(indexZStart + 1, indexZEnd - indexZStart - 1);
+                    Z = float.Parse(zStr);
+                }
+                catch (Exception ex)
+                {
+                }
+
+                return new Vector3(X, Y, Z);
+            }
+            set { throw new NotImplementedException(); }
+        }
 
         static IconInteractionUtilityImpl()
         {
@@ -112,12 +147,6 @@ namespace HeroVirtualTableTop.Desktop
         {
             Thread.Sleep(100);
             return Marshal.PtrToStringAnsi(getMouseXYZInGame());
-        }
-
-        public string GetCollisionInfo(float sourceX, float sourceY, float sourceZ, float destX, float destY,
-            float destZ)
-        {
-            return Marshal.PtrToStringAnsi(detectCollision(sourceX, sourceY, sourceZ, destX, destY, destZ));
         }
 
         public void CloseCOH()
