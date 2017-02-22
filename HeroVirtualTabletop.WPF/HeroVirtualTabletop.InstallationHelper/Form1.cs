@@ -20,11 +20,13 @@ namespace HeroVirtualTabletop.InstallationHelper
         private string gameDir = "";
         private bool gameExtracted = false;
         private bool soundExtracted = false;
+        private bool costumesExtracted = false;
         private bool hookCostumeCopied = false;
         private bool repoCopied = false;
         private bool success = false;
         private string installDir = "";
         private string cohZipLocation = "cityofheroes.zip";
+        private string costumesZipLocation = "costumes.zip";
         private string soundZipLocation = "sound.zip";
         private string repoLocation = "CrowdRepo.data";
         private string hookCostumeDllLocation = "HookCostume.xyz";
@@ -36,6 +38,7 @@ namespace HeroVirtualTabletop.InstallationHelper
             if(!string.IsNullOrEmpty(installDir))
             {
                 cohZipLocation = Path.Combine(installDir, cohZipLocation);
+                costumesZipLocation = Path.Combine(installDir, costumesZipLocation);
                 soundZipLocation = Path.Combine(installDir, soundZipLocation);
                 repoLocation = Path.Combine(installDir, repoLocation);
                 hookCostumeDllLocation = Path.Combine(installDir, hookCostumeDllLocation);
@@ -124,9 +127,8 @@ namespace HeroVirtualTabletop.InstallationHelper
             {
                 string archiveObj = args[0];
                 string filePathOrDirectory = args[1];
-                if (archiveObj == "Game" || archiveObj == "Sound")
+                if (archiveObj == "Game" || archiveObj == "Sound" || archiveObj == "Costumes")
                 {
-
                     ZipArchive archive = ZipFile.OpenRead(filePathOrDirectory);
                     archive.ExtractToDirectory(gameDir, true);
                 }
@@ -170,6 +172,11 @@ namespace HeroVirtualTabletop.InstallationHelper
                         repoCopied = true;
                         ShowProgress("Repo", false);
                     }
+                    else if (result == "Costumes")
+                    {
+                        costumesExtracted = true;
+                        ShowProgress("Costumes", false);
+                    }
                     ExtractResources();
                 };
 
@@ -205,6 +212,8 @@ namespace HeroVirtualTabletop.InstallationHelper
                     ExtractSound();
                 else if (soundExtracted && !repoCopied)
                     CopyRepo();
+                else if (repoCopied && !costumesExtracted)
+                    ExtractCostumes();
                 else if (!hookCostumeCopied)
                     CopyHookCostumeDll();
             }
@@ -212,7 +221,7 @@ namespace HeroVirtualTabletop.InstallationHelper
             {
                 MessageBox.Show("Pleae select game directory first");
             }
-            if (gameExtracted && soundExtracted && repoCopied && hookCostumeCopied)
+            if (gameExtracted && soundExtracted && repoCopied && hookCostumeCopied && costumesExtracted)
             {
                 success = true;
                 try
@@ -281,6 +290,20 @@ namespace HeroVirtualTabletop.InstallationHelper
             }
         }
 
+        private void ExtractCostumes(string archiveLocation = null)
+        {
+            string archivePath = archiveLocation ?? costumesZipLocation;
+            if (File.Exists(archivePath))
+            {
+                ShowProgress("Costumes", true);
+                backgroundWorker1.RunWorkerAsync(new string[] { "Costumes", archivePath });
+            }
+            else
+            {
+                costumesExtracted = true;
+            }
+        }
+
         private void CopyHookCostumeDll()
         {
             string hookCostumeFileName = "HookCostume.xyz";
@@ -308,6 +331,8 @@ namespace HeroVirtualTabletop.InstallationHelper
                 labelProgress.Text = "Extracting Sound...";
             else if (gameObj == "Repo")
                 labelProgress.Text = "Copying Crowds Data...";
+            else if (gameObj == "Costumes")
+                labelProgress.Text = "Extracting Costumes...";
             progressBar1.Visible = show;
             buttonLocateCOHArchive.Enabled = !show;
             buttonLocateSoundArchive.Enabled = !show;

@@ -1897,6 +1897,7 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
+		<row><td>costumes.zip</td><td>ISX_DEFAULTCOMPONENT</td><td>costumes.zip</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\costumes.zip</td><td>1</td><td/></row>
 		<row><td>crowdrepo.data</td><td>ISX_DEFAULTCOMPONENT</td><td>CROWDR~1.DAT|CrowdRepo.data</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\CrowdRepo.data</td><td>1</td><td/></row>
 		<row><td>framework.wpf.primary_output</td><td>Framework.WPF.Primary_output</td><td>Framework.WPF.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Framework.WPF&gt;|Built</td><td>3</td><td/></row>
 		<row><td>herovirtualtabletop.installa</td><td>HeroVirtualTabletop.InstallationHelper.Primary_output</td><td>HeroVirtualTabletop.InstallationHelper.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;HeroVirtualTabletop.InstallationHelper&gt;|Built</td><td>3</td><td/></row>
