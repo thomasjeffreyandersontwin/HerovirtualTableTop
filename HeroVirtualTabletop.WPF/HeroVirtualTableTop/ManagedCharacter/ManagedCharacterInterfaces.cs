@@ -5,27 +5,30 @@ namespace HeroVirtualTableTop.ManagedCharacter
 {
     public interface ManagedCharacterCommands
     {
+        string Name { get; set; }
         void SpawnToDesktop(bool completeEvent = true);
         void ClearFromDesktop(bool completeEvent = true);
         void MoveCharacterToCamera(bool completeEvent = true);
+        Dictionary<string, Identity> IdentitiesList { get; }
+        Identity DefaultIdentity { get; }
     }
 
-    public interface ManagedCharacter : ManagedCharacterCommands
+    public interface ManagedCharacter : ManagedCharacterCommands, CharacterActionContainer
     {
+        
         DesktopCharacterTargeter Targeter { get; set; }
-        string Name { get; set; }
+        
         string DesktopLabel { get; }
         Position Position { get; }
         bool IsTargeted { get; set; }
 
         bool IsFollowed { get; set; }
         bool IsManueveringWithCamera { get; set; }
-
+        CharacterActionList<Identity> Identities { get; }
         bool IsSpawned { get; set; }
 
 
-        CharacterActionList<Identity> Identities { get; }
-
+       
         DesktopMemoryCharacter MemoryInstance { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
         CharacterProgressBarStats ProgressBar { get; set; }
@@ -40,7 +43,6 @@ namespace HeroVirtualTableTop.ManagedCharacter
         void UnFollow(bool completeEvent = true);
 
         void ToggleManueveringWithCamera();
-        new void SpawnToDesktop(bool completeEvent = true);
     }
 
     public enum CharacterActionType
@@ -53,13 +55,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
     public interface CharacterAction : OrderedElement
     {
  
-        ManagedCharacter Owner { get; set; }
+        CharacterActionContainer Owner { get; set; }
         KeyBindCommandGenerator Generator { get; set; }
         void Play(bool completeEvent=true);
         void Stop(bool completeEvent = true);
         CharacterAction Clone();
     }
-
     public interface CharacterActionList<T> : OrderedCollection<T> where T : CharacterAction
     {
         ManagedCharacter Owner { get; }
@@ -75,6 +76,11 @@ namespace HeroVirtualTableTop.ManagedCharacter
         void PlayByKey(string key);
     }
 
+    public interface CharacterActionContainer
+    {
+        Dictionary<CharacterActionType, Dictionary<string,CharacterAction>> CharacterActionGroups { get; }
+ 
+    }
 
     public interface Camera
     {

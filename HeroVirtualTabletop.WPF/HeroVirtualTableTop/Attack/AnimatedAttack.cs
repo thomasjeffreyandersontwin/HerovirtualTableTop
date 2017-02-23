@@ -16,33 +16,16 @@ namespace HeroVirtualTableTop.Attack
                 setDistanceForUnitPauseElementsInAttacks(value);
             }
         }
-
         public AnimatedCharacter Attacker
         {
-            get { return Target; }
+            get { return (AnimatedCharacter)Owner; }
 
-            set { Target = value; }
+            set { Owner = value; }
         }
-
         public bool IsActive { get; set; }
         public AnimatedAbility.AnimatedAbility OnHitAnimation { get; set; }
 
-        public void AnimateAttack()
-        {
-            Play();
-        }
-
-        public void AnimateHit()
-        {
-            throw new NotImplementedException();
-        }
-
         public KnockbackCollisionInfo AnimateKnockBack()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void AnimateMiss()
         {
             throw new NotImplementedException();
         }
@@ -53,14 +36,6 @@ namespace HeroVirtualTableTop.Attack
             IsActive = true;
             return new AttackInstructionsImpl();
         }
-
-        public void Stop()
-        {
-            Stop(Target);
-            Attacker.RemoveActiveAttack();
-
-        }
-
         public KnockbackCollisionInfo CompleteTheAttackCycle(AttackInstructions instructions)
         {
             turnTowards(instructions.Defender.Position);
@@ -75,53 +50,40 @@ namespace HeroVirtualTableTop.Attack
             instructions.Defender.RemoveStateByName(DefaultAbilities.UnderAttack);
             return null;
         }
-
         public KnockbackCollisionInfo PlayCompleteAttackCycle(AttackInstructions instructions)
         {
             Play();
             CompleteTheAttackCycle(instructions);
             return null;
         }
-
-        public void FireAtDesktop(Position desktopPosition)
-        {
-            Attacker.TurnTowards(desktopPosition);
-            setDestinationPositionForDirectionalFxElementsInAttacks(desktopPosition);
-            setDistanceForUnitPauseElementsInAttacks(desktopPosition);
-            Play(Attacker);
-        }
-
         private void setDestinationPositionForDirectionalFxElementsInAttacks(Position destinationPosition)
         {
             if (AnimationElements != null)
                 foreach (var e in from e in AnimationElements
-                    where e is FXElement && (e as FXElement).IsDirectional
-                    select e)
+                                  where e is FXElement && (e as FXElement).IsDirectional
+                                  select e)
                 {
                     FXElement fxElement = e as FXElement;
                     if (fxElement != null) fxElement.Destination = destinationPosition;
                 }
         }
-
         private void setDistanceForUnitPauseElementsInAttacks(Position position)
         {
             if (AnimationElements != null)
                 foreach (var e in from e in AnimationElements
-                    where e is PauseElement && (e as PauseElement).IsUnitPause
-                    select e)
+                                  where e is PauseElement && (e as PauseElement).IsUnitPause
+                                  select e)
                 {
                     var distance = Attacker.Position.DistanceFrom(position);
                     var pauseElement = e as PauseElement;
                     if (pauseElement != null) pauseElement.DistanceDelayManager.Distance = distance;
                 }
         }
-
         protected void turnTowards(Position defenderPosition)
         {
             if (Attacker.Position != null && defenderPosition != null)
                 Attacker.TurnTowards(defenderPosition);
         }
-
         private static void playAttackeffectsOnDefender(AttackInstructions instructions)
         {
             if (instructions.Impacts.Contains(AttackEffects.Dead))
@@ -133,7 +95,6 @@ namespace HeroVirtualTableTop.Attack
             else if (instructions.Impacts.Contains(AttackEffects.Stunned))
                 instructions.Defender.Abilities[DefaultAbilities.Stunned].Play(instructions.Defender);
         }
-
         private void playDefenderAnimation(AttackInstructions instructions)
         {
             if (instructions.AttackHit == false)
@@ -148,20 +109,30 @@ namespace HeroVirtualTableTop.Attack
                     OnHitAnimation.Play(instructions.Defender);
             }
         }
+
+        public void Stop(bool completedEvent = true)
+        {
+            Stop(Target);
+            Attacker.RemoveActiveAttack();
+
+        }
+     
+        public void FireAtDesktop(Position desktopPosition)
+        {
+            Attacker.TurnTowards(desktopPosition);
+            setDestinationPositionForDirectionalFxElementsInAttacks(desktopPosition);
+            setDistanceForUnitPauseElementsInAttacks(desktopPosition);
+            Play(Attacker);
+        }
+    
     }
 
     public class AreaEffectAttackImpl : AnimatedAttackImpl, AreaEffectAttack
     {
-        public List<KnockbackCollisionInfo> Attack(List<AttackInstructions> instructions)
-        {
-            throw new NotImplementedException();
-        }
-
         public AreaAttackInstructions DetermineTargetsFromPositionOfAttack(int radius, Position attackCenter)
         {
             throw new NotImplementedException();
         }
-
         public List<KnockbackCollisionInfo> CompleteTheAttackCycle(AreaAttackInstructions instructions)
         {
             turnTowards(instructions.AttackCenter);
@@ -170,19 +141,16 @@ namespace HeroVirtualTableTop.Attack
             playDefenderAnimationOnAllTargets(instructions);
             return null;
         }
-
         public List<KnockbackCollisionInfo> PlayCompleteAttackCycle(AreaAttackInstructions instructions)
         {
             throw new NotImplementedException();
         }
-
         public new AreaAttackInstructions StartAttackCycle()
         {
             Attacker.ActiveAttack = this;
             IsActive = true;
             return new AreaAttackInstructionsImpl();
         }
-
         private void playDefenderAnimationOnAllTargets(AreaAttackInstructions instructions)
         {
             AnimatedCharacter firstOrDefault = instructions.Defenders.FirstOrDefault();
@@ -207,14 +175,11 @@ namespace HeroVirtualTableTop.Attack
     public class AttackInstructionsImpl : AttackInstructions
     {
         private AnimatedCharacter _defender;
-
         public AttackInstructionsImpl()
         {
             Impacts = new List<string>();
         }
-
         public bool AttackHit { get; set; }
-
         public AnimatedCharacter Defender
         {
             get { return _defender; }
@@ -225,9 +190,7 @@ namespace HeroVirtualTableTop.Attack
                 Defender.AddDefaultState(DefaultAbilities.UnderAttack);
             }
         }
-
         public List<string> Impacts { get; }
-
         public int KnockbackDistance { get; set; }
         public bool isCenterOfAreaEffectattack { get; set; }
     }
@@ -238,7 +201,6 @@ namespace HeroVirtualTableTop.Attack
         {
             IndividualTargetInstructions = new List<AttackInstructions>();
         }
-
         public Position AttackCenter
         {
             get
@@ -252,7 +214,6 @@ namespace HeroVirtualTableTop.Attack
                 return null;
             }
         }
-
         public List<AnimatedCharacter> Defenders
         {
             get
@@ -263,7 +224,6 @@ namespace HeroVirtualTableTop.Attack
                 return defenders;
             }
         }
-
         public List<AnimatedCharacter> DefendersHit => (from instruction in IndividualTargetInstructions
             where instruction.AttackHit
             select instruction.Defender).ToList();

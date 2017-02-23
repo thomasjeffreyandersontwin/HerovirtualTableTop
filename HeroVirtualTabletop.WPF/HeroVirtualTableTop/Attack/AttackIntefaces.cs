@@ -38,9 +38,6 @@ namespace HeroVirtualTableTop.Attack
         KnockbackCollisionInfo PlayCompleteAttackCycle(AttackInstructions instructions);
         KnockbackCollisionInfo CompleteTheAttackCycle(AttackInstructions instructions);
 
-        void AnimateAttack();
-        void AnimateMiss();
-        void AnimateHit();
         KnockbackCollisionInfo AnimateKnockBack();
 
         void FireAtDesktop(Position desktopPosition);
@@ -54,10 +51,15 @@ namespace HeroVirtualTableTop.Attack
         List<AnimatedCharacter> DefendersHit { get; }
         List<AnimatedCharacter> DefendersMissed { get; }
         AttackInstructions AddTarget(AnimatedCharacter defender);
+
     }
+
+
+
+
+
     public interface AreaEffectAttack : AnimatedAttack
     {
-        List<KnockbackCollisionInfo> Attack(List<AttackInstructions> instructions);
         new AreaAttackInstructions StartAttackCycle();
         AreaAttackInstructions DetermineTargetsFromPositionOfAttack(int radius, Position attackCenter);
         List<KnockbackCollisionInfo> PlayCompleteAttackCycle(AreaAttackInstructions instructions);

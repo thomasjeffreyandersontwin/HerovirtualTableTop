@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
 using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Desktop;
@@ -21,7 +22,7 @@ namespace HeroVirtualTableTop.Crowd
         Crowd AllMembersCrowd { get; }
         Crowd NewCrowd(Crowd parent = null, string name = "Character");
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
-        string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context);
+        string CreateUniqueName(string name, List<CrowdMember> context);
         void AddDefaultCharacters();
         void LoadCrowds();
         void SaveCrowds();
@@ -40,11 +41,11 @@ namespace HeroVirtualTableTop.Crowd
         void AddCrowdMember(CrowdMember member);
         void RemoveMember(CrowdMember member);
     }
-    public interface CharacterCrowdMember : ManagedCharacter.ManagedCharacter, CrowdMember
+    public interface CharacterCrowdMember : AnimatedCharacter, CrowdMember
     {
         new string Name { get; set; }
     }
-    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands, RosterParticipant
+    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands, AnimatedCharacterCommands,RosterParticipant
     {
         int Order { get; set; }
         bool MatchesFilter { get; set; }
@@ -61,7 +62,10 @@ namespace HeroVirtualTableTop.Crowd
         bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> members);
 
         void RemoveParent(CrowdMember crowdMember);
-    }
+
+        
+
+}
     public interface CrowdMemberShip
     {
         int Order { get; set; }
@@ -69,7 +73,7 @@ namespace HeroVirtualTableTop.Crowd
         CrowdMember Child { get; set; }
         Position SavedPosition { get; set; }
     }
-    public interface CrowdMemberCommands: ManagedCharacterCommands
+    public interface CrowdMemberCommands
     {
         void SaveCurrentTableTopPosition();
         void PlaceOnTableTop(Position position = null);

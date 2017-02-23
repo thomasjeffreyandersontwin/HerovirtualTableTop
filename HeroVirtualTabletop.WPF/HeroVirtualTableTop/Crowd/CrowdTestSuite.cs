@@ -4,6 +4,7 @@ using Framework.WPF.Library;
 using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Attack;
 using HeroVirtualTableTop.ManagedCharacter;
+using HeroVirtualTableTop.Roster;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
@@ -117,7 +118,7 @@ namespace HeroVirtualTableTop.Crowd
             //assert
             Assert.AreEqual("Crowd (2)", nextActual.Name);
         }
-        [TestMethod]
+        
         public void AddDefaultCharacters_AddsDefaultAndCombatEffectsCharacters()
         {
 
@@ -493,14 +494,7 @@ namespace HeroVirtualTableTop.Crowd
             Assert.AreEqual(membershipAttachedToParent?.Child.Name, membershipAttachedToChild?.Child.Name);
         }
 
-        [TestMethod]
-        public void ExecutingAnyManagedCharacterCommandOncrowd_RunsMethodOnAllCharactersInCrowd()
-        {
-            var crowd = TestObjectsFactory.CrowdUnderTestWithThreeMockCrowdmembers;
-            crowd.SpawnToDesktop();
-            foreach (var member in crowd.Members)
-                Mock.Get(member).Verify(x => x.SpawnToDesktop(true));
-        }
+        
 
         //to do
         public void Identities_ReturnsIdentitiesThatAllCrowdMembersHaveInCommon()
@@ -1008,6 +1002,10 @@ namespace HeroVirtualTableTop.Crowd
                 new TypeRelay(
                     typeof(CrowdRepository),
                     typeof(CrowdRepositoryImpl)));
+            StandardizedFixture.Customizations.Add(
+             new TypeRelay(
+                 typeof(RosterGroup),
+                 typeof(RostergroupImpl)));
             StandardizedFixture.Customizations.Add(
                 new TypeRelay(
                     typeof(CrowdClipboard),

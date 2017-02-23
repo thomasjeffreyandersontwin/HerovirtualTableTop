@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Practices.ObjectBuilder2;
 using Microsoft.Xna.Framework;
 
 namespace HeroVirtualTableTop.Desktop
@@ -16,9 +18,15 @@ namespace HeroVirtualTableTop.Desktop
         }
         public PositionImpl()
         {
+            _bodyParts= new Dictionary<PositionBodyLocation, PositionLocationPart>();
+            _bodyParts[PositionBodyLocation.Bottom] = new PositionLocationPartImpl(PositionBodyLocation.Bottom, this);
+            _bodyParts[PositionBodyLocation.BottomSemiMiddle] = new PositionLocationPartImpl(PositionBodyLocation.BottomSemiMiddle, this);
+            _bodyParts[PositionBodyLocation.BottomMiddle] = new PositionLocationPartImpl(PositionBodyLocation.BottomMiddle, this);
+            _bodyParts[PositionBodyLocation.Middle] = new PositionLocationPartImpl(PositionBodyLocation.Middle, this);
+            _bodyParts[PositionBodyLocation.TopMiddle] = new PositionLocationPartImpl(PositionBodyLocation.TopMiddle, this);
+            _bodyParts[PositionBodyLocation.Top] = new PositionLocationPartImpl(PositionBodyLocation.Top, this);
         }
 
-        
        
         public double Yaw
         {
@@ -154,6 +162,23 @@ namespace HeroVirtualTableTop.Desktop
             Z = destination.Z;
 
         }
+        public void MoveTo(Vector3 destination)
+        {
+            X = destination.X;
+            Y = destination.Y;
+            Z = destination.Z;
+
+        }
+
+        public bool IsAtLocation(Vector3 location)
+        {
+            if (X == location.X && Y == location.Y && Z == location.Z)
+            {
+                return true;
+            }
+            return false;
+        }
+    
         public void TurnTowards(Position lookingAt)
         {
             Vector3 currentPositionVector = Vector;
@@ -258,7 +283,6 @@ namespace HeroVirtualTableTop.Desktop
 
 
         }
-
         public void Face(Position target)
         {
             //determine facing vector from current and target
@@ -266,6 +290,14 @@ namespace HeroVirtualTableTop.Desktop
             facing.Normalize();
             FacingVector = facing;
            // FacingVector = CalculateDirectionVector(facing);
+
+        }
+        public void Face(Vector3 facing)
+        {
+            facing = facing - Vector;
+            facing.Normalize();
+            FacingVector = facing;
+            // FacingVector = CalculateDirectionVector(facing);
 
         }
 
@@ -473,7 +505,87 @@ namespace HeroVirtualTableTop.Desktop
         {
             return new PositionImpl(new Vector3(X, Y, Z));
         }
-       
+
+        private int _size=6;
+        public int Size {
+            get { return _size; }
+            set
+            {
+                _size = value;
+                foreach (var location in BodyLocations.Values)
+                {
+                    location.Size = _size;
+                }
+
+            }
+        }
+
+        private Dictionary<PositionBodyLocation, PositionLocationPart> _bodyParts;
+        public Dictionary<PositionBodyLocation, PositionLocationPart> BodyLocations => _bodyParts;
+
+    }
+
+    class PositionLocationPartImpl : PositionLocationPart
+    {
+        public PositionLocationPartImpl(PositionBodyLocation part, Position position)
+        {
+           ParentPosition = position;
+            Part = part;
+        }
+
+        private Position _parentPosition;
+        public Position ParentPosition {
+            get { return _parentPosition; }
+            set
+            {
+                _parentPosition = value;
+                Size = _parentPosition.Size;
+            }
+        }
+
+        private float _size = 6;
+
+        public float Size
+        {
+            get { return _size; }
+            set
+            {
+                _size = value;
+                switch (Part)
+                {
+                    case PositionBodyLocation.Bottom:
+                        OffsetVector = new Vector3(0, 0, 0);
+                        break;
+                    case PositionBodyLocation.BottomSemiMiddle:
+                        OffsetVector = new Vector3(0, _size *.125f, 0);
+                        break;
+                    case PositionBodyLocation.BottomMiddle:
+                        OffsetVector = new Vector3(0, _size *.25f, 0);
+                        break;
+                    case PositionBodyLocation.Middle:
+                        OffsetVector = new Vector3(0, _size * .50f, 0);
+                        break;
+                    case PositionBodyLocation.TopMiddle:
+                        OffsetVector = new Vector3(0, _size *.75f, 0);
+                        break;
+                    case PositionBodyLocation.Top:
+                        OffsetVector = new Vector3(0, _size, 0);
+                        break;
+                }
+            }
+        }
+        public PositionBodyLocation Part { get; set; }
+        public Vector3 GetDestinationVector(Vector3 destination)
+        {
+            return 
+                new Vector3(destination.X + OffsetVector.X, destination.Y + OffsetVector.Y, destination.Z + OffsetVector.Z);
+
+        }
+
+        public Vector3 OffsetVector { get; set; }
+
+        public Vector3 Vector 
+            => new Vector3(ParentPosition.X + OffsetVector.X, ParentPosition.Y + OffsetVector.Y, ParentPosition.Z + OffsetVector.Z);
 
     }
 }

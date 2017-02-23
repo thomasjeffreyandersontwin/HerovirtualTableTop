@@ -11,7 +11,13 @@ namespace HeroVirtualTableTop.AnimatedAbility
     {
         void Activate();
         void DeActivate();
+        Dictionary<string, AnimatedAbility> AbilitiesList { get; }
+        AnimatedAbility DefaultAbility { get; }
+
+        List<AnimatableCharacterState> ActiveStates { get; }
+        void RemoveStateByName(string stateName);
     }
+
     public class DefaultAbilities
     {
         public static string UnderAttack => "UnderAttack";
@@ -104,7 +110,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         
         new void Play(AnimatedCharacter target);
         new void Play(List<AnimatedCharacter> targets);
-        void Stop();
+        void Stop(bool completedEvent = true);
         AnimatedAbility Clone(AnimatedCharacter target);
        
     }

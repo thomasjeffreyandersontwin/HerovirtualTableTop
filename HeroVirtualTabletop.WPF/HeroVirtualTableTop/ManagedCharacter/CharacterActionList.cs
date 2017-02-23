@@ -11,12 +11,12 @@ namespace HeroVirtualTableTop.ManagedCharacter
         private T _default;
 
         public CharacterActionListImpl(CharacterActionType type, KeyBindCommandGenerator generator,
-            ManagedCharacter owner)
+            CharacterActionContainer owner)
         {
             Type = type;
             Generator = generator;
             //ListByOrder = new SortedDictionary<int, T>();
-            Owner = owner;
+            Owner = (ManagedCharacter)owner;
         }
 
         public KeyBindCommandGenerator Generator { get; set; }
@@ -66,11 +66,11 @@ namespace HeroVirtualTableTop.ManagedCharacter
             }
             set
             {
-                if (_default != null)
+               // if (value != null)
                     if (ContainsValue(value))
                         _default = value;
-                    else
-                        throw new ArgumentException("action cant be set to default it doesnt exist for character");
+                    //else
+                      //  throw new ArgumentException("action cant be set to default it doesnt exist for character");
             }
         }
 
@@ -139,21 +139,21 @@ namespace HeroVirtualTableTop.ManagedCharacter
             Generator = generator;
             KeyboardShortcut = shortcut;
         }
-        public virtual ManagedCharacter Owner { get; set; }
+        public virtual CharacterActionContainer Owner { get; set; }
         protected CharacterActionImpl()
         {
         }
 
         public string KeyboardShortcut { get; set; }
-        public KeyBindCommandGenerator Generator { get; set; }
+        public virtual KeyBindCommandGenerator Generator { get; set; }
 
-        public string Name { get; set; }
-        public int Order { get; set; }
+        public virtual string Name { get; set; }
+        public virtual int Order { get; set; }
         
 
         public abstract CharacterAction Clone();
         public abstract void Play(bool completeEvent=true);
-        public void Stop(bool completeEvent = true)
+        public virtual void Stop(bool completeEvent = true)
         {
             throw new NotImplementedException();
         }

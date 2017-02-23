@@ -7,26 +7,27 @@ using System.Threading.Tasks;
 using Framework.WPF.Library;
 using HeroVirtualTableTop.Crowd;
 using HeroVirtualTableTop.AnimatedAbility;
+using HeroVirtualTableTop.Attack;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Common;
 namespace HeroVirtualTableTop.Roster
 {
     public enum RosterCommandMode { Standard, CycleCharacter, OnRosterClick }
-    public interface Roster : ManagedCharacterCommands, CrowdMemberCommands, AnimatedCharacterCommands
+    public interface Roster 
     {
         string Name { get; set; }
         RosterCommandMode ComandMode { get; set; }
         OrderedCollection<RosterGroup> Groups { get; }
-        List<RosterParticipant> Participants { get; }
-        Dictionary<string, RosterGroup> GroupsByName { get; }
-        Dictionary<string, RosterParticipant> ParticipantsByName { get; }
+        List<CharacterCrowdMember> Participants { get; }
+        //Dictionary<string, RosterGroup> GroupsByName { get; }
+       // Dictionary<string, RosterParticipant> ParticipantsByName { get; }
 
-        // List<CharacterCrowdMember> SelectedParticipants { get; set; }
-        List<RosterParticipant> SelectedParticipants { get; }
-        void SelectParticipant(RosterParticipant participant);
-        void UnsSelectParticipant(RosterParticipant participant);
+        // List<CharacterCrowdMember> Participants { get; set; }
+        RosterSelection Selected { get; }
+        void SelectParticipant(CharacterCrowdMember participant);
+        void UnsSelectParticipant(CharacterCrowdMember participant);
         void AddCrowdMemberAsParticipant(CharacterCrowdMember participant);
-        void RemoveParticipant(RosterParticipant participant);
+        void RemoveParticipant(CharacterCrowdMember participant);
 
         void CreateGroupFromCrowd(Crowd.Crowd crowd);
         void RemoveGroup(RosterGroup crowd);
@@ -38,12 +39,11 @@ namespace HeroVirtualTableTop.Roster
 
         Crowd.Crowd SaveAsCrowd();
 
-        RosterParticipant ActiveCharacter { get; }
-        RosterParticipant AttackingCharacter { get; }
-        RosterParticipant LastSelectedCharacter { get; }
+        CharacterCrowdMember ActiveCharacter { get; }
+        CharacterCrowdMember AttackingCharacter { get; }
+        CharacterCrowdMember LastSelectedCharacter { get; }
 
-        List<AnimatedAbility.AnimatedAbility> CommonAbilitiesForActiveCharacters { get; }
-        RosterParticipant TargetedCharacter { get; set; }
+        CharacterCrowdMember TargetedCharacter { get; set; }
 
         void GroupSelectedParticpants();
 
@@ -51,16 +51,26 @@ namespace HeroVirtualTableTop.Roster
 
     }
 
-    public interface RosterGroup: OrderedElement, OrderedCollection<RosterParticipant>
+    public interface RosterGroup: OrderedElement, OrderedCollection<CharacterCrowdMember>
     {
 
     }
 
-    public interface RosterParticipant: OrderedElement, INotifyPropertyChanged
-
+    public interface RosterParticipant: OrderedElement
     {
-       
+        RosterGroup RosterParent { get; set; }
+        new string Name { get; set; }
     }
 
+    public interface RosterSelection : CharacterActionContainer, ManagedCharacterCommands, AnimatedCharacterCommands, CrowdMemberCommands
+    {
+        List<CharacterCrowdMember> Participants { get;set; }      
+    }
+    public interface RosterSelectionAttackInstructions : AttackInstructions
+    {
+
+        List<AnimatedCharacter> Attackers { get; }
+        Dictionary<AnimatedCharacter, AttackInstructions> AttackerSpecificInstructions { get; }
+    }
 
 }

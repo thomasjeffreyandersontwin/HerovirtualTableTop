@@ -192,7 +192,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             return new Vector3(px, py, pz);
         }
 
-        public Vector3 GetFacingVector()
+        public Vector3 GetFacingVector() //todo look here
         {
             var facingX = GetAttributeAsFloat(80);
             var facingY = GetAttributeAsFloat(84);

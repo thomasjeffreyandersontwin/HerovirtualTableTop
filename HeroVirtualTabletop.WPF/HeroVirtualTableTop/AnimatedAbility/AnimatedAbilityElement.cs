@@ -933,7 +933,10 @@ namespace HeroVirtualTableTop.AnimatedAbility
             {
                 var rnd = new Random();
                 var chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(target);
+                if (AnimationElements.Count > 0)
+                {
+                    AnimationElements[chosen].Play(target);
+                }
             }
         }
 
