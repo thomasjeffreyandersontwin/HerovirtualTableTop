@@ -84,8 +84,8 @@ namespace HeroVirtualTableTop.Crowd
         ClipboardAction CurrentClipboardAction { get; set; }
         void CopyToClipboard(CrowdMember member);
         void LinkToClipboard(CrowdMember member);
-        void CutToClipboard(CrowdMember member);
-        void PasteFromClipboard(CrowdMember member);
+        void CutToClipboard(CrowdMember member, Crowd sourceParent = null);
+        void PasteFromClipboard(CrowdMember destinationMember);
     }
 
     public interface CharacterExplorerViewModel

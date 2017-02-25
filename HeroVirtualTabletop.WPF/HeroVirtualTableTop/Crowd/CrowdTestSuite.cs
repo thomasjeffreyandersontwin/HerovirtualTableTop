@@ -693,7 +693,7 @@ namespace HeroVirtualTableTop.Crowd
             CrowdMember memberToMove = child0_1;
             CrowdMember destination = child1_1;
 
-            crowdClipboard.CutToClipboard(child0_0);
+            crowdClipboard.CutToClipboard(child0_0, parent0);
             crowdClipboard.PasteFromClipboard(parent1);
 
             //assert
@@ -709,70 +709,64 @@ namespace HeroVirtualTableTop.Crowd
         public void CopyndPaste_ToSameCrowdCreatesACloneAndNewMembershipAndUniqueName()
         {
             // arrange
-            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
+            var repo = TestObjectsFactory.RepositoryUnderTestWithNestedgraphOfCharactersAndCrowds;
             var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
-            Crowd parent0, parent1;
-            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
-            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
-            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
-                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
+            var crowd0 = repo.Crowds[0];
+            var child0_0 = crowd0.Members[0];
+            var child0_1 = crowd0.Members[1];
 
-            var parent0Count = parent0.Members.Count;
-            var parent1Count = parent1.Members.Count;
+            var crowd0Count = crowd0.Members.Count;
 
             //act
-            CrowdMember memberToMove = child0_1;
-            CrowdMember destination = child1_1;
+            CrowdMember memberToMove = child0_0;
+            CrowdMember destination = crowd0;
 
             crowdClipboard.CopyToClipboard(child0_0);
-            crowdClipboard.PasteFromClipboard(parent0);
+            crowdClipboard.PasteFromClipboard(destination);
 
             //assert
-            Mock.Get<CharacterCrowdMember>(child0_0).Verify(c => c.Clone());
-            Assert.AreEqual(parent0Count + 1, parent0.Members.Count);// a new member added
-            var newMem = parent0.MemberShips.FirstOrDefault(m => m.Child.Name == "child0_0 (1)");
+            Assert.AreEqual(crowd0Count + 1, crowd0.Members.Count);// a new member added
+            var newMem = crowd0.MemberShips.FirstOrDefault(m => m.Child.Name == "0.0.0 (1)");
+            Assert.IsNotNull(newMem);
         }
 
         [TestMethod]
         public void CopyAndPasteCrowd_ClonesAllNestedCrowdChildren()
         {
             // arrange
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
+            var repo = TestObjectsFactory.RepositoryUnderTestWithNestedgraphOfCharactersAndCrowds;
             var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
 
-            var crowd1 = repo.Crowds[0];
-            var crowd2 = repo.Crowds[1];
+            var crowd0 = repo.Crowds[0];
+            var crowd1 = repo.Crowds[1];
 
-            var nestedCrowd1 = crowd1.Members[0];
-            var nestedCrowd2 = crowd1.Members[1];
+            var nestedCrowd0 = crowd0.Members[0] as Crowd; // 0.0.0 crowd
+
+            var nestedCrowd1 = crowd0.Members[0];
+            var nestedCrowd2 = crowd0.Members[1];
 
             //act
-            crowdClipboard.CopyToClipboard(crowd1);
-            crowdClipboard.PasteFromClipboard(crowd2);
+            crowdClipboard.CopyToClipboard(nestedCrowd0);
+            crowdClipboard.PasteFromClipboard(crowd1);
 
             //assert
-            Mock.Get<Crowd>(crowd1).Verify(c => c.Clone());
-            Mock.Get<CrowdMember>(nestedCrowd1).Verify(c => c.Clone());
-            Mock.Get<CrowdMember>(nestedCrowd2).Verify(c => c.Clone());
+            var newMem = crowd1.MemberShips.FirstOrDefault(m => m.Child.Name == "0.0.0 (1)");
+            Assert.IsNotNull(newMem);
         }
 
         [TestMethod]
         public void LinkPasteCrowd_InvokesAddCrowdMemberForDestinationCrowd()
         {
             // arrange
-            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
             var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
-            Crowd parent0, parent1;
-            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
-            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
-            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
-                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
+            var crowd0 = TestObjectsFactory.MockCrowd;
+            var crowd1 = TestObjectsFactory.MockCrowd;
 
-            crowdClipboard.LinkToClipboard(parent0);
-            crowdClipboard.PasteFromClipboard(parent1);
+            crowdClipboard.LinkToClipboard(crowd0);
+            crowdClipboard.PasteFromClipboard(crowd1);
 
             //assert
-            Mock.Get<Crowd>(parent1).Verify(c => c.AddCrowdMember(parent0));
+            Mock.Get<Crowd>(crowd1).Verify(c => c.AddCrowdMember(crowd0));
         }
     }
 
