@@ -57,8 +57,8 @@ namespace ApplicationShell.Views
             else if (errorItems.Errors.Any(ei => ei.ErrorDisplayType == ErrorDisplayType.Warning))
                 icon = MessageBoxImage.Warning;
 
-            IMessageBoxService messageBoxService = container.Resolve<IMessageBoxService>();
-            messageBoxService.ShowDialog(message, errorItems.Caption, MessageBoxButton.OK, icon);
+            //IMessageBoxService messageBoxService = container.Resolve<IMessageBoxService>();
+            //messageBoxService.ShowDialog(message, errorItems.Caption, MessageBoxButton.OK, icon);
         }
 
         private void HideErrors(ErrorItems errorItems)

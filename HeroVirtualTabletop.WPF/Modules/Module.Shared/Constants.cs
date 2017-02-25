@@ -29,7 +29,7 @@ namespace Module.Shared
 
         #region Log
         public const string LOG_CONFIGURATION_FILENAME = "log4net.config";
-        public const string LOG_FOLDERNAME = "E:\\Log";
+        public const string LOG_FOLDERNAME = "Log";
         #endregion
 
         #region Resource Dictionary and Styles
