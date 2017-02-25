@@ -7,6 +7,7 @@ using Framework.WPF.Library;
 using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
+using HeroVirtualTableTop.Roster;
 using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace HeroVirtualTableTop.Crowd
@@ -76,12 +77,12 @@ namespace HeroVirtualTableTop.Crowd
 
             if (parent != null)
             {
-                newCrowd.Name = CreateUniqueName(name, newCrowd, parent.Members);
+                newCrowd.Name = CreateUniqueName(name, parent.Members);
                 parent.AddCrowdMember(newCrowd);
             }
             else
             {
-                newCrowd.Name = CreateUniqueName(name, newCrowd, null);
+                newCrowd.Name = CreateUniqueName(name, null);
             }
             return newCrowd;
         }
@@ -100,13 +101,13 @@ namespace HeroVirtualTableTop.Crowd
                 newCharacter.CrowdRepository = this;
             }
 
-            newCharacter.Name = CreateUniqueName(name, newCharacter, AllMembersCrowd.Members);
+            newCharacter.Name = CreateUniqueName(name, AllMembersCrowd.Members);
             AllMembersCrowd.AddCrowdMember(newCharacter);
             parent?.AddCrowdMember(newCharacter);
             return newCharacter;
         }
 
-        public string CreateUniqueName(string name, CrowdMember member, List<CrowdMember> context)
+        public string CreateUniqueName(string name, List<CrowdMember> context)
         {
             var suffix = string.Empty;
             var rootName = name;
@@ -377,7 +378,7 @@ namespace HeroVirtualTableTop.Crowd
             var clone = CrowdRepository.NewCrowd();
 
             var crowds = (from crowd in CrowdRepository.Crowds select crowd as CrowdMember).ToList();
-            clone.Name = CrowdRepository.CreateUniqueName(Name, clone, crowds);
+            clone.Name = CrowdRepository.CreateUniqueName(Name, crowds);
 
             clone.UseRelativePositioning = UseRelativePositioning;
             foreach (var member in Members)
@@ -416,30 +417,8 @@ namespace HeroVirtualTableTop.Crowd
             FilterApplied = true;
         }
 
-        public void ResetFilter()
-        {
-            FilterApplied = false;
-            foreach (var crowdMember in Members)
-                crowdMember.ResetFilter();
-        }
-
-        public void SpawnToDesktop(bool completeEvent = true)
-        {
-            foreach (var crowdMember in Members)
-                crowdMember.SpawnToDesktop(completeEvent);
-        }
-
-        public void ClearFromDesktop(bool completeEvent = true)
-        {
-            foreach (var crowdMember in Members)
-                crowdMember.ClearFromDesktop(completeEvent);
-        }
-
-        public void MoveCharacterToCamera(bool completeEvent = true)
-        {
-            foreach (var crowdMember in Members)
-                crowdMember.MoveCharacterToCamera(completeEvent);
-        }
+       
+        
 
         private List<CrowdMember> GetFlattenedMemberList(List<CrowdMember> list)
         {
@@ -874,7 +853,7 @@ namespace HeroVirtualTableTop.Crowd
         {
             var clone = (CharacterCrowdMemberImpl) CrowdRepository.NewCharacterCrowdMember();
 
-            clone.Name = CrowdRepository.CreateUniqueName(Name, clone, CrowdRepository.AllMembersCrowd.Members);
+            clone.Name = CrowdRepository.CreateUniqueName(Name, CrowdRepository.AllMembersCrowd.Members);
             foreach (var id  in Identities.Values)
                 clone.Identities.InsertElement((Identity) id.Clone());
 
@@ -886,7 +865,7 @@ namespace HeroVirtualTableTop.Crowd
             return clone;
         }
 
-        
+        public RosterGroup RosterParent { get; set; }
     }
 
     public class CrowdClipboardImpl : CrowdClipboard
