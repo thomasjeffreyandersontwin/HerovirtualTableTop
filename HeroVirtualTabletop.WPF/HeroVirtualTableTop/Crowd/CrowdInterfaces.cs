@@ -29,7 +29,9 @@ namespace HeroVirtualTableTop.Crowd
     }
     public interface Crowd : CrowdMember
     {
+
         bool UseRelativePositioning { get; set; }
+        
         List<CrowdMemberShip> MemberShips { get; }
         List<CrowdMember> Members { get; }
         Dictionary<string, CrowdMember> MembersByName { get; }

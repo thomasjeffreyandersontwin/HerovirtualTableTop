@@ -43,6 +43,7 @@ namespace HeroVirtualTableTop.Roster
                 {
                     foreach (CharacterCrowdMember p in group.Values)
                     {
+                        
                         participants.Add(p);
                     }
                 }
@@ -191,7 +192,7 @@ namespace HeroVirtualTableTop.Roster
         }
         private void updateRosterCharacterStateBasedOnCharacterChange(string propertyName, AnimatedCharacter characterThatChanged, string rosterStateToChangeProperty, string characterStateThatchanged)
         {
-            PropertyInfo propertyInfoforStateToChange = this.GetType().GetProperty(rosterStateToChangeProperty);
+            PropertyInfo propertyInfoforStateToChange = GetType().GetProperty(rosterStateToChangeProperty);
             CharacterCrowdMember rosterStateToChange = (CharacterCrowdMember)
                 propertyInfoforStateToChange.GetValue(this);
 

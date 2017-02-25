@@ -878,25 +878,25 @@ namespace HeroVirtualTableTop.Crowd
 
         public void CopyToClipboard(CrowdMember member)
         {
-            this.CurrentClipboardAction = ClipboardAction.Clone;
-            this.clipboardObject = member;
+            CurrentClipboardAction = ClipboardAction.Clone;
+            clipboardObject = member;
         }
 
         public void CutToClipboard(CrowdMember member)
         {
-            this.CurrentClipboardAction = ClipboardAction.Cut;
-            this.clipboardObject = member;
+            CurrentClipboardAction = ClipboardAction.Cut;
+            clipboardObject = member;
         }
 
         public void LinkToClipboard(CrowdMember member)
         {
-            this.CurrentClipboardAction = ClipboardAction.Link;
-            this.clipboardObject = member;
+            CurrentClipboardAction = ClipboardAction.Link;
+            clipboardObject = member;
         }
 
         public void PasteFromClipboard(CrowdMember member)
         {
-            switch(this.CurrentClipboardAction)
+            switch(CurrentClipboardAction)
             {
                 case ClipboardAction.Clone:
                     cloneAndPaste(member);
@@ -913,18 +913,18 @@ namespace HeroVirtualTableTop.Crowd
         private void cloneAndPaste(CrowdMember member)
         {
             var destCrowd = getDestinationCrowdForPaste(member);
-            var cloningMember = this.clipboardObject as CrowdMember;
-            var clonedMember = cloningMember.Clone();
+            var cloningMember = clipboardObject as CrowdMember;
+            var clonedMember = cloningMember?.Clone();
             destCrowd.AddCrowdMember(clonedMember);
         }
 
         private void cutAndPaste(CrowdMember member)
         {
             var destCrowd = getDestinationCrowdForPaste(member);
-            var cuttingMember = this.clipboardObject as CrowdMember;
-            if (destCrowd != cuttingMember.Parent)
+            var cuttingMember = clipboardObject as CrowdMember;
+            if (destCrowd != cuttingMember?.Parent)
             {
-                cuttingMember.Parent.RemoveMember(cuttingMember);
+                cuttingMember?.Parent.RemoveMember(cuttingMember);
                 destCrowd.AddCrowdMember(cuttingMember);
             }
         }
@@ -932,7 +932,7 @@ namespace HeroVirtualTableTop.Crowd
         private void linkAndPaste(CrowdMember member)
         {
             var destCrowd = getDestinationCrowdForPaste(member);
-            var linkingMember = this.clipboardObject as CrowdMember;
+            var linkingMember = clipboardObject as CrowdMember;
             destCrowd.AddCrowdMember(linkingMember);
         }
 

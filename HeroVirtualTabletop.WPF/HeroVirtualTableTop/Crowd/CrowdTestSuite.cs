@@ -495,59 +495,6 @@ namespace HeroVirtualTableTop.Crowd
         }
 
         
-
-        //to do
-        public void Identities_ReturnsIdentitiesThatAllCrowdMembersHaveInCommon()
-        {
-            ;
-        }
-
-        //to do
-        public void Abilities_ReturnsAbilitiesThatAllCrowdMembersHaveInCommon()
-        {
-            ;
-        }
-
-        //to do
-        public void Movs_ReturnsMovThatAllCrowdMembersHaveInCommon()
-        {
-
-        }
-
-        //to do
-        public void PlayDefaultAbility_PlaysDefaultAbilityOfAllParticipants()
-        {
-            ;
-        }
-
-        //to do
-        public void PlayDefaultMov_PlaysDefaultMovOfAllParticipants()
-        {
-
-        }
-
-        //to do
-        public void PlayDefaultIdentity_PlaysDefaultIdentityvOfAllParticipants()
-        {
-
-        }
-        //to do
-        public void PlayAbility_RunsAbilityOnAllCharactersThatHaveThatAbility()
-        {
-            ;
-        }
-        //to do
-        public void PlayMov_RunsMovOnAllCharactersThatHaveThatMov()
-        {
-            ;
-        }
-        public void PlayIdentity_RunsIdentityOnAllCharactersThatHaveThatIdentity()
-        {
-            ;
-        }
-
-
-
         [TestMethod]
         public void ExecutingSaveCurrentTableTopPositionOnCrowd_RunsSavePosOnAllCharactersInCrowd()
         {
@@ -689,7 +636,7 @@ namespace HeroVirtualTableTop.Crowd
             TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
                 out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
 
-            //act
+            //act-_
             CrowdMember memberToMove = child0_1;
             CrowdMember destination = child1_1;
 
