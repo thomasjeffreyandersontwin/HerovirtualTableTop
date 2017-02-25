@@ -48,7 +48,8 @@ namespace HeroVirtualTableTop.Crowd
         new string Name { get; set; }
         new int Order { get; set; }
     }
-    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged    {
+    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands, AnimatedCharacterCommands, RosterParticipant
+    {
         int Order { get; set; }
         bool MatchesFilter { get; set; }
         string OldName { get; set; }
@@ -60,7 +61,7 @@ namespace HeroVirtualTableTop.Crowd
 
         CrowdMember Clone();
         void ApplyFilter(string filter);
-       
+        void ResetFilter();
         bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> members);
 
         void RemoveParent(CrowdMember crowdMember);

@@ -433,19 +433,6 @@ namespace HeroVirtualTableTop.Crowd
         {
             foreach (var crowdMember in Members)
                 crowdMember.MoveCharacterToCamera(completeEvent);
-            var clone = CrowdRepository.NewCrowd();
-
-            var crowds = (from crowd in CrowdRepository.Crowds select crowd as CrowdMember).ToList();
-            clone.Name = CrowdRepository.CreateUniqueName(Name, crowds);
-
-            clone.UseRelativePositioning = UseRelativePositioning;
-            foreach (var member in Members)
-            {
-                var cloneMember = member.Clone();
-                clone.AddCrowdMember(cloneMember);
-            }
-            //EliminateDuplicateName();
-            return clone;
         }
         public Dictionary<string, Identity> IdentitiesList
         {
