@@ -660,7 +660,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             return collisionVector;
         }
-        private Vector3 GetAllowableDestinationVector(Character target, Vector3 directionVector)
+        private Vector3 GetAllowableDestinationVector(Character target, Vector3 directionVector)//todo
         {
             // TODO: need to take into account the pitch yaw roll etc. in future
             Vector3 currentPositionVector = target.CurrentPositionVector;
@@ -679,7 +679,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f)
                 // Need to recalculate next collision point
             {
-                collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
+                collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);//check
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -692,8 +692,8 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
             }
 
-            collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
-               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
+            collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);//check
+               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);//check
 
             if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)
                 // Collision point nearer, so can't move to destination without checking first
@@ -703,7 +703,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 {
                     bool canAvoidCollision;
                     Vector3 nextTravelPointToAvoidCollision = GetNextTravelPointToAvoidCollision(target,
-                        out canAvoidCollision);
+                        out canAvoidCollision); //check
                     collisionVector = nextTravelPointToAvoidCollision;
                     target.MovementInstruction.IsInCollision = !canAvoidCollision;
                     if (canAvoidCollision)
@@ -779,8 +779,8 @@ namespace Module.HeroVirtualTabletop.Movements
 
             if (target.MovementInstruction.IsPositionAdjustedToAvoidCollision)
             {
-                nextTravelPoint.Y = target.CurrentPositionVector.Y; // maintain same Y till collision point is passed
-                canAvoidCollision = true;
+                nextTravelPoint.Y = target.CurrentPositionVector.Y; // maintain same Y till collision point is passed //check
+                canAvoidCollision = true;//check
                 var collDistance = Vector3.Distance(nextTravelPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
                 if (collDistance > target.MovementInstruction.DistanceFromCollisionFreePoint)
                 {
@@ -795,7 +795,7 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 // Check if Collision is bottom, then we might have a chance to avoid collision by adjusting position
                 BodyPart bodyPart = GetBodyPartFromOffsetVector(target.MovementInstruction.CharacterBodyCollisionOffsetVector);
-                if (bodyPart == BodyPart.Bottom || bodyPart == BodyPart.BottomSemiMiddle)
+                if (bodyPart == BodyPart.Bottom || bodyPart == BodyPart.BottomSemiMiddle) //check
                 {
                     // Check if other collisions are also present at same or less distance
                     Dictionary<BodyPart, bool> bodyPartMap = new Dictionary<BodyPart, bool>();

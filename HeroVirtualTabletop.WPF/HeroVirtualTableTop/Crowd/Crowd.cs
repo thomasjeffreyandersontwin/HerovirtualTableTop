@@ -433,6 +433,19 @@ namespace HeroVirtualTableTop.Crowd
         {
             foreach (var crowdMember in Members)
                 crowdMember.MoveCharacterToCamera(completeEvent);
+            var clone = CrowdRepository.NewCrowd();
+
+            var crowds = (from crowd in CrowdRepository.Crowds select crowd as CrowdMember).ToList();
+            clone.Name = CrowdRepository.CreateUniqueName(Name, crowds);
+
+            clone.UseRelativePositioning = UseRelativePositioning;
+            foreach (var member in Members)
+            {
+                var cloneMember = member.Clone();
+                clone.AddCrowdMember(cloneMember);
+            }
+            //EliminateDuplicateName();
+            return clone;
         }
         public Dictionary<string, Identity> IdentitiesList
         {
@@ -959,8 +972,8 @@ namespace HeroVirtualTableTop.Crowd
 
         public void CopyToClipboard(CrowdMember member)
         {
-            this.CurrentClipboardAction = ClipboardAction.Clone;
-            this.clipboardObject = member;
+            CurrentClipboardAction = ClipboardAction.Clone;
+            clipboardObject = member;
         }
 
         public void CutToClipboard(CrowdMember member, Crowd parent)
@@ -971,8 +984,8 @@ namespace HeroVirtualTableTop.Crowd
 
         public void LinkToClipboard(CrowdMember member)
         {
-            this.CurrentClipboardAction = ClipboardAction.Link;
-            this.clipboardObject = member;
+            CurrentClipboardAction = ClipboardAction.Link;
+            clipboardObject = member;
         }
 
         public void PasteFromClipboard(CrowdMember destinationMember)
@@ -994,8 +1007,8 @@ namespace HeroVirtualTableTop.Crowd
         private void cloneAndPaste(CrowdMember member)
         {
             var destCrowd = getDestinationCrowdForPaste(member);
-            var cloningMember = this.clipboardObject as CrowdMember;
-            var clonedMember = cloningMember.Clone();
+            var cloningMember = clipboardObject as CrowdMember;
+            var clonedMember = cloningMember?.Clone();
             destCrowd.AddCrowdMember(clonedMember);
         }
 
@@ -1016,7 +1029,7 @@ namespace HeroVirtualTableTop.Crowd
         private void linkAndPaste(CrowdMember member)
         {
             var destCrowd = getDestinationCrowdForPaste(member);
-            var linkingMember = this.clipboardObject as CrowdMember;
+            var linkingMember = clipboardObject as CrowdMember;
             destCrowd.AddCrowdMember(linkingMember);
         }
 

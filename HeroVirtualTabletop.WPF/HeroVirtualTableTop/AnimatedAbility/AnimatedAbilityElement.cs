@@ -889,7 +889,7 @@ namespace HeroVirtualTableTop.AnimatedAbility
         }
         public void RemoveElement(AnimationElement animationElement)
         {
-            animationCollection.RemoveElement(animationElement);;
+            animationCollection.RemoveElement(animationElement);
         }
 
         public override void Play(List<AnimatedCharacter> targets)

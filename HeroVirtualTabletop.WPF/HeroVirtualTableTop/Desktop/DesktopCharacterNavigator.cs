@@ -188,20 +188,12 @@ namespace HeroVirtualTableTop.Desktop
             }
         }
 
-        
-        public void ApplyGravityToDestination()
-        {
-            UsingGravity = true;
-        }
-
-
         public void Navigate()
-          {
-            float actual = 0f;
+        {
             if (PositionBeingNavigated.Equals(Destination))
                 return;
             PositionBeingNavigated.Face(StopLocation);
-            float calc = 0f;
+          
             while (PositionBeingNavigated.IsAtLocation(StopLocation)==false)
             {
                PositionBeingNavigated.MoveTo(NearestAvailableIncrementalVectorTowardsDestination);
