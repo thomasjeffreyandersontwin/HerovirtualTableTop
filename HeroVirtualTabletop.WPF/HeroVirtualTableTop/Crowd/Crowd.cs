@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -8,6 +9,10 @@ using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Roster;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Framework.WPF.Services.BusyService;
+using Microsoft.Practices.Unity;
+using Framework.WPF.Services.MessageBoxService;
+using Prism.Events;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -557,7 +562,10 @@ namespace HeroVirtualTableTop.Crowd
             return flattened;
         }
 
-        
+        public void Rename(string newName)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class CrowdMemberShipImpl : NotifyPropertyChanged, CrowdMemberShip
@@ -946,6 +954,12 @@ namespace HeroVirtualTableTop.Crowd
             return clone;
         }
 
+        public void Rename(string newName)
+        {
+            this.OldName = this.Name;
+            this.Name = newName;
+        }
+
         public RosterGroup RosterParent { get; set; }
     }
 
@@ -1025,6 +1039,129 @@ namespace HeroVirtualTableTop.Crowd
             if (member is CharacterCrowdMember)
                 return (member as CharacterCrowdMember).Parent;
             else return member as Crowd;
+        }
+    }
+
+    public class CharacterExplorerViewModelImpl : BaseViewModel, CharacterExplorerViewModel
+    {
+        public EventAggregator EventAggregator
+        {
+            get;set;
+        }
+        public CrowdClipboard CrowdClipboard
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public CrowdRepository CrowdRepository
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public CrowdMember SelectedCrowdMember
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public CharacterExplorerViewModelImpl(CrowdRepository repository, CrowdClipboard clipboard, IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator): base(busyService, container)
+        {
+            this.CrowdRepository = repository;
+            this.CrowdClipboard = clipboard;
+            this.EventAggregator = eventAggregator;
+        }
+
+        public void AddCharacterCrowd()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddCrowd()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CreateCrowdFromModels()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddCrowdMemberToRoster(CrowdMember member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ApplyFilter()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CloneCrowdMember(CrowdMember member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CutCrowdMember(CrowdMember member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DeleteCrowdMember()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void LinkCrowdMember(CrowdMember member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void MoveCrowdMember(CrowdMember movingCrowdMember, Crowd destinationCrowd)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void PasteCrowdMember(CrowdMember member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RenameCrowdMember(CrowdMember member, string newName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortCrowds()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ApplyFilter(string filter)
+        {
+            throw new NotImplementedException();
         }
     }
 }

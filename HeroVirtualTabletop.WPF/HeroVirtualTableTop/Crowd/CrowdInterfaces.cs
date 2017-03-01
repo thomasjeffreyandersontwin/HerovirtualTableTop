@@ -6,6 +6,7 @@ using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.Roster;
+using Prism.Events;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -13,7 +14,7 @@ namespace HeroVirtualTableTop.Crowd
     {
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
     }
-    
+
     public interface CrowdRepository : AnimatedCharacterRepository
     {
         Dictionary<string, Crowd> CrowdsByName { get; }
@@ -31,13 +32,13 @@ namespace HeroVirtualTableTop.Crowd
     {
 
         bool UseRelativePositioning { get; set; }
-        
+
         List<CrowdMemberShip> MemberShips { get; }
         List<CrowdMember> Members { get; }
         Dictionary<string, CrowdMember> MembersByName { get; }
         bool IsExpanded { get; set; }
 
-        void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdToMove);
+        void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdMemberToMove);
         void AddManyCrowdMembers(List<CrowdMember> member);
 
         void AddCrowdMember(CrowdMember member);
@@ -58,17 +59,13 @@ namespace HeroVirtualTableTop.Crowd
         List<CrowdMemberShip> AllCrowdMembershipParents { get; }
         Crowd Parent { get; set; }
         CrowdRepository CrowdRepository { get; set; }
-
+        void Rename(string newName);
         CrowdMember Clone();
         void ApplyFilter(string filter);
         void ResetFilter();
         bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> members);
-
         void RemoveParent(CrowdMember crowdMember);
-
-        
-
-}
+    }
     public interface CrowdMemberShip
     {
         int Order { get; set; }
@@ -96,6 +93,7 @@ namespace HeroVirtualTableTop.Crowd
         CrowdRepository CrowdRepository { get; set; }
         CrowdMember SelectedCrowdMember { get; set; }
         CrowdClipboard CrowdClipboard { get; set; }
+        EventAggregator EventAggregator { get; set; }
         //KeyBoardHook keyBoardHook { get; set; } // To do under desktops
         void AddCrowd();
         void AddCharacterCrowd();
@@ -107,8 +105,8 @@ namespace HeroVirtualTableTop.Crowd
         void LinkCrowdMember(CrowdMember member);
         void PasteCrowdMember(CrowdMember member);
         void AddCrowdMemberToRoster(CrowdMember member);
-        void AddCrowdFromModels();
-        void ApplyFilter();
+        void CreateCrowdFromModels();
+        void ApplyFilter(string filter);
         void SortCrowds();
     }
 }

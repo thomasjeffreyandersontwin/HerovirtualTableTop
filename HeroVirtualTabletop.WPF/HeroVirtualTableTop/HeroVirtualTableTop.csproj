@@ -143,6 +143,7 @@
     <Compile Include="Attack\AttackDistanceDelayManager.cs" />
     <Compile Include="Attack\AttackIntefaces.cs" />
     <Compile Include="Attack\AttackTestsuite.cs" />
+    <Compile Include="Common\Events.cs" />
     <Compile Include="Common\OrderedCollection.cs" />
     <Compile Include="Desktop\DesktopCharacterNavigator.cs" />
     <Compile Include="Desktop\Position.cs" />
