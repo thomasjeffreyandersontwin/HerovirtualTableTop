@@ -8,18 +8,26 @@ using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Roster;
-using Module.HeroVirtualTabletop.Library.Utility;
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Unity;
 using Framework.WPF.Services.MessageBoxService;
 using Prism.Events;
+using System.Collections.ObjectModel;
+using System.Reflection;
+using Newtonsoft.Json;
+using System.IO;
+using System.Threading;
+using HeroVirtualTableTop.Common;
+using Module.Shared;
 
 namespace HeroVirtualTableTop.Crowd
 {
     public class CrowdRepositoryImpl : AnimatedCharacterRepositoryImpl, CrowdRepository
     {
+        private string crowdRepositoryPath;
         public CrowdRepositoryImpl()
         {
+            crowdRepositoryPath = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_CROWD_REPOSITORY_FILENAME);
             Crowds = new List<Crowd>();
             createAllmembersCrowd();
         }
@@ -145,17 +153,67 @@ namespace HeroVirtualTableTop.Crowd
 
         public void AddDefaultCharacters()
         {
-            throw new System.NotImplementedException();
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            List<Crowd> crowdCollection = GetDefaultCrowdCollectionFromResource();
+            foreach (Crowd cr in crowdCollection)
+                this.Crowds.Add(cr);
         }
 
-        public void LoadCrowds()
+        private List<Crowd> GetDefaultCrowdCollectionFromResource()
         {
-            throw new System.NotImplementedException();
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            List<Crowd> crowdCollection = new List<Crowd>();
+            string resName = "HeroVirtualTabletop.Resources.DefaultCharactersWithAbilities.data"; // TODO: Need to add this resource later
+            using (StreamReader sr = new StreamReader(assembly.GetManifestResourceStream(resName)))
+            {
+                using (JsonReader reader = new JsonTextReader(sr))
+                {
+                    JsonSerializer serializer = new JsonSerializer();
+                    serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
+                    serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                    serializer.Formatting = Formatting.Indented;
+                    serializer.TypeNameHandling = TypeNameHandling.Objects;
+
+                    crowdCollection = serializer.Deserialize<List<Crowd>>(reader);
+                }
+            }
+            return crowdCollection;
         }
 
-        public void SaveCrowds()
+        private Action getCrowdCollectionCompleted;
+        public void LoadCrowdsAsync(Action getCrowdCollectionCompletedCallback)
         {
-            throw new System.NotImplementedException();
+            this.getCrowdCollectionCompleted = getCrowdCollectionCompletedCallback;
+
+            ThreadPool.QueueUserWorkItem
+                (new WaitCallback(
+                    delegate (object state)
+                    {
+                        this.Crowds = CommonLibrary.GetDeserializedJSONFromFile<List<Crowd>>(crowdRepositoryPath);
+                        if (this.Crowds == null)
+                            this.Crowds = new List<Crowd>();
+                        //TakeBackup(); // Take backup of valid data file from last execution
+                        this.getCrowdCollectionCompleted();
+                    }));
+        }
+
+        private object lockObj = new object();
+
+        private Action saveCrowdCollectionCompleted;
+        public void SaveCrowdsAsync(Action saveCrowdCollectionCompletedCallback)
+        {
+            this.saveCrowdCollectionCompleted = saveCrowdCollectionCompletedCallback;
+
+            ThreadPool.QueueUserWorkItem
+                (new WaitCallback(
+                    delegate (object state)
+                    {
+                        lock (lockObj)
+                        {
+                            CommonLibrary.SerializeObjectAsJSONToFile(crowdRepositoryPath, this.Crowds);
+                            this.saveCrowdCollectionCompleted();
+                        }
+                    }));
         }
     }
     public enum ClipboardAction
@@ -783,7 +841,6 @@ namespace HeroVirtualTableTop.Crowd
         private bool _matchedFilter;
         private string _name;
 
-
         private bool isExpanded;
 
         public CharacterCrowdMemberImpl(Crowd parent, DesktopCharacterTargeter targeter,
@@ -1050,40 +1107,48 @@ namespace HeroVirtualTableTop.Crowd
         }
         public CrowdClipboard CrowdClipboard
         {
-            get
-            {
-                throw new NotImplementedException();
-            }
-
-            set
-            {
-                throw new NotImplementedException();
-            }
+            get;set;
         }
-
+        private CrowdRepository crowdRepository;
         public CrowdRepository CrowdRepository
         {
             get
             {
-                throw new NotImplementedException();
+                return crowdRepository;
             }
-
             set
             {
-                throw new NotImplementedException();
+                crowdRepository = value;
+                OnPropertyChanged("CrowdRepository");
             }
         }
-
+        private CrowdMember selectedCrowdMember;
         public CrowdMember SelectedCrowdMember
         {
             get
             {
-                throw new NotImplementedException();
+                return selectedCrowdMember;
             }
 
             set
             {
-                throw new NotImplementedException();
+                selectedCrowdMember = value;
+                OnPropertyChanged("SelectedCrowdMember");
+            }
+        }
+
+        private ObservableCollection<CrowdMember> crowdMembers;
+        public ObservableCollection<CrowdMember> CrowdMembers
+        {
+            get
+            {
+                return crowdMembers;
+            }
+            set
+            {
+                //crowdMembers = new ObservableCollection<CrowdMember>(this.CrowdRepository.Crowds);
+                crowdMembers = value;
+                OnPropertyChanged("CrowdMembers");
             }
         }
 

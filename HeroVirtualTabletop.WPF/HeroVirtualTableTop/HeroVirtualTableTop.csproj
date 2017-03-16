@@ -106,6 +106,7 @@
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\Ploeh.AutoFixture.AutoMoq.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="Prism">
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\Prism.dll</HintPath>
     </Reference>
@@ -117,6 +118,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Modules\Module.HeroVirtualTabletop\bin\Debug\System.Windows.Interactivity.dll</HintPath>
@@ -145,6 +147,7 @@
     <Compile Include="Attack\AttackTestsuite.cs" />
     <Compile Include="Common\Events.cs" />
     <Compile Include="Common\OrderedCollection.cs" />
+    <Compile Include="Common\Utility.cs" />
     <Compile Include="Desktop\DesktopCharacterNavigator.cs" />
     <Compile Include="Desktop\Position.cs" />
     <Compile Include="Movement\MovableCharacter.cs" />

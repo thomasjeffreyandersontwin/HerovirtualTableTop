@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using HeroVirtualTableTop.Crowd;
+using Framework.WPF.Library;
 
 namespace HeroVirtualTableTop.AnimatedAbility
 {
-    public class AnimatedCharacterRepositoryImpl :  AnimatedCharacterRepository
+    public class AnimatedCharacterRepositoryImpl : NotifyPropertyChanged, AnimatedCharacterRepository
     {
         public AnimatedCharacterRepositoryImpl()
         {

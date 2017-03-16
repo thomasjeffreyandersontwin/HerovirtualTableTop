@@ -7,6 +7,7 @@ using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.Roster;
 using Prism.Events;
+using System;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -25,12 +26,11 @@ namespace HeroVirtualTableTop.Crowd
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
         string CreateUniqueName(string name, List<CrowdMember> context);
         void AddDefaultCharacters();
-        void LoadCrowds();
-        void SaveCrowds();
+        void LoadCrowdsAsync(Action getCrowdCollectionCompletedCallback);
+        void SaveCrowdsAsync(Action saveCrowdCollectionCompletedCallback);
     }
     public interface Crowd : CrowdMember
     {
-
         bool UseRelativePositioning { get; set; }
 
         List<CrowdMemberShip> MemberShips { get; }
