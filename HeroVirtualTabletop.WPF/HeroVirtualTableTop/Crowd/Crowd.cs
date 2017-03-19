@@ -8,10 +8,6 @@ using HeroVirtualTableTop.AnimatedAbility;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Roster;
-using Framework.WPF.Services.BusyService;
-using Microsoft.Practices.Unity;
-using Framework.WPF.Services.MessageBoxService;
-using Prism.Events;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using Newtonsoft.Json;
@@ -1099,12 +1095,12 @@ namespace HeroVirtualTableTop.Crowd
         }
     }
 
-    public class CharacterExplorerViewModelImpl : BaseViewModel, CharacterExplorerViewModel
+    public class CrowdMemberExplorerViewModelImpl : CrowdMemberExplorerViewModel
     {
-        public EventAggregator EventAggregator
-        {
-            get;set;
-        }
+        //public EventAggregator EventAggregator
+        //{
+        //    get;set;
+        //}
         public CrowdClipboard CrowdClipboard
         {
             get;set;
@@ -1119,7 +1115,6 @@ namespace HeroVirtualTableTop.Crowd
             set
             {
                 crowdRepository = value;
-                OnPropertyChanged("CrowdRepository");
             }
         }
         private CrowdMember selectedCrowdMember;
@@ -1133,7 +1128,6 @@ namespace HeroVirtualTableTop.Crowd
             set
             {
                 selectedCrowdMember = value;
-                OnPropertyChanged("SelectedCrowdMember");
             }
         }
 
@@ -1148,15 +1142,14 @@ namespace HeroVirtualTableTop.Crowd
             {
                 //crowdMembers = new ObservableCollection<CrowdMember>(this.CrowdRepository.Crowds);
                 crowdMembers = value;
-                OnPropertyChanged("CrowdMembers");
             }
         }
 
-        public CharacterExplorerViewModelImpl(CrowdRepository repository, CrowdClipboard clipboard, IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator): base(busyService, container)
+        public CrowdMemberExplorerViewModelImpl(CrowdRepository repository, CrowdClipboard clipboard)
         {
             this.CrowdRepository = repository;
             this.CrowdClipboard = clipboard;
-            this.EventAggregator = eventAggregator;
+            //this.EventAggregator = eventAggregator;
         }
 
         public void AddCharacterCrowd()

@@ -14,7 +14,6 @@ using HeroVirtualTableTop.Crowd;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.ManagedCharacter;
-using Module.HeroVirtualTabletop.OptionGroups;
 using Ploeh.AutoFixture;
 
 namespace HeroVirtualTableTop.Roster

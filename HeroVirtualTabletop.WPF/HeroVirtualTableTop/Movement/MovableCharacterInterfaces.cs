@@ -9,7 +9,6 @@ using HeroVirtualTableTop.Desktop;
 using Microsoft.Xna.Framework;
 using HeroVirtualTableTop.ManagedCharacter;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Module.HeroVirtualTabletop.Characters;
 
 namespace HeroVirtualTableTop.Movement
 {

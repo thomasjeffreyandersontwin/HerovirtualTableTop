@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Ink;
 using HeroVirtualTableTop.Movement;
 using Microsoft.Xna.Framework;
-using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace HeroVirtualTableTop.Desktop
 {

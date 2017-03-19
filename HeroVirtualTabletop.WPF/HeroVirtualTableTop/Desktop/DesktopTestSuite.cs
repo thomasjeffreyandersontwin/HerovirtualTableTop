@@ -500,7 +500,7 @@ namespace HeroVirtualTableTop.Desktop
             MockFixture.Customize(new AutoMoqCustomization());
 
             CustomizedMockFixture = new Fixture();
-            CustomizedMockFixture.Customize(new AutoConfiguredMoqCustomization());
+            CustomizedMockFixture.Customize(new AutoMoqCustomization());
             CustomizedMockFixture.Customizations.Add(new NumericSequenceGenerator());
             //handle recursion
             CustomizedMockFixture.Behaviors.Add(new OmitOnRecursionBehavior());

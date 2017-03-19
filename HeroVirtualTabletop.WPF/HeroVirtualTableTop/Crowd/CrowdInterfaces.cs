@@ -6,7 +6,6 @@ using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.Roster;
-using Prism.Events;
 using System;
 
 namespace HeroVirtualTableTop.Crowd
@@ -88,12 +87,11 @@ namespace HeroVirtualTableTop.Crowd
         void PasteFromClipboard(CrowdMember destinationMember);
     }
 
-    public interface CharacterExplorerViewModel
+    public interface CrowdMemberExplorerViewModel
     {
         CrowdRepository CrowdRepository { get; set; }
         CrowdMember SelectedCrowdMember { get; set; }
         CrowdClipboard CrowdClipboard { get; set; }
-        EventAggregator EventAggregator { get; set; }
         //KeyBoardHook keyBoardHook { get; set; } // To do under desktops
         void AddCrowd();
         void AddCharacterCrowd();
