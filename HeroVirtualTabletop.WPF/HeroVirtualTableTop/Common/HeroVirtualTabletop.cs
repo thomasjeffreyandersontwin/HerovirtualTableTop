@@ -11,7 +11,4 @@ namespace HeroVirtualTableTop.Common
     public class HeroVirtualTabletopMainViewModelImpl : Screen, HeroVirtualTabletopMainViewModel
     {
     }
-    //public class HeroVirtualTabletopMainViewModel
-    //{
-    //}
 }

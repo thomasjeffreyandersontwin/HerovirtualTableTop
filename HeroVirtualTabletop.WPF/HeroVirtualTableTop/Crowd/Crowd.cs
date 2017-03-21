@@ -15,6 +15,7 @@ using System.IO;
 using System.Threading;
 using HeroVirtualTableTop.Common;
 using Module.Shared;
+using Caliburn.Micro;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -176,8 +177,8 @@ namespace HeroVirtualTableTop.Crowd
             return crowdCollection;
         }
 
-        private Action getCrowdCollectionCompleted;
-        public void LoadCrowdsAsync(Action getCrowdCollectionCompletedCallback)
+        private System.Action getCrowdCollectionCompleted;
+        public void LoadCrowdsAsync(System.Action getCrowdCollectionCompletedCallback)
         {
             this.getCrowdCollectionCompleted = getCrowdCollectionCompletedCallback;
 
@@ -195,8 +196,8 @@ namespace HeroVirtualTableTop.Crowd
 
         private object lockObj = new object();
 
-        private Action saveCrowdCollectionCompleted;
-        public void SaveCrowdsAsync(Action saveCrowdCollectionCompletedCallback)
+        private System.Action saveCrowdCollectionCompleted;
+        public void SaveCrowdsAsync(System.Action saveCrowdCollectionCompletedCallback)
         {
             this.saveCrowdCollectionCompleted = saveCrowdCollectionCompletedCallback;
 
@@ -1097,10 +1098,10 @@ namespace HeroVirtualTableTop.Crowd
 
     public class CrowdMemberExplorerViewModelImpl : CrowdMemberExplorerViewModel
     {
-        //public EventAggregator EventAggregator
-        //{
-        //    get;set;
-        //}
+        public IEventAggregator EventAggregator
+        {
+            get; set;
+        }
         public CrowdClipboard CrowdClipboard
         {
             get;set;
@@ -1131,8 +1132,18 @@ namespace HeroVirtualTableTop.Crowd
             }
         }
 
-        private ObservableCollection<CrowdMember> crowdMembers;
-        public ObservableCollection<CrowdMember> CrowdMembers
+        public Crowd SelectedCrowdMemberParent
+        {
+            get
+            {
+                if (SelectedCrowdMember is Crowd)
+                    return SelectedCrowdMember as Crowd;
+                else return SelectedCrowdMember.Parent;
+            }
+        }
+
+        private BindableCollection<CrowdMember> crowdMembers;
+        public BindableCollection<CrowdMember> CrowdMembers
         {
             get
             {
@@ -1145,21 +1156,25 @@ namespace HeroVirtualTableTop.Crowd
             }
         }
 
-        public CrowdMemberExplorerViewModelImpl(CrowdRepository repository, CrowdClipboard clipboard)
+        public CrowdMemberExplorerViewModelImpl(CrowdRepository repository, CrowdClipboard clipboard, IEventAggregator eventAggregator)
         {
             this.CrowdRepository = repository;
             this.CrowdClipboard = clipboard;
-            //this.EventAggregator = eventAggregator;
+            this.EventAggregator = eventAggregator;
         }
 
         public void AddCharacterCrowd()
         {
-            throw new NotImplementedException();
+            var charCrowd = this.CrowdRepository.NewCharacterCrowdMember();
+            this.SelectedCrowdMemberParent.AddCrowdMember(charCrowd);
+            this.CrowdRepository.SaveCrowdsAsync(null);
         }
 
         public void AddCrowd()
         {
-            throw new NotImplementedException();
+            var charCrowd = this.CrowdRepository.NewCharacterCrowdMember();
+            this.SelectedCrowdMemberParent.AddCrowdMember(charCrowd);
+            this.CrowdRepository.SaveCrowdsAsync(null);
         }
 
         public void CreateCrowdFromModels()
@@ -1172,52 +1187,59 @@ namespace HeroVirtualTableTop.Crowd
             throw new NotImplementedException();
         }
 
-        public void ApplyFilter()
+        public void ApplyFilter(string filter)
         {
-            throw new NotImplementedException();
+            foreach (var crowd in this.CrowdRepository.Crowds)
+            {
+                foreach (var mem in crowd.Members)
+                {
+                    mem.ApplyFilter(filter);
+                }
+            }
         }
 
         public void CloneCrowdMember(CrowdMember member)
         {
-            throw new NotImplementedException();
+            this.CrowdClipboard.CopyToClipboard(this.SelectedCrowdMember);
         }
 
         public void CutCrowdMember(CrowdMember member)
         {
-            throw new NotImplementedException();
+            this.CrowdClipboard.CutToClipboard(this.SelectedCrowdMember);
         }
 
         public void DeleteCrowdMember()
         {
-            throw new NotImplementedException();
+            this.SelectedCrowdMemberParent.RemoveMember(this.SelectedCrowdMember);
+            this.CrowdRepository.SaveCrowdsAsync(null);
         }
 
         public void LinkCrowdMember(CrowdMember member)
         {
-            throw new NotImplementedException();
+            this.CrowdClipboard.LinkToClipboard(this.SelectedCrowdMember);
         }
 
-        public void MoveCrowdMember(CrowdMember movingCrowdMember, Crowd destinationCrowd)
+        public void MoveCrowdMember(CrowdMember movingCrowdMember, CrowdMember targetCrowdMember, Crowd destinationCrowd)
         {
-            throw new NotImplementedException();
+            destinationCrowd.MoveCrowdMemberAfter(targetCrowdMember, movingCrowdMember);
         }
 
         public void PasteCrowdMember(CrowdMember member)
         {
-            throw new NotImplementedException();
+            this.CrowdClipboard.PasteFromClipboard(this.SelectedCrowdMember);
         }
 
         public void RenameCrowdMember(CrowdMember member, string newName)
         {
-            throw new NotImplementedException();
+            IEnumerable<CrowdMember> allMembers = this.CrowdRepository.Crowds;
+            var isDuplicate = member.CheckIfNameIsDuplicate(newName, allMembers.ToList());
+            if(!isDuplicate)
+            {
+                member.Rename(newName);
+            }
         }
 
         public void SortCrowds()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ApplyFilter(string filter)
         {
             throw new NotImplementedException();
         }

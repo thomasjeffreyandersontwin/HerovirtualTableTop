@@ -10,6 +10,7 @@ using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Kernel;
 using HeroVirtualTableTop.Common;
+using Caliburn.Micro;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -841,7 +842,7 @@ namespace HeroVirtualTableTop.Crowd
             charCrowd0.Parent = crowd0;
             charCrowd1.Parent = crowd1;
 
-            charExpVM.MoveCrowdMember(charCrowd0, crowd1);
+            charExpVM.MoveCrowdMember(charCrowd0, charCrowd1, crowd1);
 
             Mock.Get<Crowd>(crowd1).Verify(c => c.MoveCrowdMemberAfter(charCrowd1, charCrowd0));
         }
@@ -923,8 +924,8 @@ namespace HeroVirtualTableTop.Crowd
             charCrowd0.Parent = crowd0;
 
             charExpVM.AddCrowdMemberToRoster(charCrowd0);
-
-            //Mock.Get<EventAggregator>(charExpVM.EventAggregator).Verify(e => e.GetEvent<AddToRosterEvent>().Publish(charCrowd0));
+            
+            Mock.Get<IEventAggregator>(charExpVM.EventAggregator).Verify(e => e.Publish(It.IsAny<AddToRosterEvent>(), null));
         }
         public void AddCrowdFromModels_FiresCreateCrowdFromModelsEvent()
         {
@@ -932,7 +933,7 @@ namespace HeroVirtualTableTop.Crowd
 
             charExpVM.CreateCrowdFromModels();
 
-            //Mock.Get<EventAggregator>(charExpVM.EventAggregator).Verify(e => e.GetEvent<CreateCrowdFromModelsEvent>().Publish(null));
+            Mock.Get<IEventAggregator>(charExpVM.EventAggregator).Verify(e => e.Publish(It.IsAny<CreateCrowdFromModelsEvent>(), null));
         }
         public void ApplyFilter_InvokesApplyFilterForAllCrowdMembers()
         {
@@ -1035,7 +1036,7 @@ namespace HeroVirtualTableTop.Crowd
 
         public Crowd MockCrowd => CustomizedMockFixture.Create<Crowd>();
 
-        //public EventAggregator MockEventAggregator => CustomizedMockFixture.Create<EventAggregator>();
+        public IEventAggregator MockEventAggregator => CustomizedMockFixture.Create<EventAggregator>();
 
         public CrowdClipboard MockCrowdClipboard => CustomizedMockFixture.Create<CrowdClipboard>();
 
@@ -1048,7 +1049,7 @@ namespace HeroVirtualTableTop.Crowd
             get
             {
                 var charExpVM = StandardizedFixture.Create<CrowdMemberExplorerViewModelImpl>();
-                //charExpVM.EventAggregator = MockEventAggregator;
+                charExpVM.EventAggregator = MockEventAggregator;
                 return charExpVM;
             }
         }

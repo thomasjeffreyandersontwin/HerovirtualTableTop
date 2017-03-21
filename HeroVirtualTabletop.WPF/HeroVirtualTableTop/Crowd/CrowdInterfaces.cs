@@ -7,6 +7,7 @@ using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.Roster;
 using System;
+using Caliburn.Micro;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -25,8 +26,8 @@ namespace HeroVirtualTableTop.Crowd
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
         string CreateUniqueName(string name, List<CrowdMember> context);
         void AddDefaultCharacters();
-        void LoadCrowdsAsync(Action getCrowdCollectionCompletedCallback);
-        void SaveCrowdsAsync(Action saveCrowdCollectionCompletedCallback);
+        void LoadCrowdsAsync(System.Action getCrowdCollectionCompletedCallback);
+        void SaveCrowdsAsync(System.Action saveCrowdCollectionCompletedCallback);
     }
     public interface Crowd : CrowdMember
     {
@@ -92,12 +93,13 @@ namespace HeroVirtualTableTop.Crowd
         CrowdRepository CrowdRepository { get; set; }
         CrowdMember SelectedCrowdMember { get; set; }
         CrowdClipboard CrowdClipboard { get; set; }
+        IEventAggregator EventAggregator { get; set; }
         //KeyBoardHook keyBoardHook { get; set; } // To do under desktops
         void AddCrowd();
         void AddCharacterCrowd();
         void DeleteCrowdMember();
         void RenameCrowdMember(CrowdMember member, string newName);
-        void MoveCrowdMember(CrowdMember movingCrowdMember, Crowd destinationCrowd);
+        void MoveCrowdMember(CrowdMember movingCrowdMember, CrowdMember targetCrowdMember, Crowd destinationCrowd);
         void CloneCrowdMember(CrowdMember member);
         void CutCrowdMember(CrowdMember member);
         void LinkCrowdMember(CrowdMember member);
