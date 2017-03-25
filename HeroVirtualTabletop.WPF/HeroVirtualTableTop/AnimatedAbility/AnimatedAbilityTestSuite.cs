@@ -10,6 +10,7 @@ using HeroVirtualTableTop.ManagedCharacter;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Kernel;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace HeroVirtualTableTop.AnimatedAbility
 {
