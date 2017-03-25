@@ -136,6 +136,19 @@ namespace HeroVirtualTableTop.Desktop
         float Speed { get; set; }
         Position PositionBeingNavigated { get; set; }
 
+        Vector3 AdjustmentVector
+        {
+            get;
+
+            
+        }
+
+        Vector3 AdjustedDestination
+        {
+            get;
+
+        }
+
         Vector3 Collision { get; }  
         Vector3 OffsetOfPositionBodyLocationClosestToCollision { get; }
         Vector3 NearestAvailableIncrementalVectorTowardsDestination { get; }

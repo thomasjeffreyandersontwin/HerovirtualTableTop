@@ -292,6 +292,7 @@ namespace Module.HeroVirtualTabletop.Movements
             return turnAxisDirection;
         }
     }
+    [Guid("BDFDFCB1-8D4D-4040-8F6D-05319AB2A8A1")]
     public class Movement : NotifyPropertyChanged
     {
         private Dictionary<Character, System.Threading.Timer> characterMovementTimerDictionary;
@@ -693,7 +694,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
 
             collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);//check
-               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);//check
+            distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);//check
 
             if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)
                 // Collision point nearer, so can't move to destination without checking first

@@ -375,7 +375,6 @@ namespace HeroVirtualTableTop.Desktop
         }
     }
 
-    //todo
     public class WindowsUtilitiesTestSuite
     {
     }
@@ -473,7 +472,37 @@ namespace HeroVirtualTableTop.Desktop
         {
         }
 
-        void NavigateWithGravityAlongIncliningFloor_SuccesfullyMovesCharacterAlongFloor() { }   
+       
+        public void NavigateWithGravityAlongIncliningFloor_SuccesfullyMovesCharacterAlongFloor()
+        {
+            //arrange
+            DesktopNavigator navigator = TestObjectsFactory.DesktopNavigatorUnderTestWithMovingAnddestinationPositionsAndMockUtilityWithIncliningCollision;
+            Position moving = navigator.PositionBeingNavigated;
+            moving.Yaw = 0;
+            moving.Pitch = 0;
+            Vector3 movingStart = moving.Vector;
+            Vector3 movingTopBodyLocation = moving.BodyLocations[PositionBodyLocation.Bottom].Vector;
+
+            //act
+            navigator.Direction = Direction.Forward;
+            navigator.Speed = 10f;
+            navigator.UsingGravity = false;
+            navigator.Navigate();
+            Vector3 destination = navigator.AdjustedDestination;
+            Vector3 adjustment = navigator.AdjustmentVector;
+
+            //does the adjustment destination equal the destination minus the adjustment
+            Assert.AreEqual(navigator.Destination.X, destination.X - adjustment.X );
+            Assert.AreEqual(navigator.Destination.Y, destination.X - adjustment.Y);
+            Assert.AreEqual(navigator.Destination.Z, destination.X - adjustment.Z);
+
+            //does the adjustment equal the sumthin collision
+            Assert.AreEqual(navigator.Destination.X, destination.X - adjustment.X);
+            Assert.AreEqual(navigator.Destination.Y, destination.X - adjustment.Y);
+            Assert.AreEqual(navigator.Destination.Z, destination.X - adjustment.Z);
+
+
+        }
         void NavigateWithGravityAlongDecliningFloor_CharacterContinuesTravellingfloor() { }      
         void CharacterInCollisionWhoBacksOutOfCollion_CanBackOutSucessfully() { }      
         void CharacterInCollisionWhoTurnsAway_CanMoveAwayfromCollions() { }
@@ -604,6 +633,8 @@ namespace HeroVirtualTableTop.Desktop
                 return nav;
             } 
         }
+
+        public DesktopNavigator DesktopNavigatorUnderTestWithMovingAnddestinationPositionsAndMockUtilityWithIncliningCollision { get; set; }
 
 
         private void SetupMockFixtureToReturnSinlgetonDesktopCharacterTargeterWithBlankLabel()

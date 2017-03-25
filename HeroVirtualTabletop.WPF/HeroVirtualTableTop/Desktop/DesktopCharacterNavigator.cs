@@ -34,8 +34,19 @@ namespace HeroVirtualTableTop.Desktop
             }
         }
         public Position Destination { get; set; }     
-        public Direction Direction { get; set; }
-       
+        public Direction Direction { get; set; }  
+
+        public Vector3 AdjustmentVector
+        {
+            get { return Vector3.Zero; }
+
+        }
+
+        public Vector3 AdjustedDestination
+        {
+            get { return Vector3.Zero; }
+
+        }
         public bool WillCollide { get; }       
         public Vector3 Collision
         {
@@ -157,7 +168,12 @@ namespace HeroVirtualTableTop.Desktop
                 {
                     return StopLocation;
                 }
-                Vector3 destinationVectorNext = NearestIncrementalVectorTowardsDestination;                   
+                Vector3 destinationVectorNext = NearestIncrementalVectorTowardsDestination;
+                if (destinationVectorNext.Equals(Collision))
+                {
+                    destinationVectorNext = ClosestVectorPointBesideCollision;
+                }
+
                 if (_allowableDestination == Vector3.Zero)
                 {
                     _allowableDestination = destinationVectorNext;
@@ -172,6 +188,25 @@ namespace HeroVirtualTableTop.Desktop
                 return _allowableDestination;
             }
         }
+
+        public Vector3 ClosestVectorPointBesideCollision {
+            get
+            {
+                Vector3 destinationVectorNext = NearestIncrementalVectorTowardsDestination;
+                Vector3 collision = Collision;
+                Vector3 besideCollision =Vector3.Zero;
+                if(Collision != Vector3.Zero)
+                {
+                    if (destinationVectorNext.Y < PositionBeingNavigated.Y)
+                    {
+                        destinationVectorNext.Y = PositionBeingNavigated.Y;
+                    }
+
+                }
+                return Vector3.Zero;
+            }
+        }
+
         public Vector3 NearestIncrementalVectorTowardsDestination
         {
             get
