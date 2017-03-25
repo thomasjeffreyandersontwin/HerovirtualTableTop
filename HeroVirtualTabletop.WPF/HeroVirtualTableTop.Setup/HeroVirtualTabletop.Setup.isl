@@ -1897,7 +1897,6 @@
 		<col def="S255">ISBuildSourcePath</col>
 		<col def="I4">ISAttributes</col>
 		<col def="S72">ISComponentSubFolder_</col>
-		<row><td>cityofheroes.zip</td><td>ISX_DEFAULTCOMPONENT</td><td>CITYOF~1.ZIP|CityOfHeroes.zip</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\CityOfHeroes.zip</td><td>1</td><td/></row>
 		<row><td>costumes.zip</td><td>ISX_DEFAULTCOMPONENT</td><td>costumes.zip</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\costumes.zip</td><td>1</td><td/></row>
 		<row><td>crowdrepo.data</td><td>ISX_DEFAULTCOMPONENT</td><td>CROWDR~1.DAT|CrowdRepo.data</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\CrowdRepo.data</td><td>1</td><td/></row>
 		<row><td>framework.wpf.primary_output</td><td>Framework.WPF.Primary_output</td><td>Framework.WPF.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Framework.WPF&gt;|Built</td><td>3</td><td/></row>
@@ -1907,7 +1906,6 @@
 		<row><td>log4net.config</td><td>ISX_DEFAULTCOMPONENT</td><td>LOG4NE~1.CON|log4net.config</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\HeroVirtualTabletop.WPF\Modules\Module.Shared\log4net.config</td><td>1</td><td/></row>
 		<row><td>module.herovirtualtabletop.p</td><td>Module.HeroVirtualTabletop.Primary_output</td><td>Module.HeroVirtualTabletop.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Module.HeroVirtualTabletop&gt;|Built</td><td>3</td><td/></row>
 		<row><td>module.shared.primary_output</td><td>Module.Shared.Primary_output</td><td>Module.Shared.Primary output</td><td>0</td><td/><td/><td/><td>1</td><td>&lt;Module.Shared&gt;|Built</td><td>3</td><td/></row>
-		<row><td>sound.zip</td><td>ISX_DEFAULTCOMPONENT</td><td>sound.zip</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\sound.zip</td><td>1</td><td/></row>
 		<row><td>xnafx40_redist.msi</td><td>ISX_DEFAULTCOMPONENT</td><td>XNAFX4~1.MSI|xnafx40_redist.msi</td><td>0</td><td/><td/><td/><td>1</td><td>D:\Work\Freelancing\Hero Virtual Table Top\WPF\Deployment Package\xnafx40_redist.msi</td><td>1</td><td/></row>
 	</table>
 
