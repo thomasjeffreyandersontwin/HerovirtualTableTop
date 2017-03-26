@@ -35,8 +35,8 @@ namespace HeroVirtualTableTop.Common
 
         void viewModel_ViewLoaded(object sender, EventArgs e)
         {
-            if (sender != null && sender is CharacterExplorerView)
-                RenderCharacterExplorer(sender as CharacterExplorerView);
+            //if (sender != null && sender is CharacterExplorerView)
+            //    RenderCharacterExplorer(sender as CharacterExplorerView);
             //else if (sender != null && sender is RosterExplorerView)
             //    RenderRosterExplorer(sender as RosterExplorerView);
             //else if (sender != null && sender is CharacterEditorView)
@@ -51,10 +51,10 @@ namespace HeroVirtualTableTop.Common
             //    RenderCrowdFromModelsView(sender as CrowdFromModelsView);
         }
 
-        private void RenderCharacterExplorer(CharacterExplorerView charExplorerView)
-        {
-            //this.charExplorerPanel.Children.Add(charExplorerView);
-        }
+        //private void RenderCharacterExplorer(CharacterExplorerView charExplorerView)
+        //{
+        //    //this.charExplorerPanel.Children.Add(charExplorerView);
+        //}
         //private void RenderRosterExplorer(RosterExplorerView rosterExplorerView)
         //{
         //    this.rosterExplorerPanel.Children.Add(rosterExplorerView);
