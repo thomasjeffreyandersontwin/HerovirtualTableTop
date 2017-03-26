@@ -8,6 +8,7 @@ namespace HeroVirtualTableTop.Common
 {
     public interface HeroVirtualTabletopMainViewModel
     {
-
+        event EventHandler ViewLoaded;
+        void LoadCharacterExplorer();
     }
 }
