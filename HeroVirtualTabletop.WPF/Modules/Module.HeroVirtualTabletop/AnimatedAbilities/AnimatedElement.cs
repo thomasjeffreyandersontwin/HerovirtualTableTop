@@ -289,6 +289,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
     public class PauseElement : AnimationElement
     {
+        private System.Threading.Timer pauseElementTimer;
         [JsonConstructor]
         private PauseElement() : base(string.Empty) { }
 
@@ -380,18 +381,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("LongDistanceDelay");
             }
         }
-
+        
         public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
         {
             IsActive = true;
             System.Timers.Timer timer = new System.Timers.Timer();
             timer.Interval = Time;
             bool done = false;
-            timer.Elapsed += delegate(object sender, System.Timers.ElapsedEventArgs e) { done = true; };
-            timer.Start();
-            while (!done)
+            object obj = new object();
+            timer.Elapsed += delegate(object sender, System.Timers.ElapsedEventArgs e) 
             {
-                continue;
+                lock (obj)
+                {
+                    done = true;
+                    timer.Stop();
+                }
+                
+            };
+            timer.Start();
+            while (true)
+            {
+                lock(obj)
+                {
+                    if (!done)
+                        continue;
+                    else
+                        break;
+                }
+                
             }
             IsActive = false;
         }
@@ -1150,10 +1167,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         {
                             if(playWithNextElements.Count > 0) // now chain playwithnext elements on each target 
                             {
-                                foreach(AnimationElement playWithNextElem in playWithNextElements)
+                                foreach (AnimationElement playWithNextElem in playWithNextElements.Where(t => !characterAnimationMapping[t].Contains(target)))
                                 {
-                                    if(characterAnimationMapping[playWithNextElem] != null && characterAnimationMapping[playWithNextElem].Contains(target))
-                                        playWithNextElem.GetKeybind(target);
+                                    var otherTargets = characterAnimationMapping[playWithNextElem];
+                                    foreach(var otherTarget in otherTargets)
+                                    {
+                                        playWithNextElem.GetKeybind(otherTarget);
+                                    }
+                                }
+                                foreach (AnimationElement playWithNextElem in playWithNextElements.Where(t => characterAnimationMapping[t].Contains(target)))
+                                {
+                                    playWithNextElem.GetKeybind(target);
                                 }
                             }
                             element.GetKeybind(target);

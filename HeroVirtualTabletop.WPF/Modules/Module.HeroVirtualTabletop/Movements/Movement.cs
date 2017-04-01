@@ -646,7 +646,10 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 try
                 {
+                    //var start = DateTime.Now;
                     var collisionInfo = IconInteractionUtility.GetCollisionInfo(sourceVector.X, sourceVector.Y, sourceVector.Z, destVector.X, destVector.Y, destVector.Z);
+                    //var end = DateTime.Now;
+                    //logManager.Info(string.Format("Detecting Collision took {0} milliseconds", (end - start).Milliseconds.ToString()));
                     collisionVector = Helper.GetCollisionVector(collisionInfo);
                     float collisionDistance = Vector3.Distance(sourceVector, collisionVector);
                     if (!HasCollision(collisionVector) || collisionDistance <= distance) // proper collision
@@ -662,12 +665,13 @@ namespace Module.HeroVirtualTabletop.Movements
         }
         private Vector3 GetAllowableDestinationVector(Character target, Vector3 directionVector)//todo
         {
+            //logManager.Info("get allowable called");
             // TODO: need to take into account the pitch yaw roll etc. in future
             Vector3 currentPositionVector = target.CurrentPositionVector;
             Vector3 destinationVectorNext = GetDestinationVector(directionVector, target.MovementInstruction.MovementUnit, target);//
             Vector3 destinationVectorFar = GetDestinationVector(directionVector, 20f, target);//
 
-                        MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;//
+            MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;//
             float distanceFromDest = Vector3.Distance(currentPositionVector, destinationVectorNext);//
             float distanceFromCollisionPoint = 0f;
             Vector3 collisionBodyPoint = new Vector3();
@@ -680,6 +684,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 // Need to recalculate next collision point
             {
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);//check
+                //logManager.Info("collision calculated");
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -728,7 +733,7 @@ namespace Module.HeroVirtualTabletop.Movements
                         target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
                         target.MovementInstruction.IsCollisionAhead = true;
                     }
-                    else // No collision in 20 units, so free to move next 20 units
+                    else // No collision in 20 units, so free to move nex
                     {
                         target.MovementInstruction.LastCollisionFreePointInCurrentDirection = destinationVectorFar;
                         target.MovementInstruction.IsCollisionAhead = false;
@@ -738,14 +743,12 @@ namespace Module.HeroVirtualTabletop.Movements
             else
                 needToCheckAdjustment = true;
 
-
             Vector3 allowableDestVector = new Vector3();
             // Now we should move to the next destination point or the LastCollisionFreePointInCurrentDirection - whichever is nearer
             collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
             distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             if ((distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1) && target.MovementInstruction.IsInCollision)
             {
-               
                 allowableDestVector = collisionVector;
             }
             else
@@ -788,7 +791,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     target.MovementInstruction.IsCollisionAhead = false;
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // force recalculation of collision at next iteration
                     target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
-                }
+                }                                                                                                                                               
                 target.MovementInstruction.DistanceFromCollisionFreePoint = collDistance;
             }
             else
