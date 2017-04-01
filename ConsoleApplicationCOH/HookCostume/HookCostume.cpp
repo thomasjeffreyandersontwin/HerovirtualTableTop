@@ -16,6 +16,9 @@
 #include "patch.h"
 #include "util.h"
 #include <string> 
+#include <iostream>
+#include <fstream>
+using namespace std;
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -447,40 +450,55 @@ __declspec(dllexport) char * __cdecl CollisionDetection(float s_x, float s_y, fl
 
 __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)
 {
-
+	TCHAR buft[1000];
+	ofstream myfile;
+	myfile.open("hooklog.txt");
 	if (Export_CommandBuff_Realloc == NULL)return 0;
 
 	int bufflen = strlen(m_commandline);
+	myfile << "CommandLine: " << m_commandline << endl;
+	myfile << "Bufflen: " << bufflen << endl;
 	if (bufflen >= 0x100)return 0;
 
 	DWORD dwPID = gamePID;// GetCurrentProcessId();
 	HANDLE m_hTargetProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, dwPID);
-
+	myfile << "PID: " << dwPID << endl;
 	//DisableThread
 	SuspendThread(m_hTargetProcess);
 	DWORD commandoption = 2;
 
 	//Command line show
 	WriteProcessMemory(m_hTargetProcess, (void *)0x0DFC65C, &commandoption, 4, NULL);
-
+	_stprintf_s(buft, _T("%d"), commandoption);
+	myfile << "Command option: " << commandoption << endl;
 	DWORD buff = 0;
 	WriteProcessMemory(m_hTargetProcess, (void *)0xF0D8FF, &buff, 1, NULL);
-
+	_stprintf_s(buft, _T("%d"), buff);
+	myfile << "Buff initial after write 0xF0D8FF : " << buff << endl;
 	buff = 0;
 	ReadProcessMemory(m_hTargetProcess, (void *)0xD175EC, &buff, 4, NULL);
+	_stprintf_s(buft, _T("%d"), buff);
+	myfile << "Buff after read 0xD175EC : " << buff << endl;
 	if (buff != 0) {
 		WriteProcessMemory(m_hTargetProcess, (void *)0xD175EC, &buff, 4, NULL);
 	}
 
 	ReadProcessMemory(m_hTargetProcess, (void *)0xF0D7F4, &buff, 4, NULL); //command buffer
+	_stprintf_s(buft, _T("%d"), buff);
+	myfile << "Buff after read 0xF0D7F4 : " << buff << endl;
 	if (buff != 0) {
 		DWORD buff1 = 0;
 		DWORD buff2 = 0;
 		ReadProcessMemory(m_hTargetProcess, (void *)(buff + 0x1c), &buff1, 4, NULL);
 		ReadProcessMemory(m_hTargetProcess, (void *)(buff + 0x18), &buff2, 4, NULL);
-
+		_stprintf_s(buft, _T("%d"), buff1);
+		myfile << "Buff1 after read (buff + 0x1c) : " << buff1 << endl;
+		_stprintf_s(buft, _T("%d"), buff2);
+		myfile << "Buff2 after read (buff + 0x18) : " << buff2 << endl;
 		DWORD templen = 0;
 		ReadProcessMemory(m_hTargetProcess, (void *)(buff2 - 0xA), &templen, 4, NULL); //buffer size
+		_stprintf_s(buft, _T("%d"), templen);
+		myfile << "Templen : " << templen << endl;
 		if (templen < bufflen) {
 			HANDLE hRemoteThread = NULL;
 			hRemoteThread = CreateRemoteThread(m_hTargetProcess, NULL, 0, (LPTHREAD_START_ROUTINE)Export_CommandBuff_Realloc, NULL, 0, NULL);
@@ -488,7 +506,8 @@ __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)
 			CloseHandle(hRemoteThread);
 		}
 		ReadProcessMemory(m_hTargetProcess, (void *)(buff + 0x18), &buff2, 4, NULL);
-
+		_stprintf_s(buft, _T("%d"), buff2);
+		myfile << "Buff2 after read (buff + 0x18): " << buff2 << endl;
 		if (buff1 != 0) {
 			int bufflen = strlen(m_commandline);
 
@@ -504,8 +523,13 @@ __declspec(dllexport) int __cdecl ExecuteCommand(char *m_commandline)
 					p[0] = ' ';
 				}
 			}
+			_stprintf_s(buft, _T("%d"), buff2);
 			//change buffer length of command string
 			WriteProcessMemory(m_hTargetProcess, (void *)(buff + 0x20), &bufflen, 4, NULL);
+			
+			_stprintf_s(buft, _T("%d"), bufflen);
+			//MessageBox(0, buft, _T("inwhileloop2"), MB_OK);
+			myfile << "Bufflen after write (buff + 0x20): " << bufflen << endl;
 
 			WriteProcessMemory(m_hTargetProcess, (void *)(buff2 - 6), &bufflen, 4, NULL);
 			WriteProcessMemory(m_hTargetProcess, (void *)buff2, strbuff, 0x100, NULL);
