@@ -34,8 +34,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shell", "Shell", "{4AEEE9A1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroVirtualTabletop.Shell", "Shell\HeroVirtualTableTop.Shell\HeroVirtualTabletop.Shell.csproj", "{EC8D3F38-CB3A-4E73-AC17-759DC0B26045}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroVirtualTableTop", "HeroVirtualTableTop\HeroVirtualTableTop.csproj", "{0683E638-EE3E-40E8-BF99-044F9F0E054F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{82861692-EE8C-46B0-9CB2-2B2FB2F671D7}"
 EndProject
 Project("{6141683F-8A12-4E36-9623-2EB02B2C2303}") = "HeroVirtualTabletop.Setup", "HeroVirtualTabletop.Setup\HeroVirtualTabletop.Setup.isproj", "{37D2B688-4B00-47D8-83FA-91FB717664F6}"
@@ -50,8 +48,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroVirtualTabletop.InstallationHelper", "HeroVirtualTabletop.InstallationHelper\HeroVirtualTabletop.InstallationHelper.csproj", "{3858DE58-83C8-4812-A50A-59B95F73C85F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroSystemsEngine", "HeroSystemsEngine\HeroSystemsEngine.csproj", "{B01E2CDA-3A69-4E29-A67A-7C9DA162BBAA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HeroUI", "HeroUI\HeroUI.csproj", "{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,16 +98,6 @@ Global
 		{EC8D3F38-CB3A-4E73-AC17-759DC0B26045}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EC8D3F38-CB3A-4E73-AC17-759DC0B26045}.SingleImage|Any CPU.ActiveCfg = Release|Any CPU
 		{EC8D3F38-CB3A-4E73-AC17-759DC0B26045}.SingleImage|Any CPU.Build.0 = Release|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.CD_ROM|Any CPU.ActiveCfg = Release|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.CD_ROM|Any CPU.Build.0 = Release|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.DVD-5|Any CPU.ActiveCfg = Debug|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.DVD-5|Any CPU.Build.0 = Debug|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.SingleImage|Any CPU.ActiveCfg = Release|Any CPU
-		{0683E638-EE3E-40E8-BF99-044F9F0E054F}.SingleImage|Any CPU.Build.0 = Release|Any CPU
 		{37D2B688-4B00-47D8-83FA-91FB717664F6}.CD_ROM|Any CPU.ActiveCfg = CD_ROM
 		{37D2B688-4B00-47D8-83FA-91FB717664F6}.CD_ROM|Any CPU.Build.0 = CD_ROM
 		{37D2B688-4B00-47D8-83FA-91FB717664F6}.Debug|Any CPU.ActiveCfg = DVD-5
@@ -142,16 +128,6 @@ Global
 		{B01E2CDA-3A69-4E29-A67A-7C9DA162BBAA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B01E2CDA-3A69-4E29-A67A-7C9DA162BBAA}.SingleImage|Any CPU.ActiveCfg = Release|Any CPU
 		{B01E2CDA-3A69-4E29-A67A-7C9DA162BBAA}.SingleImage|Any CPU.Build.0 = Release|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.CD_ROM|Any CPU.ActiveCfg = Release|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.CD_ROM|Any CPU.Build.0 = Release|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.DVD-5|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.DVD-5|Any CPU.Build.0 = Debug|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.SingleImage|Any CPU.ActiveCfg = Release|Any CPU
-		{4C2A566B-9AAA-4EBA-AD37-8FFF48532C24}.SingleImage|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
