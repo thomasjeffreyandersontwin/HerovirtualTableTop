@@ -9,8 +9,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using Ploeh.AutoFixture;
 using Ploeh.AutoFixture.Kernel;
-using HeroVirtualTableTop.Common;
-using Caliburn.Micro;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -642,7 +640,7 @@ namespace HeroVirtualTableTop.Crowd
             CrowdMember memberToMove = child0_1;
             CrowdMember destination = child1_1;
 
-            crowdClipboard.CutToClipboard(child0_0, parent0);
+            crowdClipboard.CutToClipboard(child0_0);
             crowdClipboard.PasteFromClipboard(parent1);
 
             //assert
@@ -658,301 +656,158 @@ namespace HeroVirtualTableTop.Crowd
         public void CopyndPaste_ToSameCrowdCreatesACloneAndNewMembershipAndUniqueName()
         {
             // arrange
-            var repo = TestObjectsFactory.RepositoryUnderTestWithNestedgraphOfCharactersAndCrowds;
+            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
             var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
-            var crowd0 = repo.Crowds[0];
-            var child0_0 = crowd0.Members[0];
-            var child0_1 = crowd0.Members[1];
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
 
-            var crowd0Count = crowd0.Members.Count;
+            var parent0Count = parent0.Members.Count;
+            var parent1Count = parent1.Members.Count;
 
             //act
-            CrowdMember memberToMove = child0_0;
-            CrowdMember destination = crowd0;
+            CrowdMember memberToMove = child0_1;
+            CrowdMember destination = child1_1;
 
             crowdClipboard.CopyToClipboard(child0_0);
-            crowdClipboard.PasteFromClipboard(destination);
+            crowdClipboard.PasteFromClipboard(parent0);
 
             //assert
-            Assert.AreEqual(crowd0Count + 1, crowd0.Members.Count);// a new member added
-            var newMem = crowd0.MemberShips.FirstOrDefault(m => m.Child.Name == "0.0.0 (1)");
-            Assert.IsNotNull(newMem);
+          //  Mock.Get<CharacterCrowdMember>(child0_0).Verify(c => c.Clone());
+            Assert.AreEqual(parent0Count + 1, parent0.Members.Count);// a new member added
+            var newMem = parent0.MemberShips.FirstOrDefault(m => m.Child.Name == "child0_0 (1)");
         }
 
         [TestMethod]
         public void CopyAndPasteCrowd_ClonesAllNestedCrowdChildren()
         {
             // arrange
-            var repo = TestObjectsFactory.RepositoryUnderTestWithNestedgraphOfCharactersAndCrowds;
+            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
             var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
 
-            var crowd0 = repo.Crowds[0];
-            var crowd1 = repo.Crowds[1];
+            var crowd1 = repo.Crowds[0];
+            var crowd2 = repo.Crowds[1];
 
-            var nestedCrowd0 = crowd0.Members[0] as Crowd; // 0.0.0 crowd
-
-            var nestedCrowd1 = crowd0.Members[0];
-            var nestedCrowd2 = crowd0.Members[1];
+            var nestedCrowd1 = crowd1.Members[0];
+            var nestedCrowd2 = crowd1.Members[1];
 
             //act
-            crowdClipboard.CopyToClipboard(nestedCrowd0);
-            crowdClipboard.PasteFromClipboard(crowd1);
+            crowdClipboard.CopyToClipboard(crowd1);
+            crowdClipboard.PasteFromClipboard(crowd2);
 
             //assert
-            var newMem = crowd1.MemberShips.FirstOrDefault(m => m.Child.Name == "0.0.0 (1)");
-            Assert.IsNotNull(newMem);
+        //    Mock.Get<Crowd>(crowd1).Verify(c => c.Clone());
+        //    Mock.Get<CrowdMember>(nestedCrowd1).Verify(c => c.Clone());
+        //    Mock.Get<CrowdMember>(nestedCrowd2).Verify(c => c.Clone());
         }
 
         [TestMethod]
         public void LinkPasteCrowd_InvokesAddCrowdMemberForDestinationCrowd()
         {
             // arrange
+            var repo = TestObjectsFactory.RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren;
             var crowdClipboard = TestObjectsFactory.CrowdClipboardUnderTest;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var crowd1 = TestObjectsFactory.MockCrowd;
+            Crowd parent0, parent1;
+            CharacterCrowdMember child0_0, child0_1, child0_2, child0_3;
+            CharacterCrowdMember child1_0, child1_1, child1_2, child1_3;
+            TestObjectsFactory.AddCrowdwMemberHierarchyWithTwoParentsANdFourChildrenEach(repo, out parent0, out parent1, out child0_0,
+                out child0_1, out child0_2, out child0_3, out child1_0, out child1_1, out child1_2, out child1_3);
 
-            crowdClipboard.LinkToClipboard(crowd0);
-            crowdClipboard.PasteFromClipboard(crowd1);
+            crowdClipboard.LinkToClipboard(parent0);
+            crowdClipboard.PasteFromClipboard(parent1);
 
             //assert
-            Mock.Get<Crowd>(crowd1).Verify(c => c.AddCrowdMember(crowd0));
+         //   Mock.Get<Crowd>(parent1).Verify(c => c.AddCrowdMember(parent0));
         }
     }
 
     public class CharacterExplorerViewModelTestSuite
     {
-        public CrowdTestObjectsFactory TestObjectsFactory;
-        public void AddCrowd_InvokesRepositoryAddCrowd()
+        public void AddCrowd_AddsCrowdToRepository()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
 
-            charExpVM.AddCrowd();
-
-            Mock.Get<CrowdRepository>(repo).Verify(r => r.NewCrowd(null, "Character"));
         }
-        public void AddCrowd_InvokesRepositoryAddCrowdWithSelectedCrowdAsParent()
+        public void AddCrowd_AddsCrowdUnderSelectedCrowd()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            charExpVM.SelectedCrowdMember = crowd0;
 
-            charExpVM.AddCrowd();
-
-            Mock.Get<CrowdRepository>(repo).Verify(r => r.NewCrowd(crowd0, "Character"));
         }
-        public void AddCrowd_InvokesRepositoryAddCrowdWithParentOfSelectedCrowdMemberAsParent()
+        public void AddCrowd_AddsCrowdToCrowdCollectionIfNoSelectedCrowd()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charExpVM.SelectedCrowdMember = charCrowd0;
 
-            charExpVM.AddCrowd();
-
-            Mock.Get<CrowdRepository>(repo).Verify(r => r.NewCrowd(crowd0, "Character"));
         }
-        public void AddCharacterCrowd_InvokesRepositoryAddCharacterCrowd()
+        public void AddCharacterCrowd_AddsCharacterCrowdToRepository()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
 
-            charExpVM.AddCharacterCrowd();
-
-            Mock.Get<CrowdRepository>(repo).Verify(r => r.NewCharacterCrowdMember(null, "Character"));
         }
-        public void AddCharacterCrowd_InvokesRepositoryAddCharacterCrowdWithSelectedCrowdAsParent()
+        public void AddCharacterCrowd_AddsCharacterCrowdUnderSelectedCrowd()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            charExpVM.SelectedCrowdMember = crowd0;
 
-            charExpVM.AddCharacterCrowd();
-
-            Mock.Get<CrowdRepository>(repo).Verify(r => r.NewCharacterCrowdMember(crowd0, "Character"));
         }
-        public void AddCharacterCrowd_InvokesRepositoryAddCharacterCrowdWithParentOfSelectedCrowdMemberAsParent()
+        public void AddCharacterCrowd_AddsCharacterCrowdUnderAllCharactersIfNoSelectedCrowd()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charExpVM.SelectedCrowdMember = charCrowd0;
 
-            charExpVM.AddCharacterCrowd();
-
-            Mock.Get<CrowdRepository>(repo).Verify(r => r.NewCharacterCrowdMember(crowd0, "Character"));
         }
-        public void DeleteCrowdMember_InvokesRemoveCrowdMemberForParentOfSelectedCrowdMember()
+        public void DeleteCrowdMember_DeletesCrowdMemberFromRepository()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var repo = TestObjectsFactory.MockRepositoryWithCrowdsOnlyUnderTest;
-            charExpVM.CrowdRepository = repo;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charExpVM.SelectedCrowdMember = charCrowd0;
 
-            charExpVM.DeleteCrowdMember();
-
-            Mock.Get<Crowd>(crowd0).Verify(c => c.RemoveMember(charCrowd0));
         }
-        public void RenameCrowdMember_InvokesCrowdMemberRename()
+        public void DeleteCrowdMember_DeletesCrowdMemberFromSelectedCrowd()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
 
-            charExpVM.RenameCrowdMember(crowd0, "newNameCrowd");
-            charExpVM.RenameCrowdMember(charCrowd0, "newNameCharacter");
-
-            Mock.Get<Crowd>(crowd0).Verify(c => c.Rename("newNameCrowd"));
-            Mock.Get<CharacterCrowdMember>(charCrowd0).Verify(c => c.Rename("newNameCharacter"));
         }
-        public void RenameCrowdMember_ChecksDuplicateNameForCrowdMember()
+        public void DeleteCrowdMember_DeletesAllOccurencesOfCharacterCrowdMemberIfDeletedFromAllCharacters()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
 
-            charExpVM.RenameCrowdMember(crowd0, "newNameCrowd");
-            charExpVM.RenameCrowdMember(charCrowd0, "newNameCharacter");
-
-            Mock.Get<Crowd>(crowd0).Verify(c => c.CheckIfNameIsDuplicate("newNameCrowd", null));
-            Mock.Get<CharacterCrowdMember>(charCrowd0).Verify(c => c.CheckIfNameIsDuplicate("newNameCharacter", null));
         }
-        public void MoveCrowdMember_InvokesMoveCrowdMemberForDestinationCrowd()
+        public void RenameCrowdMember_UpdatesNameForCrowdMember()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var crowd1 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            var charCrowd1 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charCrowd1.Parent = crowd1;
 
-            charExpVM.MoveCrowdMember(charCrowd0, charCrowd1, crowd1);
-
-            Mock.Get<Crowd>(crowd1).Verify(c => c.MoveCrowdMemberAfter(charCrowd1, charCrowd0));
         }
-        public void CloneCrowdMember_InvokesClipboardCopy()
+        public void MoveCrowdMember_MovesCrowdMemberToDestinationCrowd()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowdClipboard = TestObjectsFactory.MockCrowdClipboard;
-            charExpVM.CrowdClipboard = crowdClipboard;
 
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var crowd1 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            var charCrowd1 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charCrowd1.Parent = crowd1;
-
-            charExpVM.CloneCrowdMember(charCrowd0);
-
-            Mock.Get<CrowdClipboard>(crowdClipboard).Verify(c => c.CopyToClipboard(charCrowd0));
         }
-        public void CutCrowdMember_InvokesClipboardCut()
+        public void CloneCrowdMember_SetsCloneClipboardAction()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowdClipboard = TestObjectsFactory.MockCrowdClipboard;
-            charExpVM.CrowdClipboard = crowdClipboard;
 
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var crowd1 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            var charCrowd1 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charCrowd1.Parent = crowd1;
-
-            charExpVM.CutCrowdMember(charCrowd0);
-
-            Mock.Get<CrowdClipboard>(crowdClipboard).Verify(c => c.CutToClipboard(charCrowd0, crowd0));
         }
-        public void LinkCrowdMember_InvokesClipboardLink()
+        public void CutCrowdMember_SetsCutClipboardAction()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowdClipboard = TestObjectsFactory.MockCrowdClipboard;
-            charExpVM.CrowdClipboard = crowdClipboard;
 
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var crowd1 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            var charCrowd1 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charCrowd1.Parent = crowd1;
-
-            charExpVM.LinkCrowdMember(charCrowd0);
-
-            Mock.Get<CrowdClipboard>(crowdClipboard).Verify(c => c.LinkToClipboard(charCrowd0));
         }
-        public void PasteCrowdMember_InvokesClipboardPaste()
+        public void LinkCrowdMember_SetsLinkClipboardAction()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            var crowdClipboard = TestObjectsFactory.MockCrowdClipboard;
-            charExpVM.CrowdClipboard = crowdClipboard;
 
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var crowd1 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            var charCrowd1 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
-            charCrowd1.Parent = crowd1;
-
-            charExpVM.CloneCrowdMember(charCrowd0);
-            charExpVM.PasteCrowdMember(charCrowd1);
-
-            Mock.Get<CrowdClipboard>(crowdClipboard).Verify(c => c.PasteFromClipboard(charCrowd1));
         }
-        public void AddCrowdMemberToRoster_FiresRosterAddCrowdMemberEvent()
+        public void PasteCrowdMember_ClonesSelectedCrowdMemberWhenCloneActionChosen()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            
-            var crowd0 = TestObjectsFactory.MockCrowd;
-            var charCrowd0 = TestObjectsFactory.MockCharacterCrowdMember;
-            charCrowd0.Parent = crowd0;
 
-            charExpVM.AddCrowdMemberToRoster(charCrowd0);
-            
-            Mock.Get<IEventAggregator>(charExpVM.EventAggregator).Verify(e => e.Publish(It.IsAny<AddToRosterEvent>(), null));
         }
-        public void AddCrowdFromModels_FiresCreateCrowdFromModelsEvent()
+        public void PasteCrowdMember_CutsSelectedCrowdMemberWhenCutActionChosen()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
 
-            charExpVM.CreateCrowdFromModels();
-
-            Mock.Get<IEventAggregator>(charExpVM.EventAggregator).Verify(e => e.Publish(It.IsAny<CreateCrowdFromModelsEvent>(), null));
         }
-        public void ApplyFilter_InvokesApplyFilterForAllCrowdMembers()
+        public void PasteCrowdMember_LinksSelectedCrowdMemberWhenLinkActionChosen()
         {
-            var charExpVM = TestObjectsFactory.CharacterExplorerViewModelUnderTest;
-            charExpVM.CrowdRepository = TestObjectsFactory.RepositoryWithMockCrowdMembers;
 
-            charExpVM.ApplyFilter("nameFilter");
+        }
+        public void AddCrowdMemberToRoster_AddsCrowdMemberToRoster()
+        {
 
-            foreach(var crowd in charExpVM.CrowdRepository.Crowds)
-            {
-                foreach(var mem in crowd.Members)
-                {
-                    Mock.Get<CrowdMember>(mem).Verify(m => m.ApplyFilter("nameFilter"));
-                }
-            }
+        }
+        public void AddCrowdFromModels_CreatesCrowdFromModels()
+        {
+
+        }
+        public void ApplyFilter_FiltersCrowdCollectionWithProvidedFilter()
+        {
+
         }
         public void SortCrowds_SortsCrowdCollectionAlphaNumerically()
         {
-            // not sure how to test at the moment
+
         }
     }
 
@@ -987,16 +842,7 @@ namespace HeroVirtualTableTop.Crowd
                 return repo;
             }
         }
-        public CrowdRepository RepositoryWithMockCrowdMembers
-        {
-            get
-            {
-                var repo = StandardizedFixture.Create<CrowdRepository>();
-                repo.Crowds.Add(CrowdUnderTestWithMockCrowdMembers);
-                repo.Crowds.Add(CrowdUnderTestWithMockCrowdMembers);
-                return repo;
-            }
-        }
+
         public CrowdRepository RepositoryUnderTestWithLabeledCrowdChildrenAndcharacterGrandChildren
         {
             get
@@ -1036,23 +882,9 @@ namespace HeroVirtualTableTop.Crowd
 
         public Crowd MockCrowd => CustomizedMockFixture.Create<Crowd>();
 
-        public IEventAggregator MockEventAggregator => CustomizedMockFixture.Create<EventAggregator>();
-
-        public CrowdClipboard MockCrowdClipboard => CustomizedMockFixture.Create<CrowdClipboard>();
-
         public Crowd CrowdUnderTest => StandardizedFixture.Create<CrowdImpl>();
 
         public CrowdClipboard CrowdClipboardUnderTest => StandardizedFixture.Create<CrowdClipboardImpl>();
-
-        public CrowdMemberExplorerViewModel CharacterExplorerViewModelUnderTest
-        {
-            get
-            {
-                var charExpVM = StandardizedFixture.Create<CrowdMemberExplorerViewModelImpl>();
-                charExpVM.EventAggregator = MockEventAggregator;
-                return charExpVM;
-            }
-        }
 
         public List<Crowd> ThreeCrowdsWithThreeCrowdChildrenInTheFirstTwoCrowdsAllLabeledByOrder
         {
@@ -1067,7 +899,7 @@ namespace HeroVirtualTableTop.Crowd
             }
         }
 
-        public Crowd CrowdUnderTestWithMockCrowdMembers
+        public Crowd CrowdUnderTestWithThreeMockCrowdmembers
         {
             get
             {
@@ -1125,10 +957,6 @@ namespace HeroVirtualTableTop.Crowd
                 new TypeRelay(
                     typeof(CrowdClipboard),
                     typeof(CrowdClipboardImpl)));
-            StandardizedFixture.Customizations.Add(
-                new TypeRelay(
-                    typeof(CrowdMemberExplorerViewModel),
-                    typeof(CrowdMemberExplorerViewModelImpl)));
             setupFixtureToBuildCrowdRepositories();
         }
         private void setupFixtureToBuildCrowdRepositories()

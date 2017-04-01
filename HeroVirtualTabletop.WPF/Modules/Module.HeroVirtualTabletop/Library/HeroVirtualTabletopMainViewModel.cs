@@ -219,7 +219,6 @@ namespace Module.HeroVirtualTabletop.Library
             bool gameLoaded = IconInteractionUtility.IsGameLoaded();
             if(gameLoaded)
             {
-                System.Threading.Thread.Sleep(1000);
                 IconInteractionUtility.DoPostInitialization();
                 DoPostGameLaunchOperations();
                 gameInitializeTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);

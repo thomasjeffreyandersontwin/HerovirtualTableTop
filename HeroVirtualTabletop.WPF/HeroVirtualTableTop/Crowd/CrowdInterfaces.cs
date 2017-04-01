@@ -6,8 +6,6 @@ using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Common;
 using HeroVirtualTableTop.Roster;
-using System;
-using Caliburn.Micro;
 
 namespace HeroVirtualTableTop.Crowd
 {
@@ -15,7 +13,7 @@ namespace HeroVirtualTableTop.Crowd
     {
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
     }
-
+    
     public interface CrowdRepository : AnimatedCharacterRepository
     {
         Dictionary<string, Crowd> CrowdsByName { get; }
@@ -26,19 +24,20 @@ namespace HeroVirtualTableTop.Crowd
         CharacterCrowdMember NewCharacterCrowdMember(Crowd parent = null, string name = "Character");
         string CreateUniqueName(string name, List<CrowdMember> context);
         void AddDefaultCharacters();
-        void LoadCrowdsAsync(System.Action getCrowdCollectionCompletedCallback);
-        void SaveCrowdsAsync(System.Action saveCrowdCollectionCompletedCallback);
+        void LoadCrowds();
+        void SaveCrowds();
     }
     public interface Crowd : CrowdMember
     {
-        bool UseRelativePositioning { get; set; }
 
+        bool UseRelativePositioning { get; set; }
+        
         List<CrowdMemberShip> MemberShips { get; }
         List<CrowdMember> Members { get; }
         Dictionary<string, CrowdMember> MembersByName { get; }
         bool IsExpanded { get; set; }
 
-        void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdMemberToMove);
+        void MoveCrowdMemberAfter(CrowdMember destination, CrowdMember crowdToMove);
         void AddManyCrowdMembers(List<CrowdMember> member);
 
         void AddCrowdMember(CrowdMember member);
@@ -49,8 +48,7 @@ namespace HeroVirtualTableTop.Crowd
         new string Name { get; set; }
         new int Order { get; set; }
     }
-    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged, ManagedCharacterCommands, AnimatedCharacterCommands, RosterParticipant
-    {
+    public interface CrowdMember : CrowdMemberCommands, INotifyPropertyChanged    {
         int Order { get; set; }
         bool MatchesFilter { get; set; }
         string OldName { get; set; }
@@ -59,13 +57,17 @@ namespace HeroVirtualTableTop.Crowd
         List<CrowdMemberShip> AllCrowdMembershipParents { get; }
         Crowd Parent { get; set; }
         CrowdRepository CrowdRepository { get; set; }
-        void Rename(string newName);
+
         CrowdMember Clone();
         void ApplyFilter(string filter);
-        void ResetFilter();
+       
         bool CheckIfNameIsDuplicate(string updatedName, List<CrowdMember> members);
+
         void RemoveParent(CrowdMember crowdMember);
-    }
+
+        
+
+}
     public interface CrowdMemberShip
     {
         int Order { get; set; }
@@ -84,29 +86,28 @@ namespace HeroVirtualTableTop.Crowd
         ClipboardAction CurrentClipboardAction { get; set; }
         void CopyToClipboard(CrowdMember member);
         void LinkToClipboard(CrowdMember member);
-        void CutToClipboard(CrowdMember member, Crowd sourceParent = null);
-        void PasteFromClipboard(CrowdMember destinationMember);
+        void CutToClipboard(CrowdMember member);
+        void PasteFromClipboard(CrowdMember member);
     }
 
-    public interface CrowdMemberExplorerViewModel
+    public interface CharacterExplorerViewModel
     {
         CrowdRepository CrowdRepository { get; set; }
         CrowdMember SelectedCrowdMember { get; set; }
         CrowdClipboard CrowdClipboard { get; set; }
-        IEventAggregator EventAggregator { get; set; }
         //KeyBoardHook keyBoardHook { get; set; } // To do under desktops
         void AddCrowd();
         void AddCharacterCrowd();
         void DeleteCrowdMember();
         void RenameCrowdMember(CrowdMember member, string newName);
-        void MoveCrowdMember(CrowdMember movingCrowdMember, CrowdMember targetCrowdMember, Crowd destinationCrowd);
+        void MoveCrowdMember(CrowdMember movingCrowdMember, Crowd destinationCrowd);
         void CloneCrowdMember(CrowdMember member);
         void CutCrowdMember(CrowdMember member);
         void LinkCrowdMember(CrowdMember member);
         void PasteCrowdMember(CrowdMember member);
         void AddCrowdMemberToRoster(CrowdMember member);
-        void CreateCrowdFromModels();
-        void ApplyFilter(string filter);
+        void AddCrowdFromModels();
+        void ApplyFilter();
         void SortCrowds();
     }
 }

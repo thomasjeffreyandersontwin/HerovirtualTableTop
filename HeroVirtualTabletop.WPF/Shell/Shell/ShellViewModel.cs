@@ -8,8 +8,7 @@ namespace Shell {
     {
         public ShellViewModelImpl()
         {
-            var heroVirtualTabletopMainViewModel = IoC.Get<HeroVirtualTabletopMainViewModel>();
-            ActivateItem(heroVirtualTabletopMainViewModel);
+            ActivateItem(new HeroVirtualTableTop.Common.HeroVirtualTabletopMainViewModelImpl());
         }
     }
 }

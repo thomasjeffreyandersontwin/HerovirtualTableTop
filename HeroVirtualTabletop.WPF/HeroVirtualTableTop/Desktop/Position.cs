@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.Practices.ObjectBuilder2;
 using Microsoft.Xna.Framework;
 
 namespace HeroVirtualTableTop.Desktop

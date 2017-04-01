@@ -5,8 +5,6 @@ using HeroVirtualTableTop.Crowd;
 using HeroVirtualTableTop.Desktop;
 using HeroVirtualTableTop.ManagedCharacter;
 using HeroVirtualTableTop.Attack;
-using Framework.WPF.Library;
-
 namespace HeroVirtualTableTop.AnimatedAbility
 {
     public interface AnimatedCharacterCommands
