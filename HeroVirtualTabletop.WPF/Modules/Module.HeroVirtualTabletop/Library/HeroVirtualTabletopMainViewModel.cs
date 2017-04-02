@@ -176,7 +176,7 @@ namespace Module.HeroVirtualTabletop.Library
             bool directoryExists = CheckGameDirectory();
             if (!directoryExists)
                 SetGameDirectory();
-            //logService.Info("Launching game...");
+            logService.Info("Launching game...");
             //IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
             IconInteractionUtility.InitializeGame(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
             gameInitializeTimer.Change(50, System.Threading.Timeout.Infinite);
@@ -185,9 +185,9 @@ namespace Module.HeroVirtualTabletop.Library
         private void DoPostGameLaunchOperations()
         {
             Action d = delegate(){
-                //logService.Info("Game launched");
+                logService.Info("Game launched");
                 LoadRequiredKeybinds();
-                //logService.Info("Keybinds loaded");
+                logService.Info("Keybinds loaded");
                 CreateCameraFilesIfNotExists();
                 CreateAreaAttackPopupMenuIfNotExists();
 
@@ -209,7 +209,7 @@ namespace Module.HeroVirtualTabletop.Library
                 //logService.Info("Camera rendered");
 
                 LoadMainView();
-                //logService.Info("MainView displayed");
+                logService.Info("MainView displayed");
             };
             Application.Current.Dispatcher.BeginInvoke(d);
         }
@@ -219,6 +219,7 @@ namespace Module.HeroVirtualTabletop.Library
             bool gameLoaded = IconInteractionUtility.IsGameLoaded();
             if(gameLoaded)
             {
+                System.Threading.Thread.Sleep(1000);
                 IconInteractionUtility.DoPostInitialization();
                 DoPostGameLaunchOperations();
                 gameInitializeTimer.Change(System.Threading.Timeout.Infinite, System.Threading.Timeout.Infinite);
@@ -241,12 +242,12 @@ namespace Module.HeroVirtualTabletop.Library
         {
             bool directoryExists = false;
             string gameDir = Module.Shared.Settings.Default.CityOfHeroesGameDirectory;
-            //logService.Info("Current Game Dir: " + gameDir);
+            logService.Info("Current Game Dir: " + gameDir);
             if (!string.IsNullOrEmpty(gameDir) && Directory.Exists(gameDir) && File.Exists(Path.Combine(gameDir, Constants.GAME_EXE_FILENAME)))
             {
                 directoryExists = true;
             }
-            //logService.Info("Dir Exists: " + directoryExists.ToString());
+            logService.Info("Dir Exists: " + directoryExists.ToString());
             return directoryExists;
         }
 

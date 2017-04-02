@@ -19,7 +19,7 @@ using System.Windows.Media.Imaging;
 namespace ApplicationShell
 {
     public class Bootstrapper : UnityBootstrapper
-    {  
+    {
         public IEventAggregator eventAggregator;
 
         Module.Shared.Logging.ILogManager logService = new Module.Shared.Logging.FileLogManager(typeof(Bootstrapper));
