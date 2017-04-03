@@ -435,7 +435,14 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.BusyService.HideBusy();
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
             this.crowdCollectionLoaded = true;
-            this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
+            try
+            {
+                this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
+            }
+            catch(Exception ex)
+            {
+
+            }          
         }
 
         private void AddDefaultMovementsToCharacters()

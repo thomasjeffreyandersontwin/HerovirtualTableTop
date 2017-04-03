@@ -1243,7 +1243,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 else
                 {
                     cNext = this.Participants[index + 1] as ICrowdMemberModel;
-                    if (cNext != null && cNext.RosterCrowd != cCurrent.RosterCrowd)
+                    if (cNext != null && cNext.RosterCrowd.Name != cCurrent.RosterCrowd.Name)
                     {
                         cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd == cCurrent.RosterCrowd) as ICrowdMemberModel;
                     }
@@ -1269,8 +1269,11 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void EditCharacter()
         {
-            CrowdMemberModel c = this.SelectedParticipants[0] as CrowdMemberModel;
-            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(c, null));
+            if (CanEditCharacter(null))
+            {
+                CrowdMemberModel c = this.SelectedParticipants[0] as CrowdMemberModel;
+                this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(c, null));
+            }
         }
 
         #endregion
