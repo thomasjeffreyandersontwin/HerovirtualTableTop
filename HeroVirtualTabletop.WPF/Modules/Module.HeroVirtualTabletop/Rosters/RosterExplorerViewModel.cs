@@ -1238,14 +1238,14 @@ namespace Module.HeroVirtualTabletop.Roster
 
                 if (index + 1 == this.Participants.Count)
                 {
-                    cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd == cCurrent.RosterCrowd) as ICrowdMemberModel;
+                    cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd.Name == cCurrent.RosterCrowd.Name) as ICrowdMemberModel;
                 }
                 else
                 {
                     cNext = this.Participants[index + 1] as ICrowdMemberModel;
                     if (cNext != null && cNext.RosterCrowd.Name != cCurrent.RosterCrowd.Name)
                     {
-                        cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd == cCurrent.RosterCrowd) as ICrowdMemberModel;
+                        cNext = this.Participants.FirstOrDefault(p => p.RosterCrowd.Name == cCurrent.RosterCrowd.Name) as ICrowdMemberModel;
                     }
                 }
 
