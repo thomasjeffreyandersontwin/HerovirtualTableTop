@@ -316,16 +316,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public void AnimateAttack(AttackDirection direction, Character attacker)
         {
-            this.SetAttackDirection(direction);
+            this.SetAttackDirection(this, direction);
             this.SetAttackerFacing(direction, attacker);
             base.Play(false, attacker);
             // Reset FX direction
-            this.SetAttackDirection(null);
+            this.SetAttackDirection(this, null);
         }
 
-        private void SetAttackDirection(AttackDirection direction)
+        private void SetAttackDirection(SequenceElement seqElem, AttackDirection direction)
         {
-            foreach (var animation in this.AnimationElements)
+            foreach (var animation in seqElem.AnimationElements)
             {
                 if (animation is FXEffectElement)
                 {
@@ -334,6 +334,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         fxElement.AttackDirection = direction;
                     else
                         fxElement.AttackDirection = null;
+                }
+                else if(animation is SequenceElement)
+                {
+                    SequenceElement se = animation as SequenceElement;
+                    SetAttackDirection(se, direction);
+                }
+                else if(animation is ReferenceAbility)
+                {
+                    ReferenceAbility refAbility = animation as ReferenceAbility;
+                    SetAttackDirection(refAbility.Reference, direction);
                 }
             }
         }
@@ -426,7 +436,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
             AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
             // Reset FX direction
-            this.SetAttackDirection(null);
+            this.SetAttackDirection(this, null);
             
             //jeff temorarily removed as deactivating causing a melee attack cycle bug
             //new PauseElement("", 2000).Play();
