@@ -16,6 +16,8 @@ using System.ComponentModel;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
+using Module.HeroVirtualTabletop.Movements;
+using Module.HeroVirtualTabletop.OptionGroups;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -226,7 +228,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             alreadyFiltered = false;
         }
 
-        //[JsonIgnore]
         public new ICrowdModel RosterCrowd
         {
             get
@@ -242,7 +243,6 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public override ICrowdMember Clone()
         {
-            //CrowdMemberModel crowdMemberModel = this.DeepClone() as CrowdMemberModel;
             CrowdMemberModel crowdMemberModel = new CrowdMemberModel()
             {
                 Name = this.Name,
@@ -278,7 +278,51 @@ namespace Module.HeroVirtualTabletop.Crowds
                 crowdMemberModel.ActiveIdentity = activeIdentity;
             }
 
-            // Need to add logic for Movements and other option groups
+            foreach(CharacterMovement characterMovement in this.Movements)
+            {
+                CharacterMovement clonedCharacterMovement = characterMovement.Clone();
+                clonedCharacterMovement.Character = crowdMemberModel;
+                crowdMemberModel.Movements.Add(clonedCharacterMovement);
+            }
+
+            if(this.DefaultMovement != null)
+            {
+                CharacterMovement defaultCharacterMovement = crowdMemberModel.Movements.FirstOrDefault(cm => cm.Name == this.DefaultMovement.Name);
+                crowdMemberModel.DefaultMovement = defaultCharacterMovement;
+            }
+
+            // Custom option groups
+
+            foreach(var customGroup in this.OptionGroups.Where(og => og.Type == HeroVirtualTabletop.OptionGroups.OptionType.Mixed))
+            {
+                OptionGroup<CharacterOption> optGroup = new OptionGroup<CharacterOption>(customGroup.Name);
+                crowdMemberModel.AddOptionGroup(optGroup);
+                foreach (var customOption in customGroup.Options)
+                {
+                    if(customOption is Identity)
+                    {
+                        Identity id = customOption as Identity;
+                        Identity identityToRefer = crowdMemberModel.AvailableIdentities.FirstOrDefault(i => i.Name == id.Name);
+                        if (identityToRefer != null)
+                            optGroup.Add(identityToRefer);
+                    }
+                    else if(customOption is AnimatedAbility)
+                    {
+                        AnimatedAbility ab = customOption as AnimatedAbility;
+                        AnimatedAbility abilityToRefer = crowdMemberModel.AnimatedAbilities.FirstOrDefault(aa => aa.Name == ab.Name);
+                        if (abilityToRefer != null)
+                            optGroup.Add(abilityToRefer);
+                    }
+                    else if(customOption is CharacterMovement)
+                    {
+                        CharacterMovement mv = customOption as CharacterMovement;
+                        CharacterMovement characterMovementToRefer = crowdMemberModel.Movements.FirstOrDefault(m => m.Name == mv.Name);
+                        if (characterMovementToRefer != null)
+                            optGroup.Add(characterMovementToRefer);
+                    }
+                }
+            }
+
             return crowdMemberModel;
         }
         public override void SavePosition()

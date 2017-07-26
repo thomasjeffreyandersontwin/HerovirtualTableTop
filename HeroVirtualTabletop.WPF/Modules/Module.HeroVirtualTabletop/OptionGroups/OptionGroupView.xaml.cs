@@ -50,15 +50,18 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             Border headborder = (Border)this.grpBoxOptionGroup.Template.FindName("Header", this.grpBoxOptionGroup);
 
-            ContentPresenter headContentPresenter = (ContentPresenter)headborder.Child;
+            if(headborder != null)
+            {
+                ContentPresenter headContentPresenter = (ContentPresenter)headborder.Child;
 
-            var dataTemplate = this.grpBoxOptionGroup.HeaderTemplate;
-            TextBlock headerTextBlock = dataTemplate.FindName("textBlockName", headContentPresenter) as TextBlock;
-            TextBox headerTextBox = dataTemplate.FindName("textBoxName", headContentPresenter) as TextBox;
-            headerTextBox.Text = headerTextBlock.Text;
-            headerTextBox.Visibility = Visibility.Visible;
-            headerTextBox.Focus();
-            headerTextBox.SelectAll();
+                var dataTemplate = this.grpBoxOptionGroup.HeaderTemplate;
+                TextBlock headerTextBlock = dataTemplate.FindName("textBlockName", headContentPresenter) as TextBlock;
+                TextBox headerTextBox = dataTemplate.FindName("textBoxName", headContentPresenter) as TextBox;
+                headerTextBox.Text = headerTextBlock.Text;
+                headerTextBox.Visibility = Visibility.Visible;
+                headerTextBox.Focus();
+                headerTextBox.SelectAll();
+            }
         }
 
         private void viewModel_EditModeLeave(object sender, EventArgs e)

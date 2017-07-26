@@ -27,17 +27,17 @@ namespace Module.HeroVirtualTabletop.Roster
 {
     public class ActiveCharacterWidgetViewModel : BaseViewModel
     {
-        
+
         #region Private Fields
         private EventAggregator eventAggregator;
         private System.Timers.Timer clickTimer_AbilityPlay = new System.Timers.Timer();
         private AnimatedAbility activeAbility;
         public DelegateCommand<object> PlayActiveAbilityCommand { get; private set; }
         public DelegateCommand<object> ToggleMovementCommand { get; private set; }
-    #endregion
+        #endregion
 
-    #region Public Properties
-    private Character activeCharacter;
+        #region Public Properties
+        private Character activeCharacter;
         public Character ActiveCharacter
         {
             get
@@ -86,7 +86,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         #endregion
 
-        
+
         private void LoadCharacter(Tuple<Character, string, string> tuple)
         {
             this.UnloadCharacter();
@@ -107,7 +107,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     switch (group.Type)
                     {
                         case OptionType.Ability:
-                            
+
                             OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<AnimatedAbility>>(
                             new ParameterOverride("optionGroup", group),
                             new ParameterOverride("owner", character),
@@ -127,7 +127,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             break;
                         case OptionType.CharacterMovement:
                             OptionGroups.Add(this.Container.Resolve<OptionGroupViewModel<CharacterMovement>>(
-                            new ParameterOverride("optionGroup", group), 
+                            new ParameterOverride("optionGroup", group),
                             new ParameterOverride("owner", character),
                             new PropertyOverride("IsReadOnlyMode", true),
                             new PropertyOverride("ShowOptions", showOptionsInGroup),
@@ -151,7 +151,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 //Setting hooks for PlayAbilityByKey
 
                 // hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
-                
+
             }
 
         }
@@ -164,15 +164,15 @@ namespace Module.HeroVirtualTabletop.Roster
                 foreach (var ogv in this.OptionGroups)
                     ogv.UnloadOptionGroup();
             }
-                
+
             ActiveCharacter = null;
         }
 
-        
+
         private void clickTimer_AbilityPlay_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             clickTimer_AbilityPlay.Stop();
-            Action d = delegate()
+            Action d = delegate ()
             {
                 if (activeAbility != null && !activeAbility.Persistent && !activeAbility.IsAttack)
                 {
@@ -199,7 +199,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             return null;
         }
-       
+
         public bool CanToggleMovement(object state) { return true; }
         public void ToggleMovement()
         {
@@ -219,7 +219,7 @@ namespace Module.HeroVirtualTabletop.Roster
             activeAbility.Play();
             clickTimer_AbilityPlay.Start();
         }
-        
+
 
     }
 }

@@ -982,7 +982,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         #endregion
 
-        #region ReOrder Option Group
+        #region ReOrder Options
 
         public void RemoveOption(int index)
         {

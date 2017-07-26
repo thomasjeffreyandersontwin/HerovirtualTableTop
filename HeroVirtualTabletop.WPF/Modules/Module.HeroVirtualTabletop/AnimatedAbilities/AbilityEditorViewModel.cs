@@ -202,6 +202,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 AnimationElement element = sender as AnimationElement;
                 (sender as AnimationElement).DisplayName = GetDisplayNameFromResourceName(element.Resource);
+                if (element.Resource!= null && element.Resource.Reference != null && element.Resource.Reference.IsAttack)
+                {
+                    this.CurrentAttackAbility.IsAttack = true;
+                    this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();
+                }
                 SaveAbility();
                 DemoAnimation();
                 SaveResources();
@@ -915,6 +920,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             CurrentAttackAbility.Name = updatedName;
             Owner.AnimatedAbilities.UpdateKey(OriginalName, updatedName);
+
+            if (CurrentAttackAbility.IsAttack)
+            {
+                CurrentAttackAbility.OnHitAnimation.Name = updatedName + " - OnHit";
+            }
+
             OriginalName = null;
         }
 
@@ -1243,14 +1254,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (referenceAbilitiesCVS == null)
             {
                 referenceAbilitiesCVS = new CollectionViewSource();
-                var refAbilityCollection = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
-                refAbilityCollection = refAbilityCollection.OrderBy(x => x, new ReferenceAbilityResourceComparer());
+                var refAbilityCollection = abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }).ToList();
+                foreach(var attackObj in abilityCollection.Where(a => a.IsAttack))
+                {
+                    Attack attack = attackObj as Attack;
+                    refAbilityCollection.Add(new AnimationResource(attack.OnHitAnimation, attack.OnHitAnimation.Name));
+                }
+                refAbilityCollection = refAbilityCollection.OrderBy(x => x, new ReferenceAbilityResourceComparer()).ToList();
                 referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(refAbilityCollection);
                 referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
             }
             else
             {
-                var updatedAbilityResources = abilityCollection.Where(a => !a.IsAttack).Select((x) => { return new AnimationResource(x, x.Name); });
+                var updatedAbilityResources = abilityCollection.Select((x) => { return new AnimationResource(x, x.Name); }).ToList();
+                foreach (var attackObj in abilityCollection.Where(a => a.IsAttack))
+                {
+                    Attack attack = attackObj as Attack;
+                    updatedAbilityResources.Add(new AnimationResource(attack.OnHitAnimation, attack.OnHitAnimation.Name));
+                }
                 var currentAbilityResources = referenceAbilitiesCVS.Source as ObservableCollection<AnimationResource>;
                 var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Reference.Owner != null && a.Reference.Owner != null && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null);
                 if (addedResources.Count() > 0)
@@ -1262,7 +1283,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 else
                 {
-                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => a.Name == ca.Name && ca.Reference.Owner != null && a.Reference.Owner != null && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null));
+                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => (a.Name == ca.Name || ca.Name == (a.Name + " - OnHit")) && ca.Reference.Owner != null && a.Reference.Owner != null && ca.Reference.Owner.Name == a.Reference.Owner.Name).FirstOrDefault() == null));
                     if (deletedResources.Count() > 0)
                     {
                         foreach (var deletedResource in deletedResources)
@@ -1427,7 +1448,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Character currentTarget = GetCurrentTarget();
             if (this.SelectedAnimationElement != null)
+            {
                 this.SelectedAnimationElement.Play(Target: currentTarget);
+            }
+                
         }
 
         private Character GetCurrentTarget()
@@ -1760,6 +1784,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.IsAttackSelected = false;
                 this.IsHitSelected = true;
                 this.CurrentAbility = this.CurrentAttackAbility.OnHitAnimation;
+                this.CurrentAttackAbility.OnHitAnimation.Name = this.CurrentAttackAbility.Name + " - OnHit";
             }
             this.SaveAbility();
             this.ConfigureAttackAnimationCommand.RaiseCanExecuteChanged();

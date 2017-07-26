@@ -1498,7 +1498,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 Helper.GlobalVariables_IsPlayingAttack = true;
                 // Change mouse pointer to bulls eye
                 Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
-                Mouse.OverrideCursor = cursor;
+                Dispatcher.Invoke(() => { Mouse.OverrideCursor = cursor; });
                 // Inform Roster to update attacker
                 this.eventAggregator.GetEvent<AttackInitiatedEvent>().Publish(new Tuple<Character, Attack>(targetCharacter, customEventArgs.Value));
             }

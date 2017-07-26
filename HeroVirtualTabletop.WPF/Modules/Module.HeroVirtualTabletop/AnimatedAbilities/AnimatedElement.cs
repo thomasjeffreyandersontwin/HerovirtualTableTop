@@ -42,7 +42,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool IsActive { get; }
         bool Persistent { get; }
 
-        void Play(bool persistent = false, Character Target = null, bool forcePlay = false);
+        void Play(bool persistent = false, Character Target = null, bool playAsSequence = false);
         void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null);
         Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, bool persistent = false);
         string GetKeybind(Character Target = null);
@@ -196,7 +196,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public virtual void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public virtual void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
 
         }
@@ -242,6 +242,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
 
         }
+
 
         public virtual AnimationElement Clone()
         {
@@ -381,7 +382,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             IsActive = true;
             System.Timers.Timer timer = new System.Timers.Timer();
@@ -460,7 +461,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         ISoundEngine engine;
         ISound music;
 
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             Character target = Target ?? this.Owner;
             Stop(target);
@@ -579,12 +580,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return keyBindsGenerator.GetEvent();
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             Stop(Target);
             GetKeybind(Target);
             IsActive = true;
-            if (PlayWithNext == false || forcePlay)
+            if (PlayWithNext == false)
                 new KeyBindsGenerator().CompleteEvent();
         }
 
@@ -778,14 +779,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return PrepareCostumeFile(Target);
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             if(!PlayOnTopOfPreviousFx)
                 Stop(Target);
             string keybind = PrepareCostumeFile(Target, persistent);
             if (string.IsNullOrEmpty(keybind))
                 return;
-            if (PlayWithNext == false || forcePlay)
+            if (PlayWithNext == false)
             {
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                 keyBindsGenerator.CompleteEvent();
@@ -1066,7 +1067,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private Timer playTimer;
 
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             playTimer = new Timer(PlaySequence, new object[]{persistent, Target}, Timeout.Infinite, Timeout.Infinite);
             Stop(Target ?? this.Owner);
@@ -1092,20 +1093,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Application.Current.Dispatcher.BeginInvoke(d);
         }
 
-        private void PlayAnimations(bool persistent = false, Character Target = null, bool forcePlay = false)
+        private void PlayAnimations(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             if (SequenceType == AnimationSequenceType.And)
             {
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
-                    item.Play(item.Persistent || persistent, Target ?? this.Owner, forcePlay);
+                    item.Play(item.Persistent || persistent, Target ?? this.Owner, playAsSequence);
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(AnimationElements[chosen].Persistent || persistent, Target ?? this.Owner, forcePlay);
+                AnimationElements[chosen].Play(AnimationElements[chosen].Persistent || persistent, Target ?? this.Owner, playAsSequence);
             }
         }
         public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
@@ -1437,12 +1438,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
             string retVal = string.Empty;
             if (this.Reference != null)
             {
-                this.Reference.Play(persistent, Target ?? this.Owner, forcePlay); // persistence of ref element doesn't matter
+                this.Reference.Play(persistent, Target ?? this.Owner, true); // in case of attack references, always play as sequence
             }
             OnPropertyChanged("IsActive");
         }

@@ -138,6 +138,16 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        public CharacterMovement Clone()
+        {
+            CharacterMovement clonedCharacterMovement = new Movements.CharacterMovement(this.Name, this.Character);
+            clonedCharacterMovement.Movement = this.Movement.Clone();
+            clonedCharacterMovement.ActivationKey = this.ActivationKey;
+            clonedCharacterMovement.MovementSpeed = this.MovementSpeed;
+
+            return clonedCharacterMovement;
+        }
+
         private void EnableCamera(bool enable)
         {
             string cameraFileName = enable ? Constants.GAME_ENABLE_CAMERA_FILENAME : Constants.GAME_DISABLE_CAMERA_FILENAME;
@@ -353,6 +363,19 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        public Movement Clone()
+        {
+            Movement clonedMovement = new Movements.Movement(this.Name);
+            clonedMovement.HasGravity = this.HasGravity;
+            clonedMovement.MovementMembers.Clear();
+            foreach(MovementMember member in this.MovementMembers)
+            {
+                MovementMember clonedMember = member.Clone();
+                clonedMovement.MovementMembers.Add(clonedMember);
+            }
+
+            return clonedMovement;
+        }
 
         private double GetRotationAngle(MovementDirection direction)
         {
@@ -1951,6 +1974,16 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
                 return key;
             }
+        }
+
+        public MovementMember Clone()
+        {
+            MovementMember clonedMember = new Movements.MovementMember();
+            clonedMember.MemberName = this.MemberName;
+            clonedMember.MemberAbility = this.MemberAbility;
+            clonedMember.MovementDirection = this.MovementDirection;
+
+            return clonedMember;
         }
     }
     public class MovementInstruction

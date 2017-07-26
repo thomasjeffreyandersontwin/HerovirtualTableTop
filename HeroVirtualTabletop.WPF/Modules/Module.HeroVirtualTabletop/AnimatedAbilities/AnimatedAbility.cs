@@ -807,15 +807,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
         }
-        public override void Play(bool persistent = false, Character target = null, bool forcePlay = false)
+        public override void Play(bool persistent = false, Character target = null, bool playAsSequence = false)
         {
-            if (this.IsAttack) {
+            if (this.IsAttack && !playAsSequence) {
                 this.InitiateAttack(persistent, target);
                 IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
                 WindowsUtilities.SetForegroundWindow(winHandle);
             }
             else
-                base.Play(persistent, target, forcePlay);
+                base.Play(persistent, target, playAsSequence);
         }
 
         #region old knockback code
