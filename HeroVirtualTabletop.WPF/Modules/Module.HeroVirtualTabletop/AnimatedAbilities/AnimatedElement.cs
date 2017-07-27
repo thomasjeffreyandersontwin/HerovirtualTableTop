@@ -1495,8 +1495,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
     {
         public int Compare(AnimationResource ar1, AnimationResource ar2)
         {
-            string s1 = ar1.Reference.Owner.Name;
-            string s2 = ar2.Reference.Owner.Name;
+            string s1 = ar1.Reference != null && ar1.Reference.Owner != null ? ar1.Reference.Owner.Name : string.Empty;
+            string s2 = ar2.Reference != null && ar2.Reference.Owner != null ? ar2.Reference.Owner.Name : string.Empty;
             if (s1 == s2)
             {
                 s1 = ar1.Reference.Name;

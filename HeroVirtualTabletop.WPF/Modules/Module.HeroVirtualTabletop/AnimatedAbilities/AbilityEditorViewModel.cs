@@ -1258,6 +1258,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 foreach(var attackObj in abilityCollection.Where(a => a.IsAttack))
                 {
                     Attack attack = attackObj as Attack;
+                    attack.OnHitAnimation.Name = attack.Name + " - OnHit";
+                    if(attack.OnHitAnimation.Owner == null)
+                    { 
+                        attack.OnHitAnimation.Owner = attack.Owner;
+                    }
                     refAbilityCollection.Add(new AnimationResource(attack.OnHitAnimation, attack.OnHitAnimation.Name));
                 }
                 refAbilityCollection = refAbilityCollection.OrderBy(x => x, new ReferenceAbilityResourceComparer()).ToList();

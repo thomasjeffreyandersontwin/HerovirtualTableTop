@@ -254,6 +254,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 AnimatedAbility clonedAbility = ab.Clone() as AnimatedAbility;
                 clonedAbility.Owner = crowdMemberModel;
+                if (clonedAbility.IsAttack)
+                {
+                    if ((clonedAbility as Attack).OnHitAnimation != null)
+                        (clonedAbility as Attack).OnHitAnimation.Owner = crowdMemberModel;
+                }
                 crowdMemberModel.AnimatedAbilities.Add(clonedAbility);
             }
 

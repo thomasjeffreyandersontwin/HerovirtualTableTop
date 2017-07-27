@@ -832,6 +832,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                     DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowdModel);
                 }
             }
+            // Update ability collections
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
             // Finally save repository
             this.SaveCrowdCollection();
             // UnLock character crowd Tree from updating;
