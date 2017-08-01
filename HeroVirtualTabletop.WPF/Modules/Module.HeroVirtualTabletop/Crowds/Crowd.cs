@@ -227,6 +227,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 OnPropertyChanged("IsMatched");
             }
         }
+        [JsonIgnore]
+        public Crowd ParentCrowd { get; set; }
 
         private int order;
         [JsonProperty(Order = 1)]

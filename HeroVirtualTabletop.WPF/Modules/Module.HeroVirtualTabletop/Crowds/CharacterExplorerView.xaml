@@ -48,6 +48,8 @@
                     <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
                     <MenuItem Header="Remove" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.DeleteCharacterCrowdCommand}"></MenuItem>
                     <MenuItem Header="Add Crowd From Models" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AddCrowdFromModelsCommand}"></MenuItem>
+                    <MenuItem Header="Copy All Abilities" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.CopyAllAbilitiesCommand}"></MenuItem>
+                    <MenuItem Header="Paste Abilities as References" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PasteAbilitiesAsReferencesCommand}"></MenuItem>
                 </ContextMenu>
                 <HierarchicalDataTemplate DataType="{x:Type crowd:CrowdModel}"
                                     ItemsSource="{Binding CrowdMemberCollection}"
@@ -137,7 +139,7 @@
                 </Grid.ColumnDefinitions>
                 <Image Grid.Column="0" Source="pack://application:,,,/Module.Shared;Component/Resources/Images/Search.png"/>
                 <!--The following text binding won't work, will need to modify it later-->
-                <TextBox Grid.Column="1"                           
+                <TextBox Name="txtFilter" Grid.Column="1"                           
                          Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
             </Grid>
         </Border>

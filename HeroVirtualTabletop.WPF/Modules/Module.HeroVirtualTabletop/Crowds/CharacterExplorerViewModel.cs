@@ -28,6 +28,7 @@ using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Movements;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Module.HeroVirtualTabletop.OptionGroups;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -139,6 +140,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.PasteCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.AddToRosterCommand.RaiseCanExecuteChanged();
                 this.EditCharacterCommand.RaiseCanExecuteChanged();
+                this.CopyAllAbilitiesCommand.RaiseCanExecuteChanged();
+                this.PasteAbilitiesAsReferencesCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -215,6 +218,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> EditCharacterCommand { get; private set; }
         public ICommand UpdateSelectedCrowdMemberCommand { get; private set; }
         public DelegateCommand<object> AddCrowdFromModelsCommand { get; private set; }
+        public DelegateCommand<object> CopyAllAbilitiesCommand { get; private set; }
+        public DelegateCommand<object> PasteAbilitiesAsReferencesCommand { get; private set; }
 
         #endregion
 
@@ -259,6 +264,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.AddToRosterCommand = new DelegateCommand<object>(this.AddToRoster, this.CanAddToRoster);
             this.EditCharacterCommand = new DelegateCommand<object>(this.EditCharacter, this.CanEditCharacter);
             this.AddCrowdFromModelsCommand = new DelegateCommand<object>(this.AddCrowdFromModels);
+            this.CopyAllAbilitiesCommand = new DelegateCommand<object>(this.CopyAllAbilities, this.CanCopyAllAbilities);
+            this.PasteAbilitiesAsReferencesCommand = new DelegateCommand<object>(this.PasteAbilitiesAsReferences, this.CanPasteAbilitiesAsReferences);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -429,6 +436,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                    this.AddDefaultMovementsToCharacters();
                    var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
                    eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
+                   //this.AddCrowdsFromFile(); // Add models for Jeff
                };
             Application.Current.Dispatcher.BeginInvoke(d);
             
@@ -531,6 +539,87 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
 
         #region Add Crowd
+
+        private CrowdModel lastCrowd = null;
+
+        private void AddCrowdsFromFile()
+        {
+            if (this.CrowdCollection.FirstOrDefault(c => c.Name == "COHModels") == null)
+                this.AddCrowd("COHModels", null);
+            lastCrowd = this.CrowdCollection.FirstOrDefault(c => c.Name == "COHModels");
+            var fileName = "npc.mnu";
+            string[] alllines = File.ReadAllLines(fileName);
+            try
+            {
+                foreach (string line in alllines)
+                {
+                    if (line.Trim().StartsWith("{"))
+                    {
+
+                    }
+                    else if (line.Trim().StartsWith("Menu", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        string name = line.Replace("Menu ", "");
+                        name = name.Replace("\"", "");
+                        name = name.Trim();
+                        this.AddCrowd(name, lastCrowd);
+                    }
+                    else if (line.Trim().StartsWith("}"))
+                    {
+                        lastCrowd = lastCrowd.ParentCrowd as CrowdModel;
+                    }
+                    else if (line.Trim().StartsWith("Option", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        string first = line.Replace("Option ", "").Trim();
+                        int upto = first.IndexOf("\"", 1);
+                        string name = first.Substring(1, upto - 1);
+                        name = name.Trim();
+
+                        string model = first.Substring(upto + 1);
+                        model = model.Replace("\"", "").Trim();
+                        string[] tokens = model.Split(' ');
+                        model = tokens[1];
+                        this.AddCharacter(name, model, lastCrowd);
+                    }
+                    else
+                    {
+
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+
+            }
+            
+        }
+
+        private void AddCrowd(string name, Crowd parent)
+        {
+            this.SelectedCrowdModel = lastCrowd;
+            CrowdModel crowdModel = this.GetNewCrowdModel(name);
+            crowdModel.ParentCrowd = parent;
+            this.LockModelAndMemberUpdate(true);
+            this.AddNewCrowdModel(crowdModel);
+            this.LockModelAndMemberUpdate(false);
+            if (this.lastCharacterCrowdStateToUpdate != null)
+            {
+                this.UpdateSelectedCrowdMember(lastCharacterCrowdStateToUpdate);
+                this.lastCharacterCrowdStateToUpdate = null;
+            }
+            lastCrowd = crowdModel;
+            this.SelectedCrowdModel = crowdModel;
+        }
+
+        private void AddCharacter(string name, string model, Crowd parent)
+        {
+            this.SelectedCrowdModel = lastCrowd;
+            Character character = this.GetNewCharacter(name, model, IdentityType.Model);
+            this.AddNewCharacter(character);
+            lastCrowd = parent as CrowdModel;
+            this.SelectedCrowdModel = lastCrowd;
+        }
+
         private void AddCrowd(object state)
         {
             // Create a new Crowd
@@ -612,9 +701,6 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddNewCrowdModel(CrowdModel crowdModel)
         {
-            //Methods Swapped by Chris
-
-            //GetOrCreateAllCharactersCrowd();
             // Also add the crowd under any currently selected crowd
             this.AddCrowdToSelectedCrowd(crowdModel);
             // Add the crowd to List of Crowd Members as a new Crowd Member
@@ -1276,10 +1362,10 @@ namespace Module.HeroVirtualTabletop.Crowds
 
             foreach (CrowdModel cr in CrowdCollection)
             {
-                cr.ApplyFilter(filter); //Filter already check
-                OnExpansionUpdateNeeded(cr, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Filter });
+                cr.ApplyFilter(filter); 
+                //OnExpansionUpdateNeeded(cr, new CustomEventArgs<ExpansionUpdateEvent> { Value = ExpansionUpdateEvent.Filter });
             }
-        }
+       }
 
         #endregion
 
@@ -1701,6 +1787,77 @@ namespace Module.HeroVirtualTabletop.Crowds
                     actives[i].Stop();
                 } 
             }
+        }
+
+        #endregion
+
+        #region Copy All Abilities As References
+
+        private Character sourceCharacterForAbilityCopy;
+
+        private bool CanCopyAllAbilities(object state)
+        {
+            return this.SelectedCrowdMemberModel != null && this.SelectedCrowdMemberModel.AnimatedAbilities.Count > 0;
+        }
+
+        private void CopyAllAbilities(object state)
+        {
+            this.sourceCharacterForAbilityCopy = this.SelectedCrowdMemberModel;
+        }
+
+        private bool CanPasteAbilitiesAsReferences(object state)
+        {
+            return sourceCharacterForAbilityCopy != null && sourceCharacterForAbilityCopy.AnimatedAbilities.Count > 0;
+        }
+
+        private void PasteAbilitiesAsReferences(object state)
+        {
+            Character targetCharacter = this.SelectedCrowdMemberModel;
+            foreach (AnimatedAbility ability in sourceCharacterForAbilityCopy.AnimatedAbilities)
+            {
+                string attackName = GetNewValidAbilityName(targetCharacter, ability.Name);
+                Attack attack = new Attack(attackName, owner: targetCharacter);
+                var refAbility = new ReferenceAbility("Reference - 1", null);
+                AnimationResource refResource = new AnimationResource(ability);
+                refAbility.Resource = refResource;
+                refAbility.DisplayName = Path.GetFileNameWithoutExtension(refAbility.Resource);
+                attack.AddAnimationElement(refAbility);
+                if (ability.IsAttack)
+                {
+                    attack.IsAttack = true;
+                    attack.IsAreaEffect = ability.IsAreaEffect;
+                    var refAbilityOnHit = new ReferenceAbility("Reference - 1", null);
+                    AnimationResource refResourceOnHit = new AnimationResource((ability as Attack).OnHitAnimation);
+                    refAbilityOnHit.Resource = refResourceOnHit;
+                    refAbilityOnHit.DisplayName = Path.GetFileNameWithoutExtension(refAbilityOnHit.Resource);
+                    attack.OnHitAnimation.AddAnimationElement(refAbilityOnHit);
+                }
+                targetCharacter.AnimatedAbilities.Add(attack);
+
+                this.eventAggregator.GetEvent<AddOptionEvent>().Publish(attack);
+            }
+
+            sourceCharacterForAbilityCopy = null;
+            this.CopyAllAbilitiesCommand.RaiseCanExecuteChanged();
+            this.PasteAbilitiesAsReferencesCommand.RaiseCanExecuteChanged();
+
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            
+        }
+
+        public string GetNewValidAbilityName(Character character, string name = null)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                name = "Option";
+            }
+            string suffix = string.Empty;
+            int i = 0;
+            while ((character.AnimatedAbilities.Cast<ICharacterOption>().Any((ICharacterOption opt) => { return opt.Name == name + suffix; })))
+            {
+                suffix = string.Format(" ({0})", ++i);
+            }
+            return string.Format("{0}{1}", name, suffix).Trim();
         }
 
         #endregion
