@@ -39,6 +39,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.EditModeLeave += viewModel_EditModeLeave;
             this.viewModel.EditNeeded += viewModel_EditNeeded;
             this.viewModel.ExpansionUpdateNeeded+=viewModel_ExpansionUpdateNeeded;
+            this.viewModel.FlattenNumberRequired += viewModel_FlattenNumberRequired;
+            this.viewModel.FlattenNumberEntryFinished += viewModel_FlattenNumberEntryFinished;
         }
         private void viewModel_EditNeeded(object sender, CustomEventArgs<string> e)
         {
@@ -180,6 +182,19 @@ namespace Module.HeroVirtualTabletop.Crowds
             BindingExpression expression = txtBox.GetBindingExpression(TextBox.TextProperty);
             expression.UpdateSource(); 
         }
+
+
+        private void viewModel_FlattenNumberRequired(object sender, EventArgs e)
+        {
+            gridFlattenNumber.Visibility = Visibility.Visible;
+            intUpDownFlattenNum.Focus();
+        }
+
+        private void viewModel_FlattenNumberEntryFinished(object sender, EventArgs e)
+        {
+            gridFlattenNumber.Visibility = Visibility.Collapsed;
+        }
+
         private void treeViewCrowd_OnPreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             startPoint = e.GetPosition(null);

@@ -340,6 +340,7 @@ namespace Module.HeroVirtualTabletop.Identities
             EditedIdentity.Name = updatedName;
             Owner.AvailableIdentities.UpdateKey(OriginalName, updatedName);
             OriginalName = null;
+            this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Publish(null);
         }
 
         private void AvailableIdentities_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)

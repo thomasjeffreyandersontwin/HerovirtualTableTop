@@ -28,6 +28,7 @@ using Module.HeroVirtualTabletop.Crowds;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Module.HeroVirtualTabletop.Desktop;
+using Module.HeroVirtualTabletop.Identities;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -440,6 +441,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private CollectionViewSource identityResourcesCVS;
+        public CollectionViewSource IdentityResourcesCVS
+        {
+            get
+            {
+                return identityResourcesCVS;
+            }
+        }
+
         private string filter;
         public string Filter
         {
@@ -470,6 +480,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             case AnimationElementType.Reference:
                                 Helper.SaveUISettings("Ability_ReferenceFilter", value);
                                 referenceAbilitiesCVS.View.Refresh();
+                                break;
+                            case AnimationElementType.LoadIdentity:
+                                Helper.SaveUISettings("Ability_IdentityFilter", value);
+                                identityResourcesCVS.View.Refresh();
                                 break;
                         }
                     }
@@ -613,6 +627,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
+            //this.eventAggregator.GetEvent<FinishedIdentityCollectionRetrievalEvent>().Subscribe(this.LoadIdentityResource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
@@ -862,6 +877,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.IsAttackSelected = true;
                 this.IsHitSelected = false;
             }
+            LoadOwnerIdentitiesAsResources();
+            referenceAbilitiesCVS = null;
+            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
         }
         private void UnloadAbility(object state = null)
         {
@@ -1084,6 +1102,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     animationElement.Name = fullName;
                     //this.LoadReferenceResource();
                     break;
+                case AnimationElementType.LoadIdentity:
+                    animationElement = new IdentityElement("", null);
+                    AnimationResource identityResource = Helper.GetUISettings("Ability_IdentityResource") as AnimationResource;
+                    fullName = AnimatedAbility.GetAppropriateAnimationName(AnimationElementType.LoadIdentity, flattenedList);
+                    if (identityResource == null)
+                    {
+                        animationElement.DisplayName = fullName;
+                    }
+                    else
+                    {
+                        animationElement.Resource = identityResource;
+                        animationElement.DisplayName = GetDisplayNameFromResourceName(animationElement.Resource);
+                    }
+                    animationElement.Name = fullName;
+                    break;
             }
 
             return animationElement;
@@ -1245,8 +1278,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             soundResourcesCVS.Source = SoundResources;
             soundResourcesCVS.View.Filter += ResourcesCVS_Filter;
             OnPropertyChanged("SoundResourcesCVS");
-            // publish a event to retrieve reference resources
-            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+
+            // publish events to retrieve reference resources and identities - commented out as we'd load them everytime
+            //this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            //this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Publish(null);
         }
 
         private void LoadReferenceResource(ObservableCollection<AnimatedAbility> abilityCollection)
@@ -1300,6 +1335,58 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
             OnPropertyChanged("ReferenceAbilitiesCVS");
+        }
+
+        private void LoadIdentityResource(ObservableCollection<Identity> identities)
+        {
+            if (identityResourcesCVS == null)
+            {
+                identityResourcesCVS = new CollectionViewSource();
+                var identityCollection = identities.Select((x) => { return new AnimationResource(x, x.Name); }).ToList();
+
+                identityCollection = identityCollection.OrderBy(x => x, new IdentityResourceComparer()).ToList();
+                identityResourcesCVS.Source = new ObservableCollection<AnimationResource>(identityCollection);
+                identityResourcesCVS.View.Filter += ResourcesCVS_Filter;
+            }
+            else
+            {
+                var updatedAbilityResources = identities.Select((x) => { return new AnimationResource(x, x.Name); }).ToList();
+                var currentAbilityResources = identityResourcesCVS.Source as ObservableCollection<AnimationResource>;
+                var addedResources = updatedAbilityResources.Where(a => currentAbilityResources.Where(ca => ca.Name == a.Name && ca.Identity != null && a.Identity != null 
+                && ca.Identity.Name == a.Identity.Name).FirstOrDefault() == null);
+                if (addedResources.Count() > 0)
+                {
+                    foreach (var addedResource in addedResources)
+                    {
+                        (identityResourcesCVS.Source as ObservableCollection<AnimationResource>).Add(addedResource);
+                    }
+                }
+                else
+                {
+                    var deletedResources = new List<AnimationResource>(currentAbilityResources.Where(ca => updatedAbilityResources.Where(a => (a.Name == ca.Name) 
+                    && ca.Identity != null && a.Identity != null && ca.Identity.Name == a.Identity.Name).FirstOrDefault() == null));
+                    if (deletedResources.Count() > 0)
+                    {
+                        foreach (var deletedResource in deletedResources)
+                        {
+                            var resourceToDelete = (identityResourcesCVS.Source as ObservableCollection<AnimationResource>).First(ar => ar.Name == deletedResource.Name 
+                            && ar.Identity != null && deletedResource.Identity != null && ar.Identity.Name == deletedResource.Identity.Name);
+                            (identityResourcesCVS.Source as ObservableCollection<AnimationResource>).Remove(resourceToDelete);
+                        }
+                    }
+                }
+            }
+            OnPropertyChanged("IdentityResourcesCVS");
+        }
+
+        private void LoadOwnerIdentitiesAsResources()
+        {
+            List<AnimationResource> identityCollection = this.Owner.AvailableIdentities.Select((x) => { return new AnimationResource(x, x.Name); }).ToList();
+            identityCollection = identityCollection.OrderBy(x => x, new IdentityResourceComparer()).ToList();
+            identityResourcesCVS = new CollectionViewSource();
+            identityResourcesCVS.Source = new ObservableCollection<AnimationResource>(identityCollection);
+            identityResourcesCVS.View.Filter += ResourcesCVS_Filter;
+            OnPropertyChanged("IdentityResourcesCVS");
         }
 
         private bool ResourcesCVS_Filter(object item)
@@ -1446,6 +1533,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void DemoAnimatedAbility()
         {
             Character currentTarget = GetCurrentTarget();
+            currentTarget.Target(false);
+            currentTarget.ActiveIdentity.RenderWithoutAnimation();
             this.CurrentAbility.Play(Target: currentTarget);
         }
 

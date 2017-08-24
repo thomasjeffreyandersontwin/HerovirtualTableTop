@@ -125,7 +125,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 {
                     crowdLabel = " [" + RosterCrowd.Name + "]";
                 }
-                return Name + crowdLabel;
+                return Name.Trim() + crowdLabel;
             }
         }
         

@@ -11,6 +11,7 @@ using Module.HeroVirtualTabletop.Library.Enumerations;
 using Newtonsoft.Json;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Library.Utility;
+using Module.HeroVirtualTabletop.Characters;
 
 namespace Module.HeroVirtualTabletop.Identities
 {
@@ -111,7 +112,7 @@ namespace Module.HeroVirtualTabletop.Identities
             this.keyBindsGenerator = new KeyBindsGenerator();
         }
 
-        public string Render(bool completeEvent = true)
+        public string Render(bool completeEvent = true, Character Target = null)
         {
             string keybind = string.Empty;
             if (completeEvent)
@@ -119,7 +120,7 @@ namespace Module.HeroVirtualTabletop.Identities
                 if (AnimationOnLoad != null)
                 {
                     if (Type == IdentityType.Costume)
-                        AnimationOnLoad.PlayOnLoad(false, null, Surface);
+                        AnimationOnLoad.PlayOnLoad(false, Target, Surface);
                     else
                         AnimationOnLoad.Play();
                 }
@@ -133,6 +134,11 @@ namespace Module.HeroVirtualTabletop.Identities
                     }
                 case IdentityType.Costume:
                     {
+                        if(AnimationOnLoad != null)
+                        {
+                            var target = Target ?? AnimationOnLoad.Owner;
+                            target.Target(false);
+                        }
                         keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, Surface);
                         break;
                     }
@@ -170,7 +176,24 @@ namespace Module.HeroVirtualTabletop.Identities
         public Identity Clone()
         {
             Identity clonedIdentity = new Identity(this.Surface, this.Type, this.Name);
+            if(this.AnimationOnLoad != null)
+            {
+                clonedIdentity.AnimationOnLoad = this.AnimationOnLoad.Clone() as AnimatedAbility;
+            }
             return clonedIdentity;
+        }
+    }
+
+    public class IdentityComparer : IEqualityComparer<Identity>
+    {
+        public bool Equals(Identity x, Identity y)
+        {
+            return x.Name == y.Name && x.Surface == y.Surface && x.Type == y.Type;
+        }
+
+        public int GetHashCode(Identity obj)
+        {
+            return obj.GetHashCode();
         }
     }
 }

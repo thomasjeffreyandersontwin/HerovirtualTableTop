@@ -32,22 +32,25 @@
             <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Expander Grid.Column="0" Style="{StaticResource VerticalExpanderStyle}"
-                  OverridesDefaultStyle="True"
+                  OverridesDefaultStyle="True" 
                   Header="Character Explorer"
                   Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
-            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterExplorerExpanded}" 
+            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}" 
+                      GotFocus="grpBoxCharacterExplorer_GotFocus" LostFocus="grpBoxCharacterExplorer_LostGotFocus">
+                <Border Background="Transparent" PreviewMouseDown="Grid_MouseDown">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterExplorerExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="CharacterExplorer">
-                    </ToggleButton>
-                    <Grid x:Name="charExplorerPanel" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="charExplorerPanel" Grid.Row="1"/>
+                    </Grid>
+                </Border>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="1" Style="{StaticResource VerticalExpanderStyle}"
@@ -78,8 +81,8 @@
                   IsExpanded="{Binding IsRosterExplorerExpanded}"
                   >
 
-            <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
+            <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}" MouseDown="Grid_MouseDown">
+                <Grid MouseDown="Grid_MouseDown">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition/>

@@ -141,7 +141,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public CharacterMovement Clone()
         {
             CharacterMovement clonedCharacterMovement = new Movements.CharacterMovement(this.Name, this.Character);
-            clonedCharacterMovement.Movement = this.Movement.Clone();
+            clonedCharacterMovement.Movement = this.Movement != null ? this.Movement.Clone() : null;
             clonedCharacterMovement.ActivationKey = this.ActivationKey;
             clonedCharacterMovement.MovementSpeed = this.MovementSpeed;
 
@@ -160,8 +160,8 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             // Reset Active
             this.IsActive = false;
-            // Back to still move
-            this.Movement.MoveStill(this.Character);
+            //// Back to still move - commented out as Jeff doesn't want still to be played when cancelling a move because he wants to resume the move later
+            //this.Movement.MoveStill(this.Character);
             // Reset MovementInstruction
             this.Character.MovementInstruction = null;
             // Enable Camera
@@ -208,19 +208,30 @@ namespace Module.HeroVirtualTabletop.Movements
                 Keys vkCode = (Keys)keyboardDLLHookStruct.vkCode;
                 KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
 
-                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN || wmKeyboard == KeyboardMessage.WM_KEYUP))
                 {
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                     uint wndProcId;
                     uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
                     var cohWindow = WindowsUtilities.FindWindow("CrypticWindow", null);
                     var currentProcId = Process.GetCurrentProcess().Id;
+                    bool keyUp = wmKeyboard == KeyboardMessage.WM_KEYUP;
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
                     if (foregroundWindow == cohWindow
                         || currentProcId == wndProcId)
                     {
-                        if (!this.IsPaused && this.Character.MovementInstruction != null)
+                        if (!keyUp && inputKey == Key.LeftShift && !this.IsPaused)
                         {
-                            var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                            this.IsPaused = true;
+                            this.Character.TargetAndFollow();
+                        }
+                        else if(keyUp && inputKey == Key.LeftShift && this.IsPaused)
+                        {
+                            this.IsPaused = false;
+                            this.Character.UnFollow();
+                        }
+                        else if (!keyUp && !this.IsPaused && this.Character.MovementInstruction != null)
+                        {
                             if (inputKey == Key.Escape)
                             {
                                 DeactivateMovement();
@@ -268,7 +279,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             }
                         }
                     }
-                    WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                    //WindowsUtilities.SetForegroundWindow(foregroundWindow);
                 }
             }
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);

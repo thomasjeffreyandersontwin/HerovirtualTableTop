@@ -514,7 +514,7 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.SpawnNpc, model, Label);
             Target(false);
-            keybind = ActiveIdentity.Render(completeEvent);
+            keybind = ActiveIdentity.RenderWithoutAnimation(completeEvent);
             if (completeEvent)
             {
                 WaitUntilTargetIsRegistered();
@@ -636,12 +636,22 @@ namespace Module.HeroVirtualTabletop.Characters
             Target(false);
             if(!this.IsMoving)
             {
+                //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NoClip);
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow);
                 this.IsFollowed = true;
             }
-            
+
             if (completeEvent)
+            {
                 keyBindsGenerator.CompleteEvent();
+                //Action d = delegate ()
+                //{
+                //    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NoClip);
+                //    keyBindsGenerator.CompleteEvent();
+                //};
+                //AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 7000);
+                //adex.ExecuteAsyncDelegate();
+            }
         }
 
         public void UnFollow()
@@ -652,6 +662,13 @@ namespace Module.HeroVirtualTabletop.Characters
                 keyBindsGenerator.CompleteEvent();
                 this.IsFollowed = false;
             }
+        }
+
+        public void TeleportToCamera()
+        {
+            Target(false);
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
+            keyBindsGenerator.CompleteEvent();
         }
 
         public string UnTarget(bool completeEvent = true)

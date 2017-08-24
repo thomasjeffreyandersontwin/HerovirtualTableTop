@@ -39,7 +39,7 @@ namespace Module.HeroVirtualTabletop.Desktop
             
             public void ActivateKeyboardHook()
             {
-
+                
                 hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
             }
             internal void DeactivateKeyboardHook()

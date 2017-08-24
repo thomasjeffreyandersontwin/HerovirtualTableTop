@@ -8,6 +8,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
+using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.Library.Events
 {
@@ -27,8 +28,10 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class ActivateCharacterEvent : PubSubEvent<Tuple<Character, string, string>> { };
     public class DeactivateCharacterEvent : PubSubEvent<object> { };
     public class NeedAbilityCollectionRetrievalEvent : PubSubEvent<object> { };
+    public class NeedIdentityCollectionRetrievalEvent : PubSubEvent<object> { };
     public class NeedDefaultCharacterRetrievalEvent : PubSubEvent<Action<Character>> { };
     public class FinishedAbilityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<AnimatedAbility>> { };
+    public class FinishedIdentityCollectionRetrievalEvent : PubSubEvent<ObservableCollection<Identity>> { };
     public class StopAllActiveAbilitiesEvent : PubSubEvent<object> { };
     public class ListenForTargetChanged : PubSubEvent<object> { };
     public class StopListeningForTargetChanged : PubSubEvent<object> { };

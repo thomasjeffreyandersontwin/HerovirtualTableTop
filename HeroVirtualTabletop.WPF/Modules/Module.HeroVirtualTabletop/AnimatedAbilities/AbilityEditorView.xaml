@@ -151,6 +151,7 @@
                 <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference (Alt+Plus+R)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Reference}"/>
                 <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence (Alt+Plus+Q)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sequence}"/>
                 <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Pause}"/>
+                <Button x:Name="btnLoadIdentityAnimation" Content="&#xf129;" ToolTip="Add Identity (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.LoadIdentity}"/>
                 <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability (Alt+Enter)" Command="{Binding DemoAnimatedAbilityCommand}" />
             </StackPanel>
             <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
@@ -222,7 +223,7 @@
             <RadioButton Grid.Row="1" Grid.Column="2" Content="Copy" IsChecked="{Binding Path=CurrentReferenceElement.ReferenceType, Converter={StaticResource EnumToBooleanConverter}, ConverterParameter=Copy}" GroupName="ReferenceAnimationGroup" HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding UpdateReferenceTypeCommand}" Visibility="{Binding IsReferenceAbilitySelected, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>
         <TreeView x:Name="treeViewAnimations" Grid.Row="3" Grid.Column="0" ItemsSource="{Binding CurrentAbility.AnimationElements}" Style="{StaticResource ResourceKey=SearchableTreeView}" AllowDrop="True"
-                  PreviewMouseDown="treeViewAnimations_OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5" MaxWidth="300"
+                  PreviewMouseDown="treeViewAnimations_OnPreviewMouseDown" PreviewKeyUp="treeViewAnimations_PreviewKeyUp" BorderBrush="#FF1144FF" BorderThickness="1" Margin="5,10.2,5.4,-0.4" MaxWidth="300"
                   PreviewMouseMove="treeViewAnimations_PreviewMouseMove" PreviewDragEnter="treeViewAnimations_PreviewDragEnter" PreviewDrop="treeViewAnimations_PreviewDrop"
                   extensions:DragDropExtension.ScrollOnDragDrop="True" IsEnabled="{Binding CanEditAbilityOptions}"
                   >
@@ -421,6 +422,32 @@
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Character" Binding="{Binding Reference.Owner.Name}" Width="auto" IsReadOnly="True"></DataGridTextColumn>
                         <DataGridTextColumn Header="Ability" Binding="{Binding Reference.Name}" Width="*" IsReadOnly="True"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <DataGrid x:Name="dataGridIdentityReferences"
+                          MaxWidth="400"
+                          Background="Transparent" RowBackground="Transparent" Margin="5" BorderBrush="#FF1144FF"
+                          Visibility="{Binding Path=SelectedAnimationElement.Type, Converter={StaticResource resourcesTypeConverter}, ConverterParameter=LoadIdentity, FallbackValue=Collapsed}"
+                          ItemsSource="{Binding IdentityResourcesCVS.View}"
+                          SelectionUnit="FullRow" AutoGenerateColumns="False" IsEnabled="{Binding CanEditAbilityOptions}"
+                          SelectionMode="Single" CanUserResizeRows="False"
+                          SelectedValue="{Binding SelectedAnimationElement.Resource, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                      >
+                    <i:Interaction.Behaviors>
+                        <behaviors:ScrollIntoViewForDataGrid />
+                    </i:Interaction.Behaviors>
+                    <DataGrid.Resources>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="Foreground" Value="White"></Setter>
+                            <Style.Triggers>
+                                <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                    <Setter Property="Background" Value="#FF1144FF" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.Resources>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Identity" Binding="{Binding Identity.Name}" Width="*" IsReadOnly="True"></DataGridTextColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>

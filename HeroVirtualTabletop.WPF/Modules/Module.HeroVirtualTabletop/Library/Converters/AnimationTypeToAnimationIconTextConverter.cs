@@ -34,6 +34,9 @@ namespace Module.HeroVirtualTabletop.Library.Converters
                 case AnimationElementType.Reference:
                     iconText = "\uf08e";
                     break;
+                case AnimationElementType.LoadIdentity:
+                    iconText = "\uf129";
+                    break;
             }
             return iconText;
         }

@@ -78,6 +78,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static Dictionary<string, object> GlobalVariables_UISettings = new Dictionary<string, object>();
 
+        public static int GlobalVariables_GhostCharacterIndex = 0;
+
         #endregion
 
         #region Resource Dictionary and Style related

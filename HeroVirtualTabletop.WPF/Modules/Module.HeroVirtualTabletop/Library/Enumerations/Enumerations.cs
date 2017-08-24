@@ -22,7 +22,9 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Clone, 
         Cut, 
         Link,
-        CloneLink
+        CloneLink,
+        FlattenCopy,
+        NumberedFlattenCopy
     }
     public enum ExpansionUpdateEvent
     {
@@ -38,7 +40,8 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         FX,
         Reference,
         Sequence,
-        Pause
+        Pause,
+        LoadIdentity
     }
 
     public enum AnimationType

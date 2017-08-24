@@ -143,9 +143,23 @@ namespace Module.HeroVirtualTabletop.Roster
             ListCollectionView view = (ListCollectionView)source.View;
             if (view != null && view.Groups != null && view.Groups.Count > 1)
             {
-                view.Refresh();
+                //view.Refresh();
             }
         }
-        
+
+        private void UserControl_LostFocus(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void UserControl_GotFocus(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+
+        }
     }
 }

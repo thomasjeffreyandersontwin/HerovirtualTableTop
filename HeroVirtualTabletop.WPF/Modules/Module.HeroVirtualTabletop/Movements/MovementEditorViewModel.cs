@@ -310,6 +310,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.InitializeMovementSelections();
             this.IsShowingMovementEditor = true;
             this.CurrentCharacterMovement = characterMovement;
+            this.referenceAbilitiesCVS = null;
             this.eventAggregator.GetEvent<NeedDefaultCharacterRetrievalEvent>().Publish(this.LoadAvailableMovements);
             this.SelectedMovement = characterMovement.Movement;
         }

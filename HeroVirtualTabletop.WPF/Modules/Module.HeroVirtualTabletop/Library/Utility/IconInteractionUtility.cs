@@ -59,7 +59,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         static IconInteractionUtility()
         {
             string hookCostumePath = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, "HookCostume.dll");
-            Shared.Logging.FileLogManager.ForceLog(hookCostumePath);
+            //Shared.Logging.FileLogManager.ForceLog(hookCostumePath);
             dllHandle = WindowsUtilities.LoadLibrary(hookCostumePath);
             if (dllHandle != null)
             {
@@ -67,56 +67,56 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 if (initGameAddress != IntPtr.Zero)
                 {
                     initGame = (InitGame)(Marshal.GetDelegateForFunctionPointer(initGameAddress, typeof(InitGame)));
-                    Shared.Logging.FileLogManager.ForceLog("Init Game Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Init Game Located");
                 }
 
                 IntPtr closeGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "CloseGame");
                 if (closeGameAddress != IntPtr.Zero)
                 {
                     closeGame = (CloseGame)(Marshal.GetDelegateForFunctionPointer(closeGameAddress, typeof(CloseGame)));
-                    Shared.Logging.FileLogManager.ForceLog("Close Game Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Close Game Located");
                 }
 
                 IntPtr setUserHWndAddress = WindowsUtilities.GetProcAddress(dllHandle, "SetUserHWND");
                 if (setUserHWndAddress != IntPtr.Zero)
                 {
                     setUserHWnd = (SetUserHWND)(Marshal.GetDelegateForFunctionPointer(setUserHWndAddress, typeof(SetUserHWND)));
-                    Shared.Logging.FileLogManager.ForceLog("Set User HWND Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Set User HWND Located");
                 }
 
                 IntPtr executeCmdAddress = WindowsUtilities.GetProcAddress(dllHandle, "ExecuteCommand");
                 if (executeCmdAddress != IntPtr.Zero)
                 {
                     executeCmd = (ExecuteCommand)(Marshal.GetDelegateForFunctionPointer(executeCmdAddress, typeof(ExecuteCommand)));
-                    Shared.Logging.FileLogManager.ForceLog("Execute Command Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Execute Command Located");
                 }
 
                 IntPtr getHoveredNPCInfoAddress = WindowsUtilities.GetProcAddress(dllHandle, "GetHoveredNPCInfo");
                 if (getHoveredNPCInfoAddress != IntPtr.Zero)
                 {
                     getHoveredNPCInfo = (GetHoveredNPCInfo)(Marshal.GetDelegateForFunctionPointer(getHoveredNPCInfoAddress, typeof(GetHoveredNPCInfo)));
-                    Shared.Logging.FileLogManager.ForceLog("Get Hovered NPC Info Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Get Hovered NPC Info Located");
                 }
 
                 IntPtr getMouseXYZInGameAddress = WindowsUtilities.GetProcAddress(dllHandle, "GetMouseXYZInGame");
                 if (getMouseXYZInGameAddress != IntPtr.Zero)
                 {
                     getMouseXYZInGame = (GetMouseXYZInGame)(Marshal.GetDelegateForFunctionPointer(getMouseXYZInGameAddress, typeof(GetMouseXYZInGame)));
-                    Shared.Logging.FileLogManager.ForceLog("Get Mouse XYZ Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Get Mouse XYZ Located");
                 }
 
                 IntPtr checkGameDoneAddress = WindowsUtilities.GetProcAddress(dllHandle, "CheckGameDone");
                 if (checkGameDoneAddress != IntPtr.Zero)
                 {
                     checkIfGameLoaded = (CheckIfGameLoaded)(Marshal.GetDelegateForFunctionPointer(checkGameDoneAddress, typeof(CheckIfGameLoaded)));
-                    Shared.Logging.FileLogManager.ForceLog("Check Game Done Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Check Game Done Located");
                 }
 
                 IntPtr detectCollisionAddress = WindowsUtilities.GetProcAddress(dllHandle, "CollisionDetection");
                 if (detectCollisionAddress != IntPtr.Zero)
                 {
                     detectCollision = (DetectCollision)(Marshal.GetDelegateForFunctionPointer(detectCollisionAddress, typeof(DetectCollision)));
-                    Shared.Logging.FileLogManager.ForceLog("Collision Detection Located");
+                    //Shared.Logging.FileLogManager.ForceLog("Collision Detection Located");
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static void InitializeGame(string path)
         {
             initGame(1, path);
-            Shared.Logging.FileLogManager.ForceLog("Init Game Completed");
+            //Shared.Logging.FileLogManager.ForceLog("Init Game Completed");
         }
 
         public static bool IsGameLoaded()
@@ -132,11 +132,11 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             bool gameLoaded = checkIfGameLoaded();
             if (gameLoaded)
             {
-                Shared.Logging.FileLogManager.ForceLog("Game Loaded");
+                //Shared.Logging.FileLogManager.ForceLog("Game Loaded");
             }
             else
             {
-                Shared.Logging.FileLogManager.ForceLog("Game not loaded yet...");
+                //Shared.Logging.FileLogManager.ForceLog("Game not loaded yet...");
                 //System.Threading.Thread.Sleep(1000);
             }
             return gameLoaded;

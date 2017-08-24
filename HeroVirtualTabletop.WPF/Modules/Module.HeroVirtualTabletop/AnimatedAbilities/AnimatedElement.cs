@@ -710,12 +710,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        [JsonIgnore]
+        public Character GhostShadow
+        {
+            get;set;
+        }
+
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
         private string PrepareCostumeFile(Character Target = null, bool persistent = false)
         {
             Character target = Target ?? this.Owner;
             if (target.ActiveIdentity.Type != IdentityType.Costume)
-                return string.Empty;
+            {
+                SuperImposeGhostOnTarget(target);
+                target = this.GhostShadow;
+                if(target == null)
+                    return string.Empty;
+            }
             target.Target(false);
             string name = target.ActiveIdentity.Surface;
             string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
@@ -808,7 +819,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public override void Stop(Character Target = null)
         {
             Character target = Target ?? this.Owner;
-            if (IsActive)
+            //Character originalTarget = target;
+            if (target.ActiveIdentity.Type != IdentityType.Costume)
+            {
+                target = this.GhostShadow;
+            }
+            if (target != null && IsActive)
             {
                 target.Target(false);
                 fileLock.EnterWriteLock();
@@ -821,6 +837,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     fileLock.ExitWriteLock();
                 }
                 IsActive = false;
+                if(this.GhostShadow != null)
+                {
+                    this.GhostShadow.ClearFromDesktop();
+                    this.GhostShadow = null;
+                }
             }
         }
 
@@ -936,6 +957,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             clonedElement.PlayOnTopOfPreviousFx = this.PlayOnTopOfPreviousFx;
             clonedElement.Colors = this.Colors.DeepClone() as ObservableCollection<System.Windows.Media.Color>;
             return clonedElement;
+        }
+
+        private string ghostShadowName;
+        public void SuperImposeGhostOnTarget(Character Target)
+        {
+            if(this.GhostShadow == null)
+            {
+                if (string.IsNullOrEmpty(ghostShadowName))
+                {
+                    int serial = ++Helper.GlobalVariables_GhostCharacterIndex;
+                    ghostShadowName = "gh" + serial.ToString(); 
+                }
+                this.GhostShadow = new Character(ghostShadowName, "ghost", IdentityType.Costume);
+                this.GhostShadow.Spawn();
+            }
+            
+            this.GhostShadow.CurrentPositionVector = Target.CurrentPositionVector;
+            this.GhostShadow.CurrentModelMatrix = Target.CurrentModelMatrix;
         }
     }
 
@@ -1491,6 +1530,68 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
     }
 
+    public class IdentityElement : AnimationElement
+    {
+        [JsonConstructor]
+        private IdentityElement() : base(string.Empty) { }
+
+        public IdentityElement(string name, Identity identity, bool persistent = false, int order = 1, Character owner = null)
+            : base(name, persistent, order, owner)
+        {
+            this.Identity = identity;
+            this.Type = AnimationElementType.LoadIdentity;
+        }
+
+        private Identity identity;
+        public Identity Identity
+        {
+            get
+            {
+                return identity;
+            }
+            set
+            {
+                identity = value;
+                OnPropertyChanged("Reference");
+            }
+        }
+
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        {
+            var target = Target ?? this.Owner;
+            if (this.Identity != null)
+            {
+                target.Target(false);
+                this.Identity.Render(Target: target);
+            }
+        }
+
+        public override void Stop(Character Target = null)
+        {
+            var target = Target ?? this.Owner;
+            target.Target(false);
+            target.ActiveIdentity.RenderWithoutAnimation();
+        }
+
+        protected override AnimationResource GetResource()
+        {
+            return new AnimationResource(this.Identity, this.identity != null ? this.identity.Name : "");
+        }
+
+        protected override void SetResource(AnimationResource value)
+        {
+            this.Identity = value;
+        }
+        public override AnimationElement Clone()
+        {
+            IdentityElement clonedElement = new IdentityElement(this.Name, this.Identity, this.Persistent, this.Order, this.Owner);
+            clonedElement.DisplayName = this.DisplayName;
+            clonedElement.PlayOnTargeted = this.PlayOnTargeted;
+            clonedElement.Type = AnimationElementType.LoadIdentity;
+            return clonedElement;
+        }
+    }
+
     public class ReferenceAbilityResourceComparer : IComparer<AnimationResource>
     {
         public int Compare(AnimationResource ar1, AnimationResource ar2)
@@ -1501,6 +1602,22 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 s1 = ar1.Reference.Name;
                 s2 = ar2.Reference.Name;
+            }
+
+            return Helper.CompareStrings(s1, s2);
+        }
+    }
+
+    public class IdentityResourceComparer : IComparer<AnimationResource>
+    {
+        public int Compare(AnimationResource ar1, AnimationResource ar2)
+        {
+            string s1 = string.Empty;
+            string s2 = string.Empty;
+            if(ar1.Identity != null && ar2.Identity != null && ar1.Identity.Name == ar2.Identity.Name)
+            {
+                s1 = ar1.Identity.Surface;
+                s2 = ar2.Identity.Surface;
             }
 
             return Helper.CompareStrings(s1, s2);

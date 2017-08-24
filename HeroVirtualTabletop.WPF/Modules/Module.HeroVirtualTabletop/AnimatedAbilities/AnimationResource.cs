@@ -1,4 +1,5 @@
 ﻿using Framework.WPF.Library;
+using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Newtonsoft.Json;
 using System;
@@ -30,6 +31,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.Reference = reference;
         }
 
+        public AnimationResource(Identity identity) : this()
+        {
+            this.Identity = identity;
+        }
+
         public AnimationResource(string value, string name, params string[] tags) : this(value)
         {
             this.Name = name;
@@ -38,6 +44,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         public AnimationResource(AnimatedAbility reference, string name, params string[] tags) : this(reference)
+        {
+            this.Name = name;
+            this.tags.AddRange(tags);
+        }
+
+        public AnimationResource(Identity identity, string name, params string[] tags) : this(identity)
         {
             this.Name = name;
             this.tags.AddRange(tags);
@@ -85,6 +97,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private Identity identity;
+        public Identity Identity
+        {
+            get
+            {
+                return identity;
+            }
+            set
+            {
+                identity = value;
+                OnPropertyChanged("Identity");
+            }
+        }
+
         [JsonProperty(PropertyName = "Tags")]
         private ObservableCollection<string> tags;
         [JsonIgnore]
@@ -108,7 +134,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public static implicit operator string(AnimationResource s)
         {
-            return s == null ? string.Empty : (s.Value != null ? s.Value.ToString() : (s.Reference != null ? s.Reference.Name : string.Empty));
+            return s == null ? string.Empty : (s.Value != null ? s.Value.ToString() : 
+                (s.Reference != null && s.Reference is AnimatedAbility ? s.Reference.Name : s.Identity != null ? s.Identity.Name : string.Empty));
         }
 
         public static implicit operator AnimatedAbility(AnimationResource s)
@@ -126,6 +153,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return new AnimationResource(s);
         }
 
+        public static implicit operator AnimationResource(Identity i)
+        {
+            return new AnimationResource(i);
+        }
+
+        public static implicit operator Identity(AnimationResource s)
+        {
+            return s == null ? null : (s.Identity != null ? s.Identity : null);
+        }
+
         #endregion
 
         #region Equality Comparer and Operator Overloading
@@ -139,7 +176,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 return false;
             }
-            return a.Value == b.Value && a.Reference == b.Reference && a.Name == b.Name;
+            return a.Value == b.Value && (a.Reference == b.Reference || a.Identity == b.Identity) && a.Name == b.Name;
         }
 
         public static bool operator !=(AnimationResource a, AnimationResource b)

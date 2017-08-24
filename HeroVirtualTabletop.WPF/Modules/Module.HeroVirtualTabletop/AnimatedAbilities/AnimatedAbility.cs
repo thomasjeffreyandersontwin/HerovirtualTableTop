@@ -117,6 +117,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 case AnimationElementType.Reference:
                     name = "Ref Element";
                     break;
+                case AnimationElementType.LoadIdentity:
+                    name = "Identity Element";
+                    break;
             }
 
             string suffix = " 1";

@@ -216,6 +216,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             Keys vkCode = this.vkCode;
             activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
+            ActiveCharacter.Target(false);
+            ActiveCharacter.ActiveIdentity.RenderWithoutAnimation();
             activeAbility.Play();
             clickTimer_AbilityPlay.Start();
         }

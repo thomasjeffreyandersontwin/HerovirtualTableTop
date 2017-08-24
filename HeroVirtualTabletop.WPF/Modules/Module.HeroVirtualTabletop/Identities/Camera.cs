@@ -3,6 +3,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.HeroVirtualTabletop.Library.ProcessCommunicator;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared.Enumerations;
 using System;
 using System.Collections;
@@ -23,10 +24,18 @@ namespace Module.HeroVirtualTabletop.Identities
 
         public string MoveToTarget(bool completeEvent = true)
         {
+            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NoClip);
             string keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Follow, "");
             if (completeEvent)
             {
-                return keyBindsGenerator.CompleteEvent();
+                keybind = keyBindsGenerator.CompleteEvent();
+                //Action d = delegate ()
+                //{
+                //    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NoClip);
+                //    keyBindsGenerator.CompleteEvent();
+                //};
+                //AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 7000);
+                //adex.ExecuteAsyncDelegate();
             }
             return keybind;
         }

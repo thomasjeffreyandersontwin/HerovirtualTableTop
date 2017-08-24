@@ -509,7 +509,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void SaveOptionGroupCompletedCallback(object state)
         {
-            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            //this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            //this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Publish(null);
             this.eventAggregator.GetEvent<SaveCrowdCompletedEvent>().Unsubscribe(this.SaveOptionGroupCompletedCallback);
         }
 
@@ -711,6 +712,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
             }
             owner.ActiveAbility = ability;
+            currentTarget.Target(false);
+            currentTarget.ActiveIdentity.RenderWithoutAnimation();
             ability.Play(Target: currentTarget);
         }
 
@@ -842,6 +845,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private void AddIdentity(object state)
         {
             (optionGroup as OptionGroup<Identity>).Add(GetNewIdentity());
+            this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Publish(null);
         }
 
         private void RemoveIdentity(object state)
@@ -874,7 +878,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             Attack attack = GetNewAttackAbility();
             (optionGroup as OptionGroup<AnimatedAbility>).Add(attack);
 
-            this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
+            //this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
             this.eventAggregator.GetEvent<AddOptionEvent>().Publish(attack);
         }
 

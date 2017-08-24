@@ -56,7 +56,8 @@ namespace Module.HeroVirtualTabletop.Desktop
     {
         public static FileSystemWatcher ContextCommandFileWatcher;
         public CrowdMemberModel Character = null;
-        public bool IsDisplayed = false;
+
+        public bool IsDisplayed { get; set; }
 
         public bool ShowAreaAttackMenu { get; set; }
         public string AttackingCharacterName { get; set; }
