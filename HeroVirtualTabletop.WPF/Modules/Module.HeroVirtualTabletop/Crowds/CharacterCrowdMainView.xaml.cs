@@ -108,20 +108,5 @@ namespace Module.HeroVirtualTabletop.Crowds
             }  
             
         }
-
-        private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-
-        }
-
-        private void grpBoxCharacterExplorer_GotFocus(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void grpBoxCharacterExplorer_LostGotFocus(object sender, RoutedEventArgs e)
-        {
-
-        }
     }
 }

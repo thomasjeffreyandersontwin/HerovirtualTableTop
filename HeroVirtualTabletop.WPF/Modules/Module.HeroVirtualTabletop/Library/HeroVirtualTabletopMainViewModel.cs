@@ -117,6 +117,7 @@ namespace Module.HeroVirtualTabletop.Library
                 ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
                 PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style, WindowStartupLocation.Manual);
                 this.eventAggregator.GetEvent<ActivateCharacterEvent>().Publish(tuple);
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_CHARACTER_WIDGET;
             }
             else if (character == null && PopupService.IsOpen("ActiveCharacterWidgetView"))
             {
@@ -147,20 +148,22 @@ namespace Module.HeroVirtualTabletop.Library
             {
                 System.Windows.Style style = Helper.GetCustomWindowStyle();
                 ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
-                var position = System.Windows.Forms.Cursor.Position;
                 Mouse.OverrideCursor = Cursors.Arrow; 
                 PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
                 this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Publish(tuple);
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_ATTACK_WIDGET;
             }
             else if ((tuple.Item1 == null || tuple.Item2 == null) && PopupService.IsOpen("ActiveAttackView"))
             {
                 PopupService.CloseDialog("ActiveAttackView");
+                this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ACTIVE_ATTACK_WIDGET);
             }
         }
 
         private void CloseActiveAttackWidget(object state)
         {
             PopupService.CloseDialog("ActiveAttackView");
+            this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ACTIVE_ATTACK_WIDGET);
         }
 
         private void CloseActiveCharacterWidget(object state)
@@ -168,6 +171,7 @@ namespace Module.HeroVirtualTabletop.Library
             Character target = state as Character;
             PopupService.SavePosition("ActiveCharacterWidgetView", target != null ? target.Name : null);
             PopupService.CloseDialog("ActiveCharacterWidgetView");
+            this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ACTIVE_CHARACTER_WIDGET);
         }
 
        

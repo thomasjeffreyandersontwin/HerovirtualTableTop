@@ -1,13 +1,16 @@
 ﻿using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
+using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.Roster;
+using Module.Shared;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -45,6 +48,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isCharacterExplorerExpanded = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.CHARACTER_EXPLORER;
+                else
+                    ActivateOneOfTheMainPanels(Constants.CHARACTER_EXPLORER);
                 OnPropertyChanged("IsCharacterExplorerExpanded");
             }
         }
@@ -59,6 +66,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isRosterExplorerExpanded = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.ROSTER_EXPLORER;
+                else
+                    ActivateOneOfTheMainPanels(Constants.ROSTER_EXPLORER);
                 OnPropertyChanged("IsRosterExplorerExpanded");
             }
         }
@@ -73,6 +84,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isCharacterEditorExpanded = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.CHARACTER_EDITOR;
+                else
+                    ActivateOneOfTheMainPanels(Constants.CHARACTER_EDITOR);
                 OnPropertyChanged("IsCharacterEditorExpanded");
             }
         }
@@ -87,6 +102,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isIdentityEditorExpanded = value;
+                //if (value)
+                //    Helper.GlobalVariables_CurrentActiveWindowName = Constants.IDENTITY_EDITOR;
+                //else
+                //    ActivateOneOfTheMainPanels(Constants.IDENTITY_EDITOR);
                 OnPropertyChanged("IsIdentityEditorExpanded");
             }
         }
@@ -101,6 +120,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isAbilityEditorExpanded = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.ABILITY_EDITOR;
+                else
+                    ActivateOneOfTheMainPanels(Constants.ABILITY_EDITOR);
                 OnPropertyChanged("IsAbilityEditorExpanded");
             }
         }
@@ -115,6 +138,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isMovementEditorExpanded = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.MOVEMENT_EDITOR;
+                else
+                    ActivateOneOfTheMainPanels(Constants.MOVEMENT_EDITOR);
                 OnPropertyChanged("IsMovementEditorExpanded");
             }
         }
@@ -129,6 +156,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 isCrowdFromModelsExpanded = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.CROWD_FROM_MODELS_VIEW;
+                else
+                    ActivateOneOfTheMainPanels(Constants.CROWD_FROM_MODELS_VIEW);
                 OnPropertyChanged("IsCrowdFromModelsExpanded");
             }
         }
@@ -138,6 +169,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Commands
 
         public DelegateCommand<object> CollapsePanelCommand { get; private set; }
+        public DelegateCommand<string> ActivatePanelCommand { get; private set; }
+        public DelegateCommand<string> DeactivatePanelCommand { get; private set; }
 
         #endregion
 
@@ -153,6 +186,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe((Tuple<AnimatedAbility, Character> tuple) => { this.IsAbilityEditorExpanded = true; });
             this.eventAggregator.GetEvent<EditMovementEvent>().Subscribe((CharacterMovement cm) => { this.IsMovementEditorExpanded = true; });
             this.eventAggregator.GetEvent<CreateCrowdFromModelsEvent>().Subscribe((CrowdModel crowd) => { this.IsCrowdFromModelsExpanded = true; });
+            this.eventAggregator.GetEvent<PanelClosedEvent>().Subscribe(this.ActivateOneOfTheMainPanels);
             //this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe((Tuple<Character, Attack> tuple) => { this.IsRosterExplorerExpanded = true; });
         }
 
@@ -163,6 +197,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void InitializeCommands()
         {
             this.CollapsePanelCommand = new DelegateCommand<object>(this.CollapsePanel);
+            this.ActivatePanelCommand = new DelegateCommand<string>(this.ActivatePanel);
+            this.DeactivatePanelCommand = new DelegateCommand<string>(this.DeactivatePanel);
         }
 
         #endregion
@@ -231,6 +267,74 @@ namespace Module.HeroVirtualTabletop.Crowds
                     break;
             }
         }
+        #region Activate/Deactivate Panels for Handling keyboard events
+
+        private void ActivatePanel(string panelName)
+        {
+            Helper.GlobalVariables_CurrentActiveWindowName = panelName;
+        }
+
+        private void DeactivatePanel(string panelName)
+        {
+            if (Helper.GlobalVariables_CurrentActiveWindowName == panelName)
+                Helper.GlobalVariables_CurrentActiveWindowName = "";
+        }
+
+        private void ActivateOneOfTheMainPanels(string closingPanelName)
+        {
+            var popupService = this.Container.Resolve<IPopupService>();
+            if (popupService.IsOpen("ActiveAttackView"))
+            {
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_ATTACK_WIDGET;
+            }
+            else if (popupService.IsOpen("ActiveCharacterWidgetView"))
+            {
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_CHARACTER_WIDGET;
+            }
+            else if (IsRosterExplorerExpanded)
+            {
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ROSTER_EXPLORER;
+            }
+            else if (IsCharacterEditorExpanded)
+            {
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.CHARACTER_EDITOR;
+            }
+            else if (IsCharacterExplorerExpanded)
+            {
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.CHARACTER_EXPLORER;
+            }
+            else if (IsAbilityEditorExpanded)
+            {
+                var abilityEditorVM = this.Container.Resolve<AbilityEditorViewModel>();
+                if (abilityEditorVM.IsShowingAbilityEditor)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.ABILITY_EDITOR;
+            }
+            else if (IsMovementEditorExpanded)
+            {
+                var movementEditorVM = this.Container.Resolve<MovementEditorViewModel>();
+                if (movementEditorVM.IsShowingMovementEditor)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.MOVEMENT_EDITOR;
+            }
+            //else if (IsIdentityEditorExpanded)
+            //{
+            //    var identityEditorVM = this.Container.Resolve<IdentityEditorViewModel>();
+            //    if (identityEditorVM.Visibility == System.Windows.Visibility.Visible)
+            //        Helper.GlobalVariables_CurrentActiveWindowName = Constants.IDENTITY_EDITOR;
+            //}
+            else if (IsCrowdFromModelsExpanded)
+            {
+                var crowdFromModelsVM = this.Container.Resolve<CrowdFromModelsViewModel>();
+                if (crowdFromModelsVM.Visibility == System.Windows.Visibility.Visible)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.CROWD_FROM_MODELS_VIEW;
+            }
+            else
+            {
+                Helper.GlobalVariables_CurrentActiveWindowName = string.Empty;
+            }
+        }
+
+        #endregion
+
         #endregion
     }
 }

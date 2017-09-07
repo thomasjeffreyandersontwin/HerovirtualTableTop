@@ -145,14 +145,14 @@
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
-                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Move (Alt+Plus+M)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Movement}"/>
-                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX (Alt+Plus+F)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.FX}"/>
-                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound (Alt+Plus+S)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sound}"/>
-                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference (Alt+Plus+R)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Reference}"/>
-                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence (Alt+Plus+Q)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sequence}"/>
-                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Pause}"/>
-                <Button x:Name="btnLoadIdentityAnimation" Content="&#xf129;" ToolTip="Add Identity (Alt+Plus+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.LoadIdentity}"/>
-                <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability (Alt+Enter)" Command="{Binding DemoAnimatedAbilityCommand}" />
+                <Button x:Name="btnMovementAnimation" Content="&#xf008;" ToolTip="Add Move (Ctrl+M)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Movement}"/>
+                <Button x:Name="btnFXAnimation" Content="&#xf0d0;" ToolTip="Add FX (Ctrl+F)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.FX}"/>
+                <Button x:Name="btnSoundAnimation" Content="&#xf001;" ToolTip="Add Sound (Ctrl+S)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sound}"/>
+                <Button x:Name="btnReferenceAnimation" Content="&#xf08e;" ToolTip="Add Reference (Ctrl+R)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Reference}"/>
+                <Button x:Name="btnNestedAnimation" Content="&#xf126;" ToolTip="Add Sequence (Ctrl+Q)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Sequence}"/>
+                <Button x:Name="btnPauseAnimation" Content="&#xf04c;" ToolTip="Add Pause (Ctrl+P)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.Pause}"/>
+                <Button x:Name="btnLoadIdentityAnimation" Content="&#xf129;" ToolTip="Add Identity (Ctrl+I)" Command="{Binding AddAnimationElementCommand}" CommandParameter="{x:Static enumerations:AnimationElementType.LoadIdentity}"/>
+                <Button x:Name="btnPlayAnimation" Content="&#xf04b;" ToolTip="Demo Ability (Ctrl+Enter)" Command="{Binding DemoAnimatedAbilityCommand}" />
             </StackPanel>
             <TextBlock Text="Activation Key" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Style="{StaticResource TextBlockDefaultStyle}"/>
             <ComboBox Grid.Row="1" Grid.Column="1" Margin="2" IsEnabled="{Binding CanEditAbilityOptions}"
@@ -168,12 +168,12 @@
             <StackPanel.Resources>
                 <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
             </StackPanel.Resources>
-            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone (Alt+Ctrl+C)" Command="{Binding CloneAnimationCommand}"/>
-            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut (Alt+Ctrl+X)" Command="{Binding CutAnimationCommand}"/>
-            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste (Alt+Ctrl+V)" Command="{Binding PasteAnimationCommand}"/>
-            <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove (Alt+Ctrl+Backspace)" Command="{Binding RemoveAnimationCommand}"/>
-            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation (Alt+Ctrl+Enter)" Command="{Binding DemoAnimationCommand}"/>
-            <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack (Alt+Ctrl+A)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="{x:Static enumerations:AnimationType.Attack}">
+            <Button x:Name="btnClone" Content="&#xf0c5;" ToolTip="Clone (Ctrl+C)" Command="{Binding CloneAnimationCommand}"/>
+            <Button x:Name="btnCut" Content="&#xf0c4;" ToolTip="Cut (Ctrl+X)" Command="{Binding CutAnimationCommand}"/>
+            <Button x:Name="btnPaste" Content="&#xf0ea;" ToolTip="Paste (Ctrl+V)" Command="{Binding PasteAnimationCommand}"/>
+            <Button x:Name="btnRemove" Content="&#xf056;" ToolTip="Remove (Ctrl+Minus/Del)" Command="{Binding RemoveAnimationCommand}"/>
+            <Button x:Name="btnPlay" Content="&#xf04b;" ToolTip="Demo Animation (Ctrl+Enter)" Command="{Binding DemoAnimationCommand}"/>
+            <Button x:Name="btnAttack" Grid.Column="0" Content="&#xf0e7;" ToolTip="Attack (Ctrl+A)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="{x:Static enumerations:AnimationType.Attack}">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>
@@ -187,7 +187,7 @@
                     </Style>
                 </Button.Style>
             </Button>
-            <Button x:Name="btnOnHit" Grid.Column="1" Content="&#xf132;" ToolTip="On Hit (Alt+Ctrl+H)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="{x:Static enumerations:AnimationType.OnHit}">
+            <Button x:Name="btnOnHit" Grid.Column="1" Content="&#xf132;" ToolTip="On Hit (Ctrl+H)" Margin="2" Command="{Binding ConfigureAttackAnimationCommand}" CommandParameter="{x:Static enumerations:AnimationType.OnHit}">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>

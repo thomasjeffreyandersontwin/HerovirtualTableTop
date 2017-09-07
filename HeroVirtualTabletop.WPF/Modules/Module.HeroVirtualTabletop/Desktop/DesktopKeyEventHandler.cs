@@ -24,87 +24,93 @@ namespace Module.HeroVirtualTabletop.Desktop
     public class DesktopKeyEventHandler
     {
 
-            public IntPtr hookID;
-            public Keys vkCode;
-            public System.Windows.Input.Key _inputKey;
+        public IntPtr hookID;
+        public Keys vkCode;
+        public System.Windows.Input.Key _inputKey;
 
 
-            public delegate EventMethod HandleKeyEvent(Keys vkCode, System.Windows.Input.Key inputKey);
-            HandleKeyEvent _handleKeyEvent;
-            public DesktopKeyEventHandler(HandleKeyEvent d)
+        public delegate EventMethod HandleKeyEvent(Keys vkCode, System.Windows.Input.Key inputKey);
+        HandleKeyEvent _handleKeyEvent;
+        public DesktopKeyEventHandler(HandleKeyEvent d)
+        {
+            _handleKeyEvent = d;
+            ActivateKeyboardHook();
+        }
+
+        public void ActivateKeyboardHook()
+        {
+
+            hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
+        }
+        internal void DeactivateKeyboardHook()
+        {
+            KeyBoardHook.UnsetHook(hookID);
+        }
+        internal IntPtr CallNextHook(IntPtr hookID, int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
+        internal System.Windows.Input.Key InputKey
+        {
+            get
             {
-                _handleKeyEvent = d;
-                ActivateKeyboardHook();
-            }
-            
-            public void ActivateKeyboardHook()
-            {
-                
-                hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
-            }
-            internal void DeactivateKeyboardHook()
-            {
-                KeyBoardHook.UnsetHook(hookID);
-            }
-            internal IntPtr CallNextHook(IntPtr hookID, int nCode, IntPtr wParam, IntPtr lParam)
-            {
-                return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
-            }
-
-            internal System.Windows.Input.Key InputKey
-            {
-                get
-                {
-                    return KeyInterop.KeyFromVirtualKey((int)this.vkCode);
-                }
-            }
-            internal Boolean ApplicationIsActiveWindow
-            {
-                get
-                {
-                    uint wndProcId;
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    return currentProcId == wndProcId;
-                }
-            }
-
-           
-
-
-            public delegate void EventMethod();
-            
-            internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
-            {
-
-                if (nCode >= 0)
-                {
-                    KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                    this.vkCode = (Keys)keyboardLLHookStruct.vkCode;
-                    KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                    if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                    {
-                        IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                        uint wndProcId;
-                        uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                        if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                            || Process.GetCurrentProcess().Id == wndProcId)
-                        {
-                        System.Windows.Input.Key inputKey = InputKey;
-                        EventMethod handler = _handleKeyEvent(vkCode, inputKey);
-                            if (handler != null)
-                            {
-                                handler();
-
-                            }
-                        }
-                        //WindowsUtilities.SetForegroundWindow(foregroundWindow);
-                    }
-                }
-                return CallNextHook(hookID, nCode, wParam, lParam);
+                return KeyInterop.KeyFromVirtualKey((int)this.vkCode);
             }
         }
+        internal Boolean ApplicationIsActiveWindow
+        {
+            get
+            {
+                uint wndProcId;
+                IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                var currentProcId = Process.GetCurrentProcess().Id;
+                return currentProcId == wndProcId;
+            }
+        }
+
+
+
+
+        public delegate void EventMethod();
+
+        internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+
+            if (nCode >= 0)
+            {
+                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                this.vkCode = (Keys)keyboardLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
+                        || Process.GetCurrentProcess().Id == wndProcId)
+                    {
+                        System.Windows.Input.Key inputKey = InputKey;
+                        if ((inputKey == Key.Left || inputKey == Key.Right) && Keyboard.Modifiers == ModifierKeys.Control)
+                        {
+                            IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                        }
+                        else
+                        {
+                            EventMethod handler = _handleKeyEvent(vkCode, inputKey);
+                            if (handler != null)
+                           { 
+                                handler();
+                            }
+                        }
+                    }
+                }
+            }
+            return CallNextHook(hookID, nCode, wParam, lParam);
+        }
+    }
 
 }
 public static class KeyBoardHook

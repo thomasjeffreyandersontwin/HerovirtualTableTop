@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using Module.Shared.Enumerations;
+using Module.Shared.Events;
 using Module.Shared.Logging;
 using Newtonsoft.Json;
 using System;
@@ -138,6 +139,22 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        private string optionTooltip;
+        public override string OptionTooltip
+        {
+            get
+            {
+                optionTooltip = Name + "(Alt + " + ActivationKey.ToString() + ")";
+                return optionTooltip;
+            }
+
+            set
+            {
+                optionTooltip = value;
+                OnPropertyChanged("OptionTooltip");
+            }
+        }
+
         public CharacterMovement Clone()
         {
             CharacterMovement clonedCharacterMovement = new Movements.CharacterMovement(this.Name, this.Character);
@@ -170,6 +187,12 @@ namespace Module.HeroVirtualTabletop.Movements
             KeyBoardHook.UnsetHook(hookID);
             this.Movement.StopMovement(this.Character);
             Helper.GlobalVariables_CharacterMovement = null;
+            //if (this.Character.GhostShadow != null && this.Character.GhostShadow.HasBeenSpawned && this.Character.ActiveIdentity.Type == IdentityType.Model)
+            //{
+            //    CharacterMovement cmGhost = this.Character.GhostShadow.Movements.FirstOrDefault(cm => cm.Name == this.Name);
+            //    if (cmGhost != null)
+            //        cmGhost.DeactivateMovement();
+            //}
         }
 
         public void ActivateMovement()
@@ -178,6 +201,7 @@ namespace Module.HeroVirtualTabletop.Movements
             CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm != this && cm.IsActive);
             if (activeCharacterMovement != null)
                 activeCharacterMovement.DeactivateMovement();
+            
             // Set Active
             this.IsActive = true;
             // Set the still Move
@@ -196,7 +220,12 @@ namespace Module.HeroVirtualTabletop.Movements
             this.EnableCamera(false);
             // Load Keyboard Hook
             hookID = KeyBoardHook.SetHook(this.PlayMovementByKeyProc);
-
+            //if (this.Character.GhostShadow != null && this.Character.GhostShadow.HasBeenSpawned && this.Character.ActiveIdentity.Type == IdentityType.Model)
+            //{
+            //    CharacterMovement cmGhost = this.Character.GhostShadow.Movements.FirstOrDefault(cm => cm.Name == this.Name);
+            //    if (cmGhost != null)
+            //        cmGhost.ActivateMovement();
+            //}
             Helper.GlobalVariables_CharacterMovement = this;
         }
 
@@ -208,29 +237,33 @@ namespace Module.HeroVirtualTabletop.Movements
                 Keys vkCode = (Keys)keyboardDLLHookStruct.vkCode;
                 KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
 
-                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN || wmKeyboard == KeyboardMessage.WM_KEYUP))
+                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
                 {
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                     uint wndProcId;
                     uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
                     var cohWindow = WindowsUtilities.FindWindow("CrypticWindow", null);
                     var currentProcId = Process.GetCurrentProcess().Id;
-                    bool keyUp = wmKeyboard == KeyboardMessage.WM_KEYUP;
+                    //bool keyUp = wmKeyboard == KeyboardMessage.WM_KEYUP;
                     var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
                     if (foregroundWindow == cohWindow
                         || currentProcId == wndProcId)
                     {
-                        if (!keyUp && inputKey == Key.LeftShift && !this.IsPaused)
+                        if (inputKey == Key.CapsLock && !this.IsPaused)
                         {
                             this.IsPaused = true;
-                            this.Character.TargetAndFollow();
+                            //this.Character.TargetAndFollow();
+                            this.EnableCamera(true);
+                            IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                            WindowsUtilities.SetForegroundWindow(winHandle);
                         }
-                        else if(keyUp && inputKey == Key.LeftShift && this.IsPaused)
+                        else if (inputKey == Key.CapsLock && this.IsPaused)
                         {
                             this.IsPaused = false;
-                            this.Character.UnFollow();
+                            this.EnableCamera(false);
+                            //this.Character.UnFollow();
                         }
-                        else if (!keyUp && !this.IsPaused && this.Character.MovementInstruction != null)
+                        else if (!this.IsPaused && this.Character.MovementInstruction != null)
                         {
                             if (inputKey == Key.Escape)
                             {
@@ -320,6 +353,13 @@ namespace Module.HeroVirtualTabletop.Movements
         [JsonConstructor]
         private Movement() { }
         private ILogManager logManager = new FileLogManager(typeof(Movement));
+
+        public event EventHandler<CustomEventArgs<Character>> MovementFinished;
+        public void OnMovementFinished(object sender, CustomEventArgs<Character> e)
+        {
+            if (MovementFinished != null)
+                MovementFinished(sender, e);
+        }
         public Movement(string name)
         {
             this.Name = name;
@@ -448,6 +488,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 //increment character
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 target.CurrentPositionVector = allowableDestinationVector;
+                target.AlignGhost();
             }
         }
 
@@ -491,6 +532,15 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Backward;
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
             this.StartMovment(target);
+            if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
+            {
+                this.MovementFinished += delegate (object sender, CustomEventArgs<Character> e)
+                {
+                    if (e.Value == target)
+                        target.AlignGhost();
+                };
+
+            }
         }
 
         public void Move(Character target, Vector3 destinationVector)
@@ -500,6 +550,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
             if (target.MovementInstruction == null)//
                 target.MovementInstruction = new MovementInstruction();
+            
 
             SetFacingToDestination(target, destinationVector);
             
@@ -533,6 +584,19 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Forward;
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
             this.StartMovment(target);
+            //if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
+            //{
+            //    CharacterMovement cmGhost = target.GhostShadow.Movements.FirstOrDefault(cm => cm.Movement.Name == this.Name);
+            //    if (cmGhost != null)
+            //    {
+            //        cmGhost.Movement.MovementFinished += delegate (object sender, CustomEventArgs<Character> e) 
+            //        {
+            //            if(e.Value == target.GhostShadow)
+            //                target.Target();
+            //        };
+            //        cmGhost.Movement.Move(target.GhostShadow, destinationVector);
+            //    }
+            //}
         }
         private void SetFacingToDestination(Character target, Vector3 destinationVector)
         {
@@ -566,7 +630,7 @@ namespace Module.HeroVirtualTabletop.Movements
             Vector3 targetForwardVector = newModelMatrix.Forward;
             Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
             bool isClockwiseTurn;
-            float origAngle = MathHelper.ToDegrees(Get2DAngleBetweenVectors(currentForwardVector, targetForwardVector, out isClockwiseTurn));
+            float origAngle = MathHelper.ToDegrees(Helper.Get2DAngleBetweenVectors(currentForwardVector, targetForwardVector, out isClockwiseTurn));
             var angle = origAngle;
 
             if (isClockwiseTurn)
@@ -627,6 +691,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
             target.CurrentModelMatrix *= rotatedMatrix; // Apply rotation
             target.CurrentPositionVector = currentPositionVector; // Keep position intact;
+            target.AlignGhost();
 
         }
 #region calc
@@ -1370,21 +1435,10 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
             }
         }
-
-        private float Get2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn)
-        {
-            var x = v1.X * v2.Z - v2.X * v1.Z;
-            isClockwiseTurn = x < 0;
-            var dotProduct = Vector3.Dot(v1, v2);
-            if (dotProduct > 1)
-                dotProduct = 1;
-            if (dotProduct < -1)
-                dotProduct = -1;
-            var y = (float)Math.Acos(dotProduct);
-            return y;
-        }
         #endregion
-#region pause-reset
+
+#region Pause-Reset
+
         public void PauseMovement(Character target)
         {
             if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
@@ -1429,7 +1483,9 @@ namespace Module.HeroVirtualTabletop.Movements
                 target.IsMoving = false;
             }
         }
+
 #endregion
+
         public void StartMovment(Character target) //
         {
             if (this.characterMovementTimerDictionary == null) //
@@ -1496,6 +1552,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     }
                     this.ResetMovement(target);
                     this.StopMovement(target);
+                    OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target});
                 }
                 else
                 {
@@ -1518,6 +1575,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                 target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
                                 this.ResetMovement(target);
                                 this.StopMovement(target);
+                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target});
                             }
                             else
                                 await Move(target); //
@@ -1528,6 +1586,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             {
                                 this.ResetMovement(target);
                                 this.StopMovement(target);
+                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target});
                             }
                         }
                     }
@@ -1580,6 +1639,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
                 }
             }
+            
             await Task.Delay(5);
             var timer = this.characterMovementTimerDictionary[target];
             if (timer != null)

@@ -166,6 +166,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set
             {
                 isShowingAblityEditor = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.ABILITY_EDITOR;
+                else
+                    this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ABILITY_EDITOR);
                 OnPropertyChanged("IsShowingAbilityEditor");
             }
         }
@@ -660,7 +664,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 availableKeys = new ObservableCollection<System.Windows.Forms.Keys>();
                 foreach (var key in Enum.GetValues(typeof(System.Windows.Forms.Keys)).Cast<System.Windows.Forms.Keys>())
                 {
-                    if (!IsAbilityKey(key))
+                    //if (!IsAbilityKey(key))
                         availableKeys.Add(key);
                 }
             }
@@ -1534,7 +1538,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Character currentTarget = GetCurrentTarget();
             currentTarget.Target(false);
-            currentTarget.ActiveIdentity.RenderWithoutAnimation();
+            currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
             this.CurrentAbility.Play(Target: currentTarget);
         }
 
@@ -1949,72 +1953,79 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         AnimationType DemoingType = AnimationType.Standard;
         internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            var isAddAnimationElementKeyDown = (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == ModifierKeys.Alt;
-            if (inputKey == Key.M && isAddAnimationElementKeyDown)
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ABILITY_EDITOR)
             {
-                EditingAnimationType = AnimationElementType.Movement;
-                return AddAnimationElement;
-            }
-            else if (inputKey == Key.F && isAddAnimationElementKeyDown)
-            {
-                EditingAnimationType = AnimationElementType.FX;
-                return AddAnimationElement;
-            }
-            else if (inputKey == Key.S && isAddAnimationElementKeyDown)
-            {
-                EditingAnimationType = AnimationElementType.Sound;
-                return AddAnimationElement;
-            }
-            else if (inputKey == Key.Q && isAddAnimationElementKeyDown)
-            {
-                EditingAnimationType = AnimationElementType.Sequence;
-                return AddAnimationElement;
-            }
-            else if (inputKey == Key.R && isAddAnimationElementKeyDown)
-            {
-                EditingAnimationType = AnimationElementType.Reference;
-                return AddAnimationElement;
-            }
-            else if (inputKey == Key.P && isAddAnimationElementKeyDown)
-            {
-                EditingAnimationType = AnimationElementType.Pause;
-                return AddAnimationElement;
-            }
-            else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Alt)
-            {
-                return DemoAnimatedAbility;
-            }
-            else if (inputKey == Key.C && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                return CloneAnimation;
-            }
-            else if (inputKey == Key.X && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                return CutAnimation;
-            }
-            else if (inputKey == Key.V && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                EditingAnimationType = AnimationElementType.FX;
-                return PasteAnimation;
-            }
-            else if ((inputKey == Key.Back) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                return RemoveAnimation;
-            }
-            else if (inputKey == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                return DemoAnimation;
-            }
-            else if (inputKey == Key.A && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                DemoingType = AnimationType.Attack;
-                return ConfigureAttackAnimation;
+                if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.Movement;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.FX;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.Sound;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.Q && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.Sequence;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.R && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.Reference;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.Pause;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.I && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.LoadIdentity;
+                    return AddAnimationElement;
+                }
+                else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    return DemoAnimatedAbility;
+                }
+                else if (inputKey == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    return CloneAnimation;
+                }
+                else if (inputKey == Key.X && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    return CutAnimation;
+                }
+                else if (inputKey == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    EditingAnimationType = AnimationElementType.FX;
+                    return PasteAnimation;
+                }
+                else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    return RemoveAnimation;
+                }
+                else if (inputKey == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Shift | ModifierKeys.Control))
+                {
+                    return DemoAnimation;
+                }
+                else if (inputKey == Key.A && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    DemoingType = AnimationType.Attack;
+                    return ConfigureAttackAnimation;
 
-            }
-            else if (inputKey == Key.H && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Control))
-            {
-                DemoingType = AnimationType.OnHit;
-                return ConfigureAttackAnimation;
+                }
+                else if (inputKey == Key.H && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    DemoingType = AnimationType.OnHit;
+                    return ConfigureAttackAnimation;
+                } 
             }
             return null;
         }

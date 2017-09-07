@@ -6,6 +6,7 @@ using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
+using Module.HeroVirtualTabletop.Desktop;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
@@ -41,7 +42,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         void InsertOption(int index, ICharacterOption option);
 
         void SaveOptionGroup();
-        void UnloadOptionGroup();
     }
 
     public class OptionGroupViewModel<T> : BaseViewModel, IOptionGroupViewModel where T : ICharacterOption
@@ -52,11 +52,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private OptionGroup<T> optionGroup;
 
         private Timer clickTimer_AbilityPlay = new Timer();
-
-        private IntPtr identityOptionGroupKeyboardHookID;
-        private IntPtr movementOptionGroupKeyboardHookID;
-        private IntPtr abilityOptionGroupKeyboardHookID;
-        private IntPtr customOptionGroupKeyboardHookID;
 
         #endregion
 
@@ -168,7 +163,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             set
             {
-                showOptions = value;
+                showOptions = value; 
                 OnPropertyChanged("ShowOptions");
             }
         }
@@ -220,10 +215,6 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                         this.TogglePlayOption(optionToLoad);
                     }
                 }
-                //else
-                //{
-                //    ShowOptions = false;
-                //}
             }
         }
 
@@ -246,6 +237,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public bool NewOptionGroupAdded { get; set; }
 
         public string OriginalName { get; set; }
+        DesktopKeyEventHandler KeyHandler { get; set; }
 
         #endregion
 
@@ -264,6 +256,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
         public DelegateCommand<object> RenameNewOptionGroupCommand { get; private set; }
         public DelegateCommand<object> ShowHideCharacterOptionCommand { get; private set; }
+        public DelegateCommand<object> ActivateOptionGroupCommand { get; private set; }
+        public DelegateCommand<object> DeactivateOptionGroupCommand { get; private set; }
 
         #endregion
 
@@ -291,70 +285,30 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
             InitializeCommands();
             SetTooltips();
-            SetKeyboardHooks();
+            var keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
 
         private void SetTooltips()
         {
             if(this.OptionGroup.Type == OptionType.Ability)
             {
-                this.AddOptionTooltip = "Add Power (Alt+Ctrl+Plus+A)";
-                this.RemoveOptionTooltip = "Remove Power (Alt+Ctrl+Minus+A)";
+                this.AddOptionTooltip = "Add Power (Ctrl+P)";
+                this.RemoveOptionTooltip = "Remove Power (Alt+P)";
             }
             else if(this.OptionGroup.Type == OptionType.CharacterMovement)
             {
-                this.AddOptionTooltip = "Add Movement (Alt+Ctrl+Plus+M)";
-                this.RemoveOptionTooltip = "Remove Movement (Alt+Ctrl+Minus+M)";
+                this.AddOptionTooltip = "Add Movement (Ctrl+M)";
+                this.RemoveOptionTooltip = "Remove Movement (Alt+M)";
             }
             else if(this.OptionGroup.Type == OptionType.Identity)
             {
-                this.AddOptionTooltip = "Add Identity (Alt+Ctrl+Plus+I)";
-                this.RemoveOptionTooltip = "Remove Identity (Alt+Ctrl+Minus+I)";
+                this.AddOptionTooltip = "Add Identity (Ctrl+I)";
+                this.RemoveOptionTooltip = "Remove Identity (Alt+I)";
             }
             else
             {
                 this.AddOptionTooltip = "Add Custom Option"; // Not needed
-                this.RemoveOptionTooltip = "Remove Custom Option (Alt+Ctrl+Minus+X)";
-            }
-        }
-
-        private void SetKeyboardHooks()
-        {
-            if (this.OptionGroup.Type == OptionType.Identity)
-            {
-                identityOptionGroupKeyboardHookID = KeyBoardHook.SetHook(IdentityOptionGroupKeyboardHook);
-            }
-            else if (this.OptionGroup.Type == OptionType.CharacterMovement)
-            {
-                movementOptionGroupKeyboardHookID = KeyBoardHook.SetHook(MovementOptionGroupKeyboardHook);
-            }
-            else if (this.OptionGroup.Type == OptionType.Ability)
-            {
-                abilityOptionGroupKeyboardHookID = KeyBoardHook.SetHook(AbilityOptionGroupKeyboardHook);
-            }
-            else
-            {
-                customOptionGroupKeyboardHookID = KeyBoardHook.SetHook(CustomOptionGroupKeyboardHook);
-            }
-        }
-
-        public void UnloadOptionGroup()
-        {
-            if (this.OptionGroup.Type == OptionType.Identity)
-            {
-                KeyBoardHook.UnsetHook(identityOptionGroupKeyboardHookID);
-            }
-            else if (this.OptionGroup.Type == OptionType.CharacterMovement)
-            {
-                KeyBoardHook.UnsetHook(movementOptionGroupKeyboardHookID);
-            }
-            else if (this.OptionGroup.Type == OptionType.Ability)
-            {
-                KeyBoardHook.UnsetHook(abilityOptionGroupKeyboardHookID);
-            }
-            else
-            {
-                KeyBoardHook.UnsetHook(customOptionGroupKeyboardHookID);
+                this.RemoveOptionTooltip = "Remove Custom Option (Alt+X)";
             }
         }
 
@@ -713,7 +667,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             owner.ActiveAbility = ability;
             currentTarget.Target(false);
-            currentTarget.ActiveIdentity.RenderWithoutAnimation();
+            currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
             ability.Play(Target: currentTarget);
         }
 
@@ -1008,152 +962,38 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         #endregion
 
-        #region Keyboard Hook
+        #region Key event handling
 
-        private IntPtr IdentityOptionGroupKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            if (nCode >= 0)
+            if (!this.IsReadOnlyMode && Keyboard.Modifiers == ModifierKeys.Control && Helper.GlobalVariables_CurrentActiveWindowName == Constants.CHARACTER_EDITOR)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if (inputKey == Key.I && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            if (this.OptionGroup.Type == OptionType.Identity && this.AddOptionCommand.CanExecute(null))
-                                this.AddIdentity(null);
-                            SaveUpdatedOptions();
-                        }
-                        else if (inputKey == Key.I && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            var optionToRemove = SelectedOption;
-                            if (this.OptionGroup.Type == OptionType.Identity && this.RemoveOptionCommand.CanExecute(null))
-                                this.RemoveIdentity(null);
-                            this.eventAggregator.GetEvent<RemoveOptionEvent>().Publish(optionToRemove);
-                            SaveUpdatedOptions();
-                        }
-                    }
-                }
+                if (inputKey == Key.I
+                            && this.OptionGroup.Type == OptionType.Identity && this.AddOptionCommand.CanExecute(null))
+                    this.AddIdentity(null);
+                else if (inputKey == Key.M
+                    && this.OptionGroup.Type == OptionType.CharacterMovement && this.AddOptionCommand.CanExecute(null))
+                    this.AddCharacterMovement(null);
+                else if (inputKey == Key.P
+                    && this.OptionGroup.Type == OptionType.Ability && this.AddOptionCommand.CanExecute(null))
+                    this.AddAbility(null);
+                SaveUpdatedOptions();
             }
-            return KeyBoardHook.CallNextHookEx(identityOptionGroupKeyboardHookID, nCode, wParam, lParam);
-        }
-
-        private IntPtr MovementOptionGroupKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0)
+            else if (!this.IsReadOnlyMode && Keyboard.Modifiers == ModifierKeys.Alt)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if (inputKey == Key.M && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            if (this.OptionGroup.Type == OptionType.CharacterMovement && this.AddOptionCommand.CanExecute(null))
-                                this.AddCharacterMovement(null);
-                            SaveUpdatedOptions();
-                        }
-                        else if (inputKey == Key.M && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            var optionToRemove = SelectedOption;
-                            if (this.OptionGroup.Type == OptionType.CharacterMovement && this.RemoveOptionCommand.CanExecute(null))
-                                this.RemoveCharacterMovement(null);
-                            this.eventAggregator.GetEvent<RemoveOptionEvent>().Publish(optionToRemove);
-                            SaveUpdatedOptions();
-                        }
-                    }
-                }
+                var optionToRemove = SelectedOption;
+                if (inputKey == Key.I && this.OptionGroup.Type == OptionType.Identity && this.RemoveOptionCommand.CanExecute(null))
+                    this.RemoveIdentity(null);
+                else if (inputKey == Key.M && this.OptionGroup.Type == OptionType.CharacterMovement && this.RemoveOptionCommand.CanExecute(null))
+                    this.RemoveCharacterMovement(null);
+                else if (inputKey == Key.P && this.OptionGroup.Type == OptionType.Ability && this.RemoveOptionCommand.CanExecute(null))
+                    optionGroup.Remove(SelectedOption);
+                else if (inputKey == Key.X && this.OptionGroup.Type == OptionType.Mixed && this.RemoveOptionCommand.CanExecute(null))
+                    optionGroup.Remove(SelectedOption);
+                this.eventAggregator.GetEvent<RemoveOptionEvent>().Publish(optionToRemove);
+                SaveUpdatedOptions();
             }
-            return KeyBoardHook.CallNextHookEx(movementOptionGroupKeyboardHookID, nCode, wParam, lParam);
-        }
-
-        private IntPtr AbilityOptionGroupKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0)
-            {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if (inputKey == Key.A && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            if (this.OptionGroup.Type == OptionType.Ability && this.AddOptionCommand.CanExecute(null))
-                                this.AddAbility(null);
-                            SaveUpdatedOptions();
-                        }
-                        else if (inputKey == Key.A && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            var optionToRemove = SelectedOption;
-                            if (this.OptionGroup.Type == OptionType.Ability && this.RemoveOptionCommand.CanExecute(null))
-                                optionGroup.Remove(SelectedOption);
-                            this.eventAggregator.GetEvent<RemoveOptionEvent>().Publish(optionToRemove);
-                            SaveUpdatedOptions();
-                        }
-                    }
-                }
-            }
-            return KeyBoardHook.CallNextHookEx(abilityOptionGroupKeyboardHookID, nCode, wParam, lParam);
-        }
-
-        private IntPtr CustomOptionGroupKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
-        {
-            if (nCode >= 0 && this.Owner != null && this.OptionGroup != null)
-            {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
-                {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if (inputKey == Key.X && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
-                        {
-                            var optionToRemove = SelectedOption;
-                            if (this.OptionGroup.Type == OptionType.Mixed && this.RemoveOptionCommand.CanExecute(null))
-                                optionGroup.Remove(SelectedOption);
-                            this.eventAggregator.GetEvent<RemoveOptionEvent>().Publish(optionToRemove);
-                            SaveUpdatedOptions();
-                        }
-                    }
-                }
-            }
-            return KeyBoardHook.CallNextHookEx(customOptionGroupKeyboardHookID, nCode, wParam, lParam);
+            return null;
         }
 
         #endregion

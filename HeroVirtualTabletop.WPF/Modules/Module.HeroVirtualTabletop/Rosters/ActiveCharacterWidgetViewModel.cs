@@ -22,18 +22,21 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using Module.HeroVirtualTabletop.Desktop;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
     public class ActiveCharacterWidgetViewModel : BaseViewModel
     {
 
-        #region Private Fields
+        #region Private Fields and Commands
         private EventAggregator eventAggregator;
         private System.Timers.Timer clickTimer_AbilityPlay = new System.Timers.Timer();
         private AnimatedAbility activeAbility;
         public DelegateCommand<object> PlayActiveAbilityCommand { get; private set; }
         public DelegateCommand<object> ToggleMovementCommand { get; private set; }
+        public DelegateCommand<string> ActivatePanelCommand { get; private set; }
+        public DelegateCommand<string> DeactivatePanelCommand { get; private set; }
         #endregion
 
         #region Public Properties
@@ -80,9 +83,11 @@ namespace Module.HeroVirtualTabletop.Roster
 
             this.PlayActiveAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.PlayActiveAbility(); }, this.CanPlayActiveAbility);
             this.ToggleMovementCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleMovement(); }, this.CanToggleMovement);
+            this.ActivatePanelCommand = new DelegateCommand<string>(this.ActivatePanel);
+            this.DeactivatePanelCommand = new DelegateCommand<string>(this.DeactivatePanel);
 
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
-
+            //// Shortcut keys would work from anywhere, so no key handling needed here
+           // DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
         #endregion
 
@@ -147,11 +152,6 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
 
                 character.Activate();
-
-                //Setting hooks for PlayAbilityByKey
-
-                // hookID = KeyBoardHook.SetHook(this.PlayAbilityByKeyProc);
-
             }
 
         }
@@ -160,9 +160,6 @@ namespace Module.HeroVirtualTabletop.Roster
             if (ActiveCharacter != null)
             {
                 ActiveCharacter.Deactivate();
-
-                foreach (var ogv in this.OptionGroups)
-                    ogv.UnloadOptionGroup();
             }
 
             ActiveCharacter = null;
@@ -187,15 +184,18 @@ namespace Module.HeroVirtualTabletop.Roster
 
         internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            this.vkCode = vkCode;
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ACTIVE_CHARACTER_WIDGET)
+            {
+                this.vkCode = vkCode;
 
-            if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
-            {
-                return this.PlayActiveAbility;
-            }
-            else if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
-            {
-                return this.ToggleMovement;
+                if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
+                {
+                    return this.PlayActiveAbility;
+                }
+                else if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
+                {
+                    return this.ToggleMovement;
+                } 
             }
             return null;
         }
@@ -217,11 +217,21 @@ namespace Module.HeroVirtualTabletop.Roster
             Keys vkCode = this.vkCode;
             activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
             ActiveCharacter.Target(false);
-            ActiveCharacter.ActiveIdentity.RenderWithoutAnimation();
+            ActiveCharacter.ActiveIdentity.RenderWithoutAnimation(target:ActiveCharacter);
             activeAbility.Play();
             clickTimer_AbilityPlay.Start();
         }
 
+        private void ActivatePanel(string panelName)
+        {
+            Helper.GlobalVariables_CurrentActiveWindowName = panelName;
+        }
+
+        private void DeactivatePanel(string panelName)
+        {
+            if (Helper.GlobalVariables_CurrentActiveWindowName == panelName)
+                Helper.GlobalVariables_CurrentActiveWindowName = "";
+        }
 
     }
 }

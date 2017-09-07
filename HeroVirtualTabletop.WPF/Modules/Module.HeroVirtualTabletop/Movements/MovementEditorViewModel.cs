@@ -5,6 +5,7 @@ using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
+using Module.HeroVirtualTabletop.Desktop;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
@@ -35,7 +36,6 @@ namespace Module.HeroVirtualTabletop.Movements
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
         private Character defaultCharacter;
-        private IntPtr keyboardHookID;
 
         #endregion
 
@@ -171,6 +171,10 @@ namespace Module.HeroVirtualTabletop.Movements
             set
             {
                 isShowingMovementEditor = value;
+                if (value)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.MOVEMENT_EDITOR;
+                else
+                    this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.MOVEMENT_EDITOR);
                 OnPropertyChanged("IsShowingMovementEditor");
             }
         }
@@ -258,8 +262,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
             this.InitializeMovementSelections();
-
-            keyboardHookID = KeyBoardHook.SetHook(MovementEditorKeyboardHook);
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -699,55 +702,38 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #endregion
 
-        #region Keyboard Hook
-
-        private IntPtr MovementEditorKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        #region Desktop Key Handling
+        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            if (nCode >= 0 && this.IsShowingMovementEditor && this.CurrentCharacterMovement != null)
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.MOVEMENT_EDITOR)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
-                        {
-                            if (this.AddMovementCommand.CanExecute(null))
-                                this.AddMovementCommand.Execute(null);
-                        }
-                        else if((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
-                        {
-                            if (this.RemoveMovementCommand.CanExecute(null))
-                                this.RemoveMovementCommand.Execute(null);
-                        }
-                        else if(inputKey == Key.D && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
-                        {
-                            if (this.SelectedMovementMember != null && this.DemoDirectionalMoveCommand.CanExecute(this.SelectedMovementMember))
-                                this.DemoDirectionalMoveCommand.Execute(this.SelectedMovementMember);
-                        }
-                        else if (inputKey == Key.A && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
-                        {
-                            if (this.SelectedMovementMember != null && this.LoadAbilityEditorCommand.CanExecute(this.SelectedMovementMember))
-                                this.LoadAbilityEditorCommand.Execute(this.SelectedMovementMember);
-                        }
-                        else if (inputKey == Key.Enter && Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift))
-                        {
-                            if (this.PlayMovementCommand.CanExecute(null))
-                                this.PlayMovementCommand.Execute(null);
-                        }
-                    }
+                    if (this.AddMovementCommand.CanExecute(null))
+                        this.AddMovementCommand.Execute(null);
+                }
+                else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.RemoveMovementCommand.CanExecute(null))
+                        this.RemoveMovementCommand.Execute(null);
+                }
+                else if (inputKey == Key.D && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.SelectedMovementMember != null && this.DemoDirectionalMoveCommand.CanExecute(this.SelectedMovementMember))
+                        this.DemoDirectionalMoveCommand.Execute(this.SelectedMovementMember);
+                }
+                else if (inputKey == Key.A && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.SelectedMovementMember != null && this.LoadAbilityEditorCommand.CanExecute(this.SelectedMovementMember))
+                        this.LoadAbilityEditorCommand.Execute(this.SelectedMovementMember);
+                }
+                else if (inputKey == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.PlayMovementCommand.CanExecute(null))
+                        this.PlayMovementCommand.Execute(null);
                 }
             }
-            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+            return null;
         }
 
         #endregion

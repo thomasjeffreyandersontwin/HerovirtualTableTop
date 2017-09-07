@@ -64,30 +64,49 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 e.Handled = true;
             }
+            else if(e.RightButton == MouseButtonState.Pressed && this.viewModel.IsPlayingAttack)
+            {
+                var groupbox = Helper.GetTemplateAncestorByType(e.OriginalSource as TextBlock, typeof(GroupBox));
+                var itemsPres = Helper.GetDescendantByType(groupbox, typeof(ItemsPresenter)) as ItemsPresenter;
+                var vStackPanel = VisualTreeHelper.GetChild(itemsPres as DependencyObject, 0) as VirtualizingStackPanel;
+                foreach (ListBoxItem item in vStackPanel.Children)
+                {
+                    item.IsSelected = true;
+                }
+                e.Handled = true;
+            }
         }
-        
+
+        private void TextBlock_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            
+        }
+
         private void ListViewItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ClickCount == 1)
+            if (e.ChangedButton == MouseButton.Left)
             {
-                isSingleClick = true;
-                // Start the click timer.
-                clickTimer.Start();
+                if (e.ClickCount == 1)
+                {
+                    isSingleClick = true;
+                    // Start the click timer.
+                    clickTimer.Start();
+                }
+                // This is the second mouse click.
+                else if (e.ClickCount == 2)
+                {
+                    isDoubleClick = true;
+                }
+                else if (e.ClickCount == 3)
+                {
+                    isTripleClick = true;
+                }
+                else if (e.ClickCount == 4)
+                {
+                    isQuadrupleClick = true;
+                }
+
             }
-            // This is the second mouse click.
-            else if (e.ClickCount == 2)
-            {
-                isDoubleClick = true;
-            }
-            else if (e.ClickCount == 3)
-            {
-                isTripleClick = true;
-            }
-            else if (e.ClickCount == 4)
-            {
-                isQuadrupleClick = true;
-            }
-            
         }
 
         void clickTimer_Tick(object sender, EventArgs e)
@@ -115,6 +134,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 else
                 {
                     //this.viewModel.TargetOrFollow();
+                    if (this.viewModel.IsPlayingAttack && !this.viewModel.IsPlayingAreaEffect)
+                        this.viewModel.TargetAndExecuteAttack(null);
                 }
 
                 isSingleClick = isDoubleClick = isTripleClick = isQuadrupleClick = false;
@@ -145,21 +166,6 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 //view.Refresh();
             }
-        }
-
-        private void UserControl_LostFocus(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void UserControl_GotFocus(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-
         }
     }
 }

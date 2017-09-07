@@ -302,9 +302,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                     treeViewItem = GetImmediateTreeViewItemParent(treeViewItem);
                     if (treeViewItem != null)
                         this.viewModel.SelectedCrowdParent = treeViewItem.DataContext as CrowdModel;
-                    else
+                    else 
                         this.viewModel.SelectedCrowdParent = null;
-
                 }
                 else
                     this.viewModel.SelectedCrowdParent = null;

@@ -76,7 +76,7 @@ namespace Module.HeroVirtualTabletop.Identities
                 }
                     
             }
-
+            y -= (float)3.2;
             return new Vector3(x, y, z); 
         }
 

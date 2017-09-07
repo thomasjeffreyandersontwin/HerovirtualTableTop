@@ -11,6 +11,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
     public interface ICharacterOption
     {
         string Name { get; set; }
+        string OptionTooltip { get; set; }
     }
 
     public abstract class CharacterOption : NotifyPropertyChanged, ICharacterOption
@@ -26,6 +27,23 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 name = value;
                 OnPropertyChanged("Name");
+            }
+        }
+
+        private string optionTooltip;
+        public virtual string OptionTooltip
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(optionTooltip))
+                    optionTooltip = this.Name;
+                return optionTooltip;
+            }
+
+            set
+            {
+                optionTooltip = value;
+                OnPropertyChanged("OptionTooltip");
             }
         }
     }

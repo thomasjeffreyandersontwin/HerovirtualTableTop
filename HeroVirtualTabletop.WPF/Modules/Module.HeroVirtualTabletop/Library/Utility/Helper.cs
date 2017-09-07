@@ -70,6 +70,8 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         public static System.Windows.Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
         public static string GlobalVariables_DraggingOptionGroupName { get; set; }
 
+        public static string GlobalVariables_CurrentActiveWindowName { get; set; }
+
         public static CharacterMovement GlobalVariables_CharacterMovement { get; set; }
 
         public static CharacterMovement GlobalVariables_FormerActiveCharacterMovement { get; set; }
@@ -405,6 +407,19 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         # region Vector Maths
 
+        public static float Get2DAngleBetweenVectors(Vector3 v1, Vector3 v2, out bool isClockwiseTurn)
+        {
+            var x = v1.X * v2.Z - v2.X * v1.Z;
+            isClockwiseTurn = x < 0;
+            var dotProduct = Vector3.Dot(v1, v2);
+            if (dotProduct > 1)
+                dotProduct = 1;
+            if (dotProduct < -1)
+                dotProduct = -1;
+            var y = (float)Math.Acos(dotProduct);
+            return y;
+        }
+
         public static Vector3 GetRoundedVector(Vector3 vector, int decimalPlaces)
         {
             float x = (float)Math.Round(vector.X, decimalPlaces);
@@ -467,7 +482,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 return t1.CompareTo(t2);
             else
                 return s1.CompareTo(s2);
-        }
+        } 
 
         #endregion
     }

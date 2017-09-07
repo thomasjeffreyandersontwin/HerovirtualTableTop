@@ -110,6 +110,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 Position = position.Clone(false, (Position as MemoryInstance).GetTargetPointer());
             }
+            this.SuperImposeGhost();
         }
 
         protected override string GetLabel()

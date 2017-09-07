@@ -47,6 +47,7 @@ namespace Module.Shared
         public const string GAME_DATA_FOLDERNAME = "data";
         public const string GAME_COSTUMES_FOLDERNAME = "costumes";
         public const string GAME_COSTUMES_EXT = ".costume";
+        public const string GAME_GHOST_COSTUMENAME = "ghost";
         public const string GAME_CROWD_REPOSITORY_FILENAME = "CrowdRepo.data";
         public const string GAME_MOVEMENT_REPOSITORY_FILENAME = "MovementRepo.data";
         public const string GAME_MOVE_REPOSITORY_FILENAME = "MoveRepo.data";
@@ -111,6 +112,20 @@ namespace Module.Shared
 
         public const string OPTION_DRAG_KEY = "CharacterOptionDrag";
         public const string OPTION_GROUP_DRAG_KEY = "CharacterOptionGroupDrag";
+        #endregion
+
+        #region Panel Names for Activate/Deactivate keyboard handling
+
+        public const string CHARACTER_EXPLORER = "CharacterExplorer";
+        public const string ROSTER_EXPLORER = "RosterExplorer";
+        public const string CHARACTER_EDITOR = "CharacterEditor";
+        public const string CROWD_FROM_MODELS_VIEW = "CrowdFromModelsView";
+        public const string IDENTITY_EDITOR = "IdentityEditor";
+        public const string ABILITY_EDITOR = "AbilityEditor";
+        public const string MOVEMENT_EDITOR = "MovementEditor";
+        public const string ACTIVE_CHARACTER_WIDGET = "ActiveCharacterWidget";
+        public const string ACTIVE_ATTACK_WIDGET = "ActiveAttackWidget";
+
         #endregion
     }
 }

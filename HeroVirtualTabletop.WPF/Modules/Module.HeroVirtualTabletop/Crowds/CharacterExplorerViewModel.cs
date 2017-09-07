@@ -31,6 +31,7 @@ using System.Diagnostics;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Converters;
+using Module.HeroVirtualTabletop.Desktop;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -51,8 +52,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         private bool crowdCollectionLoaded = false;
         public object lastCharacterCrowdStateToUpdate = null;
         private List<Tuple<string, string>> rosterCrowdCharacterMembershipKeys;
-
-        private IntPtr keyboardHookID;
 
         #endregion
 
@@ -287,7 +286,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<NeedDefaultCharacterRetrievalEvent>().Subscribe(this.GetDefaultCharacter);
             this.eventAggregator.GetEvent<RemoveMovementEvent>().Subscribe(this.DeleteMovement);
 
-            keyboardHookID = KeyBoardHook.SetHook(CharacterExplorerKeyboardHook);
+            InitializeDesktopKeyHanders();
         }
 
         #endregion
@@ -320,6 +319,11 @@ namespace Module.HeroVirtualTabletop.Crowds
                 ExecuteDelegate = x =>
                     UpdateSelectedCrowdMember(x)
             };
+        }
+
+        private void InitializeDesktopKeyHanders()
+        {
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -1789,90 +1793,77 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #endregion
 
-        #region Keyboard Hook
-
-        private IntPtr CharacterExplorerKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        #region Desktop Key Handling
+        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            if (nCode >= 0)
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.CHARACTER_EXPLORER)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                if (inputKey == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || Process.GetCurrentProcess().Id == wndProcId)
-                    {
-                        var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                        if (inputKey == Key.C && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.CloneCharacterCrowdCommand.CanExecute(null))
-                                this.CloneCharacterCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.X && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.CutCharacterCrowdCommand.CanExecute(null))
-                                this.CutCharacterCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.PasteCharacterCrowdCommand.CanExecute(null))
-                                this.PasteCharacterCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.L && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.LinkCharacterCrowdCommand.CanExecute(null))
-                                this.LinkCharacterCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.EditCharacterCommand.CanExecute(null))
-                                this.EditCharacterCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.Q && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.FlattenCrowdCopyCommand.CanExecute(null))
-                                this.FlattenCrowdCopyCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.W && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.NumberedFlattenCrowdCopyCommand.CanExecute(null))
-                                this.NumberedFlattenCrowdCopyCommand.Execute(null);
-                        }
-                        else if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.AddCharacterCommand.CanExecute(null))
-                                this.AddCharacterCommand.Execute(null);
-                        }
-                        else if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.AddCrowdCommand.CanExecute(null))
-                                this.AddCrowdCommand.Execute(null);
-                        }
-                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract) && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.DeleteCharacterCrowdCommand.CanExecute(null))
-                                this.DeleteCharacterCrowdCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.R && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            if (this.AddToRosterCommand.CanExecute(null))
-                                this.AddToRosterCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
-                        {
-                            this.SaveCommand.Execute(null);
-                        }
-                    }
+                    if (this.CloneCharacterCrowdCommand.CanExecute(null))
+                        this.CloneCharacterCrowdCommand.Execute(null);
+                }
+                else if (inputKey == Key.X && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.CutCharacterCrowdCommand.CanExecute(null))
+                        this.CutCharacterCrowdCommand.Execute(null);
+                }
+                else if (inputKey == Key.V && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.PasteCharacterCrowdCommand.CanExecute(null))
+                        this.PasteCharacterCrowdCommand.Execute(null);
+                }
+                else if (inputKey == Key.L && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.LinkCharacterCrowdCommand.CanExecute(null))
+                        this.LinkCharacterCrowdCommand.Execute(null);
+                }
+                else if (inputKey == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.EditCharacterCommand.CanExecute(null))
+                        this.EditCharacterCommand.Execute(null);
+                }
+                else if (inputKey == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.FlattenCrowdCopyCommand.CanExecute(null))
+                        this.FlattenCrowdCopyCommand.Execute(null);
+                }
+                else if (inputKey == Key.N && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.NumberedFlattenCrowdCopyCommand.CanExecute(null))
+                        this.NumberedFlattenCrowdCopyCommand.Execute(null);
+                }
+                else if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.AddCharacterCommand.CanExecute(null))
+                        this.AddCharacterCommand.Execute(null);
+                }
+                else if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
+                {
+                    if (this.AddCrowdCommand.CanExecute(null))
+                        this.AddCrowdCommand.Execute(null);
+                }
+                else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.DeleteCharacterCrowdCommand.CanExecute(null))
+                        this.DeleteCharacterCrowdCommand.Execute(null);
+                }
+                else if (inputKey == Key.R && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.AddToRosterCommand.CanExecute(null))
+                        this.AddToRosterCommand.Execute(null);
+                }
+                else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    this.SaveCommand.Execute(null);
                 }
             }
-            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+            
+            return null;
         }
 
         #endregion
+
 
         #region Utility Methods
         private void EliminateDuplicateName(ICrowdMemberModel model)

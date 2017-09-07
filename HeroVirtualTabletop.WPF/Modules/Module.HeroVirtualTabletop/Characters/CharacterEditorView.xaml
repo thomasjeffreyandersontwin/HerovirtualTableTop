@@ -44,8 +44,8 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Option Group (Alt+Ctrl+Plus+O)" Command="{Binding AddOptionGroupCommand}"/>
-                <Button Grid.Column="1" Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option Group (Alt+Ctrl+Minus+O)" Command="{Binding RemoveOptionGroupCommand}"/>
+                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Option Group (Ctrl+Plus)" Command="{Binding AddOptionGroupCommand}"/>
+                <Button Grid.Column="1" Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Option Group (Ctrl+Minus/Del)" Command="{Binding RemoveOptionGroupCommand}"/>
             </Grid>
             <ListView Grid.Row="1" x:Name="listViewOptionGroup"
                     ItemsSource="{Binding OptionGroups, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"

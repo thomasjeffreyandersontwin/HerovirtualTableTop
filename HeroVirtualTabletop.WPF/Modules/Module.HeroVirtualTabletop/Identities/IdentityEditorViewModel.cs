@@ -87,6 +87,10 @@ namespace Module.HeroVirtualTabletop.Identities
             set
             {
                 visibility = value;
+                //if (value == Visibility.Visible)
+                //    Helper.GlobalVariables_CurrentActiveWindowName = Constants.IDENTITY_EDITOR;
+                //else
+                //    this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.IDENTITY_EDITOR);
                 OnPropertyChanged("Visibility");
             }
         }
@@ -429,7 +433,7 @@ namespace Module.HeroVirtualTabletop.Identities
                     if (Owner.ActiveIdentity == EditedIdentity)
                     {
                         Owner.Target(false);
-                        Owner.ActiveIdentity.Render();
+                        Owner.ActiveIdentity.Render(Target: Owner);
                     }
                 }
             }

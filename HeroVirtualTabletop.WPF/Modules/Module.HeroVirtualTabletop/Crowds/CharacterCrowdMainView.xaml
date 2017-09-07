@@ -37,9 +37,8 @@
                   Expanded="Expander_ExpansionChanged" Collapsed="Expander_ExpansionChanged"
                   IsExpanded="{Binding IsCharacterExplorerExpanded}"
                   >
-            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}" 
-                      GotFocus="grpBoxCharacterExplorer_GotFocus" LostFocus="grpBoxCharacterExplorer_LostGotFocus">
-                <Border Background="Transparent" PreviewMouseDown="Grid_MouseDown">
+            <GroupBox Header="Character Explorer" x:Name="grpBoxCharacterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                <Border Background="Transparent">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
@@ -50,7 +49,14 @@
                         </ToggleButton>
                         <Grid x:Name="charExplorerPanel" Grid.Row="1"/>
                     </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="CharacterExplorer"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
                 </Border>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="CharacterExplorer"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="CharacterExplorer"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="1" Style="{StaticResource VerticalExpanderStyle}"
@@ -62,16 +68,25 @@
                   >
 
             <GroupBox Header="Create Crowd From Models" x:Name="grpBoxCrowdFromModels" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCrowdFromModelsExpanded}" 
+                <Border Background="Transparent">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCrowdFromModelsExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="CrowdFromModelsView">
-                    </ToggleButton>
-                    <Grid x:Name="crowdFromModelsPanel" Width="Auto" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="crowdFromModelsPanel" Width="Auto" Grid.Row="1"/>
+                    </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="CrowdFromModelsView"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                </Border>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="CrowdFromModelsView"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="CrowdFromModelsView"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="2" Style="{StaticResource VerticalExpanderStyle}"
@@ -81,17 +96,26 @@
                   IsExpanded="{Binding IsRosterExplorerExpanded}"
                   >
 
-            <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}" MouseDown="Grid_MouseDown">
-                <Grid MouseDown="Grid_MouseDown">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsRosterExplorerExpanded}" 
+            <GroupBox Header="Roster Explorer" x:Name="grpBoxRosterExplorer" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                <Border Background="Transparent">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsRosterExplorerExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="RosterExplorer">
-                    </ToggleButton>
-                    <Grid x:Name="rosterExplorerPanel" Width="Auto" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="rosterExplorerPanel" Width="Auto" Grid.Row="1"/>
+                    </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="RosterExplorer"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                </Border>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="RosterExplorer"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="RosterExplorer"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="3" Style="{StaticResource VerticalExpanderStyle}"
@@ -102,16 +126,25 @@
                   >
 
             <GroupBox Header="Character Editor" x:Name="grpBoxCharacterEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterEditorExpanded}" 
+                <Border Background="Transparent">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsCharacterEditorExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="ChracterEditor">
-                    </ToggleButton>
-                    <Grid x:Name="charEditorPanel" Width="Auto" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="charEditorPanel" Width="Auto" Grid.Row="1"/>
+                    </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="CharacterEditor"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                </Border>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="CharacterEditor"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="CharacterEditor"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="4" Style="{StaticResource VerticalExpanderStyle}"
@@ -123,16 +156,25 @@
                   >
 
             <GroupBox Header="Identity Editor" x:Name="grpBoxIdentityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsIdentityEditorExpanded}" 
+                <Border Background="Transparent">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsIdentityEditorExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="IdentityEditor">
-                    </ToggleButton>
-                    <Grid x:Name="identityEditorPanel" Width="Auto" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="identityEditorPanel" Width="Auto" Grid.Row="1"/>
+                    </Grid>
+                    <!--<behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="IdentityEditor"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>-->
+                </Border>
+                <!--<behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="IdentityEditor"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="IdentityEditor"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>-->
             </GroupBox>
         </Expander>
         <Expander Grid.Column="5" Style="{StaticResource VerticalExpanderStyle}"
@@ -144,16 +186,25 @@
                   >
 
             <GroupBox Header="Power Editor" x:Name="grpBoxAbilityEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsAbilityEditorExpanded}" 
+                <Border Background="Transparent">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsAbilityEditorExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="AbilityEditor">
-                    </ToggleButton>
-                    <Grid x:Name="abilityEditorPanel" Width="Auto" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="abilityEditorPanel" Width="Auto" Grid.Row="1"/>
+                    </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="AbilityEditor"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                </Border>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="AbilityEditor"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="AbilityEditor"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </GroupBox>
         </Expander>
         <Expander Grid.Column="6" Style="{StaticResource VerticalExpanderStyle}"
@@ -165,16 +216,25 @@
                   >
 
             <GroupBox Header="Movement Editor" x:Name="grpBoxMovementEditor" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition/>
-                    </Grid.RowDefinitions>
-                    <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsMovementEditorExpanded}" 
+                <Border Background="Transparent">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+                        <ToggleButton Style="{StaticResource ExpanderToggleButtonStyle}" Grid.Row="0" HorizontalAlignment="Right" IsChecked="{Binding IsMovementEditorExpanded}" 
                                   Background="Transparent" BorderBrush="Transparent" Command="{Binding CollapsePanelCommand}" CommandParameter="MovementEditor">
-                    </ToggleButton>
-                    <Grid x:Name="movementEditorPanel" Width="Auto" Grid.Row="1"/>
-                </Grid>
+                        </ToggleButton>
+                        <Grid x:Name="movementEditorPanel" Width="Auto" Grid.Row="1"/>
+                    </Grid>
+                    <behaviors:CommandBehaviorCollection.Behaviors>
+                        <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="MovementEditor"/>
+                    </behaviors:CommandBehaviorCollection.Behaviors>
+                </Border>
+                <behaviors:CommandBehaviorCollection.Behaviors>
+                    <behaviors:BehaviorBinding Event="GotFocus" Command="{Binding ActivatePanelCommand}" CommandParameter="MovementEditor"/>
+                    <behaviors:BehaviorBinding Event="LostFocus" Command="{Binding DeactivatePanelCommand}" CommandParameter="MovementEditor"/>
+                </behaviors:CommandBehaviorCollection.Behaviors>
             </GroupBox>
         </Expander>
     </Grid>

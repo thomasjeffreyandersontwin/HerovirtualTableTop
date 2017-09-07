@@ -419,10 +419,13 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private void RemoveOptionGroup()
         {
-            IOptionGroup toBeRemoved = SelectedOptionGroup;
-            this.EditedCharacter.RemoveOptionGroup(toBeRemoved);
-            this.OptionGroups.Remove(this.OptionGroups.First((optG) => { return optG.OptionGroup == toBeRemoved; }));
-            this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
+            if (SelectedOptionGroup != null)
+            {
+                IOptionGroup toBeRemoved = SelectedOptionGroup;
+                this.EditedCharacter.RemoveOptionGroup(toBeRemoved);
+                this.OptionGroups.Remove(this.OptionGroups.First((optG) => { return optG.OptionGroup == toBeRemoved; }));
+                this.eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null); 
+            }
         }
 
         private void AddOptionGroup()
@@ -466,15 +469,13 @@ namespace Module.HeroVirtualTabletop.Characters
 
         internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            if (this.EditedCharacter != null)
+            if (this.EditedCharacter != null && Helper.GlobalVariables_CurrentActiveWindowName == Constants.CHARACTER_EDITOR)
             {
-                //var inputKey = InputKey;
-
-                if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemPlus) || Keyboard.IsKeyDown(Key.Add)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     return this.AddOptionGroup;
                 }
-                else if (inputKey == Key.O && (Keyboard.IsKeyDown(Key.OemMinus) || Keyboard.IsKeyDown(Key.Subtract)) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     return RemoveOptionGroup;
                 }

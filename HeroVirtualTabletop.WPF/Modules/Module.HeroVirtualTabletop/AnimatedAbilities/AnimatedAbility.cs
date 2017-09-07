@@ -45,6 +45,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("ActivateOnKey");
             }
         }
+        private string optionTooltip;
+        public override string OptionTooltip
+        {
+            get
+            {
+                if (this.ActivateOnKey == Keys.None)
+                    optionTooltip = this.Name;
+                else
+                    optionTooltip = Name + "(Alt + Shift + " + ActivateOnKey.ToString() + ")";
+                return optionTooltip;
+            }
+
+            set
+            {
+                optionTooltip = value;
+                OnPropertyChanged("OptionTooltip");
+            }
+        }
 
         private bool isAttack;
         public bool IsAttack
@@ -374,10 +392,68 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
-            AttackDirection direction = new AttackDirection();
+            
             int attackDelay = 0;
-            float distance = 0;
+
+            AttackDirection direction = GetAttackDirection(attackingCharacter, defendingCharacters);
+
+            float distance = GetTargetDistance(attackingCharacter, defendingCharacters);
             PauseElement unitPauseElement = this.AnimationElements.LastOrDefault(a => a.Type == AnimationElementType.Pause && (a as PauseElement).IsUnitPause) as PauseElement;
+            if (unitPauseElement != null)
+            {
+                DelayManager delayManager = new DelayManager(unitPauseElement);
+                attackDelay = (int)delayManager.GetDelayForDistance(distance); //here
+            }
+
+            AnimateAttack(direction, attackingCharacter);
+            System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
+
+
+            AnimateHitAndMiss(attackingCharacter,defendingCharacters);
+            //Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
+            AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
+            // Reset FX direction
+            this.SetAttackDirection(this, null);
+            
+            //jeff temorarily removed as deactivating causing a melee attack cycle bug
+            //new PauseElement("", 2000).Play();
+            //attackingCharacter.Deactivate();
+        }
+
+        private float GetTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            float distance = 0;
+            Character centerTargetCharacter = defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsCenterTarget).FirstOrDefault();
+            if (centerTargetCharacter == null)
+            {
+                distance = GetClosestTargetDistance(attackingCharacter, defendingCharacters);
+            }
+            else
+            {
+                Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+                Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
+                distance = Vector3.Distance(vAttacker, vCenterTarget);
+            }
+            return distance;
+        }
+
+        private float GetClosestTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            float minDistance = 0;
+            Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
+            foreach (Character defendingCharacter in defendingCharacters)
+            {
+                Vector3 vDefender = new Vector3(defendingCharacter.Position.X, defendingCharacter.Position.Y, defendingCharacter.Position.Z);
+                var distance = Vector3.Distance(vAttacker, vDefender);
+                minDistance = minDistance == 0 ? distance : distance < minDistance ? distance : minDistance;
+            }
+
+            return minDistance;
+        }
+
+        private AttackDirection GetAttackDirection(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            AttackDirection direction = new AttackDirection();
             if (defendingCharacters == null || defendingCharacters.Count == 0)
             {
                 var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
@@ -394,14 +470,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     direction.AttackDirectionX = targetInFacingDirection.X;
                     direction.AttackDirectionY = targetInFacingDirection.Y;
                     direction.AttackDirectionZ = targetInFacingDirection.Z;
-
-                    distance = GetClosestTargetDistance(attackingCharacter, defendingCharacters);
                 }
                 else
                 {
                     Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
                     Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
-                    distance = Vector3.Distance(vAttacker, vCenterTarget);
 
                     if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
                     {
@@ -425,39 +498,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                 }
             }
-
-            if (unitPauseElement != null)
-            {
-                DelayManager delayManager = new DelayManager(unitPauseElement);
-                attackDelay = (int)delayManager.GetDelayForDistance(distance); //here
-            }
-            AnimateAttack(direction, attackingCharacter);
-            System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
-
-
-            AnimateHitAndMiss(attackingCharacter,defendingCharacters);
-            //Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
-            AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
-            // Reset FX direction
-            this.SetAttackDirection(this, null);
-            
-            //jeff temorarily removed as deactivating causing a melee attack cycle bug
-            //new PauseElement("", 2000).Play();
-            //attackingCharacter.Deactivate();
-        }
-
-        private float GetClosestTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
-        {
-            float minDistance = 0;
-            Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
-            foreach (Character defendingCharacter in defendingCharacters)
-            {
-                Vector3 vDefender = new Vector3(defendingCharacter.Position.X, defendingCharacter.Position.Y, defendingCharacter.Position.Z);
-                var distance = Vector3.Distance(vAttacker, vDefender);
-                minDistance = minDistance == 0 ? distance : distance < minDistance ? distance : minDistance;
-            }
-
-            return minDistance;
+            return direction;
         }
 
         private SequenceElement GetSequenceToPlay(SequenceElement sequenceElement)
@@ -779,6 +820,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     //PlayKnockBackWithoutMovement(attackingCharacter, character, knockbackDistance);
                     var knockbackMovement = Helper.GlobalMovements.FirstOrDefault(cm => cm.Name == Constants.KNOCKBACK_MOVEMENT_NAME);
+                    knockbackMovement.MovementSpeed = 2.5;
                     if(knockbackMovement != null)
                     {
                         Vector3 attackerVector = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
@@ -956,6 +998,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 knockBackDistance = value;
                 OnPropertyChanged("KnockBackDistance");
+            }
+        }
+
+        private bool isHit;
+        public bool IsHit
+        {
+            get
+            {
+                return isHit;
+            }
+            set
+            {
+                isHit = value;
+                OnPropertyChanged("IsHit");
             }
         }
 

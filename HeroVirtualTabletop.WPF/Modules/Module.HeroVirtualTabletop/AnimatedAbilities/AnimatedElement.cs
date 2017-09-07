@@ -575,15 +575,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Character target = Target ?? this.Owner;
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+
+            if (target.ActiveIdentity.Type == IdentityType.Model && target.GhostShadow != null && target.GhostShadow.HasBeenSpawned)
+            {
+                target.GhostShadow.Target(false);
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            }
+
             target.Target(false);
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+
             return keyBindsGenerator.GetEvent();
         }
 
         public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
-            Stop(Target);
-            GetKeybind(Target);
+            var target = Target ?? this.Owner;
+            Stop(target);
+            GetKeybind(target);
             IsActive = true;
             if (PlayWithNext == false)
                 new KeyBindsGenerator().CompleteEvent();
@@ -708,22 +717,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     return File.ReadAllText(newFile);
                 return string.Empty;
             }
-        }
-
-        [JsonIgnore]
-        public Character GhostShadow
-        {
-            get;set;
-        }
+        } 
 
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
         private string PrepareCostumeFile(Character Target = null, bool persistent = false)
         {
             Character target = Target ?? this.Owner;
+            bool isPlayingOnGhost = false;
+            Character originalTarget = target;
             if (target.ActiveIdentity.Type != IdentityType.Costume)
             {
-                SuperImposeGhostOnTarget(target);
-                target = this.GhostShadow;
+                target = target.GhostShadow;
+                isPlayingOnGhost = true;
                 if(target == null)
                     return string.Empty;
             }
@@ -771,6 +776,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, fxCostume, fireCoOrdinates);
+                    if (isPlayingOnGhost)
+                        originalTarget.Target(false);
                     return keyBindsGenerator.GetEvent();
                 }
             }
@@ -822,7 +829,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             //Character originalTarget = target;
             if (target.ActiveIdentity.Type != IdentityType.Costume)
             {
-                target = this.GhostShadow;
+                target = target.GhostShadow;
             }
             if (target != null && IsActive)
             {
@@ -837,11 +844,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     fileLock.ExitWriteLock();
                 }
                 IsActive = false;
-                if(this.GhostShadow != null)
-                {
-                    this.GhostShadow.ClearFromDesktop();
-                    this.GhostShadow = null;
-                }
+                //if(this.GhostShadow != null)
+                //{
+                //    this.GhostShadow.ClearFromDesktop();
+                //    this.GhostShadow = null;
+                //}
             }
         }
 
@@ -959,23 +966,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return clonedElement;
         }
 
-        private string ghostShadowName;
-        public void SuperImposeGhostOnTarget(Character Target)
-        {
-            if(this.GhostShadow == null)
-            {
-                if (string.IsNullOrEmpty(ghostShadowName))
-                {
-                    int serial = ++Helper.GlobalVariables_GhostCharacterIndex;
-                    ghostShadowName = "gh" + serial.ToString(); 
-                }
-                this.GhostShadow = new Character(ghostShadowName, "ghost", IdentityType.Costume);
-                this.GhostShadow.Spawn();
-            }
-            
-            this.GhostShadow.CurrentPositionVector = Target.CurrentPositionVector;
-            this.GhostShadow.CurrentModelMatrix = Target.CurrentModelMatrix;
-        }
     }
 
     public class SequenceElement : AnimationElement
@@ -1570,7 +1560,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             var target = Target ?? this.Owner;
             target.Target(false);
-            target.ActiveIdentity.RenderWithoutAnimation();
+            target.ActiveIdentity.RenderWithoutAnimation(target:target);
         }
 
         protected override AnimationResource GetResource()

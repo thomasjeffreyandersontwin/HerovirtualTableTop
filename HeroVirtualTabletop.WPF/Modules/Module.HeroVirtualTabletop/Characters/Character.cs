@@ -22,6 +22,7 @@ using System.Runtime.Serialization;
 using Module.HeroVirtualTabletop.Movements;
 using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Library.Utility;
+using System.Threading;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -400,6 +401,8 @@ namespace Module.HeroVirtualTabletop.Characters
                 //Deactive any effect activated as a result of former Identity loading
                 if (activeIdentity != null && activeIdentity.AnimationOnLoad != null)
                     activeIdentity.AnimationOnLoad.Stop();
+                if (activeIdentity != null && activeIdentity.Type == IdentityType.Model)
+                    this.RemoveGhost();
                 AvailableIdentities.UpdateIndices();
                 if (value != null && !AvailableIdentities.ContainsKey(value.Name))
                 {   
@@ -411,7 +414,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     if (HasBeenSpawned)
                     {
                         Target(false);
-                        activeIdentity.Render();
+                        activeIdentity.Render(Target: this);
                     }
                         
                 }
@@ -490,6 +493,12 @@ namespace Module.HeroVirtualTabletop.Characters
             set;
         }
 
+        [JsonIgnore]
+        public Character GhostShadow
+        {
+            get; set;
+        }
+
         public string Spawn(bool completeEvent = true)
         {
             if (ManeuveringWithCamera)
@@ -514,7 +523,7 @@ namespace Module.HeroVirtualTabletop.Characters
             }
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.SpawnNpc, model, Label);
             Target(false);
-            keybind = ActiveIdentity.RenderWithoutAnimation(completeEvent);
+            keybind = ActiveIdentity.RenderWithoutAnimation(completeEvent, this);
             if (completeEvent)
             {
                 WaitUntilTargetIsRegistered();
@@ -587,9 +596,82 @@ namespace Module.HeroVirtualTabletop.Characters
             //}
             //return string.Empty;
         }
+        
+        public void SuperImposeGhost()
+        {
+            if (this.ActiveIdentity.Type == IdentityType.Model)
+            {
+                if (this.GhostShadow == null)
+                {
+                    CreateGhostShadow();
+                }
+                if (!this.GhostShadow.HasBeenSpawned)
+                    this.GhostShadow.Spawn();
+                this.Target();
+                AlignGhost();
+            }
+        }
+
+        public void AlignGhost()
+        {
+            if (this.ActiveIdentity.Type == IdentityType.Model && this.GhostShadow != null && this.GhostShadow.HasBeenSpawned)
+            {
+                this.GhostShadow.CurrentPositionVector = this.CurrentPositionVector;
+                this.GhostShadow.CurrentModelMatrix = this.CurrentModelMatrix;
+            }
+        }
+
+        public void CreateGhostShadow()
+        {
+            string ghostShadowName = "ghost_" + this.Name;
+            //CreateGhostCostumeFileForThisCharacter("Director Solair");
+            //this.GhostShadow = new Character(ghostShadowName, "Director Solair", IdentityType.Costume);
+            CreateGhostCostumeFileForThisCharacter();
+            this.GhostShadow = new Character(ghostShadowName, ghostShadowName, IdentityType.Costume);
+            CreateGhostMovements();
+        }
+
+        public void CreateGhostCostumeFileForThisCharacter(string costumeName = null)
+        {
+            string costumeDirectory = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
+            string ghostShadowCostumeFileName = ("ghost_" + this.Name) + Constants.GAME_COSTUMES_EXT;
+            string ghostShadowCostumeFile = Path.Combine(costumeDirectory, ghostShadowCostumeFileName);
+            string originalGhostCostumeFileName = (costumeName != null ? costumeName + "_original" : "ghost_original") + Constants.GAME_COSTUMES_EXT;
+            string ghostCostumeFileName = (costumeName ?? Constants.GAME_GHOST_COSTUMENAME) + Constants.GAME_COSTUMES_EXT;
+            string originalGhostCostumeFile = Path.Combine(costumeDirectory, originalGhostCostumeFileName);
+            string ghostCostumeFile = Path.Combine(costumeDirectory, ghostCostumeFileName);
+            if (File.Exists(originalGhostCostumeFile))
+            {
+                File.Copy(originalGhostCostumeFile, ghostShadowCostumeFile, true);
+            }
+            else if(File.Exists(ghostCostumeFile))
+            {
+                File.Copy(ghostCostumeFile, ghostShadowCostumeFile, true);
+            }
+            
+        }
+
+        public void CreateGhostMovements()
+        {
+            foreach(CharacterMovement cm in this.Movements)
+            {
+                CharacterMovement cmClone = cm.Clone();
+                cmClone.Character = this.GhostShadow;
+                this.GhostShadow.Movements.Add(cmClone);
+            }
+        }
+
+        public void RemoveGhost()
+        {
+            if(this.GhostShadow != null)
+            {
+                this.GhostShadow.ClearFromDesktop();
+                this.GhostShadow = null;
+            }
+        }
 
         public void ResetOrientation()
-        {
+        { 
             Vector3 currentPositionVector = this.CurrentPositionVector;
             Vector3 currentForwardVector = this.CurrentModelMatrix.Forward;
             Vector3 currentFacing = this.CurrentFacingVector;
@@ -598,6 +680,8 @@ namespace Module.HeroVirtualTabletop.Characters
             this.CurrentModelMatrix = defaultMatrix;
             this.CurrentFacingVector = currentFacing;
             this.CurrentPositionVector = currentPositionVector;
+
+            AlignGhost();
 
             #region old angle based calculations - doesn't work for all scenarios
             //Vector3 currentRightVector = this.CurrentModelMatrix.Right;
@@ -669,6 +753,56 @@ namespace Module.HeroVirtualTabletop.Characters
             Target(false);
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
             keyBindsGenerator.CompleteEvent();
+            AlignGhost();
+        }
+
+        public void TeleportToCameraWithRelativePositioning(Character closestCharacter, Vector3 closestCharacterStartingPositionVector)
+        {
+            Vector3 destinationPositionVector = new Camera().GetPositionVector();
+            Vector3 mainVector = destinationPositionVector - closestCharacterStartingPositionVector;
+            mainVector.Normalize();
+            float distance = Vector3.Distance(destinationPositionVector, closestCharacterStartingPositionVector);
+            if (closestCharacter != this)
+            {
+                Vector3 targetPositionVectorForThisCharacter = this.CurrentPositionVector + mainVector * distance;
+                this.Position.X = targetPositionVectorForThisCharacter.X;
+                this.Position.Y = targetPositionVectorForThisCharacter.Y;
+                this.Position.Z = targetPositionVectorForThisCharacter.Z;
+            }
+            else
+            {
+                this.Position.X = destinationPositionVector.X;
+                this.Position.Y = destinationPositionVector.Y;
+                this.Position.Z = destinationPositionVector.Z;
+            }
+            AlignGhost();
+        }
+
+        public void TeleportToCameraWithOptimalPositioning(Character closestCharacter, Vector3 closestCharacterStartingPositionVector, ref Vector3 lastReferenceVector, ref List<Vector3> usedUpPositions)
+        {
+            Vector3 destinationPositionVector = new Camera().GetPositionVector();
+            Vector3 mainVector = destinationPositionVector - closestCharacterStartingPositionVector;
+            if (lastReferenceVector == Vector3.Zero)
+            {
+                lastReferenceVector = mainVector;
+            }
+            if (closestCharacter != this)
+            {
+                Vector3 nextReferenceVector;
+                Vector3 targetPositionVectorForThisCharacter = GetNextTargetPositionVector(destinationPositionVector, lastReferenceVector, out nextReferenceVector, ref usedUpPositions);
+                lastReferenceVector = nextReferenceVector;
+                this.Position.X = targetPositionVectorForThisCharacter.X;
+                this.Position.Y = targetPositionVectorForThisCharacter.Y;
+                this.Position.Z = targetPositionVectorForThisCharacter.Z;
+                //lastLocationVector = destinationPositionVector;
+                this.TurnTowards(destinationPositionVector);
+            }
+            else
+            {
+                this.Position.X = destinationPositionVector.X;
+                this.Position.Y = destinationPositionVector.Y;
+                this.Position.Z = destinationPositionVector.Z;
+            }
         }
 
         public string UnTarget(bool completeEvent = true)
@@ -722,6 +856,8 @@ namespace Module.HeroVirtualTabletop.Characters
                 {
                     keyBindsGenerator.CompleteEvent();
                 }
+                if (this.GhostShadow != null && this.GhostShadow.HasBeenSpawned)
+                    this.RemoveGhost();
             }
             gamePlayer = null;
             hasBeenSpawned = false;
@@ -802,9 +938,7 @@ namespace Module.HeroVirtualTabletop.Characters
             else
             {
                 var cameraPos = new Camera().GetPositionVector();
- 
-                cameraPos.Y = new Camera().GetPositionVector().Y - (float) 3.2;
-                characterMovement.Movement.Move(this, cameraPos);
+                MoveToLocation(cameraPos);
             }
             return keybind;
         }
@@ -845,13 +979,52 @@ namespace Module.HeroVirtualTabletop.Characters
         public void AddDefaultMovements()
         {
             string[] defaultMovementNames = new string[] { "Walk", "Run", "Swim" };
-            foreach (CharacterMovement cm in Helper.GlobalMovements.Where(gm => defaultMovementNames.Contains(gm.Name)))
+            
+            foreach (CharacterMovement cm in Helper.GlobalMovements)
             {
-                if (this.Name != Constants.DEFAULT_CHARACTER_NAME && this.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && this.Movements.FirstOrDefault(m => m.Name == cm.Name) == null)
+                if (this.Name != Constants.DEFAULT_CHARACTER_NAME && this.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME)
                 {
-                    CharacterMovement cmDefault = new CharacterMovement(cm.Name, this);
-                    cmDefault.Movement = cm.Movement;
-                    this.Movements.Add(cmDefault);
+                    if(defaultMovementNames.Contains(cm.Name) && this.Movements.FirstOrDefault(m => m.Name == cm.Name) == null)
+                    {
+                        CharacterMovement cmDefault = new CharacterMovement(cm.Name, this);
+                        cmDefault.Movement = cm.Movement;
+                        this.Movements.Add(cmDefault);
+                    }
+                    // Must uncomment the line below
+                    if(this.Movements.Any(m => m.Name == cm.Name)) //&& m.ActivationKey == System.Windows.Forms.Keys.None))
+                    {
+                        CharacterMovement characterMovement = this.Movements.First(m => m.Name == cm.Name);
+                        switch (characterMovement.Name)
+                        {
+                            case "Walk":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.K;
+                                break;
+                            case "Run":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.U;
+                                break;
+                            case "Swim":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.S;
+                                break;
+                            case "Fly":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.F;
+                                break;
+                            case "Jump":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.J;
+                                break;
+                            case "Steam Jump Jetpack":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.P;
+                                break;
+                            case "Beast":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.B;
+                                break;
+                            case "Ninja Jump":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.M;
+                                break;
+                            case "Ice Slide":
+                                characterMovement.ActivationKey = System.Windows.Forms.Keys.I;
+                                break;
+                        }
+                    }
                 }
             }
         }
@@ -1055,31 +1228,6 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Movements
 
-        public void ActivateMovement(Movement movement)
-        {
-
-        }
-
-        public void MoveBasedOnKey(string key)
-        {
-
-        }
-
-        public void DisableCamera()
-        {
-
-        }
-
-        public void SwitchToCamera()
-        {
-
-        }
-
-        public void MoveToDirection(MovementDirection direction)
-        {
-
-        }
-
         public void MoveToLocation(Vector3 destinationVector)
         {
             CharacterMovement characterMovement = this.DefaultMovementToActivate;
@@ -1090,19 +1238,175 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        public void Turn(MovementDirection direction, double distance)
+        public void MoveToLocationWithRelativePositioning(Vector3 destinationPositionVector, Character cloasestCharacter, Vector3 closestCharacterStartingPositionVector)
         {
-
+            Vector3 mainVector = destinationPositionVector - closestCharacterStartingPositionVector;
+            mainVector.Normalize();
+            if(cloasestCharacter != this)
+            {
+                float distanceToTravel = Vector3.Distance(destinationPositionVector, closestCharacterStartingPositionVector);
+                Vector3 targetPositionVector = this.CurrentPositionVector + mainVector * distanceToTravel;
+                this.MoveToLocation(targetPositionVector);
+            }
+            else
+            {
+                this.MoveToLocation(destinationPositionVector);
+            }
+        }
+        public void MoveToLocationWithOptimalPositioning(Vector3 destinationPositionVector,  Character closestCharacter, Vector3 closestCharacterStartingPositionVector, ref Vector3 lastReferenceVector, ref List<Vector3> usedUpPositions)
+        {
+            Vector3 mainVector = destinationPositionVector - closestCharacterStartingPositionVector;
+            if (lastReferenceVector == Vector3.Zero)
+            {
+                lastReferenceVector = mainVector;
+            }
+            if (closestCharacter != this)
+            {
+                Vector3 nextReferenceVector;
+                Vector3 altPosVector = GetNextTargetPositionVector(destinationPositionVector, lastReferenceVector, out nextReferenceVector, ref usedUpPositions);
+                lastReferenceVector = nextReferenceVector;
+                this.MoveToLocation(altPosVector);
+                lastLocationVector = destinationPositionVector;
+                this.DefaultMovementToActivate.Movement.MovementFinished += TurnOnMovementFinished;
+            }
+            else
+            {
+                this.MoveToLocation(destinationPositionVector);
+            }
         }
 
-        public void TurnBasedOnKey(string key)
+        private Vector3 GetNextTargetPositionVector(Vector3 locationVector, Vector3 lastReferenceVector, out Vector3 nextReferenceVector, ref List<Vector3> usedUpPositions)
         {
+            lastReferenceVector.Normalize();
 
+            float x = lastReferenceVector.X;
+            float y = lastReferenceVector.Z;
+            float top1 = (float)(2 * .9 * (Math.Sqrt(x * x + y * y)) * x);
+            float top2 = (float)Math.Sqrt(4 * 0.9 * 0.9 * x * x *(x * x + y * y) - 4 * ( x * x + y * y) * (0.9 * 0.9 * (x * x + y * y) - y * y));
+            float bottom = (2 * (y * y + x * x));
+            float resultX1 = (top1 + top2) / bottom;
+            float resultX2 = (top1 - top2) / bottom;
+            float resultY1 = (float)Math.Sqrt(1 - (resultX1 * resultX1));
+            float resultY2 = (float)Math.Sqrt(1 - (resultX2 * resultX2));
+
+            var nextRef1 = new Vector3(resultX1, lastReferenceVector.Y, resultY1);
+            nextRef1.Normalize();
+            var nextRef2 = new Vector3(resultX1, lastReferenceVector.Y, -1 * resultY1);
+            nextRef2.Normalize();
+            var nextRef3 = new Vector3(resultX2, lastReferenceVector.Y, resultY2);
+            nextRef3.Normalize();
+            var nextRef4 = new Vector3(resultX2, lastReferenceVector.Y, -1 * resultY2);
+            nextRef4.Normalize();
+
+            Vector3 nextTargetVector1 = locationVector + nextRef1 * 8;
+            Vector3 nextTargetVector2 = locationVector + nextRef2 * 8;
+            Vector3 nextTargetVector3 = locationVector + nextRef3 * 8;
+            Vector3 nextTargetVector4 = locationVector + nextRef4 * 8;
+
+            Vector3[] targetVectors = new Vector3[] { nextTargetVector1, nextTargetVector2, nextTargetVector3, nextTargetVector4 };
+            Vector3[] refVectors = new Vector3[] { nextRef1, nextRef2, nextRef3, nextRef4 };
+
+            int i = 0;
+            bool foundNothing = false;
+            while (usedUpPositions.Any(p => Vector3.Distance(p, targetVectors[i]) < 3))
+            {
+                i++;
+                if (i == 3)
+                {
+                    foundNothing = true;
+                    break;
+                }
+            }
+
+           Vector3 nextTargetVector = locationVector + refVectors[i] * 8;
+            if(foundNothing)
+            {
+                nextTargetVector.X += 2;
+                nextTargetVector.Z += 2;
+            }
+
+            usedUpPositions.Add(nextTargetVector);
+            nextReferenceVector = refVectors[i];
+
+            return nextTargetVector;
         }
 
-        public void TurnOnFacing(Vector3 facing)
+        private Vector3 lastLocationVector = Vector3.Zero;
+        private void TurnOnMovementFinished(object sender, EventArgs e)
         {
+            if (lastLocationVector != Vector3.Zero)
+            {
+                this.DefaultMovementToActivate.Movement.MovementFinished -= TurnOnMovementFinished;
+                Action d = delegate ()
+                {
+                    this.TurnTowards(lastLocationVector);
+                    lastLocationVector = Vector3.Zero;
+                };
+                AsyncDelegateExecuter adex = new AsyncDelegateExecuter(d, 1000);
+                adex.ExecuteAsyncDelegate();
+            }
+        }
 
+        public void TurnTowards(Vector3 targetVector)
+        {
+            if (this.MovementInstruction == null)
+                this.MovementInstruction = new HeroVirtualTabletop.Movements.MovementInstruction();
+            CharacterMovement characterMovement = this.DefaultMovementToActivate;
+            Vector3 currentPositionVector = this.CurrentPositionVector;
+            Microsoft.Xna.Framework.Matrix newRotationMatrix = Microsoft.Xna.Framework.Matrix.CreateLookAt(currentPositionVector, targetVector, this.CurrentModelMatrix.Up);
+            if (newRotationMatrix.M11 == float.NaN || newRotationMatrix.M13 == float.NaN || newRotationMatrix.M31 == float.NaN || newRotationMatrix.M33 == float.NaN)
+                return;
+            newRotationMatrix.M11 *= -1;
+            newRotationMatrix.M33 *= -1;
+            var newModelMatrix = new Microsoft.Xna.Framework.Matrix
+            {
+                M11 = newRotationMatrix.M11,
+                M12 = this.CurrentModelMatrix.M12,
+                M13 = newRotationMatrix.M13,
+                M14 = this.CurrentModelMatrix.M14,
+                M21 = this.CurrentModelMatrix.M21,
+                M22 = this.CurrentModelMatrix.M22,
+                M23 = this.CurrentModelMatrix.M23,
+                M24 = this.CurrentModelMatrix.M24,
+                M31 = newRotationMatrix.M31,
+                M32 = this.CurrentModelMatrix.M32,
+                M33 = newRotationMatrix.M33,
+                M34 = this.CurrentModelMatrix.M34,
+                M41 = this.CurrentModelMatrix.M41,
+                M42 = this.CurrentModelMatrix.M42,
+                M43 = this.CurrentModelMatrix.M43,
+                M44 = this.CurrentModelMatrix.M44
+            };
+            //target.CurrentModelMatrix = newModelMatrix;
+            // Turn to destination, figure out angle
+            Vector3 targetForwardVector = newModelMatrix.Forward;
+            Vector3 currentForwardVector = this.CurrentModelMatrix.Forward;
+            bool isClockwiseTurn;
+            float origAngle = MathHelper.ToDegrees(Helper.Get2DAngleBetweenVectors(currentForwardVector, targetForwardVector, out isClockwiseTurn));
+            var angle = origAngle;
+
+            if (isClockwiseTurn)
+                this.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.Upward;
+            else
+            {
+                this.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.Downward;
+            }
+
+            bool turnCompleted = false;
+            while (!turnCompleted)
+            {
+                if (angle > 2)
+                {
+                    characterMovement.Movement.Turn(this, 2);
+                    angle -= 2;
+                }
+                else
+                {
+                    characterMovement.Movement.Turn(this, angle);
+                    turnCompleted = true;
+                }
+                Thread.Sleep(5);
+            }
         }
 
         #endregion

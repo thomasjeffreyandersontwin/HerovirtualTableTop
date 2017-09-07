@@ -146,11 +146,15 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent();
+                if (Target != null && Type == IdentityType.Model)
+                {
+                    Target.SuperImposeGhost();
+                }
             }
             return keybind;
         }
 
-        public string RenderWithoutAnimation(bool completeEvent = true)
+        public string RenderWithoutAnimation(bool completeEvent = true, Character target = null)
         {
             string keybind = string.Empty;
             switch (Type)
@@ -169,6 +173,10 @@ namespace Module.HeroVirtualTabletop.Identities
             if (completeEvent)
             {
                 keybind = keyBindsGenerator.CompleteEvent(false);
+                if(target != null && Type == IdentityType.Model)
+                {
+                    target.SuperImposeGhost();
+                }
             }
             return keybind;
         }

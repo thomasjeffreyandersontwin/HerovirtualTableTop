@@ -62,10 +62,10 @@ namespace Module.HeroVirtualTabletop.Desktop
         public bool ShowAreaAttackMenu { get; set; }
         public string AttackingCharacterName { get; set; }
 
-        public event EventHandler<CustomEventArgs<Object>> AreaAttackContextMenuDisplayed;
+        public event EventHandler<CustomEventArgs<Object>> AttackContextMenuDisplayed;
         public event EventHandler<CustomEventArgs<Object>> DefaultContextMenuDisplayed;
-        public event EventHandler<CustomEventArgs<Object>> AreaAttackTargetMenuItemSelected;
-        public event EventHandler<CustomEventArgs<Object>> AreaAttackTargetAndExecuteMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> AttackTargetMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> AttackTargetAndExecuteMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> SpawnMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> PlaceMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> SavePositionMenuItemSelected;
@@ -83,20 +83,20 @@ namespace Module.HeroVirtualTabletop.Desktop
             switch (contextMenuEvent)
             {
                 case ContextMenuEvent.AreaAttackContextMenuDisplayed:
-                    if (AreaAttackContextMenuDisplayed != null)
-                        AreaAttackContextMenuDisplayed(sender, e);
+                    if (AttackContextMenuDisplayed != null)
+                        AttackContextMenuDisplayed(sender, e);
                     break;
                 case ContextMenuEvent.DefaultContextMenuDisplayed:
                     if (DefaultContextMenuDisplayed != null)
                         DefaultContextMenuDisplayed(sender, e);
                     break;
                 case ContextMenuEvent.AreaAttackTargetMenuItemSelected:
-                    if (AreaAttackTargetMenuItemSelected != null)
-                        AreaAttackTargetMenuItemSelected(sender, e);
+                    if (AttackTargetMenuItemSelected != null)
+                        AttackTargetMenuItemSelected(sender, e);
                     break;
                 case ContextMenuEvent.AreaAttackTargetAndExecuteMenuItemSelect:
-                    if (AreaAttackTargetAndExecuteMenuItemSelected != null)
-                        AreaAttackTargetAndExecuteMenuItemSelected(sender, e);
+                    if (AttackTargetAndExecuteMenuItemSelected != null)
+                        AttackTargetAndExecuteMenuItemSelected(sender, e);
                     break;
                 case ContextMenuEvent.SpawnMenuItemSelected:
                     if (SpawnMenuItemSelected != null)

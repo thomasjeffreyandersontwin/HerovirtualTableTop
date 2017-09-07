@@ -4,8 +4,11 @@ using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Module.HeroVirtualTabletop.Characters;
+using Module.HeroVirtualTabletop.Desktop;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
+using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared;
 using Module.Shared.Events;
 using Prism.Events;
 using System;
@@ -65,7 +68,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> CenterTargetChangedCommand { get; private set; }
         public DelegateCommand<object> SetActiveAttackCommand { get; private set; }
         public DelegateCommand<object> CancelActiveAttackCommand { get; private set; }
-        public DelegateCommand<object> KnockbackOptionChangedCommand { get; private set; }
+        public DelegateCommand<string> ActivatePanelCommand { get; private set; }
+        public DelegateCommand<string> DeactivatePanelCommand { get; private set; }
 
         #endregion
 
@@ -79,6 +83,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             InitializeCommands();
             this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Subscribe(this.ConfigureActiveAttack);
             this.eventAggregator.GetEvent<ConfirmAttackEvent>().Subscribe(this.SetActiveAttack);
+
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
         
         #endregion
@@ -90,17 +96,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.SetActiveAttackCommand = new DelegateCommand<object>(this.SetActiveAttack);
             this.CancelActiveAttackCommand = new DelegateCommand<object>(this.CancelActiveAttack);
             this.CenterTargetChangedCommand = new DelegateCommand<object>(this.ChangeCenterTarget);
-            this.KnockbackOptionChangedCommand = new DelegateCommand<object>(this.ChangeKnockbackOption);
+            this.ActivatePanelCommand = new DelegateCommand<string>(this.ActivatePanel);
+            this.DeactivatePanelCommand = new DelegateCommand<string>(this.DeactivatePanel);
         }
 
         #endregion
 
         #region Methods
-
-        //private bool CanPlayAttackEffects
-        //{
-
-        //}
 
         private void ChangeCenterTarget(object state)
         {
@@ -114,20 +116,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         ch.ActiveAttackConfiguration.IsCenterTarget = false;
                     }
                 }
-            }
-        }
-
-        private void ChangeKnockbackOption(object state)
-        {
-            Character character = state as Character;
-            if(character != null && character.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
-            {
-                character.ActiveAttackConfiguration.IsKnockedBack = true;
-                character.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
-            }
-            else
-            {
-                character.ActiveAttackConfiguration.IsKnockedBack = false;
             }
         }
 
@@ -145,7 +133,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             foreach (Character ch in this.DefendingCharacters)
             {
-                SetAttackEffect(ch);
+                SetAttackParameters(ch);
             }
             // Change mouse pointer to back to bulls eye
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
@@ -154,8 +142,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.ActiveAttack);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
         }
-        private void SetAttackEffect(Character ch)
+        private void SetAttackParameters(Character ch)
         {
+            if (ch.ActiveAttackConfiguration.IsHit)
+                ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
+            else
+                ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Miss;
+
             if (ch.ActiveAttackConfiguration.IsDead)
                 ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dead;
             else if (ch.ActiveAttackConfiguration.IsDying)
@@ -167,8 +160,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
                 ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
 
-            if (ch.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
-                ch.ActiveAttackConfiguration.IsKnockedBack = true;
+            if (ch.ActiveAttackConfiguration.IsKnockedBack)
+                ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockBack;
+            else
+                ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
         }
         private void CancelActiveAttack(object state)
         {
@@ -179,6 +174,92 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.DefendingCharacters.ToList());
             //this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
         }
+
+        private void ActivatePanel(string panelName)
+        {
+            Helper.GlobalVariables_CurrentActiveWindowName = panelName;
+        }
+
+        private void DeactivatePanel(string panelName)
+        {
+            if (Helper.GlobalVariables_CurrentActiveWindowName == panelName)
+                Helper.GlobalVariables_CurrentActiveWindowName = "";
+        }
+
+        #region Desktop Key Handling
+        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        {
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ACTIVE_ATTACK_WIDGET)
+            {
+                if (inputKey == Key.Enter)
+                {
+                    if (this.SetActiveAttackCommand.CanExecute(null))
+                        this.SetActiveAttackCommand.Execute(null);
+                }
+                else if (inputKey == Key.Escape)
+                {
+                    if (this.CancelActiveAttackCommand.CanExecute(null))
+                        this.CancelActiveAttackCommand.Execute(null);
+                }
+                else if (inputKey == Key.H || inputKey == Key.M || inputKey == Key.S || inputKey == Key.U
+                    || inputKey == Key.Y || inputKey == Key.D || inputKey == Key.K || inputKey == Key.B
+                    || (inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
+                {
+                    foreach (var defender in this.DefendingCharacters)
+                    {
+                        if (inputKey == Key.H)
+                        {
+                            defender.ActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
+                        }
+                        else if (inputKey == Key.M)
+                        {
+                            defender.ActiveAttackConfiguration.AttackResult = AttackResultOption.Miss;
+                        }
+                        else if (inputKey == Key.S)
+                        {
+                            defender.ActiveAttackConfiguration.IsStunned = true;
+                        }
+                        else if (inputKey == Key.U)
+                        {
+                            defender.ActiveAttackConfiguration.IsUnconcious = true;
+                        }
+                        else if (inputKey == Key.Y)
+                        {
+                            defender.ActiveAttackConfiguration.IsDying = true;
+                        }
+                        else if (inputKey == Key.D)
+                        {
+                            defender.ActiveAttackConfiguration.IsDead = true;
+                        }
+                        else if (inputKey == Key.B)
+                        {
+                            defender.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockBack;
+                        }
+                        else if (inputKey == Key.K)
+                        {
+                            defender.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
+                        }
+                        else if ((inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
+                        {
+                            var intkey = (inputKey >= Key.D0 && inputKey <= Key.D9) ? inputKey - Key.D0 : inputKey - Key.NumPad0;
+                            if (defender.ActiveAttackConfiguration.KnockBackDistance > 0)
+                            {
+                                string current = defender.ActiveAttackConfiguration.KnockBackDistance.ToString();
+                                current += intkey.ToString();
+                                defender.ActiveAttackConfiguration.KnockBackDistance = Convert.ToInt32(current);
+                            }
+                            else
+                            {
+                                defender.ActiveAttackConfiguration.KnockBackDistance = intkey;
+                            }
+                        }
+                    } 
+                }
+            }
+            return null;
+        }
+
+        #endregion
 
         #endregion
     }

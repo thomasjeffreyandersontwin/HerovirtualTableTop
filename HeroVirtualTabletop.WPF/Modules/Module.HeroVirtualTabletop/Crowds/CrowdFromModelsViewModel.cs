@@ -3,6 +3,7 @@ using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Desktop;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Events;
@@ -39,7 +40,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         private string filter;
         private IMessageBoxService messageBoxService;
         private Visibility visibility = Visibility.Collapsed;
-        private IntPtr keyboardHookID;
 
         #endregion
 
@@ -120,6 +120,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             set
             {
                 visibility = value;
+                if (value == Visibility.Visible)
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.CROWD_FROM_MODELS_VIEW;
+                else
+                    this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.CROWD_FROM_MODELS_VIEW);
                 OnPropertyChanged("Visibility");
             }
         }
@@ -164,8 +168,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             charExpVM = this.Container.Resolve<CharacterExplorerViewModel>();
             this.eventAggregator.GetEvent<CreateCrowdFromModelsEvent>().Subscribe(this.LoadCrowd);
             tmpCrowd = new CrowdModel();
-
-            keyboardHookID = KeyBoardHook.SetHook(CrowdFromModelsKeyboardHook);
+            
+            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -271,7 +275,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                 EditedCrowd.Add(model);
                 charExpVM.AllCharactersCrowd.Add(model);
             }
-            //ClearFromDesktop(null);
         }
 
         private string GetValidMemberName()
@@ -311,45 +314,28 @@ namespace Module.HeroVirtualTabletop.Crowds
             return new Regex(Filter, RegexOptions.IgnoreCase).IsMatch(strItem);
         }
 
-        #region Keyboard Hook
-
-        private IntPtr CrowdFromModelsKeyboardHook(int nCode, IntPtr wParam, IntPtr lParam)
+        #region Desktop Key Handling
+        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
-            if (nCode >= 0 && this.Visibility == System.Windows.Visibility.Visible && this.EditedCrowd != null)
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.MOVEMENT_EDITOR)
             {
-                KBDLLHOOKSTRUCT keyboardLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
-                System.Windows.Forms.Keys vkCode = (System.Windows.Forms.Keys)keyboardLLHookStruct.vkCode;
-                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
-                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                if (inputKey == Key.N && Keyboard.Modifiers == ModifierKeys.Control)
                 {
-                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
-                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                    var winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
-                    uint wndProcId;
-                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
-                    var currentProcId = Process.GetCurrentProcess().Id;
-                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null)
-                        || currentProcId == wndProcId)
-                    {
-                        if ((inputKey == Key.S) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Shift))
-                        {
-                            if (this.SpawnModelsCommand.CanExecute(null))
-                                this.SpawnModelsCommand.Execute(null);
-                        }
-                        else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Windows))
-                        {
-                            if (this.ClearFromDesktopCommand.CanExecute(null))
-                                this.ClearFromDesktopCommand.Execute(null);
-                        }
-                        else if (inputKey == Key.S && Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Windows))
-                        {
-                            if (this.SaveCrowdCommand.CanExecute(null))
-                                this.SaveCrowdCommand.Execute(null);
-                        }
-                    }
+                    if (this.SpawnModelsCommand.CanExecute(null))
+                        this.SpawnModelsCommand.Execute(null);
+                }
+                else if ((inputKey == Key.OemMinus || inputKey == Key.Subtract || inputKey == Key.Delete) && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.ClearFromDesktopCommand.CanExecute(null))
+                        this.ClearFromDesktopCommand.Execute(null);
+                }
+                else if (inputKey == Key.S && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.SaveCrowdCommand.CanExecute(null))
+                        this.SaveCrowdCommand.Execute(null);
                 }
             }
-            return KeyBoardHook.CallNextHookEx(keyboardHookID, nCode, wParam, lParam);
+            return null;
         }
 
         #endregion

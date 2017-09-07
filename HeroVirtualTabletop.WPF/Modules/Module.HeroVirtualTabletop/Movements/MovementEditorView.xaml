@@ -88,11 +88,11 @@
                 <StackPanel.Resources>
                     <Style TargetType="Button" BasedOn="{StaticResource ResourceKey=IconButton}"></Style>
                 </StackPanel.Resources>
-                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement (Alt+Shift+Enter)" Command="{Binding PlayMovementCommand}" />
+                <Button x:Name="btnPlayMovement" Content="&#xf04b;" ToolTip="Demo Movement (Ctrl+Enter)" Command="{Binding PlayMovementCommand}" />
             </StackPanel>
             <StackPanel Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" HorizontalAlignment="Right" Margin="0, 0, 5, 0">
-                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement (Alt+Shift+Plus)" Command="{Binding AddMovementCommand}" />
-                <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Movement (Alt+Shift+Minus/Delete)" Command="{Binding RemoveMovementCommand}"/>
+                <Button Style="{StaticResource AddButtonStyle}" ToolTip="Add Movement (Ctrl+Plus)" Command="{Binding AddMovementCommand}" />
+                <Button Style="{StaticResource RemoveButtonStyle}" ToolTip="Remove Movement (Ctrl+Minus/Del)" Command="{Binding RemoveMovementCommand}"/>
             </StackPanel>
         </Grid>
         <Grid Grid.Row="2" Margin="3, 1, 0, 0">

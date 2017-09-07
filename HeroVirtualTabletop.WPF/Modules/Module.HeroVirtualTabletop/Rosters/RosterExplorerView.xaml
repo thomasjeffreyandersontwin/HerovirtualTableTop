@@ -47,13 +47,13 @@
                 <MenuItem Header="Clear From Desktop" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ClearFromDesktopCommand}"></MenuItem>
                 <MenuItem Header="Reset Orientation" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ResetOrientationCommand}"></MenuItem>
             </ContextMenu>
-            <ContextMenu x:Key="AreaAttackMenu">
-                <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AreaAttackTargetCommand}"></MenuItem>
-                <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AreaAttackTargetAndExecuteCommand}"></MenuItem>
+            <ContextMenu x:Key="AttackMenu">
+                <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetCommand}"></MenuItem>
+                <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid MouseDown="Grid_MouseDown">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition />
@@ -90,7 +90,17 @@
                                             <GroupBox Header="{Binding Name, Converter={StaticResource CrowdNameConverter}}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                                                 <GroupBox.HeaderTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock  Text="{Binding}" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
+                                                        <TextBlock  Text="{Binding}" PreviewMouseDown="TextBlock_PreviewMouseDown">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="True">
+                                                                            <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=AttackMenu}" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
                                                     </DataTemplate>
                                                 </GroupBox.HeaderTemplate>
                                                 <Grid>
@@ -102,7 +112,7 @@
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition/>
                                                     </Grid.ColumnDefinitions>
-                                                    
+
                                                     <Expander Name="ExpanderOptionGroup" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource ExpanderWithoutToggleButtonStyle}"
                                                       OverridesDefaultStyle="True"  VerticalAlignment="Top"
                                                       >
@@ -111,12 +121,6 @@
                                                 </Grid>
                                             </GroupBox>
                                         </Grid>
-                                        <!--<Expander IsExpanded="True" Background="Transparent" TextElement.Foreground="White" Style="{StaticResource ExpanderDefaultStyle}">
-                                            <Expander.Header>
-                                                <TextBlock Text="{Binding Name, Converter={StaticResource CrowdNameConverter}}" FontWeight="Bold" PreviewMouseDown="TextBlock_PreviewMouseDown"/>
-                                            </Expander.Header>
-                                            <ItemsPresenter PreviewMouseDown="ListViewItem_PreviewMouseDown"></ItemsPresenter>
-                                        </Expander>-->
                                     </ControlTemplate>
                                 </Setter.Value>
                             </Setter>
@@ -131,7 +135,7 @@
                             <Style TargetType="{x:Type Grid}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="True">
-                                        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=AreaAttackMenu}" />
+                                        <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=AttackMenu}" />
                                     </DataTrigger>
                                     <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="False">
                                         <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=RosterExplorerMenu}" />

@@ -20,13 +20,13 @@
             <RowDefinition/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <WrapPanel> 
-            <Button x:Name="btSave" Content="&#xF0C7;" ToolTip="Save Position (Ctrl+Shift+P)" Command="{Binding SavePositionCommand}"/>
+        <WrapPanel>
+            <Button x:Name="btSave" Content="&#xF0C7;" ToolTip="Save Position (Ctrl+S)" Command="{Binding SavePositionCommand}"/>
             <Button x:Name="btPlace" Content="&#xf041;" ToolTip="Place (Ctrl+P)" Command="{Binding PlaceCommand}"/>
-            <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn (Ctrl+Shift+S)" Command="{Binding SpawnCommand}"/>
-            <Button x:Name="btTarget" Content="&#xf05b;" ToolTip="Toggle Target (Ctrl+T)" Command="{Binding ToggleTargetedCommand}"/>
-            <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera (Ctrl+M)" Command="{Binding ToggleManeuverWithCameraCommand}" />
-            <Button x:Name="btCycle" Content="&#xf1da;" ToolTip="Cycle Commands (Ctrl+Shift+C)" Command="{Binding CycleCommandsThroughCrowdCommand}">
+            <Button x:Name="btSpawn" Content="&#xf08e;" ToolTip="Spawn (Ctrl+W)" Command="{Binding SpawnCommand}"/>
+            <Button x:Name="btTarget" Content="&#xf05b;" ToolTip="Toggle Target (Ctrl+T)" Command="{Binding ToggleTargeteCommand}"/>
+            <Button x:Name="btCamera" Content="&#xf030;" ToolTip="Maneuver with camera (Ctrl+M)" Command="{Binding ToggleManeuverWithCameraCommand}"/>
+            <Button x:Name="btCycle" Content="&#xf1da;" ToolTip="Cycle Commands (Ctrl+Y)" Command="{Binding CycleCommandsThroughCrowdCommand}">
                 <Button.Style >
                     <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
                         <Style.Triggers>
@@ -57,11 +57,25 @@
         </WrapPanel>
         <WrapPanel Grid.Row="1">
             <Button x:Name="btMoveCameraToTarget" Content="&#xf064;" ToolTip="Move Camera to Target (Ctrl+F)" Command="{Binding TargetAndFollowCommand}"/>
-            <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera (Ctrl+Shift+F)" Command="{Binding MoveTargetToCameraCommand}"/>
-            <Button x:Name="btTeleport" Content="&#xf122;" ToolTip="Teleport Target to Camera (Ctrl+Shift+T)" Command="{Binding TeleportTargetToCameraCommand}"/>
+            <Button x:Name="btMoveTargetToCamera" Content="&#xf112;" ToolTip="Move Target to Camera (Ctrl+G)" Command="{Binding MoveTargetToCameraCommand}"/>
+            <Button x:Name="btTeleport" Content="&#xf122;" ToolTip="Teleport Target to Camera (Ctrl+L)" Command="{Binding TeleportTargetToCameraCommand}"/>
             <Button x:Name="btActivate" Content="&#xf00c;" ToolTip="Activate Character (Ctrl+Enter)" Command="{Binding ActivateCharacterCommand}" />
-            <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop (Ctrl+Shift+Minus/Del)" Command="{Binding ClearFromDesktopCommand}" />
+            <Button x:Name="btClearFromDesktop" Content="&#xf235;" ToolTip="Clear From Desktop (Ctrl+Minus/Del)" Command="{Binding ClearFromDesktopCommand}" />
             <Button x:Name="btResetOrientation" Content="&#xf1ae;" ToolTip="Reset Orientation (Ctrl+O)" Command="{Binding ResetOrientationCommand}" />
+            <Button x:Name="btToggleRelativePositioning" Content="&#xf021;" ToolTip="Toggle Relative Positioning (Ctrl+R)" Command="{Binding ToggleRelativePositioningCommand}">
+                <Button.Style >
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=UseRelativePositioning}" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </DataTrigger>
+                            <DataTrigger  Binding="{Binding Path=UseRelativePositioning}" Value="True">
+                                <Setter Property="Opacity" Value="1"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </WrapPanel>
     </Grid>
 </UserControl>
