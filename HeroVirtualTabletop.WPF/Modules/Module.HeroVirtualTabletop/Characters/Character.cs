@@ -499,6 +499,38 @@ namespace Module.HeroVirtualTabletop.Characters
             get; set;
         }
 
+        private bool isActive;
+        [JsonIgnore]
+        public bool IsActive
+        {
+            get
+            {
+
+                return isActive;
+            }
+            set
+            {
+                isActive = value;
+                OnPropertyChanged("IsActive");
+            }
+        }
+
+        private bool isGangLeader;
+        [JsonIgnore]
+        public bool IsGangLeader
+        {
+            get
+            {
+
+                return isGangLeader;
+            }
+            set
+            {
+                isGangLeader = value;
+                OnPropertyChanged("IsGangLeader");
+            }
+        }
+
         public string Spawn(bool completeEvent = true)
         {
             if (ManeuveringWithCamera)
@@ -574,17 +606,19 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public string Target(bool completeEvent = true)
         {
-            //if (hasBeenSpawned)
-            //{
-            keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
-
             if (gamePlayer != null && gamePlayer.IsReal)
             {
-                gamePlayer.Target(); //This ensure targeting even if not in view
-                WaitUntilTargetIsRegistered();
+                if (completeEvent)
+                {
+                    gamePlayer.Target(); //This ensure targeting even if not in view
+                    WaitUntilTargetIsRegistered();
+                }
+                else
+                    keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
             }
             else
             {
+                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
                 if (completeEvent)
                 {
                     keybind = keyBindsGenerator.CompleteEvent();
@@ -668,6 +702,17 @@ namespace Module.HeroVirtualTabletop.Characters
                 this.GhostShadow.ClearFromDesktop();
                 this.GhostShadow = null;
             }
+        }
+
+        public void SetActive()
+        {
+            this.IsActive = true;
+        }
+
+        public void ResetActive()
+        {
+            this.IsActive = false;
+            this.IsGangLeader = false;
         }
 
         public void ResetOrientation()
@@ -1131,100 +1176,6 @@ namespace Module.HeroVirtualTabletop.Characters
                 keyBindsGenerator.CompleteEvent();
             }
         }
-
-        public void ChangeCostumeColor(ColorExtensions.RGB color, int colorNumber = 2)
-        {
-            if (this.ActiveIdentity.Type != IdentityType.Costume)
-                return;
-
-            bool persistentAbilityActive = this.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive).FirstOrDefault() != null || (this.ActiveIdentity.AnimationOnLoad != null && this.ActiveIdentity.AnimationOnLoad.Persistent);
-
-            string name = ActiveIdentity.Surface;
-            string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
-            string file = name + Constants.GAME_COSTUMES_EXT;
-            string origFile = Path.Combine(location, file);
-
-            // Archive original file
-            string archFile = Path.Combine(
-            Settings.Default.CityOfHeroesGameDirectory,
-            Constants.GAME_COSTUMES_FOLDERNAME,
-            this.ActiveIdentity.Surface + "_original" + Constants.GAME_COSTUMES_EXT);
-            if (!File.Exists(archFile))
-            {
-                File.Copy(origFile, archFile, true);
-            }
-            // Archive persistent fx
-            if(persistentAbilityActive)
-            {
-                string persistentCostumeFile = Path.Combine(
-                    Settings.Default.CityOfHeroesGameDirectory,
-                    Constants.GAME_COSTUMES_FOLDERNAME,
-                    this.ActiveIdentity.Surface + "_persistent" + Constants.GAME_COSTUMES_EXT);
-
-                File.Copy(origFile, persistentCostumeFile, true);
-            }
-
-            string newFolder = Path.Combine(location, name);
-            string newFile = Path.Combine(newFolder, string.Format("{0}_{1}{2}", name, color, Constants.GAME_COSTUMES_EXT));
-            if (!Directory.Exists(newFolder))
-            {
-                Directory.CreateDirectory(newFolder);
-            }
-            if (File.Exists(newFile))
-            {
-                File.Delete(newFile);
-            }
-
-            if (File.Exists(origFile))
-            {
-                changeColorIntoCharacterCostumeFile(origFile, newFile, color, colorNumber);
-                string coloredCostume = Path.Combine(name, string.Format("{0}_{1}", name, color));
-                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                Target(false);
-                keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, coloredCostume);
-                keybind = keyBindsGenerator.CompleteEvent();
-            }
-        }
-
-        //private void invertColorIntoCharacterCostumeFile(string origFile, string newFile, int colorNumber = 2)
-        //{
-        //    if (colorNumber < 1 || colorNumber > 4)
-        //    {
-        //        return;
-        //    }
-        //    string fileStr = File.ReadAllText(origFile);
-        //    string color2 = "Color" + colorNumber + @"\s+(?<Red>[\d]{1,3}),\s+(?<Green>[\d]{1,3}),\s+(?<Blue>[\d]{1,3})";
-        //    Regex re = new Regex(color2);
-
-        //    List<Color> colorsFound = new List<Color>();
-        //    Dictionary<Color,Color> contrastColors = new Dictionary<Color, Color>();
-
-        //    foreach (Match match in re.Matches(fileStr))
-        //    {
-        //        ColorExtensions.RGB rgb = new ColorExtensions.RGB()
-        //        {
-        //            R = double.Parse(match.Groups["Red"].Value),
-        //            G = double.Parse(match.Groups["Green"].Value),
-        //            B = double.Parse(match.Groups["Blue"].Value)
-        //        };
-        //        Color color = Color.FromRgb((byte)rgb.R, (byte)rgb.G, (byte)rgb.B);
-        //        if (!colorsFound.Contains(color))
-        //        {
-        //            colorsFound.Add(color);
-        //            Color contrast = color.GetContrast();
-        //            contrastColors.Add(color, contrast);
-        //        }
-        //    }
-
-        //    foreach (Color c in colorsFound)
-        //    {
-        //        string pattern = string.Format("Color" + colorNumber + @"\s+({0}),\s+({1}),\s+({2})", c.R, c.G, c.B);
-        //        re = new Regex(pattern);
-        //        fileStr = re.Replace(fileStr, string.Format("Color2 {0}, {1}, {2}", contrastColors[c].R, contrastColors[c].G, contrastColors[c].B));
-        //    }
-
-        //    File.AppendAllText(newFile, fileStr);
-        //}
 
         #region Movements
 

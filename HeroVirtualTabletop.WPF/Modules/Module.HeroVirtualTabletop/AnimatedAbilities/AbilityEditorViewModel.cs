@@ -40,6 +40,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
         private IResourceRepository resourceRepository;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
 
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
@@ -622,12 +623,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Constructor
 
-        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IResourceRepository resourceRepository, EventAggregator eventAggregator)
+        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IResourceRepository resourceRepository, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.resourceRepository = resourceRepository;
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
@@ -636,7 +638,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             // Unselect everything at the beginning
             this.InitializeAnimationElementSelections();
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+            this.InitializeDesktopKeyEventHandlers();
         }
 
         #endregion
@@ -668,6 +670,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         availableKeys.Add(key);
                 }
             }
+        }
+
+        public void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
         private void InitializeCommands()
@@ -1951,7 +1958,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         AnimationElementType EditingAnimationType = AnimationElementType.FX;
         AnimationType DemoingType = AnimationType.Standard;
-        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        internal EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ABILITY_EDITOR)
             {

@@ -42,6 +42,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         void InsertOption(int index, ICharacterOption option);
 
         void SaveOptionGroup();
+        void RemoveDesktopKeyEventHandlers();
     }
 
     public class OptionGroupViewModel<T> : BaseViewModel, IOptionGroupViewModel where T : ICharacterOption
@@ -52,6 +53,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         private OptionGroup<T> optionGroup;
 
         private Timer clickTimer_AbilityPlay = new Timer();
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
 
         #endregion
 
@@ -263,11 +265,12 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         #region Constructor
 
-        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator, OptionGroup<T> optionGroup, Character owner)
+        public OptionGroupViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator, OptionGroup<T> optionGroup, Character owner)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.desktopKeyEventHandler = keyEventHandler;
             this.Owner = owner;
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
@@ -285,7 +288,17 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
             InitializeCommands();
             SetTooltips();
-            var keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+            this.InitializeDesktopKeyEventHandlers();
+        }
+
+        private void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
+        }
+
+        public void RemoveDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.RemoveKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
         private void SetTooltips()
@@ -639,11 +652,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             else
             {
                 CharacterMovement characterMovement = selectedOption as CharacterMovement;
-                if(characterMovement != null && characterMovement.Movement != null && !characterMovement.IsActive)
-                {
-                    owner.ActiveMovement = characterMovement;
-                    characterMovement.ActivateMovement();
-                }
+                this.eventAggregator.GetEvent<PlayMovementInitiatedEvent>().Publish(characterMovement);
             }
         }
 
@@ -667,7 +676,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             owner.ActiveAbility = ability;
             currentTarget.Target(false);
-            currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
+            //currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
             ability.Play(Target: currentTarget);
         }
 
@@ -964,7 +973,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         #region Key event handling
 
-        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        public EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (!this.IsReadOnlyMode && Keyboard.Modifiers == ModifierKeys.Control && Helper.GlobalVariables_CurrentActiveWindowName == Constants.CHARACTER_EDITOR)
             {

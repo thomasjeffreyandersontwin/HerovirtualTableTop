@@ -28,6 +28,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
 
         #endregion
 
@@ -70,23 +71,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> CancelActiveAttackCommand { get; private set; }
         public DelegateCommand<string> ActivatePanelCommand { get; private set; }
         public DelegateCommand<string> DeactivatePanelCommand { get; private set; }
+        public DelegateCommand<object> AttackHitChangedCommand { get; private set; }
 
         #endregion
 
         #region Constructor
 
-        public ActiveAttackViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator)
+        public ActiveAttackViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
             this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Subscribe(this.ConfigureActiveAttack);
             this.eventAggregator.GetEvent<ConfirmAttackEvent>().Subscribe(this.SetActiveAttack);
-
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+            InitializeDesktopKeyEventHandlers();
         }
-        
+
         #endregion
 
         #region Initialization
@@ -98,6 +100,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.CenterTargetChangedCommand = new DelegateCommand<object>(this.ChangeCenterTarget);
             this.ActivatePanelCommand = new DelegateCommand<string>(this.ActivatePanel);
             this.DeactivatePanelCommand = new DelegateCommand<string>(this.DeactivatePanel);
+            this.AttackHitChangedCommand = new DelegateCommand<object>(this.ChangeAttackHit);
+        }
+
+        public void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -106,7 +114,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ChangeCenterTarget(object state)
         {
-            if(this.ActiveAttack.IsAreaEffect)
+            if (this.ActiveAttack.IsAreaEffect)
             {
                 Character character = state as Character;
                 if (character != null && character.ActiveAttackConfiguration.IsCenterTarget)
@@ -116,6 +124,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         ch.ActiveAttackConfiguration.IsCenterTarget = false;
                     }
                 }
+            }
+        }
+
+        private void ChangeAttackHit(object state)
+        {
+            Character target = state as Character;
+            if (target != null)
+            {
+                if (target.ActiveAttackConfiguration.AttackResults.Any(ar => ar.IsHit))
+                    target.ActiveAttackConfiguration.IsHit = true;
+                else
+                    target.ActiveAttackConfiguration.IsHit = false;
             }
         }
 
@@ -144,10 +164,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         private void SetAttackParameters(Character ch)
         {
-            if (ch.ActiveAttackConfiguration.IsHit)
-                ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
+            if (!ch.ActiveAttackConfiguration.HasMultipleAttackers)
+            {
+                if (ch.ActiveAttackConfiguration.IsHit)
+                    ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
+                else
+                    ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Miss;
+            }
             else
-                ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Miss;
+            {
+                foreach (AttackResult ar in ch.ActiveAttackConfiguration.AttackResults)
+                {
+                    ar.AttackResultOption = ar.IsHit ? AttackResultOption.Hit : AttackResultOption.Miss;
+                }
+            }
 
             if (ch.ActiveAttackConfiguration.IsDead)
                 ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dead;
@@ -167,7 +197,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         private void CancelActiveAttack(object state)
         {
-            foreach(var c in this.DefendingCharacters)
+            foreach (var c in this.DefendingCharacters)
             {
                 c.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
             }
@@ -187,7 +217,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         #region Desktop Key Handling
-        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        public EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ACTIVE_ATTACK_WIDGET)
             {
@@ -209,11 +239,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         if (inputKey == Key.H)
                         {
-                            defender.ActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
+                            if (!defender.ActiveAttackConfiguration.HasMultipleAttackers)
+                                defender.ActiveAttackConfiguration.IsHit = true;
+                            else
+                            {
+                                foreach (var ar in defender.ActiveAttackConfiguration.AttackResults)
+                                {
+                                    ar.IsHit = true;
+                                }
+                            }
                         }
                         else if (inputKey == Key.M)
                         {
-                            defender.ActiveAttackConfiguration.AttackResult = AttackResultOption.Miss;
+                            if (!defender.ActiveAttackConfiguration.HasMultipleAttackers)
+                                defender.ActiveAttackConfiguration.IsHit = false;
+                            else
+                            {
+                                foreach (var ar in defender.ActiveAttackConfiguration.AttackResults)
+                                {
+                                    ar.IsHit = false;
+                                }
+                            }
                         }
                         else if (inputKey == Key.S)
                         {
@@ -233,11 +279,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         }
                         else if (inputKey == Key.B)
                         {
-                            defender.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockBack;
+                            defender.ActiveAttackConfiguration.IsKnockedBack = true;
                         }
                         else if (inputKey == Key.K)
                         {
-                            defender.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
+                            defender.ActiveAttackConfiguration.IsKnockedBack = false;
                         }
                         else if ((inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
                         {
@@ -253,7 +299,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                                 defender.ActiveAttackConfiguration.KnockBackDistance = intkey;
                             }
                         }
-                    } 
+                    }
                 }
             }
             return null;

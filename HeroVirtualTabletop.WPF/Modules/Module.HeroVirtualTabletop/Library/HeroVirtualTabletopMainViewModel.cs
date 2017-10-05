@@ -21,6 +21,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
@@ -68,7 +69,9 @@ namespace Module.HeroVirtualTabletop.Library
             LaunchGame();
 
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadActiveCharacterWidget);
+            this.eventAggregator.GetEvent<ActivateGangEvent>().Subscribe(this.LoadActiveGangWidget);
             this.eventAggregator.GetEvent<DeactivateCharacterEvent>().Subscribe(this.CloseActiveCharacterWidget);
+            this.eventAggregator.GetEvent<DeactivateGangEvent>().Subscribe(this.CloseActiveGangWidget);
             this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.ConfigureAttack);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttackWidget);
         }
@@ -123,6 +126,39 @@ namespace Module.HeroVirtualTabletop.Library
             {
                 this.CloseActiveCharacterWidget(null);
             }
+        }
+
+        private void LoadActiveGangWidget(List<Character> gangMembers)
+        {
+            if (gangMembers != null && PopupService.IsOpen("ActiveCharacterWidgetView") == false)
+            {
+                Character gangLeader = gangMembers.FirstOrDefault(m => m.IsGangLeader);
+
+                System.Windows.Style style = Helper.GetCustomWindowStyle();
+                double minwidth = 80;
+                style.Setters.Add(new Setter(Window.MinWidthProperty, minwidth));
+                var desktopWorkingArea = System.Windows.SystemParameters.WorkArea;
+                double left = desktopWorkingArea.Right - 500;
+                double top = desktopWorkingArea.Bottom - 80 * gangLeader.OptionGroups.Count;
+                object savedPos = PopupService.GetPosition("ActiveCharacterWidgetView", gangLeader.Name);
+                if (savedPos != null)
+                {
+                    double[] posArray = (double[])savedPos;
+                    left = posArray[0];
+                    top = posArray[1];
+                }
+                style.Setters.Add(new Setter(Window.LeftProperty, left));
+                style.Setters.Add(new Setter(Window.TopProperty, top));
+                ActiveCharacterWidgetViewModel viewModel = this.Container.Resolve<ActiveCharacterWidgetViewModel>();
+                PopupService.ShowDialog("ActiveCharacterWidgetView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style, WindowStartupLocation.Manual);
+                this.eventAggregator.GetEvent<ActivateGangEvent>().Publish(gangMembers);
+                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_CHARACTER_WIDGET;
+            }
+        }
+
+        private void CloseActiveGangWidget(object state)
+        {
+            this.CloseActiveCharacterWidget(null);
         }
 
         private void ConfigureAttack(Tuple<List<Character>, Attack> tuple)
@@ -180,6 +216,8 @@ namespace Module.HeroVirtualTabletop.Library
             bool directoryExists = CheckGameDirectory();
             if (!directoryExists)
                 SetGameDirectory();
+
+            LoadMainView();
             //logService.Info("Launching game...");
             //IconInteractionUtility.RunCOHAndLoadDLL(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
             IconInteractionUtility.InitializeGame(Module.Shared.Settings.Default.CityOfHeroesGameDirectory);
@@ -212,7 +250,7 @@ namespace Module.HeroVirtualTabletop.Library
                 new Camera().Render();
                 //logService.Info("Camera rendered");
 
-                LoadMainView();
+                //LoadMainView();
                 //logService.Info("MainView displayed");
             };
             Application.Current.Dispatcher.BeginInvoke(d);

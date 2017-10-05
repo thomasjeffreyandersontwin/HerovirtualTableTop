@@ -1,4 +1,4 @@
-﻿using ApplicationShell.Models.Navigation;
+﻿ using ApplicationShell.Models.Navigation;
 using ApplicationShell.Views;
 using Framework.WPF.Services.BusyService;
 using Framework.WPF.Services.MessageBoxService;
@@ -59,6 +59,8 @@ namespace ApplicationShell
                 ex = ex.InnerException;
             }
             string message = ex.Message;
+            message += Environment.NewLine + "Stack Trace:";
+            message += Environment.NewLine + ex.StackTrace;
             ErrorItems errors = new ErrorItems();
             errors.Errors.Add(
                 new ErrorItem

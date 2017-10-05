@@ -21,19 +21,23 @@ using Module.HeroVirtualTabletop.Library.Utility;
 
 namespace Module.HeroVirtualTabletop.Desktop
 {
-    public class DesktopKeyEventHandler
+    public delegate void EventMethod();
+    public delegate EventMethod HandleKeyEvent(Keys vkCode, System.Windows.Input.Key inputKey);
+    public interface IDesktopKeyEventHandler
     {
-
+        void AddKeyEventHandler(HandleKeyEvent handleKeyEvent);
+        void RemoveKeyEventHandler(HandleKeyEvent handleKeyEvent);
+    }
+    public class DesktopKeyEventHandler : IDesktopKeyEventHandler
+    {
+        private object lockObj = new object();
         public IntPtr hookID;
         public Keys vkCode;
         public System.Windows.Input.Key _inputKey;
-
-
-        public delegate EventMethod HandleKeyEvent(Keys vkCode, System.Windows.Input.Key inputKey);
-        HandleKeyEvent _handleKeyEvent;
-        public DesktopKeyEventHandler(HandleKeyEvent d)
+        List<HandleKeyEvent> _handleKeyEvents;
+        public DesktopKeyEventHandler()
         {
-            _handleKeyEvent = d;
+            _handleKeyEvents = new List<Desktop.HandleKeyEvent>();
             ActivateKeyboardHook();
         }
 
@@ -42,6 +46,29 @@ namespace Module.HeroVirtualTabletop.Desktop
 
             hookID = KeyBoardHook.SetHook(this.HandleKeyboardEvent);
         }
+
+        public void AddKeyEventHandler(HandleKeyEvent handleKeyEvent)
+        {
+            lock (lockObj)
+            {
+                if (!_handleKeyEvents.Contains(handleKeyEvent))
+                {
+                    _handleKeyEvents.Add(handleKeyEvent);
+                } 
+            }
+        }
+
+        public void RemoveKeyEventHandler(HandleKeyEvent handleKeyEvent)
+        {
+            lock (lockObj)
+            {
+                if (_handleKeyEvents.Contains(handleKeyEvent))
+                {
+                    _handleKeyEvents.Remove(handleKeyEvent);
+                } 
+            }
+        }
+
         internal void DeactivateKeyboardHook()
         {
             KeyBoardHook.UnsetHook(hookID);
@@ -70,11 +97,6 @@ namespace Module.HeroVirtualTabletop.Desktop
             }
         }
 
-
-
-
-        public delegate void EventMethod();
-
         internal IntPtr HandleKeyboardEvent(int nCode, IntPtr wParam, IntPtr lParam)
         {
 
@@ -99,10 +121,22 @@ namespace Module.HeroVirtualTabletop.Desktop
                         }
                         else
                         {
-                            EventMethod handler = _handleKeyEvent(vkCode, inputKey);
-                            if (handler != null)
-                           { 
-                                handler();
+                            lock (lockObj)
+                            {
+                                try
+                                {
+                                    foreach (HandleKeyEvent _handleKeyEvent in _handleKeyEvents)
+                                    {
+                                        EventMethod handler = _handleKeyEvent(vkCode, inputKey);
+                                        if (handler != null)
+                                        {
+                                            handler();
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                }
                             }
                         }
                     }

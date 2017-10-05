@@ -36,6 +36,8 @@
             <bindings:BindingProxy x:Key="BindingProxy" Data="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext}"/>
             <ContextMenu x:Key="RosterExplorerMenu">
                 <MenuItem Header="Activate Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateCharacterCommand}"></MenuItem>
+                <MenuItem Header="Activate Crowd as Gang" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateCrowdAsGangCommand}"></MenuItem>
+                <MenuItem Header="Activate as Gang" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateGangCommand}"></MenuItem>
                 <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
                 <MenuItem Header="Save Position" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SavePositionCommand}"></MenuItem>
                 <MenuItem Header="Place" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlaceCommand}"></MenuItem>
@@ -50,11 +52,13 @@
             <ContextMenu x:Key="AttackMenu">
                 <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetCommand}"></MenuItem>
                 <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCommand}"></MenuItem>
+                <MenuItem Header="Target and Execute Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCrowdCommand}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition />
         </Grid.RowDefinitions>
@@ -72,7 +76,12 @@
                 ResetOrientationCommand="{Binding ResetOrientationCommand}"
                 CycleCommandsThroughCrowdCommand="{Binding CycleCommandsThroughCrowdCommand}"
                 ></characters:CharacterManagementMenuControl>
-        <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="1" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
+        <!--<StackPanel Grid.Row="1" Orientation="Horizontal">
+            <Button Style="{StaticResource IconButton}" Content="&#xf0e4;" ToolTip="Save Position (Ctrl+S)" Command="{Binding SavePositionCommand}"/>
+            <TextBox Name="txtDistanceCounter"                        
+                         Text="{Binding Path=CurrentDistanceCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        </StackPanel>-->
+        <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="2" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White" Drop="RosterViewListBox_Drop" DragOver="RosterViewListBox_DragOver"
                      SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Transparent" BorderThickness="0"
                                     extensions:DragDropExtension.ScrollOnDragDrop="True">
@@ -90,17 +99,23 @@
                                             <GroupBox Header="{Binding Name, Converter={StaticResource CrowdNameConverter}}" x:Name="grpBoxOptionGroup" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                                                 <GroupBox.HeaderTemplate>
                                                     <DataTemplate>
-                                                        <TextBlock  Text="{Binding}" PreviewMouseDown="TextBlock_PreviewMouseDown">
-                                                            <TextBlock.Style>
-                                                                <Style TargetType="TextBlock">
+                                                        <Border Height="20" BorderBrush="AliceBlue" PreviewMouseDown="TextBlock_PreviewMouseDown">
+                                                            <TextBlock  Text="{Binding}" PreviewMouseDown="TextBlock_PreviewMouseDown">
+                                                            </TextBlock>
+                                                            <Border.Style>
+                                                                <Style TargetType="Border">
                                                                     <Style.Triggers>
                                                                         <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="True">
                                                                             <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=AttackMenu}" />
                                                                         </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Path=DataContext.ShowAttackContextMenu, RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}}" Value="False">
+                                                                            <Setter Property="ContextMenu" Value="{StaticResource ResourceKey=RosterExplorerMenu}" />
+                                                                        </DataTrigger>
                                                                     </Style.Triggers>
                                                                 </Style>
-                                                            </TextBlock.Style>
-                                                        </TextBlock>
+                                                            </Border.Style>
+                                                        </Border>
+                                                            
                                                     </DataTemplate>
                                                 </GroupBox.HeaderTemplate>
                                                 <Grid>
@@ -114,7 +129,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <Expander Name="ExpanderOptionGroup" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource ExpanderWithoutToggleButtonStyle}"
-                                                      OverridesDefaultStyle="True"  VerticalAlignment="Top"
+                                                      OverridesDefaultStyle="True"  VerticalAlignment="Top" Expanded="ExpanderOptionGroup_ExpansionChanged" Collapsed="ExpanderOptionGroup_ExpansionChanged"
                                                       >
                                                         <ItemsPresenter PreviewMouseDown="ListViewItem_PreviewMouseDown"></ItemsPresenter>
                                                     </Expander>
@@ -150,27 +165,27 @@
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <TextBlock Name="txtBlockCharacterName" Text="{Binding Name}" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
-                        <Label Grid.Column="1" Foreground="Green"
-                               FontFamily="{StaticResource ResourceKey=FontFamily_FontAwesome}"
-                               FontSize="26" Content="&#xf00c;" VerticalAlignment="Center"
+                        <TextBlock Grid.Column="1"
+                               FontFamily="{StaticResource ResourceKey=FontFamily_FontAwesome}" 
+                               Text="&#xf00c;" VerticalAlignment="Center"
                                >
-                            <Label.Style>
-                                <Style TargetType="Label">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
                                     <Setter Property="Visibility" Value="Collapsed"></Setter>
                                     <Style.Triggers>
-                                        <DataTrigger Value="true">
-                                            <DataTrigger.Binding>
-                                                <MultiBinding Converter="{StaticResource ResourceKey=characterComparer}">
-                                                    <Binding></Binding>
-                                                    <Binding RelativeSource="{RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}" Path="DataContext.ActiveCharacter"></Binding>
-                                                </MultiBinding>
-                                            </DataTrigger.Binding>
+                                        <DataTrigger Value="true" Binding="{Binding IsActive}">
                                             <Setter Property="Visibility" Value="Visible"></Setter>
+                                        </DataTrigger>
+                                        <DataTrigger Value="true" Binding="{Binding IsGangLeader}">
+                                            <Setter Property="Foreground" Value="Red"/>
+                                        </DataTrigger>
+                                        <DataTrigger Value="false" Binding="{Binding IsGangLeader}">
+                                            <Setter Property="Foreground" Value="Green"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
-                            </Label.Style>
-                        </Label>
+                            </TextBlock.Style>
+                        </TextBlock>
                         <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
                         </TextBlock>
                         <!--<TextBlock Grid.Column="3" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">

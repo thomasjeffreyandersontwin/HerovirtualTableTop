@@ -22,6 +22,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; }
         void SavePosition(ICrowdMember c);
         void Place(ICrowdMember crowdMember);
+        bool IsGangMode { get; set; }
     }
 
     public interface ICrowdModel : ICrowd, ICrowdMemberModel
@@ -63,6 +64,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 rosterCrowd = value;
                 OnPropertyChanged("RosterCrowd");
+            }
+        }
+
+        private bool isGangMode;
+        [JsonIgnore]
+        public bool IsGangMode
+        {
+            get
+            {
+                return isGangMode;
+            }
+            set
+            {
+                isGangMode = value;
+                OnPropertyChanged("IsGangMode");
             }
         }
 

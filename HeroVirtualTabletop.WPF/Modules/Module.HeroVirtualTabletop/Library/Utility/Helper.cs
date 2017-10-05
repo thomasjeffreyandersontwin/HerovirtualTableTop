@@ -473,7 +473,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             string h1 = Regex.Match(s1, pattern).Groups[1].Value;
             string h2 = Regex.Match(s2, pattern).Groups[1].Value;
             if (h1 != h2)
-                return h1.CompareTo(h2);
+                return s1.CompareTo(s2);
             string t1 = Regex.Match(s1, pattern).Groups[2].Value;
             string t2 = Regex.Match(s2, pattern).Groups[2].Value;
             if (IsNumeric(t1) && IsNumeric(t2))

@@ -33,7 +33,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private bool isTripleClick = false;
         private bool isQuadrupleClick = false;
         private int milliseconds = 0;
-        private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime * 4;
+        private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime;
         private System.Windows.Forms.Timer clickTimer = new System.Windows.Forms.Timer();
         public RosterExplorerView(RosterExplorerViewModel viewModel)
         {
@@ -45,7 +45,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.RosterViewListBox.SelectAll();
             this.RosterViewListBox.UnselectAll();
 
-            clickTimer.Interval = 50;
+            clickTimer.Interval = 10;
             clickTimer.Tick +=
                 new EventHandler(clickTimer_Tick);
 
@@ -64,22 +64,28 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 e.Handled = true;
             }
-            else if(e.RightButton == MouseButtonState.Pressed && this.viewModel.IsPlayingAttack)
+            else if(e.RightButton == MouseButtonState.Pressed)
             {
-                var groupbox = Helper.GetTemplateAncestorByType(e.OriginalSource as TextBlock, typeof(GroupBox));
+                this.viewModel.stopSyncingWithDesktop = true;
+                this.viewModel.isMultiSelecting = true;
+                this.viewModel.SelectedParticipants.Clear(); 
+                GroupBox groupbox = Helper.GetTemplateAncestorByType(e.OriginalSource as TextBlock, typeof(GroupBox)) as GroupBox;
                 var itemsPres = Helper.GetDescendantByType(groupbox, typeof(ItemsPresenter)) as ItemsPresenter;
-                var vStackPanel = VisualTreeHelper.GetChild(itemsPres as DependencyObject, 0) as VirtualizingStackPanel;
-                foreach (ListBoxItem item in vStackPanel.Children)
+                try
                 {
-                    item.IsSelected = true;
+                    var vStackPanel = VisualTreeHelper.GetChild(itemsPres as DependencyObject, 0) as VirtualizingStackPanel;
+                    foreach (ListBoxItem item in vStackPanel.Children)
+                    {
+                        item.IsSelected = true;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    string rosterCrowdName = groupbox.Header.ToString();
+                    this.viewModel.AddCrowdMembersToSelection(rosterCrowdName);
                 }
                 e.Handled = true;
             }
-        }
-
-        private void TextBlock_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            
         }
 
         private void ListViewItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -89,7 +95,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (e.ClickCount == 1)
                 {
                     isSingleClick = true;
-                    // Start the click timer.
+                    //// Start the click timer.
                     clickTimer.Start();
                 }
                 // This is the second mouse click.
@@ -111,21 +117,13 @@ namespace Module.HeroVirtualTabletop.Roster
 
         void clickTimer_Tick(object sender, EventArgs e)
         {
-            milliseconds += 50;
+            milliseconds += 10;
 
             if (milliseconds >= maxClickTime)
             {
                 clickTimer.Stop();
 
-                if (isQuadrupleClick)
-                {
-                    this.viewModel.ActivateCharacterCommand.Execute(null);
-                }
-                else if (isTripleClick)
-                {
-                    this.viewModel.ToggleManeuverWithCamera();
-                }
-                else if (isDoubleClick)
+                if (isDoubleClick)
                 {
                     //this.viewModel.TargetAndFollow();
                     this.viewModel.RosterMouseDoubleClicked = true;
@@ -134,8 +132,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 else
                 {
                     //this.viewModel.TargetOrFollow();
-                    if (this.viewModel.IsPlayingAttack && !this.viewModel.IsPlayingAreaEffect)
-                        this.viewModel.TargetAndExecuteAttack(null);
+                    if (!(Keyboard.Modifiers == ModifierKeys.Control || Keyboard.Modifiers == ModifierKeys.Shift))
+                    {
+                        if (this.viewModel.IsPlayingAttack && !this.viewModel.IsPlayingAreaEffect)
+                            this.viewModel.TargetAndExecuteAttack(null);
+                    }
                 }
 
                 isSingleClick = isDoubleClick = isTripleClick = isQuadrupleClick = false;
@@ -164,8 +165,40 @@ namespace Module.HeroVirtualTabletop.Roster
             ListCollectionView view = (ListCollectionView)source.View;
             if (view != null && view.Groups != null && view.Groups.Count > 1)
             {
-                //view.Refresh();
+                view.Refresh();
+                foreach(CollectionViewGroup cvg in view.Groups)
+                {
+                    if (rosterGroupExpansionStates.ContainsKey(cvg.Name.ToString()))
+                    {
+                        bool isExpanded = rosterGroupExpansionStates[cvg.Name.ToString()];
+                        if (isExpanded)
+                        {
+                            GroupItem groupItem = this.RosterViewListBox.ItemContainerGenerator.ContainerFromItem(cvg) as GroupItem;
+                            if(groupItem != null)
+                            {
+                                groupItem.UpdateLayout();
+                                Expander expander = Helper.GetDescendantByType(groupItem, typeof(Expander)) as Expander;
+                                if(expander != null)
+                                {
+                                    expander.IsExpanded = true;
+                                }
+                            }
+                        }
+                    }
+                }
             }
+        }
+
+        Dictionary<string, bool> rosterGroupExpansionStates = new Dictionary<string, bool>();
+
+        private void ExpanderOptionGroup_ExpansionChanged(object sender, RoutedEventArgs e)
+        {
+            Expander expander = sender as Expander;
+            CollectionViewGroup cvg = expander.DataContext as CollectionViewGroup;
+            if (rosterGroupExpansionStates.ContainsKey(cvg.Name.ToString()))
+                rosterGroupExpansionStates[cvg.Name.ToString()] = expander.IsExpanded;
+            else
+                rosterGroupExpansionStates.Add(cvg.Name.ToString(), expander.IsExpanded);
         }
     }
 }

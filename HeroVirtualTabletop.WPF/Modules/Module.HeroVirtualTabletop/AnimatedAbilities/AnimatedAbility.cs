@@ -12,6 +12,7 @@ using Module.Shared.Events;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -112,7 +113,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return clonedAbility;
         }
 
-        public static string GetAppropriateAnimationName(AnimationElementType animationType, List<AnimationElement> collection)
+        public static string GetAppropriateAnimationName(AnimationElementType animationType, params List<AnimationElement>[] collections)
         {
             string name = "";
             switch (animationType)
@@ -157,7 +158,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
             }
             string newName = rootName + suffix;
-            while (collection.Where(a => a.Name == newName).FirstOrDefault() != null)
+            while (collections.Any(c => c.Where(a => a.Name == newName).FirstOrDefault() != null))
             {
                 suffix = string.Format(" {0}", ++i);
                 newName = rootName + suffix;
@@ -287,9 +288,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 IsActive = false;
             if (target != null)
             {
-                foreach (IAnimationElement item in AnimationElements.Where(x => !(x is FXEffectElement) && x.IsActive))
+                if (this.IsAttack) // Don't kill FXs
                 {
-                    item.Stop(target);
+                    foreach (IAnimationElement item in AnimationElements.Where(x => !(x is FXEffectElement) && x.IsActive))
+                    {
+                        item.Stop(target);
+                    }
+                }
+                else // Kill everything
+                {
+                    foreach (IAnimationElement item in AnimationElements.Where(x => x.IsActive))
+                    {
+                        item.Stop(target);
+                    }
                 }
             }
             OnPropertyChanged("IsActive");
@@ -319,9 +330,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimatedAbility ability = null;
             if (this.OnHitAnimation != null && this.OnHitAnimation.AnimationElements != null && this.OnHitAnimation.AnimationElements.Count > 0)
             {
-                ability = this.OnHitAnimation;
+                List<AnimationElement> onhitAnimations = this.onHitAnimation.GetFlattenedAnimationList();
+                if(onhitAnimations.Count > 0)
+                    ability = this.OnHitAnimation;
             }
-            else
+            if(ability == null)
             {
                 if (Helper.GlobalCombatAbilities != null && Helper.GlobalCombatAbilities.Count > 0)
                 {
@@ -335,11 +348,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return ability;
         }
 
-        public void AnimateAttack(AttackDirection direction, Character attacker)
+        public void AnimateAttack(AttackDirection direction, List<Character> attackers)
         {
             this.SetAttackDirection(this, direction);
-            this.SetAttackerFacing(direction, attacker);
-            base.Play(false, attacker);
+            attackers.ForEach(attacker =>
+            {
+                this.SetAttackerFacing(direction, attacker);
+                base.Play(false, attacker);
+            }
+            );
             // Reset FX direction
             this.SetAttackDirection(this, null);
         }
@@ -356,12 +373,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     else
                         fxElement.AttackDirection = null;
                 }
-                else if(animation is SequenceElement)
+                else if (animation is SequenceElement)
                 {
                     SequenceElement se = animation as SequenceElement;
                     SetAttackDirection(se, direction);
                 }
-                else if(animation is ReferenceAbility)
+                else if (animation is ReferenceAbility)
                 {
                     ReferenceAbility refAbility = animation as ReferenceAbility;
                     SetAttackDirection(refAbility.Reference, direction);
@@ -390,9 +407,84 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return ability;
         }
 
-        public void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
+        public void AnimateAttackSequence(List<Character> attackingCharacters, List<Character> defendingCharacters)
         {
-            
+            Dictionary<Character, List<Character>> defenderVsAttackers = new Dictionary<Characters.Character, List<Character>>();
+            if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+            {
+                foreach(Character defender in defendingCharacters)
+                {
+                    if(defender.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
+                    {
+                        // Change order so that knockback attacker plays last
+                        List<Character> attackersForThisDefender = new List<Characters.Character>();
+                        foreach(Character attacker in attackingCharacters.Where(ac => defender.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == ac && !ar.IsHit)))
+                        {
+                            attackersForThisDefender.Add(attacker);
+                        }
+                        foreach (Character attacker in attackingCharacters.Where(ac => defender.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == ac && ar.IsHit)))
+                        {
+                            attackersForThisDefender.Add(attacker);
+                        }
+                        defenderVsAttackers.Add(defender, attackersForThisDefender);
+                    }
+                    else
+                    {
+                        defenderVsAttackers.Add(defender, attackingCharacters);
+                    }
+                }
+            }
+            if (this.IsAreaEffect)
+            {
+                if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+                {
+                    List<Character> attackersForArea = defenderVsAttackers[defendingCharacters.First(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)];
+                    attackersForArea.ForEach(ac => {
+                        AnimateAttackSequence(ac, defendingCharacters);
+                    });
+                }
+                else
+                {
+                    attackingCharacters.ForEach(ac => {
+                        AnimateAttackSequence(ac, defendingCharacters);
+                    });
+                }
+            }
+            else
+            {
+                if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+                {
+                    foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack))
+                    {
+                        List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == defender.Name)];
+                        attackersForVanilla.ForEach(ac => {
+                            AnimateAttackSequence(ac, new List<Character> { defender });
+                        });
+                    }
+                    foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+                    {
+                        List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == defender.Name)];
+                        attackersForVanilla.ForEach(ac => {
+                            AnimateAttackSequence(ac, new List<Character> { defender });
+                        });
+                    }
+                }
+                else
+                {
+                    defendingCharacters.ForEach(defender =>
+                    {
+                        attackingCharacters.ForEach(ac => {
+                            AnimateAttackSequence(ac, new List<Character> { defender });
+                        });
+                    });
+                }
+                
+            }
+        }
+
+        private void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+
             int attackDelay = 0;
 
             AttackDirection direction = GetAttackDirection(attackingCharacter, defendingCharacters);
@@ -405,19 +497,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 attackDelay = (int)delayManager.GetDelayForDistance(distance); //here
             }
 
-            AnimateAttack(direction, attackingCharacter);
+            AnimateAttack(direction, new List<Character> { attackingCharacter });
             System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
 
+            AnimateHitAndMiss(attackingCharacter, defendingCharacters);
 
-            AnimateHitAndMiss(attackingCharacter,defendingCharacters);
-            //Task.Run(() => AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList()));
-            AnimateAttackEffects(defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList());
+            List<Character> charactersWithImpacts = defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList();
+            AnimateAttackEffects(attackingCharacter, charactersWithImpacts);
             // Reset FX direction
             this.SetAttackDirection(this, null);
-            
-            //jeff temorarily removed as deactivating causing a melee attack cycle bug
-            //new PauseElement("", 2000).Play();
-            //attackingCharacter.Deactivate();
         }
 
         private float GetTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
@@ -476,7 +564,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     Vector3 vAttacker = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
                     Vector3 vCenterTarget = new Vector3(centerTargetCharacter.Position.X, centerTargetCharacter.Position.Y, centerTargetCharacter.Position.Z);
 
-                    if (centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit)
+                    bool isCenterTargetHit = false;
+                    if(centerTargetCharacter.ActiveAttackConfiguration.HasMultipleAttackers)
+                    {
+                        isCenterTargetHit = centerTargetCharacter.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == attackingCharacter && ar.IsHit);
+                    }
+                    else
+                    {
+                        isCenterTargetHit = centerTargetCharacter.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit;
+                    }
+                    if (isCenterTargetHit)
                     {
                         direction.AttackDirectionX = centerTargetCharacter.Position.X;
                         direction.AttackDirectionY = centerTargetCharacter.Position.Y + 4.0f;
@@ -599,12 +696,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             var hitAbility = this.GetHitAbility();
             var hitAbilityToPlay = this.GetSequenceToPlay(hitAbility);
             var hitAbilityFlattened = hitAbilityToPlay.GetFlattenedAnimationList();
-            List<Character> hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
-            
-            
-            
 
-            int knockbackPlaySequence = 0; // denotes the index of the animation in the flattened list after which we should play knockback if needed. This is played after the first mov element, and would mostly be played
+            List<Character> hitTargets = null;
+            if (!defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers))
+            {
+                hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
+            }
+            else
+            {
+                hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter && ar.IsHit) != null).ToList();
+            } 
+
+            int knockbackPlaySequence = -1; // denotes the index of the animation in the flattened list after which we should play knockback if needed. This is played after the first mov element, and would mostly be played
             // after the 0th animation (which is a mov)
 
             // add all the hit animations in proper order
@@ -612,22 +715,46 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 AnimationElement hitElement = anim.Clone();
                 hitElement.Name = GetAppropriateAnimationName(hitElement.Type, hitMissSequenceElement.AnimationElements.ToList());
-                if (hitElement.Type == AnimationElementType.Movement || hitElement.Type == AnimationElementType.FX)
+                if ((hitElement.Type == AnimationElementType.Movement || hitElement.Type == AnimationElementType.FX) && knockbackPlaySequence < 0)
+                {
                     knockbackPlaySequence = hitElement.Order;
+                }
                 hitMissSequenceElement.AddAnimationElement(hitElement);
                 hitElement.PlayWithNext = anim.PlayWithNext;
                 characterAnimationMappingDictionary.Add(hitElement, hitTargets);
             }
-            InjectMissAbility(hitMissSequenceElement, characterAnimationMappingDictionary, defendingCharacters);
+            if (knockbackPlaySequence < 0)
+            {
+                knockbackPlaySequence = 0;
+            }
+            InjectMissAbility(hitMissSequenceElement, characterAnimationMappingDictionary, attackingCharacter, defendingCharacters);
 
             // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
-            bool playWithKnockback = defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack);// whether we need to play knockback or not
+            bool playWithKnockback = defendingCharacters.Any(dc =>
+           (!dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack) // not multiple attackers
+           ||
+           (
+           dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack
+           && dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == attackingCharacter && ar.IsHit)// this attacker hits
+           &&
+           (!(dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit)) // no other attackers hit
+           ||
+           (dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit) // other hitting attackers come before this attacker
+           && dc.ActiveAttackConfiguration.AttackResults.IndexOf(dc.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.Attacker != attackingCharacter && ar.IsHit))
+           < dc.ActiveAttackConfiguration.AttackResults.IndexOf(dc.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter))))
+           )
+            );// whether we need to play knockback or not
             if (playWithKnockback)
             {
                 Task knockbackTask = new Task(() => { AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList()); });
-                hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask);
+                Action d = delegate ()
+               {
+                   AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList());
+               };
+                hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask, d);
             }
-            else {
+            else
+            {
                 hitMissSequenceElement.PlayFlattenedAnimationsOnTargeted(characterAnimationMappingDictionary);
                 //hitMissSequenceElement.Play(false, defendingCharacters[0]);
             }
@@ -635,21 +762,40 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         }
 
-        private void InjectMissAbility(SequenceElement hitMissSequenceElement, Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, List<Character> defendingCharacters)
+        private void InjectMissAbility(SequenceElement hitMissSequenceElement, Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary,Character attackingCharacter, List<Character> defendingCharacters)
         {
-            List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
+            List<Character> missTargets = null;
+            if (!defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers))
+            {
+                missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
+            }
+            else
+            {
+                missTargets = defendingCharacters.Where(t => 
+                t.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter && !ar.IsHit) != null
+                &&
+                !(
+                t.ActiveAttackConfiguration.AttackEffectOption != AttackEffectOption.None     
+                && t.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit)
+                && (
+                t.ActiveAttackConfiguration.AttackResults.IndexOf(t.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker != attackingCharacter && ar.IsHit)) < 
+                t.ActiveAttackConfiguration.AttackResults.IndexOf(t.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter))
+                )
+                )
+                ).ToList();
+            }
             var missAbility = this.GetMissAbility();
 
             //Jeff if we have one target we can look to see if it has a custom miss animation, if it does we can use that
             //how we get this working for area effect is beyond me thanks to all this crazy sequence injection majic!!!
-            if (missTargets.Count == 1 )
+            if (missTargets.Count == 1)
             {
                 if (missTargets[0].AnimatedAbilities[Constants.MISS_ABITIY_NAME] != null)
                 {
                     missAbility = missTargets[0].AnimatedAbilities[Constants.MISS_ABITIY_NAME];
                 }
             }
-            
+
             var missAbilityToPlay = this.GetSequenceToPlay(missAbility);
             var missAbilityFlattened = missAbilityToPlay.GetFlattenedAnimationList();
             // Now inject the miss animations where appropriate
@@ -660,11 +806,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 foreach (var anim in missAbilityFlattened)
                 {
                     AnimationElement missElement = anim.Clone();
-                    missElement.Name = AnimatedAbility.GetAppropriateAnimationName(missElement.Type, hitMissSequenceElement.AnimationElements.ToList());
+                    missElement.Name = AnimatedAbility.GetAppropriateAnimationName(missElement.Type, hitMissSequenceElement.AnimationElements.ToList(), prependMissAnimations);
                     characterAnimationMappingDictionary.Add(missElement, missTargets);
                     if (missAnimationInjectCurrentPosition >= 0) // already found injection position, so add to the next position
                     {
-                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition); 
+                        hitMissSequenceElement.AddAnimationElement(missElement, ++missAnimationInjectCurrentPosition);
                     }
                     else // find appropriate position if miss animation is mov or fx, else prepend
                     {
@@ -726,19 +872,51 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private void AnimateAttackEffects(List<Character> defendingCharacters)
+        private void AnimateAttackEffects(Character attackingCharacter, List<Character> defendingCharacters)
         {
             SequenceElement attackEffectSequenceElement = new SequenceElement("AttackEffectSequence", AnimationSequenceType.And);
             Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
 
             var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
-            List<Character> deadTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead).ToList();
+            List<Character> deadTargets = defendingCharacters.Where(t => 
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead && t.ActiveAttackConfiguration.AttackResults == null)
+            ||
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead 
+            && t.ActiveAttackConfiguration.AttackResults != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit) != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
+            )
+            ).ToList();
             var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
-            List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList();
+            List<Character> dyingTargets = defendingCharacters.Where(t => 
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying && t.ActiveAttackConfiguration.AttackResults == null)
+            ||
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying
+            && t.ActiveAttackConfiguration.AttackResults != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit) != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
+            )
+            ).ToList();
             var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
-            List<Character> unconciousTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList();
+            List<Character> unconciousTargets = defendingCharacters.Where(t => 
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious && t.ActiveAttackConfiguration.AttackResults == null)
+            ||
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious
+            && t.ActiveAttackConfiguration.AttackResults != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit) != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
+            )
+            ).ToList();
             var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
-            List<Character> stunnedTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList();
+            List<Character> stunnedTargets = defendingCharacters.Where(t => 
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned && t.ActiveAttackConfiguration.AttackResults == null)
+            ||
+            (t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned
+            && t.ActiveAttackConfiguration.AttackResults != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit) != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
+            )
+            ).ToList();
 
             if (deadTargets.Count > 0 && globalDeadAbility != null)
             {
@@ -821,14 +999,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     //PlayKnockBackWithoutMovement(attackingCharacter, character, knockbackDistance);
                     var knockbackMovement = Helper.GlobalMovements.FirstOrDefault(cm => cm.Name == Constants.KNOCKBACK_MOVEMENT_NAME);
                     knockbackMovement.MovementSpeed = 2.5;
-                    if(knockbackMovement != null)
+                    if (knockbackMovement != null)
                     {
                         Vector3 attackerVector = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
                         Vector3 targetVector = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
                         Vector3 directionVector = targetVector - attackerVector;
                         if (!character.ActiveAttackConfiguration.IsCenterTarget)
                         {
-                            if(centerTargetCharacter != null)
+                            if (centerTargetCharacter != null)
                             {
                                 directionVector = targetVector - centerTargetCharacter.CurrentPositionVector;
                             }
@@ -844,7 +1022,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         if (Math.Abs(targetVector.Z - destZ) < 1)
                             destZ = targetVector.Z;
                         Vector3 destVector = new Vector3(destX, destY, destZ);
-                        if(character.ActiveAttackConfiguration.IsCenterTarget || centerTargetCharacter == null)
+                        if (character.ActiveAttackConfiguration.IsCenterTarget || centerTargetCharacter == null)
                             knockbackMovement.Movement.MoveBack(character, attackerVector, destVector);
                         else
                             knockbackMovement.Movement.MoveBack(character, centerTargetCharacter.CurrentPositionVector, destVector);
@@ -854,7 +1032,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         public override void Play(bool persistent = false, Character target = null, bool playAsSequence = false)
         {
-            if (this.IsAttack && !playAsSequence) {
+            if (this.IsAttack && !playAsSequence)
+            {
                 this.InitiateAttack(persistent, target);
                 IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
                 WindowsUtilities.SetForegroundWindow(winHandle);
@@ -970,6 +1149,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 attackResult = value;
                 OnPropertyChanged("AttackResult");
+            }
+        }
+
+        private ObservableCollection<AttackResult> attackResults;
+        public ObservableCollection<AttackResult> AttackResults
+        {
+            get
+            {
+                return attackResults;
+            }
+            set
+            {
+                attackResults = value;
+                OnPropertyChanged("AttackResults");
+                OnPropertyChanged("HasMultipleAttackers");
+            }
+        }
+        public bool HasMultipleAttackers
+        {
+            get
+            {
+                return AttackResults != null && AttackResults.Count > 0; ;
             }
         }
 
@@ -1111,6 +1312,50 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.AttackDirectionX = direction.X;
             this.AttackDirectionY = direction.Y;
             this.AttackDirectionZ = direction.Z;
+        }
+    }
+
+    public class AttackResult: NotifyPropertyChanged
+    {
+        private Character attacker;
+        public Character Attacker
+        {
+            get
+            {
+                return attacker;
+            }
+            set
+            {
+                attacker = value;
+                OnPropertyChanged("Attacker");
+            }
+        }
+
+        private AttackResultOption attackResultOption;
+        public AttackResultOption AttackResultOption
+        {
+            get
+            {
+                return attackResultOption;
+            }
+            set
+            {
+                attackResultOption = value;
+                OnPropertyChanged("AttackResultOption");
+            }
+        }
+        private bool isHit;
+        public bool IsHit
+        {
+            get
+            {
+                return isHit;
+            }
+            set
+            {
+                isHit = value;
+                OnPropertyChanged("IsHit");
+            }
         }
     }
 }

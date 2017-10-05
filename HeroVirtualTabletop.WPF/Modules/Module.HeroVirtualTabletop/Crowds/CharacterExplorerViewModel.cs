@@ -42,8 +42,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         private IMessageBoxService messageBoxService;
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
         //private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
-        
+
         private string filter;
         private string containerWindowName = "";
         private CrowdModel clipboardObjectOriginalCrowd = null;
@@ -268,12 +269,13 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         #region Constructor
 
-        public CharacterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ICrowdRepository crowdRepository, EventAggregator eventAggregator)
+        public CharacterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ICrowdRepository crowdRepository, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.crowdRepository = crowdRepository;
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
             //this.eventAggregator.GetEvent<SaveCrowdEvent>().Subscribe(this.SaveCrowdCollection);
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
@@ -323,7 +325,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void InitializeDesktopKeyHanders()
         {
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -487,8 +489,6 @@ namespace Module.HeroVirtualTabletop.Crowds
                {
                    this.AddDefaultCharactersWithDefaultAbilities();
                    this.AddDefaultMovementsToCharacters();
-                   var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
-                   eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
                    //this.AddCrowdsFromFile(); // Add models for Jeff
                };
             Application.Current.Dispatcher.BeginInvoke(d);
@@ -503,7 +503,13 @@ namespace Module.HeroVirtualTabletop.Crowds
             catch(Exception ex)
             {
 
-            }          
+            }         
+        }
+
+        private void CheckRosterConsistency(object state)
+        {
+            var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
+            eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
         }
 
         private void AddDefaultMovementsToCharacters()
@@ -1567,8 +1573,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                     IEnumerable<ICrowdMemberModel> modelList = this.CrowdCollection;
                     if (crowdModel == null)
                         crowdModel = FindNestedCrowd(modelList.ToList(), crowdModelName) as CrowdModel;
-                    var crowdMemberModel = crowdModel.CrowdMemberCollection.Where(c => c.Name == crowdMemberModelName).First() as CrowdMemberModel;
-                    if (crowdMemberModel.RosterCrowd == null)
+                    var crowdMemberModel = crowdModel.CrowdMemberCollection.Where(c => c.Name == crowdMemberModelName).FirstOrDefault() as CrowdMemberModel;
+                    if (crowdMemberModel != null && crowdMemberModel.RosterCrowd == null)
                     {
                         // Character not added to roster yet, so just add to roster with the current crowdmodel
                         crowdMemberModel.RosterCrowd = crowdModel;
@@ -1794,7 +1800,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
 
         #region Desktop Key Handling
-        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        public EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.CHARACTER_EXPLORER)
             {

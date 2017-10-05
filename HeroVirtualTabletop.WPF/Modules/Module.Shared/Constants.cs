@@ -59,6 +59,7 @@ namespace Module.Shared
         public const string GAME_SOUND_FOLDERNAME = "sound";
         public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME = "bindsavetarget.txt";
         public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME = "bindsavetargetexecute.txt";
+        public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_CROWD_FILENAME = "bindsavetargetexecutecrowd.txt";
         public const string GAME_TEXTS_FOLDERNAME = "texts";
         public const string GAME_LANGUAGE_FOLDERNAME = "english";
         public const string GAME_MENUS_FOLDERNAME = "menus";
@@ -74,6 +75,7 @@ namespace Module.Shared
         public const string GAME_CHARACTER_BINDSAVE_MANUEVERWITHCAMERA_FILENAME = "manueverwithcamera.txt";
         public const string GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME = "clear.txt";
         public const string GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME = "activate.txt";
+        public const string GAME_CHARACTER_BINDSAVE_ACTIVATE_CROWD_AS_GANG_FILENAME = "activatecrowdasgang.txt";
         public const string GAME_CHARACTER_BINDSAVE_CLONEANDLINK_FILENAME = "clonelink.txt";
         public const string GAME_CHARACTER_BINDSAVE_RESETORIENTATION_FILENAME = "resetorientation.txt";
         public const string GAME_ENABLE_CAMERA_FILENAME = "enable_camera.txt";

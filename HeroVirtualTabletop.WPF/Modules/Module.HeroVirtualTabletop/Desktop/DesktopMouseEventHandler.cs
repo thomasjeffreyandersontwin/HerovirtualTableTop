@@ -38,9 +38,9 @@ namespace Module.HeroVirtualTabletop.Desktop
             DoubleTripleQuadMouseClicksTracker.AutoReset = false;
             DoubleTripleQuadMouseClicksTracker.Interval = maxClickTime;
             DoubleTripleQuadMouseClicksTracker.Elapsed += new ElapsedEventHandler(DoubleTripleQuadMouseClicksTrackerElapsed);
-            ActivateKeyboardHook();
+            ActivateMouseHook();
         }
-        public void ActivateKeyboardHook()
+        public void ActivateMouseHook()
         {
 
             mouseHookID = MouseHook.SetHook(this.HandleMouseEvent);
@@ -111,8 +111,8 @@ namespace Module.HeroVirtualTabletop.Desktop
                             break;
                         case 2: MouseState = DesktopMouseState.DOUBLE_CLICK;
                             break;
-                        case 3: MouseState = DesktopMouseState.TRIPLE_CLICK; break;
-                        case 4: MouseState = DesktopMouseState.QUAD_CLICK; break;
+                        //case 3: MouseState = DesktopMouseState.TRIPLE_CLICK; break;
+                        //case 4: MouseState = DesktopMouseState.QUAD_CLICK; break;
                     }
                 }
                 else if (MouseMessage.WM_RBUTTONDOWN == (MouseMessage)wParam)
@@ -131,24 +131,30 @@ namespace Module.HeroVirtualTabletop.Desktop
                 {
                     MouseState = DesktopMouseState.MOUSE_MOVE;
                 }
-                IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
-                if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null))
+                Action d = delegate () 
                 {
-                    if (MouseState == DesktopMouseState.MOUSE_MOVE)
-                        FireMouseMoveEvent();
-                    else if (MouseState == DesktopMouseState.LEFT_CLICK)
-                        FireMouseLeftClick();
-                    else if (MouseState == DesktopMouseState.RIGHT_CLICK)
-                        FireMouseRightClick();
-                    else if (MouseState == DesktopMouseState.LEFT_CLICK_UP)
-                        FireMouseLeftClickUp();
-                    else if (MouseState == DesktopMouseState.RIGHT_CLICK_UP)
-                        FireMouseRightClickUp();
-                    else if (MouseState == DesktopMouseState.DOUBLE_CLICK)
-                        FireMouseDoubleClick();
-                    else if (MouseState == DesktopMouseState.TRIPLE_CLICK)
-                        FireMouseTripleCLick();
-                }
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    if (foregroundWindow == WindowsUtilities.FindWindow("CrypticWindow", null))
+                    {
+                        if (MouseState == DesktopMouseState.MOUSE_MOVE)
+                            FireMouseMoveEvent();
+                        else if (MouseState == DesktopMouseState.LEFT_CLICK)
+                            FireMouseLeftClick();
+                        else if (MouseState == DesktopMouseState.RIGHT_CLICK)
+                            FireMouseRightClick();
+                        else if (MouseState == DesktopMouseState.LEFT_CLICK_UP)
+                            FireMouseLeftClickUp();
+                        else if (MouseState == DesktopMouseState.RIGHT_CLICK_UP)
+                            FireMouseRightClickUp();
+                        else if (MouseState == DesktopMouseState.DOUBLE_CLICK)
+                            FireMouseDoubleClick();
+                        //else if (MouseState == DesktopMouseState.TRIPLE_CLICK)
+                        //    FireMouseTripleCLick();
+                    }
+                };
+
+                AsyncDelegateExecuter adex = new AsyncDelegateExecuter(d, 10);
+                adex.ExecuteAsyncDelegate();
             }
             return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);
         }

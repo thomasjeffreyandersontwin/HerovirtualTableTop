@@ -31,10 +31,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Private Fields and Commands
         private EventAggregator eventAggregator;
-        private System.Timers.Timer clickTimer_AbilityPlay = new System.Timers.Timer();
         private AnimatedAbility activeAbility;
-        public DelegateCommand<object> PlayActiveAbilityCommand { get; private set; }
-        public DelegateCommand<object> ToggleMovementCommand { get; private set; }
         public DelegateCommand<string> ActivatePanelCommand { get; private set; }
         public DelegateCommand<string> DeactivatePanelCommand { get; private set; }
         #endregion
@@ -51,6 +48,19 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 activeCharacter = value;
                 OnPropertyChanged("ActiveCharacter");
+                OnPropertyChanged("ActiveCharacterName");
+            }
+        }
+
+        public string ActiveCharacterName
+        {
+            get
+            {
+                if (ActiveCharacter == null)
+                    return "";
+                if (ActiveCharacter.IsGangLeader)
+                    return ActiveCharacter.Name + " <Gang Leader>";
+                return ActiveCharacter.Name;
             }
         }
 
@@ -75,22 +85,12 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.eventAggregator = eventAggregator;
             this.eventAggregator.GetEvent<ActivateCharacterEvent>().Subscribe(this.LoadCharacter);
+            this.eventAggregator.GetEvent<ActivateGangEvent>().Subscribe(this.LoadGang);
 
-            clickTimer_AbilityPlay.AutoReset = false;
-            clickTimer_AbilityPlay.Interval = 2000;
-            clickTimer_AbilityPlay.Elapsed +=
-                new System.Timers.ElapsedEventHandler(clickTimer_AbilityPlay_Elapsed);
-
-            this.PlayActiveAbilityCommand = new DelegateCommand<object>(delegate (object state) { this.PlayActiveAbility(); }, this.CanPlayActiveAbility);
-            this.ToggleMovementCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleMovement(); }, this.CanToggleMovement);
             this.ActivatePanelCommand = new DelegateCommand<string>(this.ActivatePanel);
             this.DeactivatePanelCommand = new DelegateCommand<string>(this.DeactivatePanel);
-
-            //// Shortcut keys would work from anywhere, so no key handling needed here
-           // DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
         #endregion
-
 
         private void LoadCharacter(Tuple<Character, string, string> tuple)
         {
@@ -155,6 +155,12 @@ namespace Module.HeroVirtualTabletop.Roster
             }
 
         }
+
+        private void LoadGang(List<Character> gangMembers)
+        {
+            Character gangLeader = gangMembers.FirstOrDefault(m => m.IsGangLeader);
+            LoadCharacter(new Tuple<Character, string, string>(gangLeader, null, null));
+        }
         private void UnloadCharacter()
         {
             if (ActiveCharacter != null)
@@ -163,65 +169,14 @@ namespace Module.HeroVirtualTabletop.Roster
             }
 
             ActiveCharacter = null;
-        }
-
-
-        private void clickTimer_AbilityPlay_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            clickTimer_AbilityPlay.Stop();
-            Action d = delegate ()
+            if(this.OptionGroups != null)
             {
-                if (activeAbility != null && !activeAbility.Persistent && !activeAbility.IsAttack)
+                foreach(IOptionGroupViewModel ogVM in this.OptionGroups)
                 {
-                    activeAbility.DeActivate(ActiveCharacter);
-                    //activeAbility.IsActive = false;
-                    //OnPropertyChanged("IsActive");
+                    ogVM.RemoveDesktopKeyEventHandlers();
                 }
-            };
-            System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
-        }
-        System.Windows.Forms.Keys vkCode;
-
-        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
-        {
-            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ACTIVE_CHARACTER_WIDGET)
-            {
-                this.vkCode = vkCode;
-
-                if (Keyboard.Modifiers == (ModifierKeys.Alt | ModifierKeys.Shift) && ActiveCharacter.AnimatedAbilities.Any(ab => ab.ActivateOnKey == vkCode))
-                {
-                    return this.PlayActiveAbility;
-                }
-                else if (Keyboard.Modifiers == ModifierKeys.Alt && ActiveCharacter.Movements.Any(m => m.ActivationKey == vkCode))
-                {
-                    return this.ToggleMovement;
-                } 
             }
-            return null;
         }
-
-        public bool CanToggleMovement(object state) { return true; }
-        public void ToggleMovement()
-        {
-            Keys vkCode = this.vkCode;
-            CharacterMovement cm = ActiveCharacter.Movements.First(m => m.ActivationKey == vkCode);
-            if (!cm.IsActive)
-                cm.ActivateMovement();
-            else
-                cm.DeactivateMovement();
-        }
-
-        public bool CanPlayActiveAbility(object state) { return true; }
-        public void PlayActiveAbility()
-        {
-            Keys vkCode = this.vkCode;
-            activeAbility = ActiveCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
-            ActiveCharacter.Target(false);
-            ActiveCharacter.ActiveIdentity.RenderWithoutAnimation(target:ActiveCharacter);
-            activeAbility.Play();
-            clickTimer_AbilityPlay.Start();
-        }
-
         private void ActivatePanel(string panelName)
         {
             Helper.GlobalVariables_CurrentActiveWindowName = panelName;

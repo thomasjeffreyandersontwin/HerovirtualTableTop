@@ -32,6 +32,7 @@ namespace Module.HeroVirtualTabletop.Crowds
     {
         #region Private Members
         private EventAggregator eventAggregator;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
         CharacterExplorerViewModel charExpVM;
         private CrowdModel editedCrowd;
         private CrowdModel tmpCrowd;
@@ -158,18 +159,19 @@ namespace Module.HeroVirtualTabletop.Crowds
         #endregion
 
         #region Constructor
-        public CrowdFromModelsViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator) 
+        public CrowdFromModelsViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator) 
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
             CreateModelsViewSource();
             charExpVM = this.Container.Resolve<CharacterExplorerViewModel>();
             this.eventAggregator.GetEvent<CreateCrowdFromModelsEvent>().Subscribe(this.LoadCrowd);
             tmpCrowd = new CrowdModel();
-            
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+
+            InitializeDesktopKeyEventHandlers();
         }
 
         #endregion
@@ -185,6 +187,11 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.SpawnModelsCommand = new DelegateCommand<object>(this.SpawnModels);
             this.SaveCrowdCommand = new DelegateCommand<object>(this.SaveCrowd);
             this.ClearFromDesktopCommand = new DelegateCommand<object>(this.ClearFromDesktop);
+        }
+
+        public void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
         
         #endregion
@@ -315,7 +322,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         #region Desktop Key Handling
-        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        public EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.MOVEMENT_EDITOR)
             {

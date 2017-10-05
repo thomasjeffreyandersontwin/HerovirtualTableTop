@@ -35,13 +35,13 @@ namespace Module.HeroVirtualTabletop.Characters
         private EventAggregator eventAggregator;
         private Character editedCharacter;
         private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
 
-      
 
         #endregion
 
         #region Public Properties
-        
+
         public Character EditedCharacter
         {
             get
@@ -106,17 +106,16 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Constructor
 
-        public CharacterEditorViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator)
+        public CharacterEditorViewModel(IBusyService busyService, IUnityContainer container, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe(this.LoadCharacter);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(this.UnLoadCharacter);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
-
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
         }
 
         #endregion
@@ -137,8 +136,20 @@ namespace Module.HeroVirtualTabletop.Characters
             this.SaveCharacterCommand = new DelegateCommand<object>(this.SaveCharacter, this.CanSaveCharacter);
         }
         
+        private void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
+        }
+
         internal void LoadCharacter(object state)
         {
+            if (this.OptionGroups != null)
+            {
+                foreach (IOptionGroupViewModel ogVM in this.OptionGroups)
+                {
+                    ogVM.RemoveDesktopKeyEventHandlers();
+                }
+            }
             Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>> tuple = state as Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>;
             if (tuple != null)
             {
@@ -467,7 +478,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         #region Keyboard Hooks
 
-        internal DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        internal EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (this.EditedCharacter != null && Helper.GlobalVariables_CurrentActiveWindowName == Constants.CHARACTER_EDITOR)
             {

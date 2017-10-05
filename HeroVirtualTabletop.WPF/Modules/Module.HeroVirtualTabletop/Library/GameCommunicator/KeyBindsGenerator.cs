@@ -187,7 +187,7 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
                         return "";
                 } 
             }
-
+            // Another HACK: Prevent executing multiple targeting in a chain
             IconInteractionUtility.ExecuteCmd(command);
 
             return command;

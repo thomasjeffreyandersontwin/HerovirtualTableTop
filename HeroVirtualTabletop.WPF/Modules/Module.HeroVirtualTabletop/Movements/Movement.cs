@@ -29,6 +29,23 @@ namespace Module.HeroVirtualTabletop.Movements
 {
     public class CharacterMovement : CharacterOption
     {
+        #region Events
+
+        public event EventHandler<CustomEventArgs<CharacterMovement>> MovementActivatedForGangLeader;
+        public void OnMovementActivatedForGangLeader(object sender, CustomEventArgs<CharacterMovement> e)
+        {
+            if (MovementActivatedForGangLeader != null)
+                MovementActivatedForGangLeader(sender, e);
+        }
+
+        public event EventHandler<CustomEventArgs<CharacterMovement>> MovementDeactivatedForGangLeader;
+        public void OnMovementDeactivatedForGangLeader(object sender, CustomEventArgs<CharacterMovement> e)
+        {
+            if (MovementDeactivatedForGangLeader != null)
+                MovementDeactivatedForGangLeader(sender, e);
+        }
+
+        #endregion
         private IntPtr hookID;
 
         [JsonConstructor]
@@ -75,7 +92,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 {
                     this.Movement.ResumeMovement(this.Character);
                     Helper.GlobalVariables_CharacterMovement = this;
-                    
+
                 }
                 OnPropertyChanged("IsPaused");
             }
@@ -138,6 +155,11 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("Movement");
             }
         }
+        public List<Character> CharactersToMove
+        {
+            get;
+            set;
+        }
 
         private string optionTooltip;
         public override string OptionTooltip
@@ -193,6 +215,8 @@ namespace Module.HeroVirtualTabletop.Movements
             //    if (cmGhost != null)
             //        cmGhost.DeactivateMovement();
             //}
+            if (this.Character.IsGangLeader)
+                OnMovementDeactivatedForGangLeader(this, new CustomEventArgs<CharacterMovement> { Value = this });
         }
 
         public void ActivateMovement()
@@ -201,7 +225,7 @@ namespace Module.HeroVirtualTabletop.Movements
             CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm != this && cm.IsActive);
             if (activeCharacterMovement != null)
                 activeCharacterMovement.DeactivateMovement();
-            
+
             // Set Active
             this.IsActive = true;
             // Set the still Move
@@ -220,12 +244,79 @@ namespace Module.HeroVirtualTabletop.Movements
             this.EnableCamera(false);
             // Load Keyboard Hook
             hookID = KeyBoardHook.SetHook(this.PlayMovementByKeyProc);
-            //if (this.Character.GhostShadow != null && this.Character.GhostShadow.HasBeenSpawned && this.Character.ActiveIdentity.Type == IdentityType.Model)
-            //{
-            //    CharacterMovement cmGhost = this.Character.GhostShadow.Movements.FirstOrDefault(cm => cm.Name == this.Name);
-            //    if (cmGhost != null)
-            //        cmGhost.ActivateMovement();
-            //}
+            Helper.GlobalVariables_CharacterMovement = this;
+
+            if (this.Character.IsGangLeader)
+                OnMovementActivatedForGangLeader(this, new CustomEventArgs<CharacterMovement> { Value = this });
+        }
+
+        public void ActivateMovement(Character character)
+        {
+            if (this.Character == character)
+                ActivateMovement();
+            else if (character.Movements.Any(m => m.Name == this.Name))
+            {
+                CharacterMovement cm = character.Movements.First(m => m.Name == this.Name);
+                cm.ActivateMovement();
+            }
+            else
+            {
+                CharacterMovement cm = this.Clone();
+                cm.Character = character;
+                character.Movements.Add(cm);
+                cm.ActivateMovement();
+            }
+        }
+
+        public void DeactivateMovement(Character character)
+        {
+            if (this.Character == character)
+                DeactivateMovement();
+            else if (character.Movements.Any(m => m.Name == this.Name && m.IsActive))
+            {
+                CharacterMovement cm = character.Movements.First(m => m.Name == this.Name && m.IsActive);
+                cm.DeactivateMovement();
+            }
+            else
+            {
+                CharacterMovement cm = character.Movements.FirstOrDefault(m => m.IsActive);
+                if (cm != null)
+                    cm.DeactivateMovement();
+            }
+        }
+
+        public void DeactivateMovement(List<Character> targets)
+        {
+            this.CharactersToMove = null;
+            DeactivateMovement();
+        }
+
+        public void ActivateMovement(List<Character> targets)
+        {
+            this.CharactersToMove = targets;
+            // Deactivate Current Movement
+            CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm != this && cm.IsActive);
+            if (activeCharacterMovement != null)
+                activeCharacterMovement.DeactivateMovement();
+
+            // Set Active
+            this.IsActive = true;
+            // Set the still Move
+            this.Movement.MoveStill(targets);
+            // Initialize MovementInstruction
+            this.Character.MovementInstruction = new MovementInstruction();
+            this.Character.MovementInstruction.IsMoving = false;
+            this.Character.MovementInstruction.IsTurning = false;
+            this.Character.MovementInstruction.IsMovingToDestination = false;
+            this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+            this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+            this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            this.Character.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None;
+            this.Character.MovementInstruction.LastMovementDirection = MovementDirection.None;
+            // Disable Camera Control
+            this.EnableCamera(false);
+            // Load Keyboard Hook
+            hookID = KeyBoardHook.SetHook(this.PlayMovementForMultipleCharactersByKeyProc);
             Helper.GlobalVariables_CharacterMovement = this;
         }
 
@@ -237,7 +328,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 Keys vkCode = (Keys)keyboardDLLHookStruct.vkCode;
                 KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
 
-                 if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
                 {
                     IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
                     uint wndProcId;
@@ -269,7 +360,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             {
                                 DeactivateMovement();
                                 this.Character.ActiveMovement = null;
-                            }                        
+                            }
                             else if (inputKey == Key.Left || inputKey == Key.Right || inputKey == Key.Up || inputKey == Key.Down)
                             {
                                 MovementDirection turnDirection = GetTurnAxisDirectionFromKey(inputKey);
@@ -286,7 +377,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                         //this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
                                         //this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None; // Reset key movement
                                         this.Character.MovementInstruction.CurrentRotationAxisDirection = turnDirection;
-                                        this.Movement.StartMovment(this.Character);
+                                        this.Movement.StartMovement(this.Character);
                                     }
                                 }
                             }
@@ -305,7 +396,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                         this.Character.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
                                         this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
                                         this.Character.MovementInstruction.CurrentMovementDirection = direction;
-                                        this.Movement.StartMovment(this.Character);
+                                        this.Movement.StartMovement(this.Character);
                                     }
                                 }
 
@@ -317,7 +408,96 @@ namespace Module.HeroVirtualTabletop.Movements
             }
             return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
         }
-        
+
+        private IntPtr PlayMovementForMultipleCharactersByKeyProc(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0)
+            {
+                KBDLLHOOKSTRUCT keyboardDLLHookStruct = (KBDLLHOOKSTRUCT)(Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT)));
+                Keys vkCode = (Keys)keyboardDLLHookStruct.vkCode;
+                KeyboardMessage wmKeyboard = (KeyboardMessage)wParam;
+
+                if ((wmKeyboard == KeyboardMessage.WM_KEYDOWN || wmKeyboard == KeyboardMessage.WM_SYSKEYDOWN))
+                {
+                    IntPtr foregroundWindow = WindowsUtilities.GetForegroundWindow();
+                    uint wndProcId;
+                    uint wndProcThread = WindowsUtilities.GetWindowThreadProcessId(foregroundWindow, out wndProcId);
+                    var cohWindow = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    var currentProcId = Process.GetCurrentProcess().Id;
+                    //bool keyUp = wmKeyboard == KeyboardMessage.WM_KEYUP;
+                    var inputKey = KeyInterop.KeyFromVirtualKey((int)vkCode);
+                    if (foregroundWindow == cohWindow
+                        || currentProcId == wndProcId)
+                    {
+                        if (inputKey == Key.CapsLock && !this.IsPaused)
+                        {
+                            this.IsPaused = true;
+                            //this.Character.TargetAndFollow();
+                            this.EnableCamera(true);
+                            IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                            WindowsUtilities.SetForegroundWindow(winHandle);
+                        }
+                        else if (inputKey == Key.CapsLock && this.IsPaused)
+                        {
+                            this.IsPaused = false;
+                            this.EnableCamera(false);
+                            //this.Character.UnFollow();
+                        }
+                        else if (!this.IsPaused && this.Character.MovementInstruction != null && this.CharactersToMove != null)
+                        {
+                            if (inputKey == Key.Escape)
+                            {
+                                DeactivateMovement(this.CharactersToMove);
+                                this.Character.ActiveMovement = null;
+                            }
+                            else if (inputKey == Key.Left || inputKey == Key.Right || inputKey == Key.Up || inputKey == Key.Down)
+                            {
+                                MovementDirection turnDirection = GetTurnAxisDirectionFromKey(inputKey);
+                                if (turnDirection != MovementDirection.None)
+                                {
+                                    this.Character.MovementInstruction.IsMoving = false;
+                                    this.Character.MovementInstruction.IsMovingToDestination = false;
+                                    this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                                    this.Character.MovementInstruction.IsTurning = true;
+                                    if (this.Character.MovementInstruction.CurrentRotationAxisDirection != turnDirection)
+                                    {
+                                        this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision as the character is changing the facing
+                                        //Jeff - next two lines this was interfering with clean move, turn, move
+                                        //this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
+                                        //this.Character.MovementInstruction.CurrentMovementDirection = MovementDirection.None; // Reset key movement
+                                        this.Character.MovementInstruction.CurrentRotationAxisDirection = turnDirection;
+                                        this.Movement.StartMovement(this.CharactersToMove);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                MovementDirection direction = Helper.GetMovementDirectionFromKey(inputKey);
+                                if (direction != MovementDirection.None)
+                                {
+                                    this.Character.MovementInstruction.IsMoving = true;
+                                    this.Character.MovementInstruction.IsMovingToDestination = false;
+                                    this.Character.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+                                    this.Character.MovementInstruction.IsTurning = false;
+                                    if (this.Character.MovementInstruction.CurrentMovementDirection != direction)
+                                    {
+                                        this.Character.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision
+                                        this.Character.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
+                                        this.Character.MovementInstruction.LastMovementDirection = this.Character.MovementInstruction.CurrentMovementDirection;
+                                        this.Character.MovementInstruction.CurrentMovementDirection = direction;
+                                        this.Movement.StartMovement(this.CharactersToMove);
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                    //WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                }
+            }
+            return KeyBoardHook.CallNextHookEx(hookID, nCode, wParam, lParam);
+        }
+
         private MovementDirection GetTurnAxisDirectionFromKey(Key key)
         {
             MovementDirection turnAxisDirection = MovementDirection.None;
@@ -414,12 +594,14 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        #region Clone
+
         public Movement Clone()
         {
             Movement clonedMovement = new Movements.Movement(this.Name);
             clonedMovement.HasGravity = this.HasGravity;
             clonedMovement.MovementMembers.Clear();
-            foreach(MovementMember member in this.MovementMembers)
+            foreach (MovementMember member in this.MovementMembers)
             {
                 MovementMember clonedMember = member.Clone();
                 clonedMovement.MovementMembers.Add(clonedMember);
@@ -428,33 +610,10 @@ namespace Module.HeroVirtualTabletop.Movements
             return clonedMovement;
         }
 
-        private double GetRotationAngle(MovementDirection direction)
-        {
-            double rotationAngle = 0d;
-            switch (direction)
-            {
-                case MovementDirection.Still:
-                case MovementDirection.Forward:
-                    rotationAngle = 0d;
-                    break;
-                case MovementDirection.Backward:
-                    rotationAngle = 180d;
-                    break;
-                case MovementDirection.Left:
-                    rotationAngle = 270d;
-                    break;
-                case MovementDirection.Right:
-                    rotationAngle = 90d;
-                    break;
-                case MovementDirection.Upward:
-                    rotationAngle = 90d;
-                    break;
-                case MovementDirection.Downward:
-                    rotationAngle = -90d;
-                    break;
-            }
-            return rotationAngle;
-        }
+        #endregion
+
+        #region Move, Move Back
+
         public async Task Move(Character target)
         {
             double rotationAngle = GetRotationAngle(target.MovementInstruction.CurrentMovementDirection);
@@ -531,7 +690,7 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Backward;
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
-            this.StartMovment(target);
+            this.StartMovement(target);
             if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
             {
                 this.MovementFinished += delegate (object sender, CustomEventArgs<Character> e)
@@ -550,25 +709,25 @@ namespace Module.HeroVirtualTabletop.Movements
 
             if (target.MovementInstruction == null)//
                 target.MovementInstruction = new MovementInstruction();
-            
+
 
             SetFacingToDestination(target, destinationVector);
-            
+
             target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f); // reset collision  //c
             target.MovementInstruction.IsMovingToDestination = true;
             target.MovementInstruction.IsTurning = target.MovementInstruction.IsMoving = false;
             target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
-            if(this.HasGravity)
+            if (this.HasGravity)
             {
                 Vector3 collisionGroundUp = new Vector3(destinationVector.X, destinationVector.Y + 2f, destinationVector.Z);
                 Vector3 collisionGroundDown = new Vector3(destinationVector.X, -100f, destinationVector.Z);
                 Vector3 collisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
-                if(collisionVectorGround.Y < destinationVector.Y)
+                if (collisionVectorGround.Y < destinationVector.Y)
                 {
                     // double check
                     new PauseElement("", 500).Play();
                     collisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
-                    if(collisionVectorGround.Y < destinationVector.Y)
+                    if (collisionVectorGround.Y < destinationVector.Y)
                     {
                         destinationVector = new Vector3(destinationVector.X, collisionVectorGround.Y, destinationVector.Z);
                     }
@@ -583,21 +742,59 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Forward;
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
-            this.StartMovment(target);
-            //if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
-            //{
-            //    CharacterMovement cmGhost = target.GhostShadow.Movements.FirstOrDefault(cm => cm.Movement.Name == this.Name);
-            //    if (cmGhost != null)
-            //    {
-            //        cmGhost.Movement.MovementFinished += delegate (object sender, CustomEventArgs<Character> e) 
-            //        {
-            //            if(e.Value == target.GhostShadow)
-            //                target.Target();
-            //        };
-            //        cmGhost.Movement.Move(target.GhostShadow, destinationVector);
-            //    }
-            //}
+            this.StartMovement(target);
         }
+
+        public async Task Move(List<Character> targets)
+        {
+            Character target = GetLeadingCharacterForMovement(targets);
+            Vector3 facingToDest = new Vector3();
+            Vector3 directionVector = new Vector3();
+            if (target.MovementInstruction.IsMovingToDestination)
+            {
+                if (target.MovementInstruction.IsDestinationPointAdjusted)
+                {
+                    var distance = Vector3.Distance(target.CurrentPositionVector, target.MovementInstruction.DestinationVector);
+                    var adjustmentDest = target.MovementInstruction.DestinationPointHeightAdjustment < 1 ? 10 : target.MovementInstruction.DestinationPointHeightAdjustment < 3 ? 20 : 30;
+                    if (distance < adjustmentDest)
+                    {
+                        target.MovementInstruction.DestinationVector = target.MovementInstruction.OriginalDestinationVector;
+                        target.MovementInstruction.IsDestinationPointAdjusted = false;
+                    }
+                }
+
+                //determine facing vector from current and target
+                facingToDest = target.MovementInstruction.DestinationVector - target.CurrentPositionVector;
+                facingToDest.Normalize();
+                directionVector = GetDirectionVector(0, target.MovementInstruction.CurrentMovementDirection, facingToDest);
+            }
+            else
+            {
+                directionVector = GetDirectionVector(target, target.MovementInstruction.CurrentMovementDirection);
+            }
+            target.MovementInstruction.CurrentDirectionVector = directionVector;
+            if (directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
+            {
+                //increment character
+                Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
+                var xDiff = allowableDestinationVector.X - target.CurrentPositionVector.X;
+                var yDiff = allowableDestinationVector.Y - target.CurrentPositionVector.Y;
+                var zDiff = allowableDestinationVector.Z - target.CurrentPositionVector.Z;
+                target.CurrentPositionVector = allowableDestinationVector;
+                target.AlignGhost();
+
+                foreach (Character movingTarget in targets.Where(t => t != target))
+                {
+                    Vector3 newPositionVector = new Vector3(movingTarget.CurrentPositionVector.X + xDiff, movingTarget.CurrentPositionVector.Y + yDiff, movingTarget.CurrentPositionVector.Z + zDiff);
+                    movingTarget.CurrentPositionVector = newPositionVector;
+                    movingTarget.AlignGhost();
+                }
+            }
+        }
+
+        #endregion
+
+        #region Set Facing to Destination, Align Facing with Leader
         private void SetFacingToDestination(Character target, Vector3 destinationVector)
         {
             Vector3 currentPositionVector = target.CurrentPositionVector;
@@ -656,45 +853,49 @@ namespace Module.HeroVirtualTabletop.Movements
                 Thread.Sleep(5);
             }
         }
-        public void Turn(Character target, float angle = 5) //
-        {
-            Vector3 currentPositionVector = target.CurrentModelMatrix.Translation;
-            Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
-            Vector3 currentBackwardVector = target.CurrentModelMatrix.Backward;
-            Vector3 currentRightVector = target.CurrentModelMatrix.Right;
-            Vector3 currentLeftVector = target.CurrentModelMatrix.Left;
-            Vector3 currentUpVector = target.CurrentModelMatrix.Up;
-            Vector3 currentDownVector = target.CurrentModelMatrix.Down;
-            Matrix rotatedMatrix = new Matrix();
 
-            switch (target.MovementInstruction.CurrentRotationAxisDirection)
+        private void AlignFacingWithLeader(List<Character> targets)
+        {
+            Character leader = GetLeadingCharacterForMovement(targets);
+            Vector3 leaderFacingVector = leader.CurrentFacingVector;
+            foreach (Character target in targets)
             {
-                case MovementDirection.Upward: // Rotate against Up Axis, e.g. Y axis for a vertically aligned model
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentUpVector, (float)Helper.GetRadianAngle(angle));
+                target.CurrentFacingVector = leaderFacingVector;
+            }
+            
+        }
+
+        #endregion
+
+        #region Movement Calculations - Get Unit, Rot Angle, Speed, Collision Vector, Allowable Dest Vector etc.
+
+        private double GetRotationAngle(MovementDirection direction)
+        {
+            double rotationAngle = 0d;
+            switch (direction)
+            {
+                case MovementDirection.Still:
+                case MovementDirection.Forward:
+                    rotationAngle = 0d;
                     break;
-                case MovementDirection.Downward: // Rotate against Down Axis, e.g. -Y axis for a vertically aligned model
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentDownVector, (float)Helper.GetRadianAngle(angle));
+                case MovementDirection.Backward:
+                    rotationAngle = 180d;
                     break;
-                case MovementDirection.Right: // Rotate against Right Axis, e.g. X axis for a vertically aligned model will tilt the model forward
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentRightVector, (float)Helper.GetRadianAngle(angle));
+                case MovementDirection.Left:
+                    rotationAngle = 270d;
                     break;
-                case MovementDirection.Left: // Rotate against Left Axis, e.g. -X axis for a vertically aligned model will tilt the model backward
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentLeftVector, (float)Helper.GetRadianAngle(angle));
+                case MovementDirection.Right:
+                    rotationAngle = 90d;
                     break;
-                case MovementDirection.Forward: // Rotate against Forward Axis, e.g. Z axis for a vertically aligned model will tilt the model on right side
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentForwardVector, (float)Helper.GetRadianAngle(angle));
+                case MovementDirection.Upward:
+                    rotationAngle = 90d;
                     break;
-                case MovementDirection.Backward: // Rotate against Backward Axis, e.g. -Z axis for a vertically aligned model will tilt the model on left side
-                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentBackwardVector, (float)Helper.GetRadianAngle(angle));
+                case MovementDirection.Downward:
+                    rotationAngle = -90d;
                     break;
             }
-
-            target.CurrentModelMatrix *= rotatedMatrix; // Apply rotation
-            target.CurrentPositionVector = currentPositionVector; // Keep position intact;
-            target.AlignGhost();
-
+            return rotationAngle;
         }
-#region calc
         private float GetMovementUnit(Character target)
         {
             var movementSpeed = GetMovementSpeed(target);
@@ -766,7 +967,7 @@ namespace Module.HeroVirtualTabletop.Movements
             Vector3 destinationVectorNext = GetDestinationVector(directionVector, target.MovementInstruction.MovementUnit, target);//
             Vector3 destinationVectorFar = GetDestinationVector(directionVector, 20f, target);//
 
-                        MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;//
+            MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;//
             float distanceFromDest = Vector3.Distance(currentPositionVector, destinationVectorNext);//
             float distanceFromCollisionPoint = 0f;
             Vector3 collisionBodyPoint = new Vector3();
@@ -776,7 +977,7 @@ namespace Module.HeroVirtualTabletop.Movements
             if (target.MovementInstruction.LastCollisionFreePointInCurrentDirection.X == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y == -10000f
                 && target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Z == -10000f)
-                // Need to recalculate next collision point
+            // Need to recalculate next collision point
             {
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);//check
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
@@ -792,13 +993,13 @@ namespace Module.HeroVirtualTabletop.Movements
             }
 
             collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);//check
-               distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);//check
+            distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);//check
 
             if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)
-                // Collision point nearer, so can't move to destination without checking first
+            // Collision point nearer, so can't move to destination without checking first
             {
                 if (target.MovementInstruction.IsCollisionAhead)
-                    // the LastCollisionFreePointInCurrentDirection is a collision point
+                // the LastCollisionFreePointInCurrentDirection is a collision point
                 {
                     bool canAvoidCollision;
                     Vector3 nextTravelPointToAvoidCollision = GetNextTravelPointToAvoidCollision(target,
@@ -818,7 +1019,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
                 }
                 else
-                    // the LastCollisionFreePointInCurrentDirection is just the last calculated point, so we need to recalculate the collisions in the current direction
+                // the LastCollisionFreePointInCurrentDirection is just the last calculated point, so we need to recalculate the collisions in the current direction
                 {
 
                     collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);
@@ -844,7 +1045,7 @@ namespace Module.HeroVirtualTabletop.Movements
             distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             if ((distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1) && target.MovementInstruction.IsInCollision)
             {
-               
+
                 allowableDestVector = collisionVector;
             }
             else
@@ -856,7 +1057,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
             }
 
-            if(this.HasGravity)
+            if (this.HasGravity)
                 this.ApplyGravityToDestinationPoint(target, ref allowableDestVector);
 
             return allowableDestVector;
@@ -956,7 +1157,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                 if (bodyPartCollisionMap[key] != null)
                                 {
                                     CollisionInfo collisionInfo = bodyPartCollisionMap[key];
-                                    if(collisionInfo.CollisionBodyPart != BodyPart.Bottom && collisionInfo.CollisionBodyPart != BodyPart.BottomSemiMiddle)
+                                    if (collisionInfo.CollisionBodyPart != BodyPart.Bottom && collisionInfo.CollisionBodyPart != BodyPart.BottomSemiMiddle)
                                     {
                                         if (distanceFromCollisionPoint + 0.25f > collisionInfo.CollisionDistance) // check if the collisions are further from current collision so that it is worth moving up 
                                         {
@@ -1363,7 +1564,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
 
             return bodyPartOffsetVector;
-        } 
+        }
         private bool HasCollision(Vector3 collisionVector)
         {
             return !(collisionVector.X == 0f && collisionVector.Y == 0f && collisionVector.Z == 0f);
@@ -1424,7 +1625,7 @@ namespace Module.HeroVirtualTabletop.Movements
                                 collisionVectorGround.Y = maxYPositionForGroundCollisionForSurroundingPoints;
                             else
                             {
-                                //More Claibration: ???
+                                //More Calibration: ???
                             }
                         }
                     }
@@ -1434,303 +1635,6 @@ namespace Module.HeroVirtualTabletop.Movements
                         allowableDestVector.Y = collisionVectorGround.Y;
                 }
             }
-        }
-        #endregion
-
-#region Pause-Reset
-
-        public void PauseMovement(Character target)
-        {
-            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
-            {
-                target.MovementInstruction.IsMovementPaused = true;
-                target.IsMoving = false;
-                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
-                if (timer != null)
-                    timer.Change(Timeout.Infinite, Timeout.Infinite);
-            }
-        }
-
-        public void ResumeMovement(Character target)
-        {
-            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
-            {
-                target.MovementInstruction.IsMovementPaused = false;
-                target.IsMoving = true;
-                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
-                if (timer != null)
-                    timer.Change(1, Timeout.Infinite);
-            }
-        }
-
-        private void ResetMovement(Character target)
-        {
-            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
-            PlayMovementMember(stillMem, target);
-            target.MovementInstruction.IsMovingToDestination = false;
-            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
-            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
-        }
-
-        public void StopMovement(Character target)
-        {
-            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
-            {
-                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
-                if (timer != null)
-                    timer.Change(Timeout.Infinite, Timeout.Infinite);
-                this.characterMovementTimerDictionary[target] = null;
-                target.IsMoving = false;
-            }
-        }
-
-#endregion
-
-        public void StartMovment(Character target) //
-        {
-            if (this.characterMovementTimerDictionary == null) //
-                this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();//
-            StopMovement(target);//
-            target.UnFollow();//
-            target.IsMoving = true;//
-            System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);//
-            if (this.characterMovementTimerDictionary.ContainsKey(target))//
-                this.characterMovementTimerDictionary[target] = timer;//
-            else
-                this.characterMovementTimerDictionary.Add(target, timer);//
-            target.MovementInstruction.MovementUnit = this.GetMovementUnit(target);//
-            timer.Change(1, Timeout.Infinite);//
-        }
-
-        private void timer_Elapsed(object state)
-        {
-            Action d = async delegate()
-            {
-                Character target = state as Character;
-                if (target.MovementInstruction != null && !target.MovementInstruction.IsMovementPaused)
-                {
-                    if (target.MovementInstruction != null && target.MovementInstruction.IsMoving)
-                    {
-                        MovementMember movementMember = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.CurrentMovementDirection);
-                        if (target.MovementInstruction.CurrentMovementDirection == target.MovementInstruction.LastMovementDirection)
-                        {
-                            await incrementPosition(target, movementMember); //
-                        }
-                        else
-                        {
-                            changeDirectionAndIncrement(target, movementMember);
-                        }
-                    }
-                    else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
-                    {
-                        await turnCharacter(target);//
-                    }
-                    else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
-                    {
-                        await moveTodestination(target);
-                    }
-                }
-
-            };
-            System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
-
-        }
-        private async Task moveTodestination(Character target)
-        {
-            if (target.MovementInstruction.DestinationVector.X != -10000f &&
-                target.MovementInstruction.DestinationVector.Y != -10000f &&
-                target.MovementInstruction.DestinationVector.Z != -10000f)
-            {
-                var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
-                if (dist < 5)
-                {
-                    if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
-                    {
-                        MovementMember downMem =
-                            this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
-                        PlayMovementMember(downMem, target);
-                    }
-                    this.ResetMovement(target);
-                    this.StopMovement(target);
-                    OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target});
-                }
-                else
-                {
-                    if (target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
-                    {
-                        MovementMember directionMem =
-                            this.MovementMembers.First(
-                                mm =>
-                                    mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
-                        PlayMovementMember(directionMem, target);
-                        target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
-                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        if (!target.MovementInstruction.IsInCollision)
-                        {
-                            if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
-                            {
-                                target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
-                                this.ResetMovement(target);
-                                this.StopMovement(target);
-                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target});
-                            }
-                            else
-                                await Move(target); //
-                        }
-                        else
-                        {
-                            if (target.MovementInstruction.StopOnCollision)
-                            {
-                                this.ResetMovement(target);
-                                this.StopMovement(target);
-                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target});
-                            }
-                        }
-                    }
-                }
-                await Task.Delay(5);
-                //if (this.IsPlaying)
-                {
-                    var timer = this.characterMovementTimerDictionary[target];
-                    if (timer != null)
-                        timer.Change(5, Timeout.Infinite);
-                }
-            }
-        }
-        private async Task turnCharacter(Character target)
-        {
-            bool changeDir = false;
-            bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);//
-            if (associatedKeyPressed)//
-            {
-                Turn(target);//
-            }//
-            else//
-            {
-                MovementDirection otherDirection = MovementDirection.None;
-                MovementMember otherMember = null;
-                foreach (MovementMember mm in this.MovementMembers)
-                {
-                    if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
-                    {
-                        otherDirection = mm.MovementDirection;
-                        otherMember = mm;
-                        changeDir = true;
-                        break;
-                    }
-                }
-                if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
-                {
-                    target.MovementInstruction.IsMoving = true;
-                    target.MovementInstruction.IsTurning = false;
-                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
-                        // reset collision
-                    target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
-                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                    target.MovementInstruction.IsInCollision = false;
-                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
-                    target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
-                    // Play movement
-                    // PlayMovementMember(otherMember, target); Jeff -  this was interfering with clean move, turn, move 
-                    target.MovementInstruction.CurrentMovementDirection = otherDirection;
-                    target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                }
-            }
-            
-            await Task.Delay(5);
-            var timer = this.characterMovementTimerDictionary[target];
-            if (timer != null)
-                timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
-        }
-        private void changeDirectionAndIncrement(Character target, MovementMember movementMember)
-        {
-            target.MovementInstruction.IsInCollision = false;
-            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
-            target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
-            // Play movement
-            PlayMovementMember(movementMember, target);
-            target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-            target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-            var timer = this.characterMovementTimerDictionary[target];
-            if (timer != null)
-                timer.Change(1, Timeout.Infinite);
-        }
-        private async Task incrementPosition(Character target, MovementMember movementMember)
-        {
-            if (!target.MovementInstruction.IsInCollision)
-            {
-                bool changeDir = false;
-                if (target.MovementInstruction.CurrentMovementDirection != target.MovementInstruction.LastMovementDirection)
-                {
-                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
-                }
-                Key key = movementMember.AssociatedKey;
-                if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
-                {
-                    await Move(target);
-                }
-                else
-                {
-                    MovementDirection otherDirection = MovementDirection.None;
-                    MovementMember otherMember = null;
-                    foreach (MovementMember mm in this.MovementMembers)
-                    {
-                        if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
-                        {
-                            otherDirection = mm.MovementDirection;
-                            otherMember = mm;
-                            changeDir = true;
-                            break;
-                        }
-                    }
-                    if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still &&
-                        otherMember != null)
-                    {
-                        target.MovementInstruction.IsInCollision = false;
-                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f,
-                            -10000f);
-                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
-                        // Play movement
-                        PlayMovementMember(otherMember, target);
-                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
-                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
-                    }
-                }
-                await Task.Delay(5);
-                var timer = this.characterMovementTimerDictionary[target];
-                if (timer != null)
-                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
-            }
-        }
-
-        private bool CheckIfAssociatedTurnKeysPressed(MovementDirection turnAxisDirection)
-        {
-            bool keyPressed = false;
-            switch (turnAxisDirection)
-            {
-                case MovementDirection.Upward:
-                    keyPressed = Keyboard.IsKeyDown(Key.Right);
-                    break;
-                case MovementDirection.Downward:
-                    keyPressed = Keyboard.IsKeyDown(Key.Left);
-                    break;
-                case MovementDirection.Forward:
-                    keyPressed = Keyboard.IsKeyDown(Key.Right) && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt));
-                    break;
-                case MovementDirection.Backward:
-                    keyPressed = Keyboard.IsKeyDown(Key.Left) && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt));
-                    break;
-                case MovementDirection.Right:
-                    keyPressed = Keyboard.IsKeyDown(Key.Up);
-                    break;
-                case MovementDirection.Left:
-                    keyPressed = Keyboard.IsKeyDown(Key.Down);
-                    break;
-            }
-            return keyPressed;
         }
 
         private Vector3 GetDestinationVector(Vector3 directionVector, float units, Character target)
@@ -1827,14 +1731,713 @@ namespace Module.HeroVirtualTabletop.Movements
                     directionVector = target.CurrentModelMatrix.Right;
                     break;
             }
+            return directionVector;
+        }
+
+        public Vector3 GetDirectionVector(Character target, MovementDirection direction)
+        {
+            Vector3 directionVector = new Vector3();
+            switch (direction)
+            {
+                case MovementDirection.Forward:
+                    directionVector = target.CurrentFacingVector;
+                    break;
+                case MovementDirection.Backward:
+                    directionVector = target.CurrentModelMatrix.Backward;
+                    directionVector.X *= -1;
+                    directionVector.Y *= -1;
+                    directionVector.Z *= -1;
+                    break;
+                case MovementDirection.Upward:
+                    directionVector = target.CurrentModelMatrix.Up;
+                    break;
+                case MovementDirection.Downward:
+                    directionVector = target.CurrentModelMatrix.Down;
+                    break;
+                case MovementDirection.Left:
+                    directionVector = target.CurrentModelMatrix.Left;
+                    break;
+                case MovementDirection.Right:
+                    directionVector = target.CurrentModelMatrix.Right;
+                    break;
+            }
 
             return directionVector;
         }
 
+
+        #endregion
+
+        #region Stop-Pause-Reset
+
+        public void PauseMovement(Character target)
+        {
+            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
+            {
+                target.MovementInstruction.IsMovementPaused = true;
+                target.IsMoving = false;
+                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(Timeout.Infinite, Timeout.Infinite);
+            }
+        }
+
+        public void ResumeMovement(Character target)
+        {
+            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
+            {
+                target.MovementInstruction.IsMovementPaused = false;
+                target.IsMoving = true;
+                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(1, Timeout.Infinite);
+            }
+        }
+
+        private void ResetMovement(Character target)
+        {
+            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
+            PlayMovementMember(stillMem, target);
+            target.MovementInstruction.IsMovingToDestination = false;
+            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+        }
+
+        private void ResetMovement(List<Character> targets)
+        {
+            Character target = GetLeadingCharacterForMovement(targets);
+            MovementMember stillMem = this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Still);
+            PlayMovementMember(stillMem, targets);
+            target.MovementInstruction.IsMovingToDestination = false;
+            target.MovementInstruction.CurrentMovementDirection = MovementDirection.None;
+            target.MovementInstruction.DestinationVector = new Vector3(-10000f, -10000f, -10000f);
+        }
+
+        public void StopMovement(Character target)
+        {
+            if (this.characterMovementTimerDictionary != null && this.characterMovementTimerDictionary.ContainsKey(target))
+            {
+                System.Threading.Timer timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(Timeout.Infinite, Timeout.Infinite);
+                this.characterMovementTimerDictionary[target] = null;
+                target.IsMoving = false;
+            }
+        }
+
+        #endregion
+
+        #region Start Movement
+
+        public void StartMovement(Character target) //
+        {
+            if (this.characterMovementTimerDictionary == null) //
+                this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();//
+            StopMovement(target);//
+            target.UnFollow();//
+            target.IsMoving = true;//
+            System.Threading.Timer timer = new System.Threading.Timer(timer_Elapsed, target, Timeout.Infinite, Timeout.Infinite);//
+            if (this.characterMovementTimerDictionary.ContainsKey(target))//
+                this.characterMovementTimerDictionary[target] = timer;//
+            else
+                this.characterMovementTimerDictionary.Add(target, timer);//
+            target.MovementInstruction.MovementUnit = this.GetMovementUnit(target);//
+            timer.Change(1, Timeout.Infinite);//
+        }
+
+        private void timer_Elapsed(object state)
+        {
+            Action d = async delegate ()
+            {
+                Character target = state as Character;
+                if (target.MovementInstruction != null && !target.MovementInstruction.IsMovementPaused)
+                {
+                    if (target.MovementInstruction != null && target.MovementInstruction.IsMoving)
+                    {
+                        MovementMember movementMember = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.CurrentMovementDirection);
+                        if (target.MovementInstruction.CurrentMovementDirection == target.MovementInstruction.LastMovementDirection)
+                        {
+                            await IncrementPosition(target, movementMember); //
+                        }
+                        else
+                        {
+                            ChangeDirectionAndIncrement(target, movementMember);
+                        }
+                    }
+                    else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
+                    {
+                        await TurnCharacter(target);//
+                    }
+                    else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
+                    {
+                        await moveTodestination(target);
+                    }
+                }
+
+            };
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
+
+        }
+
+        public void StartMovement(List<Character> targets)
+        {
+            if (this.characterMovementTimerDictionary == null)
+                this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();//
+            Character target = GetLeadingCharacterForMovement(targets);
+            AlignFacingWithLeader(targets);
+            StopMovement(target);
+            target.UnFollow();
+            target.IsMoving = true;
+            System.Threading.Timer timer = new System.Threading.Timer(timer_MultipleCharacters_Elapsed, targets, Timeout.Infinite, Timeout.Infinite);//
+            if (this.characterMovementTimerDictionary.ContainsKey(target))
+                this.characterMovementTimerDictionary[target] = timer;
+            else
+                this.characterMovementTimerDictionary.Add(target, timer);
+            target.MovementInstruction.MovementUnit = this.GetMovementUnit(target);
+            timer.Change(1, Timeout.Infinite);//
+        }
+
+        private void timer_MultipleCharacters_Elapsed(object state)
+        {
+            Action d = async delegate ()
+            {
+                List<Character> targets = state as List<Character>;
+                Character target = GetLeadingCharacterForMovement(targets);
+                if (target.MovementInstruction != null && !target.MovementInstruction.IsMovementPaused)
+                {
+                    if (target.MovementInstruction != null && target.MovementInstruction.IsMoving)
+                    {
+                        MovementMember movementMember = this.MovementMembers.First(mm => mm.MovementDirection == target.MovementInstruction.CurrentMovementDirection);
+                        if (target.MovementInstruction.CurrentMovementDirection == target.MovementInstruction.LastMovementDirection)
+                        {
+                            await IncrementPosition(targets, movementMember); //
+                        }
+                        else
+                        {
+                            ChangeDirectionAndIncrement(targets, movementMember);
+                        }
+                    }
+                    else if (target.MovementInstruction != null && target.MovementInstruction.IsTurning)
+                    {
+                        await TurnCharacter(targets);//
+                    }
+                    else if (target.MovementInstruction != null && target.MovementInstruction.IsMovingToDestination)
+                    {
+                        await moveTodestination(targets);
+                    }
+                }
+
+            };
+            System.Windows.Application.Current.Dispatcher.BeginInvoke(d);
+
+        }
+
+        private Character GetLeadingCharacterForMovement(List<Character> characters)
+        {
+            if (characters.Count > 1)
+            {
+                if (characters.Any(c => c.IsGangLeader))
+                    return characters.First(c => c.IsGangLeader);
+                else if (characters.Any(c => c.IsActive))
+                    return characters.First(c => c.IsActive);
+                else return characters.First();
+            }
+            else
+                return characters.First();
+        }
+
+        #endregion
+
+        #region Move to Destination
+        private async Task moveTodestination(Character target)
+        {
+            if (target.MovementInstruction.DestinationVector.X != -10000f &&
+                target.MovementInstruction.DestinationVector.Y != -10000f &&
+                target.MovementInstruction.DestinationVector.Z != -10000f)
+            {
+                var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
+                if (dist < 5)
+                {
+                    if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                    {
+                        MovementMember downMem =
+                            this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
+                        PlayMovementMember(downMem, target);
+                    }
+                    this.ResetMovement(target);
+                    this.StopMovement(target);
+                    OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                }
+                else
+                {
+                    if (target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
+                    {
+                        MovementMember directionMem =
+                            this.MovementMembers.First(
+                                mm =>
+                                    mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
+                        PlayMovementMember(directionMem, target);
+                        target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        if (!target.MovementInstruction.IsInCollision)
+                        {
+                            if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
+                            {
+                                target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
+                                this.ResetMovement(target);
+                                this.StopMovement(target);
+                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                            }
+                            else
+                                await Move(target); //
+                        }
+                        else
+                        {
+                            if (target.MovementInstruction.StopOnCollision)
+                            {
+                                this.ResetMovement(target);
+                                this.StopMovement(target);
+                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                            }
+                        }
+                    }
+                }
+                await Task.Delay(5);
+                //if (this.IsPlaying)
+                {
+                    var timer = this.characterMovementTimerDictionary[target];
+                    if (timer != null)
+                        timer.Change(5, Timeout.Infinite);
+                }
+            }
+        }
+
+        private async Task moveTodestination(List<Character> targets)
+        {
+            Character target = GetLeadingCharacterForMovement(targets);
+            if (target.MovementInstruction.DestinationVector.X != -10000f &&
+                target.MovementInstruction.DestinationVector.Y != -10000f &&
+                target.MovementInstruction.DestinationVector.Z != -10000f)
+            {
+                var dist = Vector3.Distance(target.MovementInstruction.DestinationVector, target.CurrentPositionVector);
+                if (dist < 5)
+                {
+                    if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                    {
+                        MovementMember downMem =
+                            this.MovementMembers.First(mm => mm.MovementDirection == MovementDirection.Downward);
+                        PlayMovementMember(downMem, targets);
+                    }
+                    this.ResetMovement(targets);
+                    this.StopMovement(target);
+                    //OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                }
+                else
+                {
+                    if (target.MovementInstruction.CurrentMovementDirection == MovementDirection.None)
+                    {
+                        MovementMember directionMem =
+                            this.MovementMembers.First(
+                                mm =>
+                                    mm.MovementDirection == target.MovementInstruction.MovmementDirectionToUseForDestinationMove);
+                        PlayMovementMember(directionMem, targets);
+                        target.MovementInstruction.CurrentMovementDirection = directionMem.MovementDirection;
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        if (!target.MovementInstruction.IsInCollision)
+                        {
+                            if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
+                            {
+                                var xDiff = target.MovementInstruction.OriginalDestinationVector.X - target.CurrentPositionVector.X;
+                                var yDiff = target.MovementInstruction.OriginalDestinationVector.Y - target.CurrentPositionVector.Y;
+                                var zDiff = target.MovementInstruction.OriginalDestinationVector.Z - target.CurrentPositionVector.Z;
+                                target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
+                                foreach (Character c in targets.Where(t => t != target))
+                                {
+                                    c.CurrentPositionVector = new Vector3(c.CurrentPositionVector.X + xDiff, c.CurrentPositionVector.Y + yDiff, c.CurrentPositionVector.Z + zDiff);
+                                }
+                                this.ResetMovement(targets);
+                                this.StopMovement(target);
+                                //OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                            }
+                            else
+                                await Move(targets); //
+                        }
+                        else
+                        {
+                            if (target.MovementInstruction.StopOnCollision)
+                            {
+                                this.ResetMovement(targets);
+                                this.StopMovement(target);
+                                //OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                            }
+                        }
+                    }
+                }
+                await Task.Delay(5);
+                //if (this.IsPlaying)
+                {
+                    var timer = this.characterMovementTimerDictionary[target];
+                    if (timer != null)
+                        timer.Change(5, Timeout.Infinite);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Turn Character
+
+        public void Turn(Character target, float angle = 5) //
+        {
+            Vector3 currentPositionVector = target.CurrentModelMatrix.Translation;
+            Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
+            Vector3 currentBackwardVector = target.CurrentModelMatrix.Backward;
+            Vector3 currentRightVector = target.CurrentModelMatrix.Right;
+            Vector3 currentLeftVector = target.CurrentModelMatrix.Left;
+            Vector3 currentUpVector = target.CurrentModelMatrix.Up;
+            Vector3 currentDownVector = target.CurrentModelMatrix.Down;
+            Matrix rotatedMatrix = new Matrix();
+
+            switch (target.MovementInstruction.CurrentRotationAxisDirection)
+            {
+                case MovementDirection.Upward: // Rotate against Up Axis, e.g. Y axis for a vertically aligned model
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentUpVector, (float)Helper.GetRadianAngle(angle));
+                    break;
+                case MovementDirection.Downward: // Rotate against Down Axis, e.g. -Y axis for a vertically aligned model
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentDownVector, (float)Helper.GetRadianAngle(angle));
+                    break;
+                case MovementDirection.Right: // Rotate against Right Axis, e.g. X axis for a vertically aligned model will tilt the model forward
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentRightVector, (float)Helper.GetRadianAngle(angle));
+                    break;
+                case MovementDirection.Left: // Rotate against Left Axis, e.g. -X axis for a vertically aligned model will tilt the model backward
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentLeftVector, (float)Helper.GetRadianAngle(angle));
+                    break;
+                case MovementDirection.Forward: // Rotate against Forward Axis, e.g. Z axis for a vertically aligned model will tilt the model on right side
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentForwardVector, (float)Helper.GetRadianAngle(angle));
+                    break;
+                case MovementDirection.Backward: // Rotate against Backward Axis, e.g. -Z axis for a vertically aligned model will tilt the model on left side
+                    rotatedMatrix = Matrix.CreateFromAxisAngle(currentBackwardVector, (float)Helper.GetRadianAngle(angle));
+                    break;
+            }
+
+            target.CurrentModelMatrix *= rotatedMatrix; // Apply rotation
+            target.CurrentPositionVector = currentPositionVector; // Keep position intact;
+            target.AlignGhost();
+
+        }
+
+        public void Turn(List<Character> targets, float angle = 5) //
+        {
+            Character mainTarget = GetLeadingCharacterForMovement(targets);
+            foreach (Character target in targets)
+            {
+                Vector3 currentPositionVector = target.CurrentModelMatrix.Translation;
+                Vector3 currentForwardVector = target.CurrentModelMatrix.Forward;
+                Vector3 currentBackwardVector = target.CurrentModelMatrix.Backward;
+                Vector3 currentRightVector = target.CurrentModelMatrix.Right;
+                Vector3 currentLeftVector = target.CurrentModelMatrix.Left;
+                Vector3 currentUpVector = target.CurrentModelMatrix.Up;
+                Vector3 currentDownVector = target.CurrentModelMatrix.Down;
+                Matrix rotatedMatrix = new Matrix();
+
+                switch (mainTarget.MovementInstruction.CurrentRotationAxisDirection)
+                {
+                    case MovementDirection.Upward: // Rotate against Up Axis, e.g. Y axis for a vertically aligned model
+                        rotatedMatrix = Matrix.CreateFromAxisAngle(currentUpVector, (float)Helper.GetRadianAngle(angle));
+                        break;
+                    case MovementDirection.Downward: // Rotate against Down Axis, e.g. -Y axis for a vertically aligned model
+                        rotatedMatrix = Matrix.CreateFromAxisAngle(currentDownVector, (float)Helper.GetRadianAngle(angle));
+                        break;
+                    case MovementDirection.Right: // Rotate against Right Axis, e.g. X axis for a vertically aligned model will tilt the model forward
+                        rotatedMatrix = Matrix.CreateFromAxisAngle(currentRightVector, (float)Helper.GetRadianAngle(angle));
+                        break;
+                    case MovementDirection.Left: // Rotate against Left Axis, e.g. -X axis for a vertically aligned model will tilt the model backward
+                        rotatedMatrix = Matrix.CreateFromAxisAngle(currentLeftVector, (float)Helper.GetRadianAngle(angle));
+                        break;
+                    case MovementDirection.Forward: // Rotate against Forward Axis, e.g. Z axis for a vertically aligned model will tilt the model on right side
+                        rotatedMatrix = Matrix.CreateFromAxisAngle(currentForwardVector, (float)Helper.GetRadianAngle(angle));
+                        break;
+                    case MovementDirection.Backward: // Rotate against Backward Axis, e.g. -Z axis for a vertically aligned model will tilt the model on left side
+                        rotatedMatrix = Matrix.CreateFromAxisAngle(currentBackwardVector, (float)Helper.GetRadianAngle(angle));
+                        break;
+                }
+
+                target.CurrentModelMatrix *= rotatedMatrix; // Apply rotation
+                target.CurrentPositionVector = currentPositionVector; // Keep position intact;
+                target.AlignGhost();
+            }
+        }
+
+        private bool CheckIfAssociatedTurnKeysPressed(MovementDirection turnAxisDirection)
+        {
+            bool keyPressed = false;
+            switch (turnAxisDirection)
+            {
+                case MovementDirection.Upward:
+                    keyPressed = Keyboard.IsKeyDown(Key.Right);
+                    break;
+                case MovementDirection.Downward:
+                    keyPressed = Keyboard.IsKeyDown(Key.Left);
+                    break;
+                case MovementDirection.Forward:
+                    keyPressed = Keyboard.IsKeyDown(Key.Right) && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt));
+                    break;
+                case MovementDirection.Backward:
+                    keyPressed = Keyboard.IsKeyDown(Key.Left) && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt));
+                    break;
+                case MovementDirection.Right:
+                    keyPressed = Keyboard.IsKeyDown(Key.Up);
+                    break;
+                case MovementDirection.Left:
+                    keyPressed = Keyboard.IsKeyDown(Key.Down);
+                    break;
+            }
+            return keyPressed;
+        }
+
+        private async Task TurnCharacter(Character target)
+        {
+            bool changeDir = false;
+            bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);//
+            if (associatedKeyPressed)//
+            {
+                Turn(target);//
+            }//
+            else//
+            {
+                MovementDirection otherDirection = MovementDirection.None;
+                MovementMember otherMember = null;
+                foreach (MovementMember mm in this.MovementMembers)
+                {
+                    if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                    {
+                        otherDirection = mm.MovementDirection;
+                        otherMember = mm;
+                        changeDir = true;
+                        break;
+                    }
+                }
+                if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
+                {
+                    target.MovementInstruction.IsMoving = true;
+                    target.MovementInstruction.IsTurning = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                    // reset collision
+                    target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
+                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                    target.MovementInstruction.IsInCollision = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                    target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                    // Play movement
+                    // PlayMovementMember(otherMember, target); Jeff -  this was interfering with clean move, turn, move 
+                    target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                    target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                }
+            }
+
+            await Task.Delay(5);
+            var timer = this.characterMovementTimerDictionary[target];
+            if (timer != null)
+                timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+        }
+
+        private async Task TurnCharacter(List<Character> targets)
+        {
+            Character target = GetLeadingCharacterForMovement(targets);
+            bool changeDir = false;
+            bool associatedKeyPressed = CheckIfAssociatedTurnKeysPressed(target.MovementInstruction.CurrentRotationAxisDirection);//
+            if (associatedKeyPressed)//
+            {
+                Turn(targets);//
+            }//
+            else//
+            {
+                MovementDirection otherDirection = MovementDirection.None;
+                MovementMember otherMember = null;
+                foreach (MovementMember mm in this.MovementMembers)
+                {
+                    if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                    {
+                        otherDirection = mm.MovementDirection;
+                        otherMember = mm;
+                        changeDir = true;
+                        break;
+                    }
+                }
+                if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still && otherMember != null)
+                {
+                    target.MovementInstruction.IsMoving = true;
+                    target.MovementInstruction.IsTurning = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                    // reset collision
+                    target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None; // Reset turn
+                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                    target.MovementInstruction.IsInCollision = false;
+                    target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+                    target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                    // Play movement
+                    // PlayMovementMember(otherMember, target); Jeff -  this was interfering with clean move, turn, move 
+                    target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                    target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                }
+            }
+
+            await Task.Delay(5);
+            var timer = this.characterMovementTimerDictionary[target];
+            if (timer != null)
+                timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+        }
+
+        #endregion
+
+        #region Core Movement - Change Direction, Increment position
+
+        private void ChangeDirectionAndIncrement(Character target, MovementMember movementMember)
+        {
+            target.MovementInstruction.IsInCollision = false;
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+            target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+            // Play movement
+            PlayMovementMember(movementMember, target);
+            target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+            target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+            var timer = this.characterMovementTimerDictionary[target];
+            if (timer != null)
+                timer.Change(1, Timeout.Infinite);
+        }
+        private void ChangeDirectionAndIncrement(List<Character> targets, MovementMember movementMember)
+        {
+            Character target = GetLeadingCharacterForMovement(targets);
+            target.MovementInstruction.IsInCollision = false;
+            target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
+            target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+            // Play movement
+            foreach (Character movingTarget in targets)
+            {
+                PlayMovementMember(movementMember, movingTarget);
+            }
+            target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+            target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+            var timer = this.characterMovementTimerDictionary[target];
+            if (timer != null)
+                timer.Change(1, Timeout.Infinite);
+        }
+        private async Task IncrementPosition(Character target, MovementMember movementMember)
+        {
+            if (!target.MovementInstruction.IsInCollision)
+            {
+                bool changeDir = false;
+                if (target.MovementInstruction.CurrentMovementDirection != target.MovementInstruction.LastMovementDirection)
+                {
+                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                }
+                Key key = movementMember.AssociatedKey;
+                if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
+                {
+                    await Move(target);
+                }
+                else
+                {
+                    MovementDirection otherDirection = MovementDirection.None;
+                    MovementMember otherMember = null;
+                    foreach (MovementMember mm in this.MovementMembers)
+                    {
+                        if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                        {
+                            otherDirection = mm.MovementDirection;
+                            otherMember = mm;
+                            changeDir = true;
+                            break;
+                        }
+                    }
+                    if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still &&
+                        otherMember != null)
+                    {
+                        target.MovementInstruction.IsInCollision = false;
+                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f,
+                            -10000f);
+                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                        // Play movement
+                        PlayMovementMember(otherMember, target);
+                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                    }
+                }
+                await Task.Delay(5);
+                var timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+            }
+        }
+
+        private async Task IncrementPosition(List<Character> targets, MovementMember movementMember)
+        {
+            Character target = GetLeadingCharacterForMovement(targets);
+            if (!target.MovementInstruction.IsInCollision)
+            {
+                bool changeDir = false;
+                if (target.MovementInstruction.CurrentMovementDirection != target.MovementInstruction.LastMovementDirection)
+                {
+                    target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
+                }
+                Key key = movementMember.AssociatedKey;
+                if (movementMember.MovementDirection != MovementDirection.Still && Keyboard.IsKeyDown(key))
+                {
+                    await Move(targets);
+                }
+                else
+                {
+                    MovementDirection otherDirection = MovementDirection.None;
+                    MovementMember otherMember = null;
+                    foreach (MovementMember mm in this.MovementMembers)
+                    {
+                        if (Keyboard.IsKeyDown(mm.AssociatedKey) && mm.MovementDirection != MovementDirection.Still)
+                        {
+                            otherDirection = mm.MovementDirection;
+                            otherMember = mm;
+                            changeDir = true;
+                            break;
+                        }
+                    }
+                    if (otherDirection != MovementDirection.None && otherDirection != MovementDirection.Still &&
+                        otherMember != null)
+                    {
+                        target.MovementInstruction.IsInCollision = false;
+                        target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f,
+                            -10000f);
+                        target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
+                        // Play movement
+                        PlayMovementMember(otherMember, targets);
+                        target.MovementInstruction.CurrentMovementDirection = otherDirection;
+                        target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
+                    }
+                }
+                await Task.Delay(5);
+                var timer = this.characterMovementTimerDictionary[target];
+                if (timer != null)
+                    timer.Change(changeDir ? 1 : 5, Timeout.Infinite);
+            }
+        }
+
+        #endregion
+
+        #region Play Movement Members
         public void MoveStill(Character target)
         {
             MovementMember stillMovement = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Still);
             PlayMovementMember(stillMovement, target);
+        }
+
+        public void MoveStill(List<Character> targets)
+        {
+            MovementMember stillMovement = this.MovementMembers.FirstOrDefault(mm => mm.MovementDirection == MovementDirection.Still);
+            PlayMovementMember(stillMovement, targets);
         }
 
         public void PlayMovementMember(MovementMember movementMember, Character target)
@@ -1849,6 +2452,27 @@ namespace Module.HeroVirtualTabletop.Movements
                 }
             }
         }
+
+
+        public void PlayMovementMember(MovementMember movementMember, List<Character> targets)
+        {
+            if (movementMember != null)
+            {
+                if (movementMember.MemberAbility != null) // && !movementMember.MemberAbility.IsActive)
+                {
+                    foreach (Character target in targets)
+                    {
+                        StopMovementMember(movementMember, target);
+                        movementMember.MemberAbility.Play(false, target);
+                    }
+                    BuildSupportingMovementAnimationElementsList(movementMember);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Supporting Movement Member Animations e.g. Sounds
 
         private void BuildSupportingMovementAnimationElementsList(MovementMember movementMember)
         {
@@ -1924,6 +2548,9 @@ namespace Module.HeroVirtualTabletop.Movements
             return (int)interval;
         }
 
+        #endregion
+
+        #region Add Default Member Abilities
         private void AddDefaultMemberAbilities()
         {
             if (this.MovementMembers == null || this.MovementMembers.Count == 0)
@@ -1967,7 +2594,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-       
+        #endregion
     }
 
     public class MovementMember : NotifyPropertyChanged
@@ -2070,14 +2697,17 @@ namespace Module.HeroVirtualTabletop.Movements
         public MovementDirection CurrentMovementDirection { get; set; }
 
         private MovementDirection _lastMovementDirection = MovementDirection.Forward;
-        public MovementDirection LastMovementDirection {
+        public MovementDirection LastMovementDirection
+        {
             get
             {
                 return _lastMovementDirection;
             }
 
-            set{
-                if(this._lastMovementDirection != value) { 
+            set
+            {
+                if (this._lastMovementDirection != value)
+                {
                     this._lastMovementDirection = value;
                 }
             }

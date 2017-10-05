@@ -16,7 +16,7 @@
         </ResourceDictionary>
     </UserControl.Resources>
     <Grid>
-        <GroupBox Header="{Binding ActiveCharacter.Name}" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+        <GroupBox Header="{Binding ActiveCharacterName}" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
             <Border Background="Transparent">
                 <Grid>
                     <ListView Grid.Row="1" x:Name="listViewOptionGroup"

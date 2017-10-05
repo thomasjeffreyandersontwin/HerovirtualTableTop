@@ -31,14 +31,17 @@ using Module.Shared;
 using Module.Shared.Enumerations;
 using Module.HeroVirtualTabletop.Library.GameCommunicator;
 using Module.Shared.Events;
+using Module.HeroVirtualTabletop.Library.Utility;
+
 namespace Module.HeroVirtualTabletop.Desktop
 {
     public enum ContextMenuEvent
     {
         AreaAttackContextMenuDisplayed,
         DefaultContextMenuDisplayed,
-        AreaAttackTargetMenuItemSelected,
-        AreaAttackTargetAndExecuteMenuItemSelect,
+        AttackTargetMenuItemSelected,
+        AttackTargetAndExecuteMenuItemSelected,
+        AttackTargetAndExecuteCrowdMenuItemSelected,
         SpawnMenuItemSelected,
         PlaceMenuItemSelected,
         SavePositionMenuItemSelected,
@@ -47,6 +50,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         ResetOrientationMenuItemSelected,
         ManueverWithCameraMenuItemSelected,
         ActivateMenuItemSelected,
+        ActivateCrowdAsGangMenuItemSelected,
         ClearFromDesktopMenuItemSelected,
         CloneAndLinkMenuItemSelected,
         MoveTargetToCharacterMenuItemSelected,
@@ -60,12 +64,13 @@ namespace Module.HeroVirtualTabletop.Desktop
         public bool IsDisplayed { get; set; }
 
         public bool ShowAreaAttackMenu { get; set; }
-        public string AttackingCharacterName { get; set; }
+        public List<string> AttackingCharacterNames { get; set; }
 
         public event EventHandler<CustomEventArgs<Object>> AttackContextMenuDisplayed;
         public event EventHandler<CustomEventArgs<Object>> DefaultContextMenuDisplayed;
         public event EventHandler<CustomEventArgs<Object>> AttackTargetMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> AttackTargetAndExecuteMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> AttackTargetAndExecuteCrowdMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> SpawnMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> PlaceMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> SavePositionMenuItemSelected;
@@ -74,6 +79,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         public event EventHandler<CustomEventArgs<Object>> ResetOrientationMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> ManueverWithCameraMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> ActivateMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> ActivateCrowdAsGangMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> ClearFromDesktopMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> CloneAndLinkMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> MoveTargetToCharacterMenuItemSelected;
@@ -90,13 +96,17 @@ namespace Module.HeroVirtualTabletop.Desktop
                     if (DefaultContextMenuDisplayed != null)
                         DefaultContextMenuDisplayed(sender, e);
                     break;
-                case ContextMenuEvent.AreaAttackTargetMenuItemSelected:
+                case ContextMenuEvent.AttackTargetMenuItemSelected:
                     if (AttackTargetMenuItemSelected != null)
                         AttackTargetMenuItemSelected(sender, e);
                     break;
-                case ContextMenuEvent.AreaAttackTargetAndExecuteMenuItemSelect:
+                case ContextMenuEvent.AttackTargetAndExecuteMenuItemSelected:
                     if (AttackTargetAndExecuteMenuItemSelected != null)
                         AttackTargetAndExecuteMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.AttackTargetAndExecuteCrowdMenuItemSelected:
+                    if (AttackTargetAndExecuteCrowdMenuItemSelected != null)
+                        AttackTargetAndExecuteCrowdMenuItemSelected(sender, e);
                     break;
                 case ContextMenuEvent.SpawnMenuItemSelected:
                     if (SpawnMenuItemSelected != null)
@@ -129,6 +139,10 @@ namespace Module.HeroVirtualTabletop.Desktop
                 case ContextMenuEvent.ActivateMenuItemSelected:
                     if (ActivateMenuItemSelected != null)
                         ActivateMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.ActivateCrowdAsGangMenuItemSelected:
+                    if (ActivateCrowdAsGangMenuItemSelected != null)
+                        ActivateCrowdAsGangMenuItemSelected(sender, e);
                     break;
                 case ContextMenuEvent.ClearFromDesktopMenuItemSelected:
                     if (ClearFromDesktopMenuItemSelected != null)
@@ -165,10 +179,10 @@ namespace Module.HeroVirtualTabletop.Desktop
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
 
-        public void GenerateAndDisplay(CrowdMemberModel character, string attackingCharacterName, bool showAreaAttackMenu)
+        public void GenerateAndDisplay(CrowdMemberModel character, List<string> attackingCharacterNames, bool showAreaAttackMenu)
         {
             Character = character;
-            AttackingCharacterName = attackingCharacterName;
+            AttackingCharacterNames = attackingCharacterNames;
             ShowAreaAttackMenu = showAreaAttackMenu;
             GenerateAndDisplay();
             ContextCommandFileWatcher.EnableRaisingEvents = true;
@@ -235,7 +249,7 @@ namespace Module.HeroVirtualTabletop.Desktop
 
                 if (ShowAreaAttackMenu)
                 {
-                    if (AttackingCharacterName != Character.Name)
+                    if (!AttackingCharacterNames.Contains(Character.Name))
                     {
                         System.Threading.Thread.Sleep(200); // Delay so that the file write completes before calling the pop menu
                         DisplayAreaEffectMenu();
@@ -257,8 +271,15 @@ namespace Module.HeroVirtualTabletop.Desktop
         {
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
             Character.Target();
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");  //refactor
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
             keyBindsGenerator.CompleteEvent();
+            Action d = delegate ()
+            {
+                Character.Target();
+                keyBindsGenerator.CompleteEvent();
+            };
+            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 20);
+            adex.ExecuteAsyncDelegate();
         }
 
         private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
@@ -271,11 +292,15 @@ namespace Module.HeroVirtualTabletop.Desktop
                 switch (e.Name)
                 {
                     case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME:
-                        FireContextMenuEvent(ContextMenuEvent.AreaAttackTargetMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        FireContextMenuEvent(ContextMenuEvent.AttackTargetMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                         break;
                     case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME:
                         ContextCommandFileWatcher.EnableRaisingEvents = false;
-                        FireContextMenuEvent(ContextMenuEvent.AreaAttackTargetAndExecuteMenuItemSelect, null, new CustomEventArgs<object> { Value = Character });
+                        FireContextMenuEvent(ContextMenuEvent.AttackTargetAndExecuteMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_CROWD_FILENAME:
+                        ContextCommandFileWatcher.EnableRaisingEvents = false;
+                        FireContextMenuEvent(ContextMenuEvent.AttackTargetAndExecuteCrowdMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                         break;
                     case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
                         FireContextMenuEvent(ContextMenuEvent.SpawnMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
@@ -300,6 +325,9 @@ namespace Module.HeroVirtualTabletop.Desktop
                         break;
                     case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_FILENAME:
                         FireContextMenuEvent(ContextMenuEvent.ActivateMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_ACTIVATE_CROWD_AS_GANG_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.ActivateCrowdAsGangMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                         break;
                     case Constants.GAME_CHARACTER_BINDSAVE_CLEARFROMDESKTOP_FILENAME:
                         FireContextMenuEvent(ContextMenuEvent.ClearFromDesktopMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });

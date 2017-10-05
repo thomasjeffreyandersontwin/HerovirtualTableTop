@@ -36,6 +36,7 @@ namespace Module.HeroVirtualTabletop.Movements
         private EventAggregator eventAggregator;
         private IMessageBoxService messageBoxService;
         private Character defaultCharacter;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
 
         #endregion
 
@@ -250,19 +251,21 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #region Constructor
 
-        public MovementEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, EventAggregator eventAggregator)
+        public MovementEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
+            this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditMovementEvent>().Subscribe(this.LoadMovement);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Subscribe(this.PlayMovement);
             // Unselect everything at the beginning
             this.InitializeMovementSelections();
-            DesktopKeyEventHandler keyHandler = new DesktopKeyEventHandler(RetrieveEventFromKeyInput);
+            this.InitializeDesktopKeyEventHandlers();
         }
 
         #endregion
@@ -283,8 +286,13 @@ namespace Module.HeroVirtualTabletop.Movements
             this.LoadResourcesCommand = new DelegateCommand<object>(this.LoadResources);
             this.DemoDirectionalMoveCommand = new DelegateCommand<object>(this.DemoDirectionalMovement, this.CanDemoDirectionalMovement);
             this.LoadAbilityEditorCommand = new DelegateCommand<object>(this.LoadAbilityEditor, this.CanLoadAbilityEditor);
-            this.PlayMovementCommand = new DelegateCommand<object>(this.PlayMovement, this.CanPlayMovement);
+            this.PlayMovementCommand = new DelegateCommand<object>(this.DemoMovement, this.CanDemoMovement);
             this.ToggleGravityForMovementCommand = new DelegateCommand<object>(this.ToggleGravityForMovement, this.CanToggleGravityForMovement);
+        }
+
+        private void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
         private void InitializeMovementSelections()
@@ -537,18 +545,29 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        private bool CanPlayMovement(object state)
+        private bool CanDemoMovement(object state)
         {
             return this.CurrentCharacterMovement != null && this.CurrentCharacterMovement.Movement != null && !this.CurrentCharacterMovement.IsActive;
         }
 
-        private void PlayMovement(object state)
+        private void DemoMovement(object state)
         {
-            if (this.CurrentCharacterMovement != null && this.CurrentCharacterMovement.Movement != null && !this.CurrentCharacterMovement.IsActive)
-            {
-                this.CurrentCharacterMovement.Character.ActiveMovement = this.CurrentCharacterMovement;
-                this.CurrentCharacterMovement.ActivateMovement();
-            }
+            //this.CurrentCharacterMovement.Character.ActiveMovement = this.CurrentCharacterMovement;
+            //this.CurrentCharacterMovement.ActivateMovement();
+            this.eventAggregator.GetEvent<PlayMovementInitiatedEvent>().Publish(this.CurrentCharacterMovement);
+        }
+
+        #endregion
+
+        #region Play Movement
+
+        private void PlayMovement(Tuple<CharacterMovement, List<Character>> tuple) 
+        {
+            CharacterMovement characterMovement = tuple.Item1;
+            List<Character> targets = tuple.Item2;
+            this.CurrentCharacterMovement = characterMovement;
+            this.CurrentCharacterMovement.Character.ActiveMovement = characterMovement;
+            characterMovement.ActivateMovement(targets);
         }
 
         #endregion
@@ -703,7 +722,7 @@ namespace Module.HeroVirtualTabletop.Movements
         #endregion
 
         #region Desktop Key Handling
-        public DesktopKeyEventHandler.EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        public EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
         {
             if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.MOVEMENT_EDITOR)
             {

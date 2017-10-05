@@ -799,8 +799,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
         {
-            if(!PlayOnTopOfPreviousFx)
-                Stop(Target);
+            if (!PlayOnTopOfPreviousFx)
+            {
+                bool otherPersistentAbilityActive = Target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null;
+                if (!otherPersistentAbilityActive)
+                    Stop(Target);
+            }
+                
             string keybind = PrepareCostumeFile(Target, persistent);
             if (string.IsNullOrEmpty(keybind))
                 return;
@@ -1104,7 +1109,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             IsActive = true;
             OnPropertyChanged("IsActive");
             //if(forcePlay) // for Attacks that need to play immediately in the same thread
-            PlayAnimations(persistent, Target);
+            PlayAnimations(persistent, Target, true); // true because animations should never play as attack
             //else
             //    playTimer.Change(5, Timeout.Infinite);
         }
@@ -1194,7 +1199,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         foreach (Character target in targets)
                         {
-                            if(playWithNextElements.Count > 0) // now chain playwithnext elements on each target 
+                            if (playWithNextElements.Count > 0) // now chain playwithnext elements on each target 
                             {
                                 foreach (AnimationElement playWithNextElem in playWithNextElements.Where(t => !characterAnimationMapping[t].Contains(target)))
                                 {
@@ -1226,10 +1231,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
                 }
                 else
-                    element.Play(false, targets.First());
+                {
+                    if(targets.Count > 0)
+                        element.Play(false, targets.First());
+                }
             }
         }
-        public void PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, int knockbackPlayIndex, Task playKnockBack)
+        public void PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, int knockbackPlayIndex, Task playKnockBack, Action knockBackAction)
         {
             bool knockbackDue = false;
             List<AnimationElement> playWithNextElements = new List<AnimationElement>();
@@ -1244,6 +1252,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         playWithNextElements.Add(element);
                     else
                     {
+                        if (knockbackDue) // Usual case when knockback will be played as soon as first mov or fx is played
+                        {
+                            knockbackDue = false;
+                            //playKnockBack.RunSynchronously();
+                            Application.Current.Dispatcher.Invoke(knockBackAction, System.Windows.Threading.DispatcherPriority.Send);
+                            //Task.Run()                         
+                        }
                         foreach (Character target in targets)
                         {
                             if (playWithNextElements.Count > 0) // now chain playwithnext elements on each target 
@@ -1256,25 +1271,23 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             }
                             element.GetKeybind(target);
                         }
+                        
                         playWithNextElements.Clear();
                         IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
                         //new PauseElement("", 500).Play();
-                        if (knockbackDue) // Usual case when knockback will be played as soon as first mov or fx is played
-                        {
-                            knockbackDue = false;
-                            playKnockBack.RunSynchronously();
-                        }
+                        
                     }
 
                 }
                 else
                 {
-                    element.Play(false, targets.First());
                     if (knockbackDue)// Case when no mov or fx in on hit animations and knockback will be played with the first element of the sequence here
                     {
                         knockbackDue = false;
-                        playKnockBack.RunSynchronously();
+                        //playKnockBack.RunSynchronously();
+                        Application.Current.Dispatcher.Invoke(knockBackAction, System.Windows.Threading.DispatcherPriority.Send);
                     }
+                    element.Play(false, targets.First());
                 }
             }
         }
