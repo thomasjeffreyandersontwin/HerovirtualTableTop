@@ -4,9 +4,10 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:common="clr-namespace:Module.Shared;assembly=Module.Shared"
+             xmlns:crowds="clr-namespace:Module.HeroVirtualTabletop.Crowds"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <Grid>
+             d:DesignHeight="300" d:DesignWidth="300" Loaded="HeroVirtualTabletopMainView_Loaded">
+    <Grid x:Name="containerGrid">
         
     </Grid>
 </UserControl>

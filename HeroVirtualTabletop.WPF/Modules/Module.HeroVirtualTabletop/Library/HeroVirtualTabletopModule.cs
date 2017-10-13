@@ -65,7 +65,7 @@ namespace Module.HeroVirtualTabletop
             mainRegion.Add(view);
 
             IPopupService popupService = this.container.Resolve<IPopupService>();
-            popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
+            //popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
             popupService.Register("ActiveCharacterWidgetView", typeof(ActiveCharacterWidgetView));
             popupService.Register("ActiveAttackView", typeof(ActiveAttackView));
 

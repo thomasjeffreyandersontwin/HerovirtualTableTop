@@ -43,7 +43,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private EventAggregator eventAggregator;
         private ICrowdRepository crowdRepository;
         private IDesktopKeyEventHandler desktopKeyEventHandler;
-        //private HashedObservableCollection<ICrowdMemberModel, string> characterCollection;
+        
 
         private string filter;
         private string containerWindowName = "";
@@ -51,6 +51,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private ClipboardAction clipboardAction;
         public bool isUpdatingCollection = false;
         private bool crowdCollectionLoaded = false;
+        private bool rosterSyncNeeded = false;
         public object lastCharacterCrowdStateToUpdate = null;
         private List<Tuple<string, string>> rosterCrowdCharacterMembershipKeys;
 
@@ -264,6 +265,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> CopyAllActionsCommand { get; private set; }
         public DelegateCommand<object> PasteActionsAsReferencesCommand { get; private set; }
         public DelegateCommand<object> RemoveAllActionsCommand { get; private set; }
+        public DelegateCommand<object> CheckRosterConsistencyCommand { get; private set; }
 
         #endregion
 
@@ -287,6 +289,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             //this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Subscribe(this.GetIdentityCollection);
             this.eventAggregator.GetEvent<NeedDefaultCharacterRetrievalEvent>().Subscribe(this.GetDefaultCharacter);
             this.eventAggregator.GetEvent<RemoveMovementEvent>().Subscribe(this.DeleteMovement);
+            this.eventAggregator.GetEvent<GameLoadedEvent>().Subscribe(this.CheckRosterConsistency);
+            this.eventAggregator.GetEvent<RosterSyncCompletedEvent>().Subscribe(this.HideBusyAnimation);
 
             InitializeDesktopKeyHanders();
         }
@@ -297,6 +301,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         private void InitializeCommands()
         {
             this.LoadCrowdCollectionCommand = new DelegateCommand<object>(this.LoadCrowdCollection);
+            this.CheckRosterConsistencyCommand = new DelegateCommand<object>(this.CheckRosterConsistency);
             this.AddCrowdCommand = new DelegateCommand<object>(this.AddCrowd);
             this.AddCharacterCommand = new DelegateCommand<object>(this.AddCharacter);
             this.SaveCommand = new DelegateCommand<object>(this.SaveCrowdCollection);
@@ -489,13 +494,16 @@ namespace Module.HeroVirtualTabletop.Crowds
                {
                    this.AddDefaultCharactersWithDefaultAbilities();
                    this.AddDefaultMovementsToCharacters();
+                   this.crowdCollectionLoaded = true;
+                   if (rosterSyncNeeded)
+                       CheckRosterConsistency(null);
+                   else
+                       this.BusyService.HideBusy();
                    //this.AddCrowdsFromFile(); // Add models for Jeff
                };
             Application.Current.Dispatcher.BeginInvoke(d);
             
-            this.BusyService.HideBusy();
             this.eventAggregator.GetEvent<ListenForTargetChanged>().Publish(null);
-            this.crowdCollectionLoaded = true;
             try
             {
                 this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
@@ -506,10 +514,25 @@ namespace Module.HeroVirtualTabletop.Crowds
             }         
         }
 
-        private void CheckRosterConsistency(object state)
+        private async void CheckRosterConsistency(object state)
         {
-            var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
-            eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
+            this.rosterSyncNeeded = true;
+            if (crowdCollectionLoaded)
+            {
+                this.BusyService.ShowBusy(new string[] { containerWindowName });
+                Action d = delegate ()
+                {
+                    var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
+                    eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
+                    this.rosterSyncNeeded = false;
+                };
+                await Task.Run(d);
+            }
+        }
+
+        private void HideBusyAnimation(object state)
+        {
+            this.BusyService.HideAllBusy();
         }
 
         private void AddDefaultMovementsToCharacters()
@@ -1642,12 +1665,15 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         private async Task GetAbilityCollectionAsync()
         {
-            var abilityCollection = await GetAbilities();
-            Action d = delegate ()
+            if (crowdCollectionLoaded)
             {
-                this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
-            };
-            Application.Current.Dispatcher.BeginInvoke(d);
+                var abilityCollection = await GetAbilities();
+                Action d = delegate ()
+                {
+                    this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Publish(abilityCollection);
+                };
+                Application.Current.Dispatcher.BeginInvoke(d); 
+            }
         }
 
         private async Task<ObservableCollection<AnimatedAbility>> GetAbilities()
@@ -1656,7 +1682,6 @@ namespace Module.HeroVirtualTabletop.Crowds
             Action d = delegate ()
             {
                 abilityCollection = new ObservableCollection<AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
-                
             };
             await Application.Current.Dispatcher.BeginInvoke(d);
             return abilityCollection;

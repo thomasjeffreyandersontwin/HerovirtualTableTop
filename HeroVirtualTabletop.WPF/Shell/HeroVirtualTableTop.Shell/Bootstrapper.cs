@@ -34,7 +34,7 @@ namespace ApplicationShell
             Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
             System.AppDomain.CurrentDomain.UnhandledException += new System.UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
-            MainWindow shell = Container.Resolve<MainWindow>();
+            MainWindowV2 shell = Container.Resolve<MainWindowV2>();
             Application.Current.MainWindow = shell;
 
             shell.Dispatcher.BeginInvoke((Action)delegate   //This takes advantage of the fact that the Bootstrapper and ModuleLoader run on 

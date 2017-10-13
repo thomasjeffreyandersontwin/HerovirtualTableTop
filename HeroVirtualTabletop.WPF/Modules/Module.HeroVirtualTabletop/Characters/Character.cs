@@ -165,8 +165,25 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        private float currentDistanceCount;
+        [JsonIgnore]
+        public float CurrentDistanceCount
+        {
+            get
+            {
+                return currentDistanceCount;
+            }
+            set
+            {
+                currentDistanceCount = value;
+                OnPropertyChanged("CurrentDistanceCount");
+            }
+        }
+
         [JsonIgnore]
         public string OldName { get; private set; }
+        [JsonIgnore]
+        public Vector3 CurrentStartingPositionVectorForDistanceCounting { get; set; }
         
         private IMemoryElementPosition position;
         [JsonIgnore]
@@ -223,6 +240,7 @@ namespace Module.HeroVirtualTabletop.Characters
             set
             {
                 (Position as Position).SetPosition(value);
+                this.UpdateDistanceCount();
             }
         }
 
@@ -531,6 +549,28 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
+        public void UpdateDistanceCount()
+        {
+            if(this.CurrentPositionVector != Vector3.Zero)
+            {
+                float currentDistance = Vector3.Distance(this.CurrentPositionVector, this.CurrentStartingPositionVectorForDistanceCounting);
+                if (currentDistance < 5)
+                    currentDistance = 5;
+                this.CurrentDistanceCount = (float)Math.Round((currentDistance - 5) / 8f, 2);
+            }
+        }
+
+        public void UpdateDistanceCount(Vector3 positionVector)
+        {
+            if(positionVector != Vector3.Zero)
+            {
+                float currentDistance = Vector3.Distance(positionVector, this.CurrentStartingPositionVectorForDistanceCounting);
+                if (currentDistance < 5)
+                    currentDistance = 5;
+                this.CurrentDistanceCount = (float)Math.Round((currentDistance - 5) / 8f, 2);
+            }
+        }
+
         public string Spawn(bool completeEvent = true)
         {
             if (ManeuveringWithCamera)
@@ -541,13 +581,18 @@ namespace Module.HeroVirtualTabletop.Characters
             {
                 Target();
                 WaitUntilTargetIsRegistered();
-                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
-                gamePlayer = null;
+                if (gamePlayer != null)
+                {
+                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
+                    gamePlayer = null;
+                }
+                else
+                    hasBeenSpawned = false;
             }
+            
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NOP); //No operation, let the game untarget whatever it has targeted
-            
-            hasBeenSpawned = true;
+            //hasBeenSpawned = true;
             string model = "Model_Statesman";
             if (ActiveIdentity.Type == IdentityType.Model)
             {
@@ -624,7 +669,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     keybind = keyBindsGenerator.CompleteEvent();
                     gamePlayer = WaitUntilTargetIsRegistered();
                     Position = new Position();
-                }
+               }
             }
             return keybind;
             //}
@@ -695,11 +740,11 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        public void RemoveGhost()
+        public void RemoveGhost(bool completeEvent = true)
         {
             if(this.GhostShadow != null)
             {
-                this.GhostShadow.ClearFromDesktop();
+                this.GhostShadow.ClearFromDesktop(completeEvent);
                 this.GhostShadow = null;
             }
         }
@@ -821,6 +866,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 this.Position.Z = destinationPositionVector.Z;
             }
             AlignGhost();
+            UpdateDistanceCount();
         }
 
         public void TeleportToCameraWithOptimalPositioning(Character closestCharacter, Vector3 closestCharacterStartingPositionVector, ref Vector3 lastReferenceVector, ref List<Vector3> usedUpPositions)
@@ -848,6 +894,8 @@ namespace Module.HeroVirtualTabletop.Characters
                 this.Position.Y = destinationPositionVector.Y;
                 this.Position.Z = destinationPositionVector.Z;
             }
+            AlignGhost();
+            UpdateDistanceCount();
         }
 
         public string UnTarget(bool completeEvent = true)
@@ -887,6 +935,10 @@ namespace Module.HeroVirtualTabletop.Characters
                     break;
                 }
             }
+            if(currentTarget != null)
+            {
+                SetAsSpawned();
+            }
             return currentTarget;
         }
 
@@ -902,7 +954,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     keyBindsGenerator.CompleteEvent();
                 }
                 if (this.GhostShadow != null && this.GhostShadow.HasBeenSpawned)
-                    this.RemoveGhost();
+                    this.RemoveGhost(completeEvent);
             }
             gamePlayer = null;
             hasBeenSpawned = false;

@@ -29,6 +29,7 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
                 <ListView Grid.Row="0" Margin="1" Name="lvAttackConfig" ItemsSource="{Binding DefendingCharacters}" Background="Transparent" BorderBrush="Transparent" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}">
@@ -93,7 +94,7 @@
                                                 <CheckBox IsChecked="{Binding Path=ActiveAttackConfiguration.IsDead}" Content="Dead" Foreground="White"  HorizontalAlignment="Left" 
                                                           IsEnabled="{Binding Path=ActiveAttackConfiguration.IsHit}" ToolTip="Dead (D)"/>
 
-                                            </StackPanel> 
+                                            </StackPanel>
                                             <StackPanel Grid.Row="3" Grid.Column="0" Orientation="Horizontal">
                                                 <RadioButton Content="KnockBack" 
                                                              IsChecked="{Binding ActiveAttackConfiguration.IsKnockedBack}" 
@@ -112,7 +113,11 @@
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2">
+                <StackPanel Grid.Row="1" Orientation="Horizontal">
+                    <CheckBox IsChecked="{Binding Path=DefendingCharacters[0].ActiveAttackConfiguration.MoveAttackerToTarget}" Content="Move to target before attacking" Foreground="White"  HorizontalAlignment="Left" 
+                                                          ToolTip="Move to target before attacking (T)"/>
+                </StackPanel>
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="2" Grid.ColumnSpan="2">
                     <Button x:Name="btnOk"  Margin="2" Content="OK" Command="{Binding SetActiveAttackCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
                     <Button x:Name="btnCancel"  Margin="2"  Content="Cancel" Command="{Binding CancelActiveAttackCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
                 </StackPanel>

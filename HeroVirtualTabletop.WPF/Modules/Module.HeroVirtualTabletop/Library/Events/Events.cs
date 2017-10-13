@@ -24,6 +24,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class EditIdentityEvent : PubSubEvent<Tuple<Identity, Character>> { }
     public class EditAbilityEvent : PubSubEvent<Tuple<AnimatedAbility, Character>> { }
     public class CheckRosterConsistencyEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { }
+    public class RosterSyncCompletedEvent : PubSubEvent<object> { }
     public class CreateCrowdFromModelsEvent : PubSubEvent<CrowdModel> { }
     public class ActivateCharacterEvent : PubSubEvent<Tuple<Character, string, string>> { }
     public class ActivateGangEvent : PubSubEvent<List<Character>> { }
@@ -55,9 +56,12 @@ namespace Module.HeroVirtualTabletop.Library.Events
     #endregion
 
     #region Movement Events
+
     public class EditMovementEvent : PubSubEvent<CharacterMovement> { }
     public class RemoveMovementEvent : PubSubEvent<String> { }
     public class PlayMovementInitiatedEvent: PubSubEvent<CharacterMovement> { }
     public class PlayMovementConfirmedEvent: PubSubEvent<Tuple<CharacterMovement, List<Character>>> { }
+    public class StopMovementEvent: PubSubEvent<CharacterMovement> { }
+
     #endregion
 }

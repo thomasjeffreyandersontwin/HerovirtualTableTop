@@ -484,9 +484,41 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters)
         {
+            bool needToCompleteMove = false;
+            if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.MoveAttackerToTarget))
+            {
+                needToCompleteMove = true;
+                Character centerTarget = defendingCharacters.FirstOrDefault(dc => dc.ActiveAttackConfiguration.IsCenterTarget);
+                attackingCharacter.MoveToLocation(centerTarget.CurrentPositionVector);
+                AnimateAttackSequenceWithMovement(attackingCharacter, defendingCharacters);
+            }
+            else
+                AnimateAttackSequenceWithoutMovement(attackingCharacter, defendingCharacters);
+        }
+        System.Threading.Timer timer = null;
+        private void AnimateAttackSequenceWithMovement(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            timer = new System.Threading.Timer(TimerCallback, new object[] { attackingCharacter, defendingCharacters }, Timeout.Infinite, Timeout.Infinite);
+            timer.Change(5, Timeout.Infinite);
+        }
 
+        private void TimerCallback(object state)
+        {
+            object[] states = state as object[];
+            Character attackingCharacter = states[0] as Character;
+            List<Character> defendingCharacters = states[1] as List<Character>;
+            if (attackingCharacter.IsMoving)
+                timer.Change(50, Timeout.Infinite);
+            else
+            {
+                timer.Change(Timeout.Infinite, Timeout.Infinite);
+                AnimateAttackSequenceWithoutMovement(attackingCharacter, defendingCharacters);
+            }
+        }
+
+        private void AnimateAttackSequenceWithoutMovement(Character attackingCharacter, List<Character> defendingCharacters)
+        {
             int attackDelay = 0;
-
             AttackDirection direction = GetAttackDirection(attackingCharacter, defendingCharacters);
 
             float distance = GetTargetDistance(attackingCharacter, defendingCharacters);
@@ -515,6 +547,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (centerTargetCharacter == null)
             {
                 distance = GetClosestTargetDistance(attackingCharacter, defendingCharacters);
+
             }
             else
             {
@@ -1285,10 +1318,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsDead");
             }
         }
+
+        private bool moveAttackerToTarget;
+        public bool MoveAttackerToTarget
+        {
+            get
+            {
+                return moveAttackerToTarget;
+            }
+            set
+            {
+                moveAttackerToTarget = value;
+                OnPropertyChanged("MoveAttackerToTarget");
+            }
+        }
     }
     public class AttackDirection
     {
-        public float AttackDirectionX
+        public float AttackDirectionX   
         {
             get;
             set;

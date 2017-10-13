@@ -21,7 +21,7 @@ namespace Module.HeroVirtualTabletop.Crowds
     {
         ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; }
         void SavePosition(ICrowdMember c);
-        void Place(ICrowdMember crowdMember);
+        void Place(ICrowdMember crowdMember, bool completeEvent = true);
         bool IsGangMode { get; set; }
     }
 
@@ -115,12 +115,12 @@ namespace Module.HeroVirtualTabletop.Crowds
         
         }
 
-        public virtual void Place(IMemoryElementPosition position)
+        public virtual void Place(IMemoryElementPosition position, bool completeEvent = true)
         {
 
         }
 
-        public virtual void Place(ICrowdMember crowdMember)
+        public virtual void Place(ICrowdMember crowdMember, bool completeEvent = true)
         {
 
         }
@@ -343,7 +343,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.SavedPositions.Add(c.Name, (c as Character).Position.Clone(false));
         }
 
-        public override void Place(IMemoryElementPosition position)
+        public override void Place(IMemoryElementPosition position, bool completeEvent = true)
         {
             foreach (ICrowdMember crowdMember in this.CrowdMemberCollection)
             {
@@ -358,15 +358,15 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        public override void Place(ICrowdMember crowdMember)
+        public override void Place(ICrowdMember crowdMember, bool completeEvent = true)
         {
             IMemoryElementPosition pos;
             if (this.SavedPositions.TryGetValue(crowdMember.Name, out pos))
             {
                 CrowdMemberModel model = crowdMember as CrowdMemberModel;
                 model.Position = pos.Clone(false, (model.Position as MemoryInstance).GetTargetPointer());
-                model.Target(false);
-                model.ActiveIdentity.RenderWithoutAnimation(true, model);
+                //model.Target(false);
+                //model.ActiveIdentity.RenderWithoutAnimation(completeEvent, model);
             }
             else if(this.Name == Constants.ALL_CHARACTER_CROWD_NAME)
             {

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Practices.Unity;
+using Module.HeroVirtualTabletop.Crowds;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,12 +23,20 @@ namespace Module.HeroVirtualTabletop.Library
     public partial class HeroVirtualTabletopMainView : UserControl
     {
         private HeroVirtualTabletopMainViewModel viewModel;
-        public HeroVirtualTabletopMainView(HeroVirtualTabletopMainViewModel viewModel)
+        private IUnityContainer container;
+        public HeroVirtualTabletopMainView(HeroVirtualTabletopMainViewModel viewModel, IUnityContainer container)
         {
             InitializeComponent();
 
+            this.container = container;
             this.viewModel = viewModel;
             this.DataContext = this.viewModel;
+        }
+
+        private void HeroVirtualTabletopMainView_Loaded(object sender, RoutedEventArgs e)
+        {
+            var characterCrowdMainView = this.container.Resolve<CharacterCrowdMainView>();
+            this.containerGrid.Children.Add(characterCrowdMainView);
         }
     }
 }

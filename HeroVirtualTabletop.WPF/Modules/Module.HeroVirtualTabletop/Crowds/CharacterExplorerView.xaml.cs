@@ -42,6 +42,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.viewModel.FlattenNumberRequired += viewModel_FlattenNumberRequired;
             this.viewModel.FlattenNumberEntryFinished += viewModel_FlattenNumberEntryFinished;
         }
+        private void CharacterExplorerView_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.viewModel.LoadCrowdCollectionCommand.Execute(this);
+        }
         private void viewModel_EditNeeded(object sender, CustomEventArgs<string> e)
         {
             ICrowdMemberModel modelToSelect = sender as ICrowdMemberModel;

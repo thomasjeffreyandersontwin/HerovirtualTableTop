@@ -252,6 +252,7 @@ namespace Module.HeroVirtualTabletop.Library
 
                 //LoadMainView();
                 //logService.Info("MainView displayed");
+                this.eventAggregator.GetEvent<GameLoadedEvent>().Publish(null);
             };
             Application.Current.Dispatcher.BeginInvoke(d);
         }

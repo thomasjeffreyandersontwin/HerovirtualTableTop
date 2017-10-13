@@ -26,11 +26,9 @@ namespace Module.HeroVirtualTabletop.Crowds
         string Name { get; set; }
         string OldName { get; }
         ICrowd RosterCrowd { get; set; }
-        //HashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; set; }
 
-        void Place(IMemoryElementPosition position);
+        void Place(IMemoryElementPosition position, bool completeEvent = true);
         void SavePosition();
-        //string Save(string filename = null);
         ICrowdMember Clone();
     }
 
@@ -94,7 +92,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.SavedPosition = this.Position.Clone(false);
         }
 
-        public virtual void Place(IMemoryElementPosition position = null)
+        public virtual void Place(IMemoryElementPosition position = null, bool completeEvent = true)
         {
             this.Target();
             if( new MemoryElement().Position == null || new MemoryElement().Position.Pointer != this.Position.Pointer
@@ -104,7 +102,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             if (this.RosterCrowd != null)
             {
-                RosterCrowd.Place(this);
+                RosterCrowd.Place(this, completeEvent);
             }
             else if (position != null)
             {
@@ -154,8 +152,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public new string Spawn(bool completeEvent = true)
         {
-            CheckIfExistsInGame();
-            return base.Spawn();
+            //CheckIfExistsInGame();
+            return base.Spawn(completeEvent);
         }
     }
     public class CrowdMemberModel : CrowdMember, ICrowdMemberModel

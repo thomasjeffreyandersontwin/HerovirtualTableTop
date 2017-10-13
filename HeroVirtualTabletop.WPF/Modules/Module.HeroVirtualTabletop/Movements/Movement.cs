@@ -203,6 +203,7 @@ namespace Module.HeroVirtualTabletop.Movements
             //this.Movement.MoveStill(this.Character);
             // Reset MovementInstruction
             this.Character.MovementInstruction = null;
+            this.Character.ActiveMovement = null;
             // Enable Camera
             this.EnableCamera(true);
             // Unload Keyboard Hook
@@ -215,8 +216,8 @@ namespace Module.HeroVirtualTabletop.Movements
             //    if (cmGhost != null)
             //        cmGhost.DeactivateMovement();
             //}
-            if (this.Character.IsGangLeader)
-                OnMovementDeactivatedForGangLeader(this, new CustomEventArgs<CharacterMovement> { Value = this });
+            //if (this.Character.IsGangLeader)
+            //    OnMovementDeactivatedForGangLeader(this, new CustomEventArgs<CharacterMovement> { Value = this });
         }
 
         public void ActivateMovement()
@@ -228,6 +229,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
             // Set Active
             this.IsActive = true;
+            this.Character.ActiveMovement = this;
             // Set the still Move
             this.Movement.MoveStill(this.Character);
             // Initialize MovementInstruction
@@ -246,8 +248,8 @@ namespace Module.HeroVirtualTabletop.Movements
             hookID = KeyBoardHook.SetHook(this.PlayMovementByKeyProc);
             Helper.GlobalVariables_CharacterMovement = this;
 
-            if (this.Character.IsGangLeader)
-                OnMovementActivatedForGangLeader(this, new CustomEventArgs<CharacterMovement> { Value = this });
+            //if (this.Character.IsGangLeader)
+            //    OnMovementActivatedForGangLeader(this, new CustomEventArgs<CharacterMovement> { Value = this });
         }
 
         public void ActivateMovement(Character character)
@@ -295,12 +297,18 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             this.CharactersToMove = targets;
             // Deactivate Current Movement
-            CharacterMovement activeCharacterMovement = this.Character.Movements.FirstOrDefault(cm => cm != this && cm.IsActive);
-            if (activeCharacterMovement != null)
-                activeCharacterMovement.DeactivateMovement();
-
+            if(targets.Any(t => t.Movements.Any(m => m.IsActive)))
+            {
+                foreach(CharacterMovement cm in targets.Where(t => t.Movements.Any(m => m.IsActive)).SelectMany(t => t.Movements.Where(m => m.IsActive)))
+                {
+                    cm.DeactivateMovement();
+                }
+            }
+            
+             
             // Set Active
             this.IsActive = true;
+            this.Character.ActiveMovement = this;
             // Set the still Move
             this.Movement.MoveStill(targets);
             // Initialize MovementInstruction
@@ -315,6 +323,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.Character.MovementInstruction.LastMovementDirection = MovementDirection.None;
             // Disable Camera Control
             this.EnableCamera(false);
+            this.Movement.AlignFacingWithLeader(this.CharactersToMove);
             // Load Keyboard Hook
             hookID = KeyBoardHook.SetHook(this.PlayMovementForMultipleCharactersByKeyProc);
             Helper.GlobalVariables_CharacterMovement = this;
@@ -644,7 +653,7 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.CurrentDirectionVector = directionVector;
             if (directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
             {
-                //increment character
+                //increment character position
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 target.CurrentPositionVector = allowableDestinationVector;
                 target.AlignGhost();
@@ -854,16 +863,17 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        private void AlignFacingWithLeader(List<Character> targets)
+        public void AlignFacingWithLeader(List<Character> targets)
         {
             Character leader = GetLeadingCharacterForMovement(targets);
             Vector3 leaderFacingVector = leader.CurrentFacingVector;
+            Vector3 distantPointInSameDirection = leader.CurrentPositionVector + leaderFacingVector * 500;
+            //distantPointInSameDirection.Normalize();
             foreach (Character target in targets)
             {
-                target.CurrentFacingVector = leaderFacingVector;
+                (target.Position as Position).SetTargetFacing(distantPointInSameDirection);
             }
-            
-        }
+       }
 
         #endregion
 
@@ -1884,7 +1894,6 @@ namespace Module.HeroVirtualTabletop.Movements
             if (this.characterMovementTimerDictionary == null)
                 this.characterMovementTimerDictionary = new Dictionary<Character, System.Threading.Timer>();//
             Character target = GetLeadingCharacterForMovement(targets);
-            AlignFacingWithLeader(targets);
             StopMovement(target);
             target.UnFollow();
             target.IsMoving = true;
@@ -1940,6 +1949,8 @@ namespace Module.HeroVirtualTabletop.Movements
                     return characters.First(c => c.IsGangLeader);
                 else if (characters.Any(c => c.IsActive))
                     return characters.First(c => c.IsActive);
+                else if (characters.Any(c => c.ActiveMovement != null))
+                    return characters.First(c  => c.ActiveMovement != null);
                 else return characters.First();
             }
             else

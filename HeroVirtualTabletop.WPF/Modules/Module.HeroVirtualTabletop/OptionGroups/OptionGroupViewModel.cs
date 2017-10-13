@@ -699,8 +699,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 CharacterMovement characterMovement = selectedOption as CharacterMovement;
                 if (characterMovement != null && characterMovement.Movement != null && characterMovement.IsActive)
                 {
-                    characterMovement.DeactivateMovement();
                     owner.ActiveMovement = null;
+                    this.eventAggregator.GetEvent<StopMovementEvent>().Publish(characterMovement);
                 }
             }
         }

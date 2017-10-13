@@ -76,11 +76,15 @@
                 ResetOrientationCommand="{Binding ResetOrientationCommand}"
                 CycleCommandsThroughCrowdCommand="{Binding CycleCommandsThroughCrowdCommand}"
                 ></characters:CharacterManagementMenuControl>
-        <!--<StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button Style="{StaticResource IconButton}" Content="&#xf0e4;" ToolTip="Save Position (Ctrl+S)" Command="{Binding SavePositionCommand}"/>
-            <TextBox Name="txtDistanceCounter"                        
-                         Text="{Binding Path=CurrentDistanceCount, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
-        </StackPanel>-->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Style="{StaticResource IconButton}" HorizontalAlignment="Left" Content="&#xf0e4;" ToolTip="Reset Counter (Ctrl+K)" Command="{Binding ResetDistanceCounterCommand}"/>
+            <TextBlock Name="txtDistanceCounter"  Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Foreground="White"                    
+                         Text="{Binding Path=CurrentDistanceCountingCharacter.CurrentDistanceCount}"/>
+        </Grid>
         <library:MultiSelectListBox x:Name="RosterViewListBox" Grid.Row="2" ItemsSource="{Binding Source={StaticResource ResourceKey=ParticipantsView}}"
                     AllowDrop="True" SelectionMode="Extended" Background="Transparent" TextElement.Foreground="White" Drop="RosterViewListBox_Drop" DragOver="RosterViewListBox_DragOver"
                      SelectedItemsList="{Binding SelectedParticipants, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" BorderBrush="Transparent" BorderThickness="0"

@@ -263,6 +263,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Subscribe(this.PlayMovement);
+            this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.StopMovement);
             // Unselect everything at the beginning
             this.InitializeMovementSelections();
             this.InitializeDesktopKeyEventHandlers();
@@ -568,6 +569,15 @@ namespace Module.HeroVirtualTabletop.Movements
             this.CurrentCharacterMovement = characterMovement;
             this.CurrentCharacterMovement.Character.ActiveMovement = characterMovement;
             characterMovement.ActivateMovement(targets);
+        }
+
+        #endregion
+
+        #region Stop Movement
+
+        private void StopMovement(CharacterMovement characterMovement)
+        {
+            characterMovement.DeactivateMovement();
         }
 
         #endregion
