@@ -675,7 +675,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
             }
             owner.ActiveAbility = ability;
-            currentTarget.Target(false);
+            currentTarget.Target();
             //currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
             ability.Play(Target: currentTarget);
         }

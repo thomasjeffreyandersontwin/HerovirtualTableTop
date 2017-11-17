@@ -113,11 +113,11 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         protected override string GetLabel()
         {
-            if (gamePlayer != null && gamePlayer.IsReal)
-            {
-                return gamePlayer.Label;
-            }
-            else
+            //if (gamePlayer != null && gamePlayer.IsReal)
+            //{
+            //    return gamePlayer.Label;
+            //}
+            //else
             {
                 string crowdLabel = string.Empty;
                 if (RosterCrowd != null && RosterCrowd.Name != Constants.ALL_CHARACTER_CROWD_NAME && RosterCrowd.Name != Constants.NO_CROWD_CROWD_NAME)

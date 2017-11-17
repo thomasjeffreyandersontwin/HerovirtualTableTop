@@ -275,6 +275,17 @@ namespace Module.HeroVirtualTabletop.Crowds
             return treeViewItem;
         }
 
+        private object GetCurrentSelectedParent(object selectedObject)
+        {
+            treeViewCrowd.UpdateLayout();
+            DependencyObject dObject = treeViewCrowd.ItemContainerGenerator.ContainerFromItem(selectedObject); // doesn't work if the node has never been loaded into view 
+            TreeViewItem tvi = dObject as TreeViewItem;
+            TreeViewItem tviParent = GetImmediateTreeViewItemParent(tvi);
+            if (tviParent != null)
+                return tvi.DataContext;
+            return null;
+        }
+
         private TreeViewItem GetRootTreeViewItemParent(TreeViewItem treeViewItem)
         {
             DependencyObject dObject = VisualTreeHelper.GetParent(treeViewItem); // got the immediate parent

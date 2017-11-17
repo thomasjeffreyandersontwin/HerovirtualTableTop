@@ -155,11 +155,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 SetAttackParameters(ch);
             }
+            if (this.DefendingCharacters.Any(dc => dc.ActiveAttackConfiguration.MoveAttackerToTarget))
+            {
+                foreach (Character dc in this.DefendingCharacters)
+                    dc.ActiveAttackConfiguration.MoveAttackerToTarget = true;
+            }
+
             // Change mouse pointer to back to bulls eye
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
             Mouse.OverrideCursor = cursor;
 
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.ActiveAttack);
+            this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
             this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
         }
         private void SetAttackParameters(Character ch)
@@ -201,8 +207,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 c.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
             }
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.DefendingCharacters.ToList());
-            //this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(null);
+            this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
+            this.eventAggregator.GetEvent<CancelActiveAttackEvent>().Publish(this.DefendingCharacters.ToList());
         }
 
         private void ActivatePanel(string panelName)
@@ -232,7 +238,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.CancelActiveAttackCommand.Execute(null);
                 }
                 else if (inputKey == Key.H || inputKey == Key.M || inputKey == Key.S || inputKey == Key.U
-                    || inputKey == Key.Y || inputKey == Key.D || inputKey == Key.K || inputKey == Key.B
+                    || inputKey == Key.Y || inputKey == Key.D || inputKey == Key.K || inputKey == Key.B || inputKey == Key.T
                     || (inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
                 {
                     foreach (var defender in this.DefendingCharacters)
@@ -284,6 +290,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         else if (inputKey == Key.K)
                         {
                             defender.ActiveAttackConfiguration.IsKnockedBack = false;
+                        }
+                        else if (inputKey == Key.T)
+                        {
+                            defender.ActiveAttackConfiguration.MoveAttackerToTarget = true;
                         }
                         else if ((inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
                         {

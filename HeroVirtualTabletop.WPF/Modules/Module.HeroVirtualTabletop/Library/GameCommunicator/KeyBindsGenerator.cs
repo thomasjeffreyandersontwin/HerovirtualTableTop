@@ -18,34 +18,33 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
         #region KeyBinds Strings
         internal Dictionary<GameEvent, string> keyBindsStrings = new Dictionary<GameEvent, string>()
         {
-            { GameEvent.TargetName , "target_name"},
-            { GameEvent.PrevSpawn , "prev_spawn"},
-            { GameEvent.NextSpawn , "next_spawn"},
-            { GameEvent.RandomSpawn , "random_spawn"},
+            { GameEvent.TargetName , "targetname"},
+            { GameEvent.PrevSpawn , "prevspawn"},
+            { GameEvent.NextSpawn , "nextspawn"},
+            { GameEvent.RandomSpawn , "randomspawn"},
             { GameEvent.Fly , "fly"},
-            { GameEvent.EditPos , "edit_pos"},
-            { GameEvent.DetachCamera , "detach_camera"},
-            { GameEvent.NoClip , "no_clip"},
-            { GameEvent.AccessLevel , "access_level"},
+            { GameEvent.EditPos , "editpos"},
+            { GameEvent.DetachCamera , "detachcamera"},
+            { GameEvent.NoClip , "noclip"},
+            { GameEvent.AccessLevel , "accesslevel"},
             { GameEvent.Command , "~"},
-            { GameEvent.SpawnNpc , "spawn_npc"},
+            { GameEvent.SpawnNpc , "spawnnpc"},
             { GameEvent.Rename , "rename"},
-            { GameEvent.LoadCostume , "load_costume"},
-            { GameEvent.MoveNPC , "move_npc"},
-            { GameEvent.DeleteNPC , "delete_npc"},
-            { GameEvent.ClearNPC , "clear_npc"},
+            { GameEvent.LoadCostume , "loadcostume"},
+            { GameEvent.MoveNPC , "movenpc"},
+            { GameEvent.DeleteNPC , "deletenpc"},
+            { GameEvent.ClearNPC , "clearnpc"},
             { GameEvent.Move , "mov"},
-            { GameEvent.TargetEnemyNear , "target_enemy_near"},
-            { GameEvent.LoadBind , "load_bind"},
+            { GameEvent.TargetEnemyNear , "targetenemynear"},
+            { GameEvent.LoadBind , "loadbind"},
             { GameEvent.BeNPC , "benpc"},
-            { GameEvent.SaveBind , "save_bind"},
+            { GameEvent.SaveBind , "savebind"},
             { GameEvent.GetPos , "getpos"},
             { GameEvent.CamDist , "camdist"},
             { GameEvent.Follow , "follow"},
             { GameEvent.LoadMap , "loadmap"},
-            { GameEvent.BindLoadFile , "bind_load_file"},
+            { GameEvent.BindLoadFile , "bindloadfile"},
             { GameEvent.Macro , "macro"},
-            { GameEvent.NOP , "nop" },
             { GameEvent.PopMenu , "popmenu" }
         };
         #endregion
@@ -169,24 +168,24 @@ namespace Module.HeroVirtualTabletop.Library.GameCommunicator
 
             command = PopEvents();
 
-            if (preventLoadCostumeWithoutTarget)
-            {
-                // HACK: Prevent loading costume without targetting first
-                if (command.Contains(keyBindsStrings[GameEvent.LoadCostume]))
-                {
-                    var loadCostumeIndex = command.IndexOf("$$load_costume");
-                    if (loadCostumeIndex > 0)
-                    {
-                        var prevCommand = command.Substring(0, loadCostumeIndex);
-                        if (string.IsNullOrEmpty(prevCommand) || !prevCommand.Contains(keyBindsStrings[GameEvent.TargetName]))
-                        {
-                            return "";
-                        }
-                    }
-                    else
-                        return "";
-                } 
-            }
+            //if (preventLoadCostumeWithoutTarget)
+            //{
+            //    // HACK: Prevent loading costume without targetting first
+            //    if (command.Contains(keyBindsStrings[GameEvent.LoadCostume]))
+            //    {
+            //        var loadCostumeIndex = command.IndexOf("$$loadcostume");
+            //        if (loadCostumeIndex > 0)
+            //        {
+            //            var prevCommand = command.Substring(0, loadCostumeIndex);
+            //            if (string.IsNullOrEmpty(prevCommand) || !prevCommand.Contains(keyBindsStrings[GameEvent.TargetName]))
+            //            {
+            //                return "";
+            //            }
+            //        }
+            //        else
+            //            return "";
+            //    } 
+            //}
             // Another HACK: Prevent executing multiple targeting in a chain
             IconInteractionUtility.ExecuteCmd(command);
 

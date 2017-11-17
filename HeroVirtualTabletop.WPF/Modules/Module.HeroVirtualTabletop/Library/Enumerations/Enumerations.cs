@@ -24,7 +24,8 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
         Link,
         CloneLink,
         FlattenCopy,
-        NumberedFlattenCopy
+        NumberedFlattenCopy,
+        CloneMemberships
     }
     public enum ExpansionUpdateEvent
     {

@@ -1011,6 +1011,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             AnimationElement animationElement = this.GetAnimationElement(animationType);
             this.AddAnimationElement(animationElement);
             OnAnimationAdded(animationElement, null);
+            ChangeFXBehaviorWhenIdentityElementPresent();
             this.SaveAbility();
         }
 
@@ -1169,6 +1170,33 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        #region Update Fx Play on Top if Identity element present before
+
+        private void ChangeFXBehaviorWhenIdentityElementPresent()
+        {
+            var animationElements = this.CurrentAbility.GetFlattenedAnimationList();
+
+            foreach (FXEffectElement fxElement in animationElements.Where(e => e.Type == AnimationElementType.FX))
+            {
+                fxElement.PlayOnTopOfIdentityName = null;
+                if (animationElements.Any(e => e.Type == AnimationElementType.LoadIdentity))
+                {
+                    int fxIndex = animationElements.IndexOf(fxElement);
+                    var identityElement = animationElements.LastOrDefault(e => e.Type == AnimationElementType.LoadIdentity && animationElements.IndexOf(e) < fxIndex) as IdentityElement;
+                    if (identityElement != null)
+                    {
+                        int identityIndex = animationElements.IndexOf(identityElement);
+                        if (!animationElements.Any(e => e.Type == AnimationElementType.FX && animationElements.IndexOf(e) < fxIndex && animationElements.IndexOf(e) > identityIndex))
+                        {
+                            fxElement.PlayOnTopOfIdentityName = identityElement.Identity.Surface;
+                        }
+                    }
+                }
+            }
+        }
+
+        #endregion
+
         #region Change Persistence
 
         private void ChangePersistence(object state)
@@ -1311,7 +1339,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                     refAbilityCollection.Add(new AnimationResource(attack.OnHitAnimation, attack.OnHitAnimation.Name));
                 }
-                refAbilityCollection = refAbilityCollection.OrderBy(x => x, new ReferenceAbilityResourceComparer()).ToList();
+                refAbilityCollection = refAbilityCollection.Where(a => !(a.Reference != null && a.Reference.AnimationElements.Count == 1 && a.Reference.AnimationElements[0] is ReferenceAbility)).OrderBy(x => x, new ReferenceAbilityResourceComparer()).ToList();
                 referenceAbilitiesCVS.Source = new ObservableCollection<AnimationResource>(refAbilityCollection);
                 referenceAbilitiesCVS.View.Filter += ResourcesCVS_Filter;
             }
@@ -1483,6 +1511,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.CurrentAbility.RemoveAnimationElement(this.SelectedAnimationElement.Name);
             }
             this.SaveAbility();
+            this.ChangeFXBehaviorWhenIdentityElementPresent();
             this.LockModelAndMemberUpdate(false);
         }
 
@@ -1751,6 +1780,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             // UnLock character crowd Tree from updating
             this.LockModelAndMemberUpdate(false);
+            this.ChangeFXBehaviorWhenIdentityElementPresent();
             Helper.GlobalClipboardObject = null;
             Helper.GlobalClipboardObjectParent = null;
         }
@@ -1771,9 +1801,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     this.LockModelAndMemberUpdate(true);
                     List<AnimationElement> flattenedList = GetFlattenedAnimationList(CurrentAbility.AnimationElements.ToList());
-                    SequenceElement sequenceElement = (this.CurrentReferenceElement.Reference).Clone() as SequenceElement;
+                    SequenceElement sequenceElementClone = (this.CurrentReferenceElement.Reference).Clone() as SequenceElement;
+                    SequenceElement sequenceElement = this.GetAnimationElement(AnimationElementType.Sequence) as SequenceElement;
+                    foreach(var animationElement in sequenceElementClone.AnimationElements)
+                    {
+                        sequenceElement.AddAnimationElement(animationElement);
+                    }
                     int order = this.CurrentReferenceElement.Order;
-                    sequenceElement.Name = AnimatedAbility.GetAppropriateAnimationName(sequenceElement.Type, flattenedList);
+                    //sequenceElement.Name = AnimatedAbility.GetAppropriateAnimationName(sequenceElement.Type, flattenedList);
                     if (sequenceElement is SequenceElement && string.IsNullOrEmpty((sequenceElement as AnimationElement).DisplayName))
                         (sequenceElement as AnimationElement).DisplayName = "Sequence: " + (sequenceElement as SequenceElement).SequenceType.ToString();
                     this.RemoveAnimation();
@@ -1929,6 +1964,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 destinationElementParent.AddAnimationElement(sourceElement as AnimationElement, order);
                 OnAnimationAdded(sourceElement, new CustomEventArgs<bool>() { Value = false });
                 this.SaveAbility();
+                this.ChangeFXBehaviorWhenIdentityElementPresent();
             }
         }
         /// <summary>

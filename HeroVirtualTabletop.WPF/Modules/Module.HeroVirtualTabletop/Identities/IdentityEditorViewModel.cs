@@ -383,7 +383,7 @@ namespace Module.HeroVirtualTabletop.Identities
             abilitiesCVS = new CollectionViewSource();
             Attack none = new Attack("None", owner: this.Owner);
             abilities.Add(none);
-            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner && an.IsAttack == false; }).OrderBy(a=>a.Order));
+            abilitiesCVS.Source = new ObservableCollection<AnimatedAbility>(abilities.Where((an) => { return an.Owner == this.Owner; }).OrderBy(a=>a.Order));
             abilitiesCVS.View.Filter += abilitiesCVS_Filter;
             AnimatedAbility moveTo = null;
             if (EditedIdentity != null)

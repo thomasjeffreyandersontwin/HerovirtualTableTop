@@ -13,8 +13,10 @@ using System.Threading.Tasks;
 namespace Module.HeroVirtualTabletop.Library.Events
 {
     public class AddToRosterEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { }
+    public class SpawnToRosterEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { }
+    public class CloneAndSpawnCrowdMemberEvent : PubSubEvent<object> { }
     public class DeleteCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { }
-    public class CloneLinkCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { }
+    public class CloneLinkCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { } 
     public class EditCharacterEvent : PubSubEvent<Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>> { }
     public class SaveCrowdEvent : PubSubEvent<object> { }
     public class SaveCrowdCompletedEvent : PubSubEvent<object> { }
@@ -52,6 +54,8 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class ConfigureActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
     public class ConfirmAttackEvent : PubSubEvent<object> { }
     public class SetActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
+    public class CloseActiveAttackWidgetEvent : PubSubEvent<object> { }
+    public class CancelActiveAttackEvent : PubSubEvent<object> { }
     public class CloseActiveAttackEvent : PubSubEvent<object> { }
     #endregion
 

@@ -73,7 +73,7 @@ namespace Module.HeroVirtualTabletop.Library
             this.eventAggregator.GetEvent<DeactivateCharacterEvent>().Subscribe(this.CloseActiveCharacterWidget);
             this.eventAggregator.GetEvent<DeactivateGangEvent>().Subscribe(this.CloseActiveGangWidget);
             this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.ConfigureAttack);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.CloseActiveAttackWidget);
+            this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Subscribe(this.CloseActiveAttackWidget);
         }
 
         #endregion
@@ -233,7 +233,7 @@ namespace Module.HeroVirtualTabletop.Library
                 CreateCameraFilesIfNotExists();
                 CreateAreaAttackPopupMenuIfNotExists();
 
-                LoadModelsFile();
+                LoadModelsFile();  
                 //logService.Info("Models loaded");
 
                 LoadCostumeFiles();
@@ -278,7 +278,7 @@ namespace Module.HeroVirtualTabletop.Library
         {
             CheckRequiredKeybindsFileExists();
 
-            IconInteractionUtility.ExecuteCmd("bind_load_file required_keybinds.txt");
+            IconInteractionUtility.ExecuteCmd("bindloadfile required_keybinds.txt");
         }
 
         private bool CheckGameDirectory()
@@ -330,7 +330,8 @@ namespace Module.HeroVirtualTabletop.Library
                 Directory.CreateDirectory(dataDir);
 
             string filePath = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_FILENAME);
-            if (!File.Exists(filePath))
+            string filePathAlt = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_ALT_FILENAME);
+            if (!File.Exists(filePath) || !File.Exists(filePathAlt))
             {
                 ExtractRequiredKeybindsFile();
             }
@@ -341,6 +342,10 @@ namespace Module.HeroVirtualTabletop.Library
             File.AppendAllText(
                 Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_FILENAME),
                 Resources.required_keybinds
+                );
+            File.AppendAllText(
+                Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_KEYBINDS_ALT_FILENAME),
+                Resources.required_keybinds_alt
                 );
         }
 

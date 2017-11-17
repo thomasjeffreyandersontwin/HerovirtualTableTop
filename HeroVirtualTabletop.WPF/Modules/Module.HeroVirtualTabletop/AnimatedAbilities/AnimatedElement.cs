@@ -42,11 +42,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         bool IsActive { get; }
         bool Persistent { get; }
 
-        void Play(bool persistent = false, Character Target = null, bool playAsSequence = false);
+        void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false);
         void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null);
         Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary, bool persistent = false);
         string GetKeybind(Character Target = null);
-        void Stop(Character Target = null);
+        void Stop(Character Target = null, bool useMemoryTargeting = false);
         void DeActivate(Character Target = null);
     }
 
@@ -196,14 +196,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public virtual void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public virtual void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
 
         }
 
         public virtual void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
         {
-            Play(persistent, Target);
+            Play(persistent, Target, true);
         }
 
         public virtual Task PlayGrouped(Dictionary<AnimationElement, List<Character>> characterAnimationMapping, bool persistent = false)
@@ -224,7 +224,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             });
         }
 
-        public virtual void Stop(Character Target = null)
+        public virtual void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
 
         }
@@ -382,7 +382,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             IsActive = true;
             System.Timers.Timer timer = new System.Timers.Timer();
@@ -461,7 +461,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         ISoundEngine engine;
         ISound music;
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             Character target = Target ?? this.Owner;
             Stop(target);
@@ -514,7 +514,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Stop(Character Target = null)
+        public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
             Character target = Target ?? this.Owner;
             if (IsActive)
@@ -588,27 +588,35 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return keyBindsGenerator.GetEvent();
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             var target = Target ?? this.Owner;
-            Stop(target);
-            GetKeybind(target);
+            KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+
+            if (target.ActiveIdentity.Type == IdentityType.Model && target.GhostShadow != null && target.GhostShadow.HasBeenSpawned)
+            {
+                target.GhostShadow.Target(useMemoryTargeting);
+                keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
+            }
+
+            target.Target(useMemoryTargeting);
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, MOVResource);
             IsActive = true;
             if (PlayWithNext == false)
                 new KeyBindsGenerator().CompleteEvent();
         }
 
-        public override void Stop(Character Target = null)
+        public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
-            if (IsActive)
-            {
-                Character target = Target ?? this.Owner;
-                KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-                target.Target(false);
-               // keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.Move, "none");
-                IsActive = false;
-                keyBindsGenerator.CompleteEvent();
-            }
+            //// commented out because following code does nothing but targeting :)
+            //if (IsActive)
+            //{
+            //    Character target = Target ?? this.Owner;
+            //    KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
+            //    target.Target(useMemoryTargeting);
+            //    IsActive = false;
+            //    keyBindsGenerator.CompleteEvent();
+            //}
         }
 
         protected override AnimationResource GetResource()
@@ -698,6 +706,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             set;
         }
 
+        public string PlayOnTopOfIdentityName
+        {
+            get;
+            set;
+        }
+
         [JsonIgnore]
         public string CostumeText
         {
@@ -720,7 +734,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         } 
 
         private ReaderWriterLockSlim fileLock = new ReaderWriterLockSlim();
-        private string PrepareCostumeFile(Character Target = null, bool persistent = false)
+        private string PrepareCostumeFile(Character Target = null, bool persistent = false, bool useMemoryTargeting = false)
         {
             Character target = Target ?? this.Owner;
             bool isPlayingOnGhost = false;
@@ -732,8 +746,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if(target == null)
                     return string.Empty;
             }
-            target.Target(false);
-            string name = target.ActiveIdentity.Surface;
+            target.Target(useMemoryTargeting);
+            string name = string.IsNullOrEmpty(PlayOnTopOfIdentityName) ? target.ActiveIdentity.Surface : PlayOnTopOfIdentityName;
             string location = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_COSTUMES_FOLDERNAME);
             string file = name + Constants.GAME_COSTUMES_EXT;
             string origFile = Path.Combine(location, file);
@@ -797,16 +811,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             return PrepareCostumeFile(Target);
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
-            if (!PlayOnTopOfPreviousFx)
+            if (!PlayOnTopOfPreviousFx && string.IsNullOrEmpty(PlayOnTopOfIdentityName))
             {
                 bool otherPersistentAbilityActive = Target.AnimatedAbilities.Where(aa => aa.Persistent && aa.IsActive && aa.Name != this.Name).FirstOrDefault() != null;
-                if (!otherPersistentAbilityActive)
+                if (otherPersistentAbilityActive)
                     Stop(Target);
             }
                 
-            string keybind = PrepareCostumeFile(Target, persistent);
+            string keybind = PrepareCostumeFile(Target, persistent, useMemoryTargeting);
             if (string.IsNullOrEmpty(keybind))
                 return;
             if (PlayWithNext == false)
@@ -828,7 +842,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Stop(Character Target = null)
+        public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
             Character target = Target ?? this.Owner;
             //Character originalTarget = target;
@@ -838,7 +852,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             if (target != null && IsActive)
             {
-                target.Target(false);
+                target.Target(useMemoryTargeting);
                 fileLock.EnterWriteLock();
                 try
                 {
@@ -1101,15 +1115,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private Timer playTimer;
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             playTimer = new Timer(PlaySequence, new object[]{persistent, Target}, Timeout.Infinite, Timeout.Infinite);
-            Stop(Target ?? this.Owner);
+            Stop(Target ?? this.Owner, useMemoryTargeting);
             //if (this.Persistent || persistent)
             IsActive = true;
             OnPropertyChanged("IsActive");
             //if(forcePlay) // for Attacks that need to play immediately in the same thread
-            PlayAnimations(persistent, Target, true); // true because animations should never play as attack
+            PlayAnimations(persistent, Target, true, useMemoryTargeting); // true because animations should never play as attack
             //else
             //    playTimer.Change(5, Timeout.Infinite);
         }
@@ -1127,20 +1141,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Application.Current.Dispatcher.BeginInvoke(d);
         }
 
-        private void PlayAnimations(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        private void PlayAnimations(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             if (SequenceType == AnimationSequenceType.And)
             {
                 foreach (IAnimationElement item in AnimationElements.OrderBy(x => x.Order))
                 {
-                    item.Play(item.Persistent || persistent, Target ?? this.Owner, playAsSequence);
+                    item.Play(item.Persistent || persistent, Target ?? this.Owner, playAsSequence, useMemoryTargeting);
                 }
             }
             else
             {
                 var rnd = new Random();
                 int chosen = rnd.Next(0, AnimationElements.Count);
-                AnimationElements[chosen].Play(AnimationElements[chosen].Persistent || persistent, Target ?? this.Owner, playAsSequence);
+                AnimationElements[chosen].Play(AnimationElements[chosen].Persistent || persistent, Target ?? this.Owner, playAsSequence, useMemoryTargeting);
             }
         }
         public override void PlayOnLoad(bool persistent = false, Character Target = null, string costume = null)
@@ -1373,7 +1387,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             });
         }
 
-        public override void Stop(Character Target = null)
+        public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
             Character target = Target ?? this.Owner;
             if (IsActive)
@@ -1390,7 +1404,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 foreach (IAnimationElement item in animationsToStop)
                 {
-                    item.Stop(target);
+                    item.Stop(target, useMemoryTargeting);
                 }
             }
             OnPropertyChanged("IsActive");
@@ -1480,12 +1494,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             string retVal = string.Empty;
             if (this.Reference != null)
             {
-                this.Reference.Play(persistent, Target ?? this.Owner, true); // in case of attack references, always play as sequence
+                this.Reference.Play(persistent, Target ?? this.Owner, true, useMemoryTargeting); // in case of attack references, always play as sequence
             }
             OnPropertyChanged("IsActive");
         }
@@ -1506,10 +1520,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return new Task(() => { });
         }
 
-        public override void Stop(Character Target = null)
+        public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
             if (this.Reference != null)
-                this.Reference.Stop(Target ?? this.Owner);
+                this.Reference.Stop(Target ?? this.Owner, useMemoryTargeting);
             OnPropertyChanged("IsActive");
         }
 
@@ -1559,20 +1573,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false)
+        public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
             var target = Target ?? this.Owner;
             if (this.Identity != null)
             {
-                target.Target(false);
+                target.Target(useMemoryTargeting);
                 this.Identity.Render(Target: target);
             }
         }
 
-        public override void Stop(Character Target = null)
+        public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
             var target = Target ?? this.Owner;
-            target.Target(false);
+            target.Target(useMemoryTargeting);
             target.ActiveIdentity.RenderWithoutAnimation(target:target);
         }
 

@@ -22,6 +22,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         ReadOnlyHashedObservableCollection<ICrowdMember, string> CrowdMemberCollection { get; }
         void SavePosition(ICrowdMember c);
         void Place(ICrowdMember crowdMember, bool completeEvent = true);
+        ICrowd CloneMemberships();
         bool IsGangMode { get; set; }
     }
 
@@ -68,7 +69,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         private bool isGangMode;
-        [JsonIgnore]
         public bool IsGangMode
         {
             get
@@ -91,6 +91,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             this.crowdMemberCollection = new HashedObservableCollection<ICrowdMember, string>(x => x.Name);
             this.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMember, string>(crowdMemberCollection);
+            this.IsGangMode = true;
         }
 
         public Crowd(string name) : this()
@@ -102,6 +103,11 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             Crowd crowd = this.DeepClone() as Crowd;
             return crowd;
+        }
+
+        public virtual ICrowd CloneMemberships()
+        {
+            return null;
         }
 
         public virtual void SavePosition()
@@ -315,6 +321,21 @@ namespace Module.HeroVirtualTabletop.Crowds
             foreach(var member in this.crowdMemberCollection)
             {
                 clonedCrowdModel.Add(member.Clone() as ICrowdMemberModel);
+            }
+            clonedCrowdModel.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(clonedCrowdModel.CrowdMemberCollection, x => x.Name, x => x.Order, x => x.Name);
+            clonedCrowdModel.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(clonedCrowdModel.crowdMemberCollection);
+            return clonedCrowdModel;
+        }
+
+        public override ICrowd CloneMemberships()
+        {
+            CrowdModel clonedCrowdModel = new CrowdModel(this.Name);
+            foreach (var member in this.crowdMemberCollection)
+            {
+                if (member is CrowdModel)
+                    clonedCrowdModel.Add((member as CrowdModel).CloneMemberships() as ICrowdMemberModel);
+                else
+                    clonedCrowdModel.Add(member);
             }
             clonedCrowdModel.crowdMemberCollection = new HashedObservableCollection<ICrowdMemberModel, string>(clonedCrowdModel.CrowdMemberCollection, x => x.Name, x => x.Order, x => x.Name);
             clonedCrowdModel.CrowdMemberCollection = new ReadOnlyHashedObservableCollection<ICrowdMemberModel, string>(clonedCrowdModel.crowdMemberCollection);

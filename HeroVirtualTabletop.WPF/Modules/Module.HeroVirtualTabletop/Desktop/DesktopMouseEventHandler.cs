@@ -48,6 +48,7 @@ namespace Module.HeroVirtualTabletop.Desktop
 
         public void FireMouseLeftClick()
         {
+            needToHandleSingleClick = false;
             fireEvent(OnMouseLeftClick);
         }
         public void FireMouseRightClick()
@@ -64,6 +65,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         }
         public void FireMouseDoubleClick()
         {
+            needToHanldeDoubleClick = false;
             fireEvent(OnMouseDoubleClick);
         }
         public void FireMouseTripleCLick()
@@ -89,7 +91,8 @@ namespace Module.HeroVirtualTabletop.Desktop
             }
         }
 
-
+        private bool needToHanldeDoubleClick = false;
+        private bool needToHandleSingleClick = false;
         public DesktopMouseState MouseState = DesktopMouseState.MOUSE_MOVE;
         int MouseClickCount = 0;
         internal IntPtr HandleMouseEvent(int nCode, IntPtr wParam, IntPtr lParam)
@@ -103,13 +106,18 @@ namespace Module.HeroVirtualTabletop.Desktop
                     {
                         case 1:
                             MouseState = DesktopMouseState.LEFT_CLICK;
+                            if(IsDesktopActive)
+                                needToHandleSingleClick = true;
                             Action action = delegate()
                             {
                                 DoubleTripleQuadMouseClicksTracker.Start();
                             };
-                            System.Windows.Application.Current.Dispatcher.BeginInvoke(action);
+                            System.Windows.Application.Current.Dispatcher.Invoke(action);
                             break;
-                        case 2: MouseState = DesktopMouseState.DOUBLE_CLICK;
+                        case 2:
+                            MouseState = DesktopMouseState.DOUBLE_CLICK;
+                            needToHanldeDoubleClick = true;
+                            needToHandleSingleClick = false;
                             break;
                         //case 3: MouseState = DesktopMouseState.TRIPLE_CLICK; break;
                         //case 4: MouseState = DesktopMouseState.QUAD_CLICK; break;
@@ -120,13 +128,16 @@ namespace Module.HeroVirtualTabletop.Desktop
                     MouseState = DesktopMouseState.RIGHT_CLICK;
                 }
                 else if (MouseMessage.WM_RBUTTONUP == (MouseMessage)wParam)
-                {
+                {   
                     MouseState = DesktopMouseState.RIGHT_CLICK_UP;
                 }
-                else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
-                {
-                    MouseState = DesktopMouseState.LEFT_CLICK_UP;
-                }
+                //else if (MouseMessage.WM_LBUTTONUP == (MouseMessage)wParam)
+                //{
+                //    if (!needToHanldeDoubleClick)
+                //    {
+                //        MouseState = DesktopMouseState.LEFT_CLICK_UP;
+                //    }
+                //}
                 else if (MouseMessage.WM_MOUSEMOVE == (MouseMessage)wParam)
                 {
                     MouseState = DesktopMouseState.MOUSE_MOVE;
@@ -138,22 +149,33 @@ namespace Module.HeroVirtualTabletop.Desktop
                     {
                         if (MouseState == DesktopMouseState.MOUSE_MOVE)
                             FireMouseMoveEvent();
-                        else if (MouseState == DesktopMouseState.LEFT_CLICK)
-                            FireMouseLeftClick();
                         else if (MouseState == DesktopMouseState.RIGHT_CLICK)
                             FireMouseRightClick();
-                        else if (MouseState == DesktopMouseState.LEFT_CLICK_UP)
-                            FireMouseLeftClickUp();
+                        else if (MouseState == DesktopMouseState.LEFT_CLICK)
+                        {
+                            if (needToHandleSingleClick)
+                            {
+                                FireMouseLeftClick();
+                            }
+                        }
+                        //else if (MouseState == DesktopMouseState.LEFT_CLICK_UP)
+                        //{
+                        //    FireMouseLeftClickUp();
+                        //}
                         else if (MouseState == DesktopMouseState.RIGHT_CLICK_UP)
                             FireMouseRightClickUp();
                         else if (MouseState == DesktopMouseState.DOUBLE_CLICK)
-                            FireMouseDoubleClick();
-                        //else if (MouseState == DesktopMouseState.TRIPLE_CLICK)
-                        //    FireMouseTripleCLick();
+                        {
+                            if (needToHanldeDoubleClick)
+                            {
+                                FireMouseDoubleClick();
+                            }
+                        }
+
                     }
                 };
 
-                AsyncDelegateExecuter adex = new AsyncDelegateExecuter(d, 10);
+                AsyncDelegateExecuter adex = new AsyncDelegateExecuter(d, 50);
                 adex.ExecuteAsyncDelegate();
             }
             return MouseHook.CallNextHookEx(mouseHookID, nCode, wParam, lParam);

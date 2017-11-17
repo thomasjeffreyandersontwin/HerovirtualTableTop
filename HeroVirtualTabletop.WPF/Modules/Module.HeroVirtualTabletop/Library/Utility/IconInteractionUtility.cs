@@ -183,7 +183,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             // Commands like this has to be split:
             /*/target_name Fire Blast [Primary]$$load_costume Gehenna\Gehenna_RainOfFire.fx x=131.93 y=0.25 z=-107.23
                      * $$target_name Fire Blast [Primary]$$load_costume Gehenna\Gehenna_RainOfFireHands.fx x=131.93 y=0.25 z=-107.23*/
-            int loadCostumeCount = Regex.Matches(command, "load_costume", RegexOptions.IgnoreCase).Count;
+            int loadCostumeCount = Regex.Matches(command, "loadcostume", RegexOptions.IgnoreCase).Count;
             int directionalCostumeCount = Regex.Matches(command, "fx x=", RegexOptions.IgnoreCase).Count;
             string parseCommand = command;
             bool multipleDirectionalFXExist = loadCostumeCount > 1 && directionalCostumeCount > 1;
@@ -194,12 +194,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 int secondIndexOfDirectionalCostume = parseCommand.IndexOf(".fx x=", firstIndexOfdirectionalCostume + 1);
                 if(firstIndexOfdirectionalCostume < 0  || secondIndexOfDirectionalCostume < 0)
                     break;
-                parseCommand = parseCommand.Substring(0, parseCommand.LastIndexOf("$$target_name", secondIndexOfDirectionalCostume));
+                parseCommand = parseCommand.Substring(0, parseCommand.LastIndexOf("$$targetname", secondIndexOfDirectionalCostume));
                 executeCmd("/" + parseCommand);
                 System.Threading.Thread.Sleep(500); // Sleep a while after executing a command
                 position += parseCommand.Length + 2;
                 parseCommand = command.Substring(position);
-                multipleDirectionalFXExist = Regex.Matches(parseCommand, "load_costume").Count > 1 && Regex.Matches(parseCommand, ".fx x=").Count > 1;
+                multipleDirectionalFXExist = Regex.Matches(parseCommand, "loadcostume").Count > 1 && Regex.Matches(parseCommand, ".fx x=").Count > 1;
             }
             executeCmd("/" + parseCommand);
         }

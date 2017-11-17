@@ -346,20 +346,28 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             float X = 0f, Y = 0f, Z = 0f;
             try
             {
+
                 int indexXStart = collisionInfo.IndexOf("[");
                 int indexXEnd = collisionInfo.IndexOf("]");
                 string xStr = collisionInfo.Substring(indexXStart + 1, indexXEnd - indexXStart - 1);
-                X = float.Parse(xStr);
+                float.TryParse(xStr, out X);
 
                 int indexYStart = collisionInfo.IndexOf("[", indexXEnd);
                 int indexYEnd = collisionInfo.IndexOf("]", indexYStart);
                 string yStr = collisionInfo.Substring(indexYStart + 1, indexYEnd - indexYStart - 1);
-                Y = float.Parse(yStr);
+                float.TryParse(yStr, out Y);
 
                 int indexZStart = collisionInfo.IndexOf("[", indexYEnd);
                 int indexZEnd = collisionInfo.IndexOf("]", indexZStart);
                 string zStr = collisionInfo.Substring(indexZStart + 1, indexZEnd - indexZStart - 1);
-                Z = float.Parse(zStr);
+                float.TryParse(zStr, out Z);
+
+                if (X == float.NaN)
+                    X = 0;
+                if (Y == float.NaN)
+                    Y = 0;
+                if (Z == float.NaN)
+                    Z = 0;
             }
             catch (Exception ex)
             {

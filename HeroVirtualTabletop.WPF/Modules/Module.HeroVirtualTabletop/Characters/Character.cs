@@ -431,7 +431,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     activeIdentity = AvailableIdentities[value.Name];
                     if (HasBeenSpawned)
                     {
-                        Target(false);
+                        Target();
                         activeIdentity.Render(Target: this);
                     }
                         
@@ -443,6 +443,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("ActiveIdentity");
             }
         }
+
         private CharacterMovement activeMovement;
         [JsonIgnore]
         public CharacterMovement ActiveMovement
@@ -551,7 +552,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void UpdateDistanceCount()
         {
-            if(this.CurrentPositionVector != Vector3.Zero)
+            if(this.CurrentPositionVector != Vector3.Zero && this.CurrentStartingPositionVectorForDistanceCounting != Vector3.Zero)
             {
                 float currentDistance = Vector3.Distance(this.CurrentPositionVector, this.CurrentStartingPositionVectorForDistanceCounting);
                 if (currentDistance < 5)
@@ -583,6 +584,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 WaitUntilTargetIsRegistered();
                 if (gamePlayer != null)
                 {
+                    keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetName, Label);
                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.DeleteNPC);
                     gamePlayer = null;
                 }
@@ -590,8 +592,8 @@ namespace Module.HeroVirtualTabletop.Characters
                     hasBeenSpawned = false;
             }
             
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NOP); //No operation, let the game untarget whatever it has targeted
+            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
+            //keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.NOP); //No operation, let the game untarget whatever it has targeted
             //hasBeenSpawned = true;
             string model = "Model_Statesman";
             if (ActiveIdentity.Type == IdentityType.Model)
@@ -646,6 +648,18 @@ namespace Module.HeroVirtualTabletop.Characters
                         UnTarget();
                     }
                 }
+            }
+        }
+
+        [JsonIgnore]
+        public bool IsInViewForTargeting
+        {
+            get
+            {
+                this.Target(false);
+                keyBindsGenerator.CompleteEvent();
+                MemoryElement currentTarget = new MemoryElement();
+                return Label == currentTarget.Label;
             }
         }
 
@@ -840,7 +854,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void TeleportToCamera()
         {
-            Target(false);
+            Target();
             keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.MoveNPC);
             keyBindsGenerator.CompleteEvent();
             AlignGhost();
@@ -898,6 +912,47 @@ namespace Module.HeroVirtualTabletop.Characters
             UpdateDistanceCount();
         }
 
+        public void PlaceOptimallyAround(Character mainCharacter, ref Vector3 lastReferenceVector, ref List<Vector3> usedUpPositions)
+        {
+            if(lastReferenceVector == Vector3.Zero)
+            {
+                lastReferenceVector = mainCharacter.CurrentPositionVector + 500 * mainCharacter.CurrentFacingVector;
+            }
+            if(mainCharacter != this)
+            {
+                Vector3 nextReferenceVector;
+                Vector3 targetPositionVectorForThisCharacter = GetNextTargetPositionVector(mainCharacter.CurrentPositionVector, lastReferenceVector, out nextReferenceVector, ref usedUpPositions);
+                lastReferenceVector = nextReferenceVector;
+                this.Position.X = targetPositionVectorForThisCharacter.X;
+                this.Position.Y = targetPositionVectorForThisCharacter.Y;
+                this.Position.Z = targetPositionVectorForThisCharacter.Z;
+                this.AlignFacingWith(mainCharacter);
+            }
+        }
+
+        public void PlaceOptimallyAround(Vector3 targetLoactionVector, ref Vector3 lastReferenceVector, ref List<Vector3> usedUpPositions)
+        {
+            Vector3 facingVector = targetLoactionVector - this.CurrentPositionVector;
+            if (lastReferenceVector == Vector3.Zero)
+            {
+                lastReferenceVector = targetLoactionVector + 500 * facingVector;
+                lastReferenceVector.Y = targetLoactionVector.Y;
+            }
+            Vector3 nextReferenceVector;
+            Vector3 targetPositionVectorForThisCharacter = GetNextTargetPositionVector(targetLoactionVector, lastReferenceVector, out nextReferenceVector, ref usedUpPositions);
+            lastReferenceVector = nextReferenceVector;
+            this.Position.X = targetPositionVectorForThisCharacter.X;
+            this.Position.Y = targetPositionVectorForThisCharacter.Y;
+            this.Position.Z = targetPositionVectorForThisCharacter.Z;
+        }
+
+        public void AlignFacingWith(Character character)
+        {
+            Vector3 leaderFacingVector = character.CurrentFacingVector;
+            Vector3 distantPointInSameDirection = character.CurrentPositionVector + leaderFacingVector * 500;
+            (this.Position as Position).SetTargetFacing(distantPointInSameDirection);
+        }
+
         public string UnTarget(bool completeEvent = true)
         {
             keybind = keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.TargetEnemyNear);
@@ -940,6 +995,32 @@ namespace Module.HeroVirtualTabletop.Characters
                 SetAsSpawned();
             }
             return currentTarget;
+        }
+
+        public void ScanAndFixMemoryPointer()
+        {
+            if (HasBeenSpawned)
+            {
+                this.Target();
+                var memoryElement = WaitUntilTargetIsRegistered();
+
+                if (memoryElement == null)
+                {
+                    this.Target(false);
+                    keyBindsGenerator.CompleteEvent();
+                    MemoryElement currentTarget = new MemoryElement();
+                    
+                    if (Label == currentTarget.Label)
+                    {
+                        this.gamePlayer = currentTarget;
+                        this.Position = new Position();
+                        //var lastKnownPosition = this.CurrentPositionVector;
+                        //this.ClearFromDesktop();
+                        //this.Spawn();
+                        //this.CurrentPositionVector = lastKnownPosition;
+                    }
+                } 
+            }
         }
 
         private string clearFromDesktop(bool completeEvent = true)
@@ -1020,7 +1101,7 @@ namespace Module.HeroVirtualTabletop.Characters
         }
         public string MoveToCamera(bool completeEvent = true)
         {
-            Target(false);
+            Target();
             CharacterMovement characterMovement = this.DefaultMovementToActivate;
             
             // characterMovement = this.Movements.FirstOrDefault(cm => cm.IsActive || cm == this.DefaultMovement || cm.Name == "Walk");
@@ -1165,11 +1246,11 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void Activate()
         {
-            if (HasBeenSpawned && this.ActiveIdentity.Type == IdentityType.Costume)
-            {
-                Target(false);
-                //ChangeCostumeColor(new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
-            }
+            //if (HasBeenSpawned && this.ActiveIdentity.Type == IdentityType.Costume)
+            //{
+            //    Target(false);
+            //    //ChangeCostumeColor(new ColorExtensions.RGB() { R = 255, G = 0, B = 51 });
+            //}
         }
 
         private void changeColorIntoCharacterCostumeFile(string origFile, string newFile, ColorExtensions.RGB color, int colorNumber = 2)
@@ -1211,7 +1292,7 @@ namespace Module.HeroVirtualTabletop.Characters
                     this.ActiveIdentity.Surface + "_persistent" + Constants.GAME_COSTUMES_EXT);
                 if (File.Exists(persistentCostumeFile))
                 {
-                    Target(false);
+                    Target();
                     File.Copy(persistentCostumeFile, origFile, true);
                     KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                     keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, ActiveIdentity.Surface);
@@ -1221,7 +1302,7 @@ namespace Module.HeroVirtualTabletop.Characters
             } // Otherwise load default costume
             else if (File.Exists(archFile))
             {
-                Target(false);
+                Target();
                 File.Copy(archFile, origFile, true);
                 KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, ActiveIdentity.Surface);

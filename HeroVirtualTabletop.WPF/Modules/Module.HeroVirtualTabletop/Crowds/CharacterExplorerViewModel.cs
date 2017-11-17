@@ -139,6 +139,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.DeleteCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.EnterEditModeCommand.RaiseCanExecuteChanged();
                 this.CloneCharacterCrowdCommand.RaiseCanExecuteChanged();
+                this.CloneMembershipsCommand.RaiseCanExecuteChanged();
                 this.CutCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.LinkCharacterCrowdCommand.RaiseCanExecuteChanged();
                 this.PasteCharacterCrowdCommand.RaiseCanExecuteChanged();
@@ -146,6 +147,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.AddToRosterCommand.RaiseCanExecuteChanged();
                 this.FlattenCrowdCopyCommand.RaiseCanExecuteChanged();
                 this.NumberedFlattenCrowdCopyCommand.RaiseCanExecuteChanged();
+                
             }
         }
 
@@ -186,13 +188,33 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
         }
 
-        private CrowdModel allCharactersCrowd;
-        public CrowdModel AllCharactersCrowd
+        //private CrowdModel allCharactersCrowd;
+        //public CrowdModel AllCharactersCrowd
+        //{
+        //    get
+        //    {
+        //        GetOrCreateAllCharactersCrowd();
+        //        return allCharactersCrowd;
+        //    }
+        //}
+
+        private List<ICrowdMember> allCharactersCrowd;
+        public List<ICrowdMember> AllCharactersCrowd
         {
             get
             {
                 GetOrCreateAllCharactersCrowd();
                 return allCharactersCrowd;
+            }
+        }
+
+        private CrowdModel systemCrowd;
+        public CrowdModel SystemCrowd
+        {
+            get
+            {
+                systemCrowd = this.CrowdCollection.FirstOrDefault(m => m.Name == Constants.SYSTEM_CROWD_NAME);
+                return systemCrowd;
             }
         }
 
@@ -254,6 +276,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> CancelEditModeCommand { get; private set; }
         public DelegateCommand<object> AddToRosterCommand { get; private set; }
         public DelegateCommand<object> CloneCharacterCrowdCommand { get; private set; }
+        public DelegateCommand CloneMembershipsCommand { get; private set; }
         public DelegateCommand<object> CutCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> LinkCharacterCrowdCommand { get; private set; }
         public DelegateCommand<object> FlattenCrowdCopyCommand { get; private set; }
@@ -291,6 +314,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<RemoveMovementEvent>().Subscribe(this.DeleteMovement);
             this.eventAggregator.GetEvent<GameLoadedEvent>().Subscribe(this.CheckRosterConsistency);
             this.eventAggregator.GetEvent<RosterSyncCompletedEvent>().Subscribe(this.HideBusyAnimation);
+            this.eventAggregator.GetEvent<CloneAndSpawnCrowdMemberEvent>().Subscribe(this.CloneAndAddToRoster);
 
             InitializeDesktopKeyHanders();
         }
@@ -321,6 +345,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.CopyAllActionsCommand = new DelegateCommand<object>(this.CopyAllActions, this.CanCopyAllActions);
             this.PasteActionsAsReferencesCommand = new DelegateCommand<object>(this.PasteActionsAsReferences, this.CanPasteActionsAsReferences);
             this.RemoveAllActionsCommand = new DelegateCommand<object>(this.RemoveAllActions, this.CanRemoveAllActions);
+            this.CloneMembershipsCommand = new DelegateCommand(this.CloneMemberships, this.CanCloneMemberships);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -453,20 +478,23 @@ namespace Module.HeroVirtualTabletop.Crowds
             bool isDuplicate = false;
             if (updatedName != this.OriginalName)
             {
-                if (this.IsUpdatingCharacter)
-                {
-                    if (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(updatedName))
-                    {
-                        isDuplicate = true;
-                    }
-                }
-                else
-                {
-                    if (this.CrowdCollection.ContainsKey(updatedName))
-                    {
-                        isDuplicate = true;
-                    }
-                }
+                //if (this.IsUpdatingCharacter)
+                //{
+                //    //if (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(updatedName))
+                //    if (this.AllCharactersCrowd.FirstOrDefault(c => c.Name == updatedName) != null)
+                //    {
+                //        isDuplicate = true;
+                //    }
+                //}
+                //else
+                //{
+                //    if (this.CrowdCollection.ContainsKey(updatedName))
+                //    {
+                //        isDuplicate = true;
+                //    }
+                //}
+                if (this.AllCharactersCrowd.Any(c => c.Name == updatedName))
+                    isDuplicate = true;
             }
             return isDuplicate;
         }
@@ -537,16 +565,26 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AddDefaultMovementsToCharacters()
         {
-            foreach(var c in this.AllCharactersCrowd.CrowdMemberCollection)
+            foreach(var c in this.AllCharactersCrowd.Where(ac => ac is Character))//.CrowdMemberCollection)
             {
                 (c as Character).AddDefaultMovements();
             }
         }
 
+        private void CreateSystemCharactersCrowd()
+        {
+            if(this.CrowdCollection.FirstOrDefault(m => m.Name == Constants.SYSTEM_CROWD_NAME) == null)
+            {
+                CrowdModel cm = new Crowds.CrowdModel(Constants.SYSTEM_CROWD_NAME, -1);
+                this.CrowdCollection.Add(cm);
+            }
+        }
+
         private void AddDefaultCharactersWithDefaultAbilities()
         {
-            var defaultCharacter = this.AllCharactersCrowd.CrowdMemberCollection.FirstOrDefault(m=>m.Name == Constants.DEFAULT_CHARACTER_NAME);
-            var combatEffectsCharacter = this.AllCharactersCrowd.CrowdMemberCollection.FirstOrDefault(m => m.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME);
+            CreateSystemCharactersCrowd();
+            var defaultCharacter = this.SystemCrowd.CrowdMemberCollection.FirstOrDefault(m=> m.Name == Constants.DEFAULT_CHARACTER_NAME);
+            var combatEffectsCharacter = this.SystemCrowd.CrowdMemberCollection.FirstOrDefault(m => m.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME);
             if(defaultCharacter == null || combatEffectsCharacter == null)
             {
                 var defaultCrowdCollection = this.crowdRepository.LoadDefaultCrowdMembers();
@@ -555,7 +593,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     defaultCharacter = defaultCrowdCollection[0].CrowdMemberCollection.FirstOrDefault(cm => cm.Name == Constants.DEFAULT_CHARACTER_NAME);
                     if (defaultCharacter != null)
                     {
-                        this.AddCharacterToAllCharactersCrowd(defaultCharacter as Character);
+                        this.SystemCrowd.Add(defaultCharacter as CrowdMemberModel);
                     }
                 }
                 if (combatEffectsCharacter == null)
@@ -563,7 +601,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     combatEffectsCharacter = defaultCrowdCollection[0].CrowdMemberCollection.FirstOrDefault(cm => cm.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME);
                     if (defaultCharacter != null)
                     {
-                        this.AddCharacterToAllCharactersCrowd(combatEffectsCharacter as Character);
+                        this.SystemCrowd.Add(combatEffectsCharacter as CrowdMemberModel);
                     }
                 }
             }
@@ -776,23 +814,27 @@ namespace Module.HeroVirtualTabletop.Crowds
             }
             string newName = rootName + suffix;
             
-            if(crowdModel == null || crowdModel == this.AllCharactersCrowd)
+            //if(crowdModel == null )//|| crowdModel == this.AllCharactersCrowd)
+            //{
+            //    while (this.CrowdCollection.ContainsKey(newName))
+            //    {
+            //        suffix = string.Format(" ({0})", ++i);
+            //        newName = rootName + suffix;
+            //    }
+            //}
+            //else
+            //{
+            //    while (crowdModel.CrowdMemberCollection.ContainsKey(newName))
+            //    {
+            //        suffix = string.Format(" ({0})", ++i);
+            //        newName = rootName + suffix;
+            //    }
+            //}
+            while(this.AllCharactersCrowd.Any(c => c.Name == newName))
             {
-                while (this.CrowdCollection.ContainsKey(newName))
-                {
-                    suffix = string.Format(" ({0})", ++i);
-                    newName = rootName + suffix;
-                }
+                suffix = string.Format(" ({0})", ++i);
+                newName = rootName + suffix;   
             }
-            else
-            {
-                while (crowdModel.CrowdMemberCollection.ContainsKey(newName))
-                {
-                    suffix = string.Format(" ({0})", ++i);
-                    newName = rootName + suffix;
-                }
-            }
-            
             return newName;
         }
 
@@ -802,7 +844,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.AddCrowdToSelectedCrowd(crowdModel);
             // Add the crowd to List of Crowd Members as a new Crowd Member
             this.AddCrowdToCrowdCollection(crowdModel);
-            
+            this.AddCrowdToAllCharactersCrowd(crowdModel);
         }
 
         private void AddCrowdToCrowdCollection(CrowdModel crowdModel)
@@ -869,7 +911,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                 }
             }
             string newName = rootName + suffix;
-            while (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(newName))
+            //while (this.AllCharactersCrowd.CrowdMemberCollection.ContainsKey(newName))
+            while (this.AllCharactersCrowd.Any(c => c.Name == newName))
             {
                 suffix = string.Format(" ({0})", ++i);
                 newName = rootName + suffix;
@@ -889,25 +932,38 @@ namespace Module.HeroVirtualTabletop.Crowds
         {
             if (this.CrowdCollection != null)
             {
-                allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
+                //allCharactersCrowd = this.CrowdCollection[Constants.ALL_CHARACTER_CROWD_NAME];
                 if (allCharactersCrowd == null)
                 {
-                    CreateAllCharactersCrowd();
+                    RefreshAllCharactersCrowd();
                 }
             }
         }
 
-        private void CreateAllCharactersCrowd()
+        private void RefreshAllCharactersCrowd()
         {
-            CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME, -1);
-                this.CrowdCollection.Add(crowdModelAllCharacters);
-                this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
+            //CrowdModel crowdModelAllCharacters = new CrowdModel(Constants.ALL_CHARACTER_CROWD_NAME, -2);
+            //this.CrowdCollection.Add(crowdModelAllCharacters);
+            //this.CrowdCollection.Sort(ListSortDirection.Ascending, new CrowdMemberModelComparer());
+            List<ICrowdMember> crowdModelAllCharacters = new List<ICrowdMember>();
+            IEnumerable<ICrowdMemberModel> crowdColl = this.CrowdCollection.ToList();
+            var flattenedList = GetFlattenedMemberList(crowdColl.ToList());
+            foreach (var member in flattenedList.Distinct())
+            {
+                if(!crowdModelAllCharacters.Contains(member))
+                    crowdModelAllCharacters.Add(member);
+            }
             this.allCharactersCrowd = crowdModelAllCharacters;
         }
 
         private void AddCharacterToAllCharactersCrowd(Character character)
         {
-            AllCharactersCrowd.Add(character as CrowdMemberModel);
+            AllCharactersCrowd.Add(character as CrowdMemberModel);                                                                        
+        }
+        private void AddCrowdToAllCharactersCrowd(Crowd crowd)
+        {
+            if(!AllCharactersCrowd.Contains(crowd))
+                AllCharactersCrowd.Add(crowd);
         }
 
         private void AddCharacterToCrowd(Character character, CrowdModel crowdModel)
@@ -928,15 +984,17 @@ namespace Module.HeroVirtualTabletop.Crowds
             bool canDeleteCharacterOrCrowd = false;
             if (SelectedCrowdModel != null && !Helper.GlobalVariables_IsPlayingAttack)
             {
-                if (SelectedCrowdModel.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+                if (SelectedCrowdModel.Name != Constants.SYSTEM_CROWD_NAME)
                     canDeleteCharacterOrCrowd = true;
                 else
                 {
                     if (SelectedCrowdMemberModel != null)
                     {
-                        if(SelectedCrowdMemberModel.Name != Constants.DEFAULT_CHARACTER_NAME && SelectedCrowdMemberModel.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME)
+                        if (SelectedCrowdMemberModel.Name != Constants.DEFAULT_CHARACTER_NAME && SelectedCrowdMemberModel.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME)
                             canDeleteCharacterOrCrowd = true;
                     }
+                    else
+                        canDeleteCharacterOrCrowd = true;
                 }
             }
 
@@ -953,68 +1011,29 @@ namespace Module.HeroVirtualTabletop.Crowds
             {
                 if (SelectedCrowdMemberModel.RosterCrowd != null && SelectedCrowdMemberModel.RosterCrowd.Name == SelectedCrowdModel.Name)
                     rosterMember = SelectedCrowdMemberModel;
-                // Check if the Character is in All Characters. If so, prompt
-                if(SelectedCrowdModel.Name == Constants.ALL_CHARACTER_CROWD_NAME)
-                {
-                    var chosenOption = this.messageBoxService.ShowDialog(Messages.DELETE_CHARACTER_FROM_ALL_CHARACTERS_CONFIRMATION_MESSAGE, Messages.DELETE_CHARACTER_CAPTION, System.Windows.MessageBoxButton.YesNo, System.Windows.MessageBoxImage.Warning);
-                    switch (chosenOption)
-                    { 
-                        case System.Windows.MessageBoxResult.Yes:
-                            // Delete the Character from all the crowds
-                            DeleteCrowdMemberFromAllCrowdsByName(SelectedCrowdMemberModel.Name);
-                            rosterMember = SelectedCrowdMemberModel; // Removing character from all crowds, so remove from roster irrespective of roster crowd.
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                else
-                {
-                    // Delete the Character from all occurances of this crowd
-                    DeleteCrowdMemberFromCrowdModelByName(SelectedCrowdModel, SelectedCrowdMemberModel.Name);
-                }
+                // Delete the Character from all occurances of this crowd
+                DeleteCrowdMemberFromCrowdModelByName(SelectedCrowdModel, SelectedCrowdMemberModel.Name);
             }
             else // Delete Crowd
             {
-                //If it is a nested crowd, just delete it from the parent
+                // If it is a nested crowd, just delete it from the parent
                 if (this.SelectedCrowdParent != null)
                 {
                     string nameOfDeletingCrowdModel = SelectedCrowdModel.Name;
                     DeleteNestedCrowdFromCrowdModelByName(SelectedCrowdParent, nameOfDeletingCrowdModel);
                 }
                 // Check if there are containing characters. If so, prompt
-                else if (SelectedCrowdModel.CrowdMemberCollection != null && SelectedCrowdModel.CrowdMemberCollection.Where(cm => cm is CrowdMember).Count() > 0)
-                {
-                    var chosenOption = this.messageBoxService.ShowDialog(Messages.DELETE_CONTAINING_CHARACTERS_FROM_CROWD_PROMPT_MESSAGE, Messages.DELETE_CROWD_CAPTION, System.Windows.MessageBoxButton.YesNoCancel, System.Windows.MessageBoxImage.Warning);
-                    switch (chosenOption)
-                    {
-                        case System.Windows.MessageBoxResult.Yes:
-                            // Delete crowd specific characters from All Characters and this crowd
-                            List<ICrowdMemberModel> crowdSpecificCharacters = FindCrowdSpecificCrowdMembers(this.selectedCrowdModel);
-                            string nameOfDeletingCrowdModel = SelectedCrowdModel.Name;
-                            DeleteCrowdMembersFromAllCrowdsByList(crowdSpecificCharacters);
-                            DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowdModel);
-                            DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowdModel);
-                            rosterMember = SelectedCrowdModel;
-                            break;
-                        case System.Windows.MessageBoxResult.No:
-                            nameOfDeletingCrowdModel = SelectedCrowdModel.Name;
-                            DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowdModel);
-                            DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowdModel);
-                            rosterMember = SelectedCrowdModel;
-                            break;
-                        default:
-                            break;
-                    }
-                }
-                // or just delete the crowd from crowd collection and other crowds
                 else
                 {
+                    List<ICrowdMemberModel> crowdSpecificCharacters = FindCrowdSpecificCrowdMembers(this.SelectedCrowdModel);
                     string nameOfDeletingCrowdModel = SelectedCrowdModel.Name;
+                    DeleteCrowdMembersFromAllCrowdsByList(crowdSpecificCharacters);
                     DeleteNestedCrowdFromAllCrowdsByName(nameOfDeletingCrowdModel);
                     DeleteCrowdFromCrowdCollectionByName(nameOfDeletingCrowdModel);
+                    rosterMember = SelectedCrowdModel;
                 }
             }
+            RefreshAllCharactersCrowd();
             // Update ability collections
             //this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Publish(null);
             this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Publish(null);
@@ -1044,17 +1063,18 @@ namespace Module.HeroVirtualTabletop.Crowds
                 if (cMember is CrowdMemberModel)
                 {
                     CrowdMemberModel currentCrowdMember = cMember as CrowdMemberModel;
-                    foreach (CrowdModel cModel in this.CrowdCollection.Where(cm => cm.Name != crowdModel.Name && cm.Name != AllCharactersCrowd.Name))
+                    //foreach (CrowdModel cModel in this.CrowdCollection.Where(cm => cm.Name != crowdModel.Name && cm.Name != AllCharactersCrowd.Name))
+                    foreach (CrowdModel cModel in this.CrowdCollection.Where(cm => cm.Name != crowdModel.Name))
                     {
-                        List<ICrowdMemberModel> flattenedMembers = GetFlattenedMemberList(cModel.CrowdMemberCollection.ToList()).Where(m => m is CrowdMemberModel).ToList();
-                        var crm = flattenedMembers.Where(cm => cm.Name == currentCrowdMember.Name).FirstOrDefault();
-                        if (crm == null || cModel.Name == AllCharactersCrowd.Name)
-                        {
-                            if (crowdSpecificCharacters.Where(csc => csc.Name == currentCrowdMember.Name).FirstOrDefault() == null)
-                                crowdSpecificCharacters.Add(currentCrowdMember);
-                        }
-                        else
-                            break;
+                    List<ICrowdMemberModel> flattenedMembers = GetFlattenedMemberList(cModel.CrowdMemberCollection.ToList()).Where(m => m is CrowdMemberModel).ToList();
+                    var crm = flattenedMembers.Where(cm => cm.Name == currentCrowdMember.Name).FirstOrDefault();
+                    if (crm == null)// || cModel.Name == AllCharactersCrowd.Name)
+                    {
+                        if (crowdSpecificCharacters.Where(csc => csc.Name == currentCrowdMember.Name).FirstOrDefault() == null)
+                            crowdSpecificCharacters.Add(currentCrowdMember);
+                    }
+                    else
+                        break;
                     }
                 }
             }
@@ -1102,14 +1122,16 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         private void DeleteCrowdMemberFromCharacterCollectionByName(string nameOfDeletingCrowdMember)
         {
-            var charFromAllCrowd = AllCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+            //var charFromAllCrowd = AllCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == nameOfDeletingCrowdMember).FirstOrDefault();
+            var charFromAllCrowd = AllCharactersCrowd.Where(c => c.Name == nameOfDeletingCrowdMember).FirstOrDefault();
             this.AllCharactersCrowd.Remove(charFromAllCrowd);
         }
         private void DeleteCrowdMemberFromCharacterCollectionByList(List<ICrowdMemberModel> crowdMembersToDelete)
         {
             foreach(var crowdMemberToDelete in crowdMembersToDelete)
             {
-                var deletingCrowdMember = AllCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == crowdMemberToDelete.Name).FirstOrDefault();
+                //var deletingCrowdMember = AllCharactersCrowd.CrowdMemberCollection.Where(c => c.Name == crowdMemberToDelete.Name).FirstOrDefault();
+                var deletingCrowdMember = AllCharactersCrowd.Where(c => c.Name == crowdMemberToDelete.Name).FirstOrDefault();
                 AllCharactersCrowd.Remove(deletingCrowdMember);
             }
         }
@@ -1257,6 +1279,24 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         #endregion
 
+        #region Clone Memberships
+
+        private bool CanCloneMemberships()
+        {
+            return this.SelectedCrowdModel != null;
+        }
+
+        private void CloneMemberships()
+        {
+            if (this.SelectedCrowdModel != null)
+            {
+                this.ClipboardObject = this.SelectedCrowdModel;
+                this.clipboardAction = ClipboardAction.CloneMemberships;
+            }
+        }
+
+        #endregion
+
         #region CloneLink
         public void CloneLinkCharacter(ICrowdMemberModel character)
         {
@@ -1270,7 +1310,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         public bool CanFlattenCopyCrowd(object state)
         {
-            return !Helper.GlobalVariables_IsPlayingAttack && this.SelectedCrowdModel!=null && this.SelectedCrowdModel.Name != AllCharactersCrowd.Name;
+            return !Helper.GlobalVariables_IsPlayingAttack && this.SelectedCrowdModel != null;//&& this.SelectedCrowdModel.Name != AllCharactersCrowd.Name;
         }
         public void FlattenCopyCrowd(object state)
         {
@@ -1287,6 +1327,69 @@ namespace Module.HeroVirtualTabletop.Crowds
             clipboardAction = ClipboardAction.NumberedFlattenCopy;
             OnFlattenNumberRequired(this, null);
         }
+        #endregion
+
+        #region Clone and Add to Roster
+
+        private void CloneAndAddToRoster(object crowdMembers)
+        {
+            List<CrowdMemberModel> rosterCharacters = new List<CrowdMemberModel>();
+            if (crowdMembers is Crowd)
+            {
+                CrowdModel crowd = crowdMembers as CrowdModel;
+                IEnumerable<ICrowdMemberModel> allModels = this.CrowdCollection;
+                CrowdModel crowdParent = GetSelectedParent(allModels.ToList(), crowd) as CrowdModel;
+               this.SelectedCrowdModel = (CrowdModel)crowdParent;//?? this.AllCharactersCrowd;
+                CrowdModel clonedModel = crowd.Clone() as CrowdModel;
+                //EliminateDuplicateName(clonedModel);
+                clonedModel.Name = GetAppropriateCrowdName(clonedModel.Name);
+                if (clonedModel.CrowdMemberCollection != null)
+                {
+                    List<ICrowdMemberModel> models = GetFlattenedMemberList(clonedModel.CrowdMemberCollection.ToList());
+                    foreach (var member in models)
+                    {
+                        if (member is CrowdMemberModel)
+                        {
+                            member.Name = GetAppropriateCharacterName(member.Name);
+                            this.AddCharacterToAllCharactersCrowd(member as CrowdMemberModel);
+                        }
+                        else
+                        {
+                            //member.Name = GetAppropriateCrowdName(member.Name);
+                            this.AddCrowdToCrowdCollection(member as CrowdModel);
+                        }
+                    }
+                }
+                this.AddNewCrowdModel(clonedModel);
+                this.SelectedCrowdModel = clonedModel;
+               
+                foreach(var member in SelectedCrowdModel.CrowdMemberCollection)
+                {
+                    if(member is CrowdMemberModel)
+                    {
+                        member.RosterCrowd = clonedModel;
+                        rosterCharacters.Add(member as CrowdMemberModel);
+                    }
+                }
+            }
+            else
+            {
+                List<Character> charactersToClone = crowdMembers as List<Character>;
+                foreach(CrowdMemberModel model in charactersToClone)
+                {
+                    this.SelectedCrowdModel = model.RosterCrowd as CrowdModel;
+                    CrowdMemberModel clonedModel = model.Clone() as CrowdMemberModel;
+                    clonedModel.Name = GetAppropriateCharacterName(clonedModel.Name);
+                    this.AddNewCharacter(clonedModel);
+                    clonedModel.RosterCrowd = this.SelectedCrowdModel;
+                    rosterCharacters.Add(clonedModel);
+                }
+            }
+            if (rosterCharacters.Count > 0)
+                eventAggregator.GetEvent<SpawnToRosterEvent>().Publish(rosterCharacters);
+
+        }
+
         #endregion
 
         #region Paste Character/Crowd
@@ -1350,6 +1453,10 @@ namespace Module.HeroVirtualTabletop.Crowds
                         if (this.ClipboardObject != null)
                             canPaste = true;
                         break;
+                    case ClipboardAction.CloneMemberships:
+                        if (this.ClipboardObject != null && this.ClipboardObject is CrowdModel)
+                            canPaste = true;
+                        break;
                     case ClipboardAction.FlattenCopy:
                     case ClipboardAction.NumberedFlattenCopy:
                         if (this.ClipboardObject != null && this.ClipboardObject is CrowdModel)
@@ -1393,8 +1500,8 @@ namespace Module.HeroVirtualTabletop.Crowds
                                     }
                                     else
                                     {
-                                        //member.Name = GetAppropriateCrowdName(member.Name);
-                                        this.AddCrowdToCrowdCollection(member as CrowdModel);
+                                        member.Name = GetAppropriateCrowdName(member.Name);
+                                        this.AddCrowdToAllCharactersCrowd(member as CrowdModel);          
                                     }
                                 } 
                             }
@@ -1472,42 +1579,69 @@ namespace Module.HeroVirtualTabletop.Crowds
                         clipboardObject = null;
                         break;
                     }
+                case ClipboardAction.CloneMemberships:
+                    {
+                        CrowdModel crowdToCloneMemberships = this.ClipboardObject as CrowdModel;
+                        if (crowdToCloneMemberships != null)
+                        {
+                            CrowdModel clonedModel = crowdToCloneMemberships.CloneMemberships() as CrowdModel;
+                            clonedModel.Name = GetAppropriateCrowdName(clonedModel.Name);
+                            if (clonedModel.CrowdMemberCollection != null)
+                            {
+                                List<ICrowdMemberModel> models = GetFlattenedMemberList(clonedModel.CrowdMemberCollection.ToList());
+                                foreach (var member in models)
+                                {
+                                    if (member is CrowdModel)
+                                    {
+                                        member.Name = GetAppropriateCrowdName(member.Name);
+                                        this.AddCrowdToAllCharactersCrowd(member as CrowdModel);
+                                    }
+                                }
+                            }
+                            this.AddNewCrowdModel(clonedModel);
+                            OnEditNeeded(clonedModel, null);
+                            clipboardObject = null;
+                        }
+                        break;
+                    }
                 case ClipboardAction.FlattenCopy:
                 case ClipboardAction.NumberedFlattenCopy:
-                    this.SelectedCrowdModel = this.AllCharactersCrowd;
-                    CrowdModel crowdToFlatten = this.ClipboardObject as CrowdModel;
-                    CrowdModel newCrowd = this.GetNewCrowdModel(crowdToFlatten.Name + " Flattened");
-                    //EliminateDuplicateName(newCrowd);
-                    newCrowd.Name = GetAppropriateCrowdName(newCrowd.Name);
-
-                    List<ICrowdMemberModel> flattenedMembers = GetFlattenedMemberList(crowdToFlatten.CrowdMemberCollection.ToList()).Where(m => m is CrowdMemberModel).ToList();
-
-                    int skipNumber = this.FlattenNumber;
-                    for(int i =0; i < flattenedMembers.Count; i++)
                     {
-                        if (skipNumber > 0)
+                        this.SelectedCrowdModel = null;// this.AllCharactersCrowd;
+                        CrowdModel crowdToFlatten = this.ClipboardObject as CrowdModel;
+                        CrowdModel newCrowd = this.GetNewCrowdModel(crowdToFlatten.Name + " Flattened");
+                        //EliminateDuplicateName(newCrowd);
+                        newCrowd.Name = GetAppropriateCrowdName(newCrowd.Name);
+
+                        List<ICrowdMemberModel> flattenedMembers = GetFlattenedMemberList(crowdToFlatten.CrowdMemberCollection.ToList()).Where(m => m is CrowdMemberModel).Distinct().ToList();
+
+                        int skipNumber = this.FlattenNumber;
+                        for (int i = 0; i < flattenedMembers.Count; i++)
                         {
-                            if (i > 0 && i < skipNumber)
+                            if (skipNumber > 0)
                             {
-                                continue;
+                                if (i > 0 && i < skipNumber)
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    newCrowd.Add(flattenedMembers[i]);
+                                    skipNumber += i > 0 ? this.FlattenNumber : i;
+                                }
                             }
                             else
                             {
                                 newCrowd.Add(flattenedMembers[i]);
-                                skipNumber += i > 0 ? this.FlattenNumber : i;
                             }
                         }
-                        else
-                        {
-                            newCrowd.Add(flattenedMembers[i]);
-                        }
+                        this.AddNewCrowdModel(newCrowd);
+                        OnEditNeeded(newCrowd, null);
+                        clipboardObject = null;
+                        this.FlattenNumber = -1;
+                        OnFlattenNumberEntryFinished(this, null);
+                        break;
                     }
-                    this.AddNewCrowdModel(newCrowd);
-                    OnEditNeeded(newCrowd, null);
-                    clipboardObject = null;
-                    this.FlattenNumber = -1;
-                    OnFlattenNumberEntryFinished(this, null);
-                    break;
             }
             //if(saveNeeded)
             //    this.SaveCrowdCollection();
@@ -1558,10 +1692,10 @@ namespace Module.HeroVirtualTabletop.Crowds
             CrowdMemberModel crowdMember = data != null ? data.Item1 : this.SelectedCrowdMemberModel;
             CrowdModel rosterCrowd = data != null ? data.Item2 : this.SelectedCrowdModel;
             List<CrowdMemberModel> rosterCharacters = new List<CrowdMemberModel>();
-            if (rosterCrowd == null)
-            {
-                rosterCrowd = AllCharactersCrowd;
-            }
+            //if (rosterCrowd == null)
+            //{
+            //    rosterCrowd = AllCharactersCrowd;
+            //}
             if (crowdMember != null)
             {
                 if (crowdMember.RosterCrowd == null)
@@ -1652,7 +1786,8 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void EditCharacter(object state)
         {
-            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(this.SelectedCrowdMemberModel, this.AllCharactersCrowd.CrowdMemberCollection));
+            IEnumerable<ICrowdMemberModel> collection = this.AllCharactersCrowd.Cast<ICrowdMemberModel>().Where(x => x is Character);
+            this.eventAggregator.GetEvent<EditCharacterEvent>().Publish(new Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>(this.SelectedCrowdMemberModel, collection));// this.AllCharactersCrowd.CrowdMemberCollection));
         }
 
         #endregion
@@ -1681,7 +1816,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             ObservableCollection<AnimatedAbility> abilityCollection = null;
             Action d = delegate ()
             {
-                abilityCollection = new ObservableCollection<AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
+                //abilityCollection = new ObservableCollection<AnimatedAbility>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
+                abilityCollection = new ObservableCollection<AnimatedAbility>(this.AllCharactersCrowd.Where(ac => ac is Character).SelectMany((character) => { return (character as CrowdMemberModel).AnimatedAbilities; }).Distinct());
             };
             await Application.Current.Dispatcher.BeginInvoke(d);
             return abilityCollection;
@@ -1692,7 +1828,8 @@ namespace Module.HeroVirtualTabletop.Crowds
         #region Retrieve Identity Collection
         private void GetIdentityCollection(object state)
         {
-            var identityCollection = new ObservableCollection<Identity>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AvailableIdentities; }).Distinct(new IdentityComparer()));
+            //var identityCollection = new ObservableCollection<Identity>(this.AllCharactersCrowd.CrowdMemberCollection.SelectMany((character) => { return (character as CrowdMemberModel).AvailableIdentities; }).Distinct(new IdentityComparer()));
+            var identityCollection = new ObservableCollection<Identity>(this.AllCharactersCrowd.Where(ac => ac is Character).SelectMany((character) => { return (character as CrowdMemberModel).AvailableIdentities; }).Distinct(new IdentityComparer()));
             this.eventAggregator.GetEvent<FinishedIdentityCollectionRetrievalEvent>().Publish(identityCollection);
         }
 
@@ -1704,7 +1841,8 @@ namespace Module.HeroVirtualTabletop.Crowds
             Action<Character> getMovementCollectionCallback = state as Action<Character>;
             if(getMovementCollectionCallback != null)
             {
-                var defaultCharacter = this.AllCharactersCrowd.CrowdMemberCollection.Where(cm => cm.Name == Constants.DEFAULT_CHARACTER_NAME).FirstOrDefault() as Character;
+                //var defaultCharacter = this.AllCharactersCrowd.CrowdMemberCollection.Where(cm => cm.Name == Constants.DEFAULT_CHARACTER_NAME).FirstOrDefault() as Character;
+                var defaultCharacter = this.SystemCrowd.CrowdMemberCollection.Where(cm => cm.Name == Constants.DEFAULT_CHARACTER_NAME).FirstOrDefault() as Character;
                 getMovementCollectionCallback(defaultCharacter);
             }
         }
@@ -1714,8 +1852,9 @@ namespace Module.HeroVirtualTabletop.Crowds
             string movementName = state as string;
             if(!string.IsNullOrEmpty(movementName))
             {
-                var characterList = this.AllCharactersCrowd.CrowdMemberCollection.Where(c => (c as Character).Movements.FirstOrDefault(m => m.Name == movementName) != null).ToList();
-                foreach(Character character in characterList)
+                //var characterList = this.AllCharactersCrowd.CrowdMemberCollection.Where(c => (c as Character).Movements.FirstOrDefault(m => m.Name == movementName) != null).ToList();
+                var characterList = this.AllCharactersCrowd.Where(c =>  (c is Character) && (c as Character).Movements.FirstOrDefault(m => m.Name == movementName) != null).ToList();
+                foreach (Character character in characterList)
                 {
                     CharacterMovement cm = character.Movements.FirstOrDefault(m => m.Name == movementName);
                     character.Movements.Remove(cm);
@@ -1864,6 +2003,11 @@ namespace Module.HeroVirtualTabletop.Crowds
                     if (this.NumberedFlattenCrowdCopyCommand.CanExecute(null))
                         this.NumberedFlattenCrowdCopyCommand.Execute(null);
                 }
+                else if (inputKey == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+                {
+                    if (this.CloneMembershipsCommand.CanExecute())
+                        this.CloneMembershipsCommand.Execute();
+                }
                 else if ((inputKey == Key.OemPlus || inputKey == Key.Add) && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     if (this.AddCharacterCommand.CanExecute(null))
@@ -1894,7 +2038,6 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
 
         #endregion
-
 
         #region Utility Methods
         private void EliminateDuplicateName(ICrowdMemberModel model)
@@ -1944,6 +2087,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                     memberExists = true;
                 }
             }
+
             return memberExists;
         }
         private bool IsCrowdNestedWithinContainerCrowd(string crowdModelName, CrowdModel containerCrowdModel)
@@ -1983,13 +2127,39 @@ namespace Module.HeroVirtualTabletop.Crowds
             return crowd;
         }
 
+        private CrowdModel GetSelectedParent(List<ICrowdMemberModel> list, ICrowdMemberModel selectedModel)
+        {
+            CrowdModel crowd = null;
+            foreach (var cr in list)
+            {
+                if (cr is CrowdModel)
+                {
+                    CrowdModel crowdModel = cr as CrowdModel;
+                    if (crowdModel.CrowdMemberCollection.Contains(selectedModel))
+                    {
+                        crowd = crowdModel;
+                        break;
+                    }
+                    else
+                    {
+                        crowd = GetSelectedParent(crowdModel.CrowdMemberCollection.ToList(), selectedModel);
+                        if (crowd != null)
+                            break;
+                    }
+                }
+            }
+            return crowd;
+        }
+
         private void StopAllActiveAbilities(object obj)
         {
-            if (this.AllCharactersCrowd != null && this.AllCharactersCrowd.CrowdMemberCollection != null && this.AllCharactersCrowd.CrowdMemberCollection.Count > 0)
+            //if (this.AllCharactersCrowd != null && this.AllCharactersCrowd.CrowdMemberCollection != null && this.AllCharactersCrowd.CrowdMemberCollection.Count > 0)
+            if (this.AllCharactersCrowd != null && this.AllCharactersCrowd.Count > 0)
             {
                 AnimatedAbilities.AnimatedAbility[] actives =
                         new ObservableCollection<AnimatedAbilities.AnimatedAbility>(
-                            this.AllCharactersCrowd.CrowdMemberCollection.SelectMany(
+                            //this.AllCharactersCrowd.CrowdMemberCollection.SelectMany(
+                            this.AllCharactersCrowd.Where(ac => ac is Character).SelectMany(
                                 (character) => { return (character as CrowdMemberModel).AnimatedAbilities; })
                                 ).ToArray();
                 for (int i = 0; i < actives.Count(); i++)
@@ -2138,7 +2308,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private bool CanRemoveAllActions(object state)
         {
-            return this.SelectedCrowdMemberModel != null || (this.SelectedCrowdModel != null && this.SelectedCrowdModel != this.AllCharactersCrowd);
+            return this.SelectedCrowdMemberModel != null || (this.SelectedCrowdModel != null);//&& this.SelectedCrowdModel != this.AllCharactersCrowd);
         }
 
         private void RemoveAllActions(object state)

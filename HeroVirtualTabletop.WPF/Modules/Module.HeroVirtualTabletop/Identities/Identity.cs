@@ -122,7 +122,7 @@ namespace Module.HeroVirtualTabletop.Identities
                     if (Type == IdentityType.Costume)
                         AnimationOnLoad.PlayOnLoad(false, Target, Surface);
                     else
-                        AnimationOnLoad.Play();
+                        AnimationOnLoad.Play(playAsSequence:true);
                 }
             }
             switch (Type)

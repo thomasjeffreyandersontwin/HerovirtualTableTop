@@ -88,6 +88,8 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private ModifierKeys singleClickModKeys = ModifierKeys.None;
+
         private void ListViewItem_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -95,6 +97,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (e.ClickCount == 1)
                 {
                     isSingleClick = true;
+                    singleClickModKeys = Keyboard.Modifiers;
                     //// Start the click timer.
                     clickTimer.Start();
                 }
@@ -127,20 +130,29 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     //this.viewModel.TargetAndFollow();
                     this.viewModel.RosterMouseDoubleClicked = true;
-                    this.viewModel.PlayDefaultAbility();
+                    this.viewModel.ActivateCharacterCommand.Execute(null);
                 }
                 else
                 {
                     //this.viewModel.TargetOrFollow();
-                    if (!(Keyboard.Modifiers == ModifierKeys.Control || Keyboard.Modifiers == ModifierKeys.Shift))
+                    if (!(singleClickModKeys == ModifierKeys.Control || singleClickModKeys == ModifierKeys.Shift || singleClickModKeys == ModifierKeys.Alt))
                     {
                         if (this.viewModel.IsPlayingAttack && !this.viewModel.IsPlayingAreaEffect)
                             this.viewModel.TargetAndExecuteAttack(null);
+                    }
+                    else if(singleClickModKeys == ModifierKeys.Control)
+                    {
+                        this.viewModel.PlayDefaultAbility();
+                    }
+                    else if(singleClickModKeys == ModifierKeys.Alt)
+                    {
+                        this.viewModel.ActivateDefaultMovementToActivate();
                     }
                 }
 
                 isSingleClick = isDoubleClick = isTripleClick = isQuadrupleClick = false;
                 milliseconds = 0;
+                singleClickModKeys = ModifierKeys.None;
             }
         }
 

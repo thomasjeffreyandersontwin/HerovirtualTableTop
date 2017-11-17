@@ -151,7 +151,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     }
                 }
 
-                character.Activate();
+                //character.Activate();
             }
 
         }

@@ -54,6 +54,7 @@ namespace Module.Shared
         public const string GAME_FX_REPOSITORY_FILENAME = "FxRepo.data";
         public const string GAME_SOUND_REPOSITORY_FILENAME = "SoundRepo.data";
         public const string GAME_KEYBINDS_FILENAME = "required_keybinds.txt";
+        public const string GAME_KEYBINDS_ALT_FILENAME = "required_keybinds_alt.txt";
         public const string GAME_MODELS_FILENAME = "Models.txt";
         public const string GAME_DATA_BACKUP_FOLDERNAME = "Backup";
         public const string GAME_SOUND_FOLDERNAME = "sound";
@@ -84,6 +85,7 @@ namespace Module.Shared
 
         #region Character Explorer
         public const string DEFAULT_CHARACTER_NAME = "DEFAULT";
+        public const string SYSTEM_CROWD_NAME = "System Characters";
         public const string COMBAT_EFFECTS_CHARACTER_NAME = "COMBAT EFFECTS";
         public const string ALL_CHARACTER_CROWD_NAME = "All Characters";
         public const string CROWD_MEMBER_DRAG_FROM_CHAR_XPLORER_KEY = "CrowdMemberDragFromCharacterExplorer";
