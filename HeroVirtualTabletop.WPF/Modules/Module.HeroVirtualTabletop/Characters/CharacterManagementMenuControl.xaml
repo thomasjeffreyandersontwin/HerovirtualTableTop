@@ -136,6 +136,20 @@
                     </Style>
                 </Button.Style>
             </Button>
+            <Button x:Name="btSequenceView" Content="&#xf28a;" ToolTip="Toggle Sequence View(Ctrl+>)" Command="{Binding ToggleSequenceViewCommand}">
+                <Button.Style >
+                    <Style TargetType="{x:Type Button}" BasedOn="{StaticResource IconButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Path=IsSequenceViewActive}" Value="False">
+                                <Setter Property="Opacity" Value="0.5"/>
+                            </DataTrigger>
+                            <DataTrigger  Binding="{Binding Path=IsSequenceViewActive}" Value="True">
+                                <Setter Property="Opacity" Value="1"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </WrapPanel>
     </Grid>
 </UserControl>

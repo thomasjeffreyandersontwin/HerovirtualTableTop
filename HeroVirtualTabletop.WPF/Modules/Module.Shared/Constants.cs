@@ -131,5 +131,28 @@ namespace Module.Shared
         public const string ACTIVE_ATTACK_WIDGET = "ActiveAttackWidget";
 
         #endregion
+
+        #region HCS
+
+        public const string NOT_FOUND_IN_ROSTER_PHASE_NAME = "Not Found";
+        public const string COMBATANTS_FILE_NAME = "OnDeckCombatants.info";
+        public const string CHRONOMETER_FILE_NAME = "Chronometer.info";
+        public const string  ACTIVE_CHARACTOR_FILE_NAME= "ActiveCharacter.info";
+        public const string ABILITY_ACTIVATED_FILE_NAME = "AbilityActivatedFromDesktop.event";
+        public const string ATTACK_RESULT_FILE_NAME = "AbilityAttackResult.event";
+        public const string SIMPLE_ABILITY_TYPE_NAME = "SimpleAbility";
+        public const string ABORT_ACTION_TYPE_NAME = "AbortNextAction";
+        public const string ATTACK_SINGLE_TARGET_INITIATION_TYPE_NAME = "AttackSingleTarget";
+        public const string ATTACK_AREA_TARGET_INITIATION_TYPE_NAME = "AreaEffectTargets";
+        public const string ATTACK_SINGLE_TARGET_RESULT_TYPE_NAME = "AttackSingleTargetResult";
+        public const string ATTACK_AREA_TARGET_RESULT_TYPE_NAME = "AttackAreaTargetsResult";
+        public const string KNOCKBACK_COLLISION_SINGLE_TARGET_TYPE_NAME = "KnockbackCollisionSingleTarget";
+        public const string KNOCKBACK_COLLISION_MULTI_TARGET_TYPE_NAME = "KnockbackCollisionMultiTarget";
+        public const string ATTACK_CONFIRMATION_TYPE_NAME = "ConfirmAttack";
+        public const string ATTACK_CONFIRMED_STATUS = "Confirm";
+        public const string ATTACK_CANCELLED_STATUS = "Cancel";
+        public const string MOVEMENT_TYPE_NAME = "Movement";
+
+        #endregion
     }
 }

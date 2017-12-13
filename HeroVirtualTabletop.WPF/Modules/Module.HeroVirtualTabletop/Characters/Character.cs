@@ -1064,6 +1064,9 @@ namespace Module.HeroVirtualTabletop.Characters
             IsTargeted = !IsTargeted;
         }
 
+        [JsonIgnore]
+        public bool PlayDefaultMovement { get; set; }
+
         //Jeff - added so we always get the right movement when dragging, moving, etc...
         [JsonIgnore]
         public CharacterMovement DefaultMovementToActivate
@@ -1438,7 +1441,7 @@ namespace Module.HeroVirtualTabletop.Characters
             CharacterMovement characterMovement = this.DefaultMovementToActivate;
             Vector3 currentPositionVector = this.CurrentPositionVector;
             Microsoft.Xna.Framework.Matrix newRotationMatrix = Microsoft.Xna.Framework.Matrix.CreateLookAt(currentPositionVector, targetVector, this.CurrentModelMatrix.Up);
-            if (newRotationMatrix.M11 == float.NaN || newRotationMatrix.M13 == float.NaN || newRotationMatrix.M31 == float.NaN || newRotationMatrix.M33 == float.NaN)
+            if (float.IsNaN(newRotationMatrix.M11) || float.IsNaN(newRotationMatrix.M13) || float.IsNaN(newRotationMatrix.M31) || float.IsNaN(newRotationMatrix.M33))
                 return;
             newRotationMatrix.M11 *= -1;
             newRotationMatrix.M33 *= -1;

@@ -209,6 +209,7 @@ namespace Module.HeroVirtualTabletop.Movements
             // Unload Keyboard Hook
             KeyBoardHook.UnsetHook(hookID);
             this.Movement.StopMovement(this.Character);
+            this.Character.PlayDefaultMovement = false;
             Helper.GlobalVariables_CharacterMovement = null;
             //if (this.Character.GhostShadow != null && this.Character.GhostShadow.HasBeenSpawned && this.Character.ActiveIdentity.Type == IdentityType.Model)
             //{
@@ -285,12 +286,14 @@ namespace Module.HeroVirtualTabletop.Movements
                 if (cm != null)
                     cm.DeactivateMovement();
             }
+            character.PlayDefaultMovement = false;
         }
 
         public void DeactivateMovement(List<Character> targets)
         {
             this.CharactersToMove = null;
             DeactivateMovement();
+            targets.ForEach(t => t.PlayDefaultMovement = false);
         }
 
         public void ActivateMovement(List<Character> targets)
@@ -309,7 +312,11 @@ namespace Module.HeroVirtualTabletop.Movements
             this.IsActive = true;
             this.Character.ActiveMovement = this;
             // Set the still Move
-            this.Movement.MoveStill(targets);
+            foreach(var target in targets)
+            { 
+                target.DefaultMovementToActivate.Movement.MoveStill(target);
+            }
+            //this.Movement.MoveStill(targets);
             // Initialize MovementInstruction
             this.Character.MovementInstruction = new MovementInstruction();
             this.Character.MovementInstruction.IsMoving = false;
@@ -649,13 +656,17 @@ namespace Module.HeroVirtualTabletop.Movements
                 facingToDest = target.MovementInstruction.DestinationVector - target.CurrentPositionVector;
                 facingToDest.Normalize();
                 directionVector = GetDirectionVector(0, target.MovementInstruction.CurrentMovementDirection, facingToDest);
+                if (IsNan(directionVector))
+                {
+                    logManager.Info(string.Format("DirectionVector is NAN: {0}, target: {1}, facingToDest: {2}", directionVector, target.Name, facingToDest));
+                }
             }
             else
             {
                 directionVector = GetDirectionVector(target);
             }
             target.MovementInstruction.CurrentDirectionVector = directionVector;
-            if (directionVector.X != float.NaN && directionVector.Y != float.NaN && directionVector.Z != float.NaN)
+            if (!IsNan(directionVector))
             {
                 //increment character position
                 DateTime startTime = DateTime.Now;
@@ -665,6 +676,10 @@ namespace Module.HeroVirtualTabletop.Movements
                 logManager.Info(string.Format("GetAllowableDestinationVector took {0} milliseconds for {1} who advanced {2} units", (endTime - startTime).Milliseconds, target.Name, dist));
                 target.CurrentPositionVector = allowableDestinationVector;
                 target.AlignGhost();
+            }
+            else
+            {
+
             }
         }
 
@@ -710,6 +725,11 @@ namespace Module.HeroVirtualTabletop.Movements
                         destinationVector = new Vector3(destinationVector.X, collisionVectorGround.Y, destinationVector.Z);
                     }
                 }
+
+                if(IsNanAny(collisionGroundUp, collisionGroundDown, collisionVectorGround))
+                {
+
+                }
             }
             target.MovementInstruction.DestinationVector = destinationVector;
             target.MovementInstruction.OriginalDestinationVector = destinationVector;
@@ -720,6 +740,10 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Backward;
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
+            if (IsNan(destinationVector))
+            {
+
+            }
             this.StartMovement(target);
             if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
             {
@@ -772,6 +796,7 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.IsCollisionAhead = false;
             target.MovementInstruction.IsDestinationPointAdjusted = false;
             target.MovementInstruction.IsPositionAdjustedToAvoidCollision = false;
+            target.MovementInstruction.CurrentRotationAxisDirection = MovementDirection.None;
             target.MovementInstruction.MovmementDirectionToUseForDestinationMove = MovementDirection.Forward;
             target.MovementInstruction.MovementStartTime = DateTime.UtcNow;
             this.StartMovement(target);
@@ -885,7 +910,7 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             Vector3 currentPositionVector = target.CurrentPositionVector;
             Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, destinationVector, target.CurrentModelMatrix.Up);
-            if (newRotationMatrix.M11 == float.NaN || newRotationMatrix.M13 == float.NaN || newRotationMatrix.M31 == float.NaN || newRotationMatrix.M33 == float.NaN)
+            if (float.IsNaN(newRotationMatrix.M11) || float.IsNaN(newRotationMatrix.M13) || float.IsNaN(newRotationMatrix.M31) || float.IsNaN(newRotationMatrix.M33))
                 return;
             newRotationMatrix.M11 *= -1;
             newRotationMatrix.M33 *= -1;
@@ -956,7 +981,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private bool IsNan(Vector3 vector)
         {
-            return vector.X == float.NaN || vector.Y == float.NaN || vector.Z == float.NaN;
+            return float.IsNaN(vector.X) || float.IsNaN(vector.Y) || float.IsNaN(vector.Z);
         }
 
         private bool IsNanAny(params Vector3[] vectors)
@@ -1036,7 +1061,7 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             float distance = Vector3.Distance(sourceVector, destVector);
             Vector3 collisionVector = new Vector3(0, 0, 0);
-            int numRetry = 3; // try 5 times
+            int numRetry = 3; // try 3 times
             while (numRetry > 0)
             {
                 try
@@ -1053,7 +1078,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     numRetry--;
                 }
             }
-            if(collisionVector.X == float.NaN || collisionVector.Y == float.NaN || collisionVector.Z == float.NaN)
+            if(float.IsNaN(collisionVector.X) || float.IsNaN(collisionVector.Y) || float.IsNaN(collisionVector.Z))
                 collisionVector = new Vector3(0, 0, 0);
             return collisionVector;
         }
@@ -2477,10 +2502,23 @@ namespace Module.HeroVirtualTabletop.Movements
             target.MovementInstruction.LastCollisionFreePointInCurrentDirection = new Vector3(-10000f, -10000f, -10000f);
             target.MovementInstruction.CharacterBodyCollisionOffsetVector = new Vector3();
             // Play movement
-            foreach (Character movingTarget in targets)
+            if(targets.Any(t => t.PlayDefaultMovement))
             {
-                PlayMovementMember(movementMember, movingTarget);
+                PlayMovementMember(movementMember, target);
+                foreach(Character movingTarget in targets.Where(t => t != target))
+                {
+                    var alternateMember = movingTarget.DefaultMovementToActivate.Movement.MovementMembers.First(mm => mm.MovementDirection == movementMember.MovementDirection);
+                    PlayMovementMember(alternateMember, movingTarget);
+                }
             }
+            else
+            {
+                foreach (Character movingTarget in targets)
+                {
+                    PlayMovementMember(movementMember, movingTarget);
+                }
+            }
+            
             target.MovementInstruction.LastMovementDirection = target.MovementInstruction.CurrentMovementDirection;
             target.MovementInstruction.LastMovmentSupportingAnimationPlayTime = DateTime.UtcNow;
             var timer = this.characterMovementTimerDictionary[target];

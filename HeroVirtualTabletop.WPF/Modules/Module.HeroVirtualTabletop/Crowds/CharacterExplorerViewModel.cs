@@ -550,7 +550,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.BusyService.ShowBusy(new string[] { containerWindowName });
                 Action d = delegate ()
                 {
-                    var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>();
+                    var rosterMembers = GetFlattenedMemberList(crowdCollection.Cast<ICrowdMemberModel>().ToList()).Where(x => { return x.RosterCrowd != null; }).Cast<CrowdMemberModel>().Distinct();
                     eventAggregator.GetEvent<CheckRosterConsistencyEvent>().Publish(rosterMembers);
                     this.rosterSyncNeeded = false;
                 };

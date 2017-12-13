@@ -658,26 +658,37 @@ namespace Module.HeroVirtualTabletop.OptionGroups
 
         private void PlayAnimatedAbility(AnimatedAbility ability)
         {
-            Character currentTarget = null;
-            if (!ability.PlayOnTargeted)
+            Action d = delegate ()
             {
-                this.SpawnAndTargetOwnerCharacter();
-                currentTarget = this.Owner;
-            }
-            else
-            {
-                Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
-                currentTarget = rostExpVM.GetCurrentTarget() as Character;
-                if (currentTarget == null)
+                if (!ability.IsAttack)
+                {
+                    IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                    WindowsUtilities.SetForegroundWindow(winHandle);
+                }
+
+                Character currentTarget = null;
+                if (!ability.PlayOnTargeted)
                 {
                     this.SpawnAndTargetOwnerCharacter();
                     currentTarget = this.Owner;
                 }
-            }
-            owner.ActiveAbility = ability;
-            currentTarget.Target();
-            //currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
-            ability.Play(Target: currentTarget);
+                else
+                {
+                    Roster.RosterExplorerViewModel rostExpVM = this.Container.Resolve<Roster.RosterExplorerViewModel>();
+                    currentTarget = rostExpVM.GetCurrentTarget() as Character;
+                    if (currentTarget == null)
+                    {
+                        this.SpawnAndTargetOwnerCharacter();
+                        currentTarget = this.Owner;
+                    }
+                }
+                owner.ActiveAbility = ability;
+                currentTarget.Target();
+                //ability.Play(Target: currentTarget);
+                this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Publish(new Tuple<Character, AnimatedAbility>(currentTarget, ability));
+            };
+            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 5);
+            adex.ExecuteAsyncDelegate();
         }
 
         private bool CanStopOption(object arg)

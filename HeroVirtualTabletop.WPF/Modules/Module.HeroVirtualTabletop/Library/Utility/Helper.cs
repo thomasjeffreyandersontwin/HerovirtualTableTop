@@ -80,7 +80,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
         public static Dictionary<string, object> GlobalVariables_UISettings = new Dictionary<string, object>();
 
-        public static int GlobalVariables_GhostCharacterIndex = 0;
+        public static bool GlobalVariables_IntegrateWithHCS = false;
 
         #endregion
 
@@ -362,11 +362,11 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                 string zStr = collisionInfo.Substring(indexZStart + 1, indexZEnd - indexZStart - 1);
                 float.TryParse(zStr, out Z);
 
-                if (X == float.NaN)
+                if (float.IsNaN(X))
                     X = 0;
-                if (Y == float.NaN)
+                if (float.IsNaN(Y))
                     Y = 0;
-                if (Z == float.NaN)
+                if (float.IsNaN(Z))
                     Z = 0;
             }
             catch (Exception ex)

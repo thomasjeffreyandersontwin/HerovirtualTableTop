@@ -119,6 +119,7 @@
     <Compile Include="Behaviors\ScrollView\ScrollIntoViewForDataGrid.cs" />
     <Compile Include="Behaviors\ScrollView\ScrollIntoViewForListBox.cs" />
     <Compile Include="Events\Events.cs" />
+    <Compile Include="Extensions\CollectionExtensions.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Extensions\DragDropExtensions.cs" />
     <Compile Include="Extensions\FocusExtension.cs" />

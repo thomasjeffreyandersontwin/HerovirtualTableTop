@@ -29,6 +29,7 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using Module.HeroVirtualTabletop.Desktop;
 using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.HCSIntegration;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
@@ -41,6 +42,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private IMessageBoxService messageBoxService;
         private IResourceRepository resourceRepository;
         private IDesktopKeyEventHandler desktopKeyEventHandler;
+        private IHCSIntegrator hcsIntegrator;
 
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
@@ -623,22 +625,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #region Constructor
 
-        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IResourceRepository resourceRepository, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
+        public AbilityEditorViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, IResourceRepository resourceRepository, IDesktopKeyEventHandler keyEventHandler, IHCSIntegrator hcsIntegrator, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.resourceRepository = resourceRepository;
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             this.desktopKeyEventHandler = keyEventHandler;
+            this.hcsIntegrator = hcsIntegrator;
             InitializeCommands();
             this.eventAggregator.GetEvent<EditAbilityEvent>().Subscribe(this.LoadAnimatedAbility);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             //this.eventAggregator.GetEvent<FinishedIdentityCollectionRetrievalEvent>().Subscribe(this.LoadIdentityResource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Subscribe(this.PlayAnimatedAbility);
             // Unselect everything at the beginning
             this.InitializeAnimationElementSelections();
             this.InitializeDesktopKeyEventHandlers();
+            
         }
 
         #endregion
@@ -1572,20 +1577,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void DemoAnimatedAbility()
         {
-            Character currentTarget = GetCurrentTarget();
-            currentTarget.Target(false);
-            currentTarget.ActiveIdentity.RenderWithoutAnimation(target:currentTarget);
-            this.CurrentAbility.Play(Target: currentTarget);
+            Action d = delegate ()
+            {
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                WindowsUtilities.SetForegroundWindow(winHandle);
+                Character currentTarget = GetCurrentTarget();
+                currentTarget.Target(false);
+                currentTarget.ActiveIdentity.RenderWithoutAnimation(target: currentTarget);
+                this.PlayAnimatedAbility(currentTarget, this.CurrentAbility);
+                //this.CurrentAbility.Play(Target: currentTarget);
+            };
+            AsyncDelegateExecuter adex = new AsyncDelegateExecuter(d, 5);
+            adex.ExecuteAsyncDelegate();
         }
 
         private void DemoAnimation()
         {
-            Character currentTarget = GetCurrentTarget();
-            if (this.SelectedAnimationElement != null)
+            Action d = delegate ()
             {
-                this.SelectedAnimationElement.Play(Target: currentTarget);
-            }
-                
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                WindowsUtilities.SetForegroundWindow(winHandle);
+                Character currentTarget = GetCurrentTarget();
+                if (this.SelectedAnimationElement != null)
+                {
+                    this.SelectedAnimationElement.Play(Target: currentTarget);
+                }
+            };
+            AsyncDelegateExecuter adex = new AsyncDelegateExecuter(d, 5);
+            adex.ExecuteAsyncDelegate();
         }
 
         private Character GetCurrentTarget()
@@ -1623,6 +1642,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 this.Owner.Target(false);
             }
         }
+
+        private void PlayAnimatedAbility(Tuple<Character, AnimatedAbility> tuple)
+        {
+            Character target = tuple.Item1;
+            AnimatedAbility ability = tuple.Item2;
+            PlayAnimatedAbility(target, ability);
+        }
+
+        private void PlayAnimatedAbility(Character target = null, AnimatedAbility ability = null)
+        {
+            Character Target = target ?? ability.Owner;
+            if (Target != null && ability != null)
+            {
+                if (Helper.GlobalVariables_IntegrateWithHCS && !ability.IsAttack)
+                    this.hcsIntegrator.PlaySimpleAbility(target, ability);
+                ability.Play(Target: Target);
+            }
+        }
+
         #endregion
 
         #region Clone Animation
@@ -2076,6 +2114,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        #region Misc
+
         private bool IsAbilityKey(System.Windows.Forms.Keys key)
         {
             return key == System.Windows.Forms.Keys.F
@@ -2107,6 +2147,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 || key == System.Windows.Forms.Keys.Delete
                 || key == System.Windows.Forms.Keys.Back;
         }
+
+        #endregion
 
         #endregion
     }

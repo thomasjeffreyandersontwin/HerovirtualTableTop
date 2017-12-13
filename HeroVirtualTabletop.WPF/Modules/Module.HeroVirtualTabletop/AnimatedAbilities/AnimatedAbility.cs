@@ -439,95 +439,74 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public void AnimateAttackSequence(List<Character> attackingCharacters, List<Character> defendingCharacters)
         {
-            this.IsExecutionInProgress = true;
-            this.defendersForThisAttack = defendingCharacters;
-
-            if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+            Action action = delegate ()
             {
-                foreach (Character defender in defendingCharacters)
+                IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
+                WindowsUtilities.SetForegroundWindow(winHandle);
+
+                this.IsExecutionInProgress = true;
+                this.defendersForThisAttack = defendingCharacters;
+
+                if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
                 {
-                    if (defender.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
+                    foreach (Character defender in defendingCharacters)
                     {
-                        // Change order so that knockback attacker plays last
-                        List<Character> attackersForThisDefender = new List<Characters.Character>();
-                        foreach (Character attacker in attackingCharacters.Where(ac => defender.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == ac && !ar.IsHit)))
+                        if (defender.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
                         {
-                            if (!attackersForThisDefender.Contains(attacker))
-                                attackersForThisDefender.Add(attacker);
+                            // Change order so that knockback attacker plays last
+                            List<Character> attackersForThisDefender = new List<Characters.Character>();
+                            foreach (Character attacker in attackingCharacters.Where(ac => defender.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == ac && !ar.IsHit)))
+                            {
+                                if (!attackersForThisDefender.Contains(attacker))
+                                    attackersForThisDefender.Add(attacker);
+                            }
+                            foreach (Character attacker in attackingCharacters.Where(ac => defender.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == ac && ar.IsHit)))
+                            {
+                                if (!attackersForThisDefender.Contains(attacker))
+                                    attackersForThisDefender.Add(attacker);
+                            }
+                            if (!defenderVsAttackers.ContainsKey(defender))
+                                defenderVsAttackers.Add(defender, attackersForThisDefender);
                         }
-                        foreach (Character attacker in attackingCharacters.Where(ac => defender.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == ac && ar.IsHit)))
+                        else
                         {
-                            if (!attackersForThisDefender.Contains(attacker))
-                                attackersForThisDefender.Add(attacker);
+                            if (!defenderVsAttackers.ContainsKey(defender))
+                                defenderVsAttackers.Add(defender, attackingCharacters);
                         }
-                        if (!defenderVsAttackers.ContainsKey(defender))
-                            defenderVsAttackers.Add(defender, attackersForThisDefender);
+                    }
+                }
+                if (this.IsAreaEffect)
+                {
+                    if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+                    {
+                        List<Character> attackersForArea = defenderVsAttackers[defendingCharacters.First(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)];
+                        CompleteTheAttackSequence(attackersForArea, defendingCharacters);
                     }
                     else
                     {
-                        if (!defenderVsAttackers.ContainsKey(defender))
-                            defenderVsAttackers.Add(defender, attackingCharacters);
+                        CompleteTheAttackSequence(attackingCharacters, defendingCharacters);
                     }
                 }
-            }
-            if (this.IsAreaEffect)
-            {
-                if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
-                {
-                    List<Character> attackersForArea = defenderVsAttackers[defendingCharacters.First(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)];
-                    //attackersForArea.ForEach(ac => {
-                    //    AnimateAttackSequence(ac, defendingCharacters);
-                    //});
-                    CompleteTheAttackSequence(attackersForArea, defendingCharacters);
-                }
                 else
                 {
-                    //attackingCharacters.ForEach(ac => {
-                    //    AnimateAttackSequence(ac, defendingCharacters);
-                    //});
-                    CompleteTheAttackSequence(attackingCharacters, defendingCharacters);
-                }
-            }
-            else
-            {
-                if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
-                {
-                    //foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack))
-                    //{
-                    //    List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == defender.Name)];
-                    //    //attackersForVanilla.ForEach(ac => {
-                    //    //    AnimateAttackSequence(ac, new List<Character> { defender });
-                    //    //});
-                    //    CompleteTheAttackSequence(attackersForVanilla, new List<Character> { defender });
-                    //}
-                    //foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
-                    //{
-                    //    List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == defender.Name)];
-                    //    //attackersForVanilla.ForEach(ac => {
-                    //    //    AnimateAttackSequence(ac, new List<Character> { defender });
-                    //    //});
-                    //    CompleteTheAttackSequence(attackersForVanilla, new List<Character> { defender });
-                    //}
-                    List<Character> reOrderedDefenders = new List<Character>();
-                    foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack))
-                        reOrderedDefenders.Add(defender);
-                    foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
-                        reOrderedDefenders.Add(defender);
-                    CompleteTheAttackSequence(attackingCharacters, reOrderedDefenders);
-                }
-                else
-                {
-                    //defendingCharacters.ForEach(defender =>
-                    //{
-                    //    //attackingCharacters.ForEach(ac => {
-                    //    //    AnimateAttackSequence(ac, new List<Character> { defender });
-                    //    //});
-                    //    CompleteTheAttackSequence(attackingCharacters, new List<Character> { defender });
-                    //});
-                    CompleteTheAttackSequence(attackingCharacters, defendingCharacters);
-                }
+                    if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+                    {
+                        List<Character> reOrderedDefenders = new List<Character>();
+                        foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack))
+                            reOrderedDefenders.Add(defender);
+                        foreach (Character defender in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack))
+                            reOrderedDefenders.Add(defender);
+                        CompleteTheAttackSequence(attackingCharacters, reOrderedDefenders);
+                    }
+                    else
+                    {
+                        CompleteTheAttackSequence(attackingCharacters, defendingCharacters);
+                    }
 
-            }
+                }
+            };
+            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(action, 5);
+            adex.ExecuteAsyncDelegate();
         }
 
         private void CompleteTheAttackSequence(List<Character> attackingCharacters, List<Character> defendingCharacters)
@@ -1336,6 +1315,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         Vector3 attackerVector = new Vector3(attackingCharacter.Position.X, attackingCharacter.Position.Y, attackingCharacter.Position.Z);
                         Vector3 targetVector = new Vector3(character.Position.X, character.Position.Y, character.Position.Z);
+                        if(attackerVector == targetVector)
+                        {
+                            attackerVector.X -= 0.1f;
+                            attackerVector.Z -= 0.1f;
+                        }
                         Vector3 directionVector = targetVector - attackerVector;
                         if (!character.ActiveAttackConfiguration.IsCenterTarget)
                         {
@@ -1354,6 +1338,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                             destY = targetVector.Y;
                         if (Math.Abs(targetVector.Z - destZ) < 1)
                             destZ = targetVector.Z;
+                        if(float.IsNaN(destX) || float.IsNaN(destY) || float.IsNaN(destZ))
+                        {
+
+                        }
                         Vector3 destVector = new Vector3(destX, destY, destZ);
                         if (character.ActiveAttackConfiguration.IsCenterTarget || centerTargetCharacter == null)
                             knockbackMovement.Movement.MoveBack(character, attackerVector, destVector);
@@ -1625,6 +1613,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public bool IsDestroyed { get; set; }
+        public bool IsPartiallyDestryoed { get; set; }
+
         private bool moveAttackerToTarget;
         public bool MoveAttackerToTarget
         {
@@ -1638,6 +1629,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("MoveAttackerToTarget");
             }
         }
+
+        public int? Stun { get; set; }
+        public int? Body { get; set; }
+        public Character ObstructingCharacter { get; set; }
     }
     public class AttackDirection
     {

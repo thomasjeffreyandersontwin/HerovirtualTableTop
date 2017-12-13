@@ -2,6 +2,7 @@
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Roster;
 using Module.Shared;
+using Module.Shared.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -18,6 +19,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using ToastNotifications;
+using ToastNotifications.Lifetime;
+using ToastNotifications.Messages;
+using ToastNotifications.Position;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -35,6 +40,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private int milliseconds = 0;
         private int maxClickTime = System.Windows.Forms.SystemInformation.DoubleClickTime;
         private System.Windows.Forms.Timer clickTimer = new System.Windows.Forms.Timer();
+        private readonly Notifier notifier;
         public RosterExplorerView(RosterExplorerViewModel viewModel)
         {
             InitializeComponent();
@@ -45,11 +51,30 @@ namespace Module.HeroVirtualTabletop.Roster
             this.RosterViewListBox.SelectAll();
             this.RosterViewListBox.UnselectAll();
 
+            notifier = new Notifier(cfg =>
+            {
+                cfg.PositionProvider = new WindowPositionProvider(
+                    parentWindow: Application.Current.MainWindow,
+                    corner: Corner.TopRight,
+                    offsetX: 10,
+                    offsetY: 10);
+
+                cfg.LifetimeSupervisor = new TimeAndCountBasedLifetimeSupervisor(
+                    notificationLifetime: TimeSpan.FromSeconds(4),
+                    maximumNotificationCount: MaximumNotificationCount.FromCount(1));
+
+                cfg.Dispatcher = Application.Current.Dispatcher;
+                cfg.DisplayOptions.TopMost = false;
+                cfg.DisplayOptions.Width = 250;
+            });
+            notifier.ClearMessages();
+
             clickTimer.Interval = 10;
             clickTimer.Tick +=
                 new EventHandler(clickTimer_Tick);
 
             this.viewModel.RosterMemberAdded += this.viewModel_RosterMemberAdded;
+            this.viewModel.ShowNotification += this.ViewModel_ShowNotification; 
         }
         private void TextBlock_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -211,6 +236,16 @@ namespace Module.HeroVirtualTabletop.Roster
                 rosterGroupExpansionStates[cvg.Name.ToString()] = expander.IsExpanded;
             else
                 rosterGroupExpansionStates.Add(cvg.Name.ToString(), expander.IsExpanded);
+        }
+
+        private void ViewModel_ShowNotification(object sender, CustomEventArgs<string> e)
+        {
+            this.ShowNotification(e.Value);
+        }
+
+        private void ShowNotification(string message)
+        {
+            Dispatcher.Invoke(() => { notifier.ShowInformation(message); });
         }
     }
 }

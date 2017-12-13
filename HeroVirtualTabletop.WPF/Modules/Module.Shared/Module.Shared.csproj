@@ -126,6 +126,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Constants.cs" />
+    <Compile Include="Converters\BooleanMultiValueConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityInvertConverter.cs" />
     <Compile Include="Converters\BorderGapMaskConverters.cs" />

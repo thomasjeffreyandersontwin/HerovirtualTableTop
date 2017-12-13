@@ -218,7 +218,7 @@ namespace Module.HeroVirtualTabletop.Library.ProcessCommunicator
             if(facingDirectionVector != currentPositionVector)
             {
                 Matrix newRotationMatrix = Matrix.CreateLookAt(currentPositionVector, facingDirectionVector, Vector3.Up);
-                if(newRotationMatrix.M11 != float.NaN && newRotationMatrix.M13 != float.NaN && newRotationMatrix.M31 != float.NaN && newRotationMatrix.M33 != float.NaN)
+                if(!float.IsNaN(newRotationMatrix.M11) && !float.IsNaN(newRotationMatrix.M13) && !float.IsNaN(newRotationMatrix.M31) && !float.IsNaN(newRotationMatrix.M33))
                 {
                     SetTargetAttribute(56, -1 * newRotationMatrix.M11);
                     SetTargetAttribute(64, newRotationMatrix.M13);

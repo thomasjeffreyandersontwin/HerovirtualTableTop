@@ -1117,15 +1117,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public override void Play(bool persistent = false, Character Target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
         {
-            playTimer = new Timer(PlaySequence, new object[]{persistent, Target}, Timeout.Infinite, Timeout.Infinite);
             Stop(Target ?? this.Owner, useMemoryTargeting);
             //if (this.Persistent || persistent)
             IsActive = true;
             OnPropertyChanged("IsActive");
-            //if(forcePlay) // for Attacks that need to play immediately in the same thread
             PlayAnimations(persistent, Target, true, useMemoryTargeting); // true because animations should never play as attack
-            //else
-            //    playTimer.Change(5, Timeout.Infinite);
         }
 
 

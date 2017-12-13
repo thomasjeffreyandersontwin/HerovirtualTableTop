@@ -18,6 +18,7 @@ using Framework.WPF.Services.PopupService;
 using Microsoft.Practices.Prism.Commands;
 using Microsoft.Practices.Unity;
 using Microsoft.Xna.Framework;
+using Framework.WPF.Extensions;
 using Prism.Events;
 using Module.Shared;
 using Module.Shared.Enumerations;
@@ -35,6 +36,8 @@ using Module.HeroVirtualTabletop.Library.Sevices;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.Identities;
+using Module.HeroVirtualTabletop.HCSIntegration;
+using Module.Shared.Messages;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -46,6 +49,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private ITargetObserver targetObserver;
         private EventAggregator eventAggregator;
         private IDesktopKeyEventHandler desktopKeyEventHandler;
+        private IHCSIntegrator hcsIntegrator;
 
         //refactor to attacking character
         private Attack currentAttack = null;
@@ -80,7 +84,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private DesktopContextMenu desktopContextMenu;
         private DesktopMouseEventHandler mouseHandler;
 
-        private System.Timers.Timer timer_RespondToDesktop = new System.Timers.Timer(); 
+        private System.Timers.Timer timer_RespondToDesktop = new System.Timers.Timer();
 
         #endregion
 
@@ -89,6 +93,13 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (RosterMemberAdded != null)
                 RosterMemberAdded(sender, e);
+        }
+
+        public event EventHandler<CustomEventArgs<string>> ShowNotification;
+        public void OnShowNotification(object sender, CustomEventArgs<string> e)
+        {
+            if (ShowNotification != null)
+                ShowNotification(sender, e);
         }
 
         #region Public Properties
@@ -116,6 +127,21 @@ namespace Module.HeroVirtualTabletop.Roster
                 OnPropertyChanged("Participants");
             }
         }
+
+        private ObservableCollection<Combatant> sequenceParticipants;
+        public ObservableCollection<Combatant> SequenceParticipants
+        {
+            get
+            { 
+                return sequenceParticipants;
+            }
+            set
+            {
+                sequenceParticipants = value;
+                OnPropertyChanged("SequenceParticipants");
+            }
+        }
+
         private List<ICrowdMemberModel> oldSelections = new List<ICrowdMemberModel>();
         private IList selectedParticipants = new ArrayList();
         public IList SelectedParticipants
@@ -127,8 +153,17 @@ namespace Module.HeroVirtualTabletop.Roster
             set
             {
                 MemoryElement targetedBeforeMouseCLick = new MemoryElement();
-                
-                selectedParticipants = value;
+                if(value != null && value.Count > 0 && value[0] is Combatant)
+                {
+                    List<ICrowdMemberModel> memberModelList = new List<ICrowdMemberModel>();
+                    foreach (Combatant val in value)
+                    {
+                        memberModelList.Add(val.CombatantCharacter as ICrowdMemberModel);
+                    }
+                    selectedParticipants = memberModelList;
+                }
+                else
+                    selectedParticipants = value;
                 //synchSelectionWithGame();
                 OnPropertyChanged("SelectedParticipants");
                 OnPropertyChanged("ShowAttackContextMenu");
@@ -137,7 +172,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 ActivateGangCommand.RaiseCanExecuteChanged();
                 ActivateCrowdAsGangCommand.RaiseCanExecuteChanged();
                 ResetDistanceCounterCommand.RaiseCanExecuteChanged();
-                ToggleGangModeCommand.RaiseCanExecuteChanged(); 
+                ToggleGangModeCommand.RaiseCanExecuteChanged();
                 this.TargetOrFollow();
                 this.RestartDistanceCounting();
                 //this.TargetLastSelectedCharacter(oldSelections);
@@ -162,7 +197,7 @@ namespace Module.HeroVirtualTabletop.Roster
             get
             {
                 if (Participants.Any(p => (p as Character).IsGangLeader))
-                    activeCharacter =  this.Participants.First(p => (p as Character).IsGangLeader);
+                    activeCharacter = this.Participants.First(p => (p as Character).IsGangLeader);
                 else
                     activeCharacter = this.Participants.FirstOrDefault(p => (p as Character).IsActive);
 
@@ -198,18 +233,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (SelectedParticipants != null && SelectedParticipants.Count > 0)
                 {
                     var currentRosterCrowd = (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd;
-                    isGangModeActive = currentRosterCrowd.IsGangMode;
-                    //if (isGangModeActive)
-                    //{
-                    //    foreach (CrowdMemberModel sp in SelectedParticipants)
-                    //    {
-                    //        if (sp.RosterCrowd != currentRosterCrowd)
-                    //        {
-                    //            isGangModeActive = false;
-                    //            break;
-                    //        }
-                    //    }
-                    //}
+                    isGangModeActive = currentRosterCrowd != null ? currentRosterCrowd.IsGangMode : false;
                 }
                 else
                     isGangModeActive = false;
@@ -221,7 +245,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (SelectedParticipants != null && SelectedParticipants.Count > 0)
                 {
                     //(SelectedParticipants[0] as CrowdMemberModel).RosterCrowd.IsGangMode = value;
-                    foreach(CrowdMemberModel cm in SelectedParticipants)
+                    foreach (CrowdMemberModel cm in SelectedParticipants)
                     {
                         cm.RosterCrowd.IsGangMode = value;
                     }
@@ -382,6 +406,33 @@ namespace Module.HeroVirtualTabletop.Roster
                 return showAttackContextMenu;
             }
         }
+        private bool isSequenceViewActive;
+        public bool IsSequenceViewActive
+        {
+            get
+            {
+                return isSequenceViewActive;
+            }
+            set
+            {
+                isSequenceViewActive = value;
+                OnPropertyChanged("IsSequenceViewActive");
+            }
+        }
+
+        private string currentPhase;
+        public string CurrentPhase
+        {
+            get
+            {
+                return currentPhase;
+            }
+            set
+            {
+                currentPhase = value;
+                OnPropertyChanged("CurrentPhase");
+            }
+        }
 
         #endregion
 
@@ -418,18 +469,20 @@ namespace Module.HeroVirtualTabletop.Roster
         public DelegateCommand ActivateCrowdAsGangCommand { get; private set; }
         public DelegateCommand ResetDistanceCounterCommand { get; private set; }
         public DelegateCommand ScanAndFixMemoryCommand { get; private set; }
+        public DelegateCommand ToggleSequenceViewCommand { get; private set; }
 
         #endregion
 
         #region Constructor
 
-        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator)
+        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, IDesktopKeyEventHandler keyEventHandler, IHCSIntegrator hcsIntegrator, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
             this.messageBoxService = messageBoxService;
             this.targetObserver = targetObserver;
             this.desktopKeyEventHandler = keyEventHandler;
+            this.hcsIntegrator = hcsIntegrator;
 
             this.eventAggregator.GetEvent<AddToRosterEvent>().Subscribe(AddParticipants);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(DeleteParticipant);
@@ -439,7 +492,9 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<CancelActiveAttackEvent>().Subscribe(this.CancelActiveAttack);
             this.eventAggregator.GetEvent<AddOptionEvent>().Subscribe(this.HandleCharacterOptionAddition);
             this.eventAggregator.GetEvent<PlayMovementInitiatedEvent>().Subscribe(this.PlayMovement);
+            this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Subscribe(this.RestartDistanceCountingForHCSActivatedCharacter);
             this.eventAggregator.GetEvent<SpawnToRosterEvent>().Subscribe(this.SpawnToRoster);
+            this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.NotifyCombatSimulatorAboutMovementStop);
 
             timer_RespondToDesktop.AutoReset = false;
             timer_RespondToDesktop.Interval = 50;
@@ -457,7 +512,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
             this.TargetOnHover = true;
             this.UseRelativePositioning = true;
-            
+
             InitializeCommands();
 
             InitializeMouseHandlers();
@@ -465,6 +520,8 @@ namespace Module.HeroVirtualTabletop.Roster
             InitializeDesktopContextMenuHandlers();
 
             InitializeDesktopKeyHanders();
+
+            InitializeHCSIntegrator();
         }
 
         #endregion
@@ -503,47 +560,56 @@ namespace Module.HeroVirtualTabletop.Roster
             desktopContextMenu.SavePositionMenuItemSelected += desktopContextMenu_SavePositionMenuItemSelected;
             desktopContextMenu.SpawnMenuItemSelected += desktopContextMenu_SpawnMenuItemSelected;
         }
-        public DesktopKeyEventHandler keyHandler;
         private void InitializeDesktopKeyHanders()
         {
             this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
+        private void InitializeHCSIntegrator()
+        {
+            hcsIntegrator.ActiveCharacterUpdated += this.HCSIntegrator_ActiveCharacterUpdated;
+            hcsIntegrator.SequenceUpdated += this.HCSIntegrator_SequenceUpdated;
+            hcsIntegrator.AttackResultsUpdated += this.HCSIntegrator_AttackResultsUpdated;
+            hcsIntegrator.AttackResultsNotFound += this.HCSIntegrator_AttackResultsNotFound;
+            hcsIntegrator.StartIntegration();
+        }
+
         private void InitializeCommands()
         {
-            this.SpawnCommand = new DelegateCommand<object>(delegate(object state) { this.Spawn(); });
-            this.ClearFromDesktopCommand = new DelegateCommand<object>(delegate(object state) { this.ClearFromDesktop(); }, this.CanClearFromDesktop);
-            this.ToggleTargetedCommand = new DelegateCommand<object>(delegate(object state) { this.ToggleTargeted(); }, this.CanToggleTargeted);
-            this.SavePositionCommand = new DelegateCommand<object>(delegate(object state) { this.SavePosition(); }, this.CanSavePostion);
-            this.PlaceCommand = new DelegateCommand<object>(delegate(object state) { this.Place(); }, this.CanPlace);
+            this.SpawnCommand = new DelegateCommand<object>(delegate (object state) { this.Spawn(); });
+            this.ClearFromDesktopCommand = new DelegateCommand<object>(delegate (object state) { this.ClearFromDesktop(); }, this.CanClearFromDesktop);
+            this.ToggleTargetedCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleTargeted(); }, this.CanToggleTargeted);
+            this.SavePositionCommand = new DelegateCommand<object>(delegate (object state) { this.SavePosition(); }, this.CanSavePostion);
+            this.PlaceCommand = new DelegateCommand<object>(delegate (object state) { this.Place(); }, this.CanPlace);
             this.TargetAndFollowCommand = new DelegateCommand<object>(this.TargetAndFollow, this.CanTargetAndFollow);
-            this.MoveTargetToCameraCommand = new DelegateCommand<object>(delegate(object state) { this.MoveTargetToCamera(); }, this.CanMoveTargetToCamera);
+            this.MoveTargetToCameraCommand = new DelegateCommand<object>(delegate (object state) { this.MoveTargetToCamera(); }, this.CanMoveTargetToCamera);
             this.TeleportTargetToCameraCommand = new DelegateCommand<object>(this.TeleportTargetToCamera, this.CanTeleportTargetToCamera);
-            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(delegate(object state) { this.MoveTargetToCharacter(); }, this.CanMoveTargetToCharacter);
-            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(delegate(object state) { this.MoveTargetToMouseLocation(); }, this.CanMoveTargetToMouseLocation);
-            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(delegate(object state) { this.ToggleManeuverWithCamera(); }, this.CanToggleManeuverWithCamera);
+            this.MoveTargetToCharacterCommand = new DelegateCommand<object>(delegate (object state) { this.MoveTargetToCharacter(); }, this.CanMoveTargetToCharacter);
+            this.MoveTargetToMouseLocationCommand = new DelegateCommand<object>(delegate (object state) { this.MoveTargetToMouseLocation(); }, this.CanMoveTargetToMouseLocation);
+            this.ToggleManeuverWithCameraCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleManeuverWithCamera(); }, this.CanToggleManeuverWithCamera);
             this.ToggleTargetOnHoverCommand = new DelegateCommand<object>(this.ToggleTargetOnHover);
-            this.EditCharacterCommand = new DelegateCommand<object>(delegate(object state) { this.EditCharacter(); }, this.CanEditCharacter);
-            this.ActivateCharacterCommand = new DelegateCommand<object>(delegate(object state) { this.ActivateCharacterOrGang(); }, this.CanActivateCharacterOrGang);
+            this.EditCharacterCommand = new DelegateCommand<object>(delegate (object state) { this.EditCharacter(); }, this.CanEditCharacter);
+            this.ActivateCharacterCommand = new DelegateCommand<object>(delegate (object state) { this.ActivateCharacterOrGang(); }, this.CanActivateCharacterOrGang);
             this.ResetCharacterStateCommand = new DelegateCommand<object>(this.ResetCharacterState);
             this.AttackTargetCommand = new DelegateCommand<object>(this.TargetCharacterForAttack);
             this.AttackTargetAndExecuteCommand = new DelegateCommand<object>(this.TargetAndExecuteAttack);
             this.AttackTargetAndExecuteCrowdCommand = new DelegateCommand(this.TargetAndExecuteCrowd, this.CanTargetAndExecuteCrowd);
-            this.ResetOrientationCommand = new DelegateCommand<object>(delegate(object state) { this.ResetOrientation(); }, this.CanResetOrientation);
+            this.ResetOrientationCommand = new DelegateCommand<object>(delegate (object state) { this.ResetOrientation(); }, this.CanResetOrientation);
             this.ResetDistanceCounterCommand = new DelegateCommand(this.ResetDistanceCounter, this.CanResetDistanceCounter);
             this.ToggleRelativePositioningCommand = new DelegateCommand<object>(this.ToggleRelativePositioning);
             this.ToggleGangModeCommand = new DelegateCommand(this.ToggleGangMode, this.CanToggleGangMode);
             this.ToggleSpawnOnClickCommand = new DelegateCommand(this.ToggleSpawnOnClick, this.CanToggleSpawnOnClick);
             this.ToggleCloneAndSpawnCommand = new DelegateCommand(this.ToggleCloneAndSpawn, this.CanToggleCloneAndSpawn);
             this.ToggleOverheadModeCommand = new DelegateCommand(this.ToggleOverheadMode, this.CanToggleOverheadMode);
-            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(delegate(object state) { this.CycleCommandsThroughCrowd(); }, this.CanCycleCommandsThroughCrowd);
+            this.CycleCommandsThroughCrowdCommand = new DelegateCommand<object>(delegate (object state) { this.CycleCommandsThroughCrowd(); }, this.CanCycleCommandsThroughCrowd);
             this.ActivateGangCommand = new DelegateCommand(this.ToggleActivateGang, this.CanActivateGang);
             this.ActivateCrowdAsGangCommand = new DelegateCommand(this.ToggleActivateCrowdAsGang, this.CanActivateCrowdAsGang);
             this.ScanAndFixMemoryCommand = new DelegateCommand(this.ScanAndFixMemoryPointer);
+            this.ToggleSequenceViewCommand = new DelegateCommand(this.ToggleSequenceView);
         }
 
         #endregion
-      
+
         #region Commands Consistency
         private void Commands_RaiseCanExecuteChanged()
         {
@@ -572,11 +638,11 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             List<Character> characters = new List<Characters.Character>();
 
-            foreach(Character c in this.SelectedParticipants)
+            foreach (Character c in this.SelectedParticipants)
             {
                 if (!characters.Contains(c))
                 {
-                    if(considerGangMode && (c as CrowdMemberModel).RosterCrowd.IsGangMode)
+                    if (considerGangMode && (c as CrowdMemberModel).RosterCrowd.IsGangMode)
                     {
                         foreach (Character gangmember in Participants.Where(p => c != p && p.RosterCrowd.IsGangMode && (c as CrowdMemberModel).RosterCrowd == p.RosterCrowd))
                             characters.Add(gangmember);
@@ -595,7 +661,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private Character GetLastSelectedCharacter()
         {
             int highestIndex = 0;
-            foreach(Character c in this.SelectedParticipants)
+            foreach (Character c in this.SelectedParticipants)
             {
                 int currentIndex = this.Participants.IndexOf(c as CrowdMemberModel);
                 if (currentIndex > highestIndex)
@@ -610,7 +676,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public void AddCrowdMembersToSelection(string crowdName)
         {
-            foreach(Character c in this.Participants.Where(p => p.RosterCrowd != null && p.RosterCrowd.Name == crowdName))
+            foreach (Character c in this.Participants.Where(p => p.RosterCrowd != null && p.RosterCrowd.Name == crowdName))
             {
                 this.SelectedParticipants.Add(c);
             }
@@ -635,7 +701,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             Action d = delegate ()
             {
-                foreach(var m in members)
+                foreach (var m in members)
                 {
                     if (!Participants.Contains(m))
                         Participants.Add(m);
@@ -694,7 +760,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         Character c = p as Character;
                         return c != null && c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                     }).FirstOrDefault();
-                if(currentTarget != null)
+                if (currentTarget != null)
                     AddDesktopTargetToRosterSelection(currentTarget);
             }
             catch (TaskCanceledException ex)
@@ -715,7 +781,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (SelectedParticipants != null && !this.stopSyncingWithDesktop)
                         SelectedParticipants.Clear();
                     //else if (stopSyncingWithDesktop)
-                        //stopSyncingWithDesktop = false;
+                    //stopSyncingWithDesktop = false;
                 }
                 else
                 {
@@ -734,7 +800,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         this.stopSyncingWithDesktop = false;
                     }
                 }
-                if(isMultiSelecting && stopSyncingWithDesktop)
+                if (isMultiSelecting && stopSyncingWithDesktop)
                 {
                     isMultiSelecting = false;
                     stopSyncingWithDesktop = false;
@@ -786,9 +852,9 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         hoveredCharacter.Target();
                     }
-                    lastTargetedCharacter = hoveredCharacter; 
+                    lastTargetedCharacter = hoveredCharacter;
                 }
-                else if(this.CurrentDistanceCountingCharacter != null)
+                else if (this.CurrentDistanceCountingCharacter != null)
                 {
                     this.CurrentDistanceCountingCharacter.UpdateDistanceCount(hoveredCharacter.CurrentPositionVector);
                 }
@@ -944,7 +1010,7 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Respond to Desktop Click
         public void RespondToMouseClickBasedOnDesktopState()
         {
-            currentTarget = this.SelectedParticipants != null && this.SelectedParticipants.Count > 0 ? this.SelectedParticipants[0] as Character: null;
+            currentTarget = this.SelectedParticipants != null && this.SelectedParticipants.Count > 0 ? this.SelectedParticipants[0] as Character : null;
             timer_RespondToDesktop.Start(); // We need this timer to avoid firing click events when desktop is no longer in focus, as click fires before focus lost. This also fixes double attack play bug.
         }
         void timer_RespondToDesktop_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -956,7 +1022,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     if (IsPlayingAttack == false)
                     {
-                        if(Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
+                        if (Keyboard.Modifiers == (ModifierKeys.Control | ModifierKeys.Alt))
                         {
                             this.moveAndAttackModeOn = true;
                             Action d1 = delegate ()
@@ -975,7 +1041,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d1, 500);
                             adex.ExecuteAsyncDelegate();
                         }
-                        else if(Keyboard.Modifiers == ModifierKeys.Alt)
+                        else if (Keyboard.Modifiers == ModifierKeys.Alt)
                         {
                             Action d1 = delegate ()
                             {
@@ -1001,7 +1067,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         else
                             ContinueDraggingCharacter();
-                    } 
+                    }
                     else
                     {
                         PlayAttackCycle();
@@ -1035,6 +1101,8 @@ namespace Module.HeroVirtualTabletop.Roster
             if (savedSelections != null)
                 savedSelections.ForEach(ss => SelectedParticipants.Add(ss));
             OnRosterMemberAdded(null, null);
+            if (this.IsSequenceViewActive)
+                this.RefreshSequenceView();
         }
 
         private void CheckIfCharacterExistsInGame(Character crowdMember)
@@ -1046,12 +1114,12 @@ namespace Module.HeroVirtualTabletop.Roster
             if (currentTargeted.Label == crowdMember.Label)
             {
                 crowdMember.SetAsSpawned();
-                if(crowdMember.ActiveIdentity.Type == IdentityType.Model)
+                if (crowdMember.ActiveIdentity.Type == IdentityType.Model)
                 {
                     if (crowdMember.GhostShadow == null)
                         crowdMember.CreateGhostShadow();
                     CheckIfCharacterExistsInGame(crowdMember.GhostShadow);
-                    if(!crowdMember.GhostShadow.HasBeenSpawned)
+                    if (!crowdMember.GhostShadow.HasBeenSpawned)
                         crowdMember.SuperImposeGhost();
                 }
             }
@@ -1099,12 +1167,17 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             if (charactersToOperateOn == null)
                 charactersToOperateOn = GetCharactersToOperateOn();
-            foreach (CrowdMemberModel member in charactersToOperateOn)
+            foreach (CrowdMemberModel member in charactersToOperateOn.Where(c => c.IsInViewForTargeting))
             {
                 member.Spawn(false);
             }
             var kg = new KeyBindsGenerator();
             kg.CompleteEvent();
+
+            foreach (CrowdMemberModel member in charactersToOperateOn.Where(c => !c.IsInViewForTargeting))
+            {
+                member.Spawn();
+            }
 
             Character mainCharacter = charactersToOperateOn[0] as Character;
             Vector3 nextReferenceVector = Vector3.Zero;
@@ -1132,7 +1205,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             var kg = new KeyBindsGenerator();
             kg.CompleteEvent();
-            
+
             Vector3 nextReferenceVector = Vector3.Zero;
             List<Vector3> usedUpPositions = new List<Vector3>();
             foreach (CrowdMemberModel member in charactersToOperateOn)
@@ -1140,7 +1213,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 member.Target();
                 member.WaitUntilTargetIsRegistered();
 
-                if(charactersToOperateOn.Count > 1)
+                if (charactersToOperateOn.Count > 1)
                     member.PlaceOptimallyAround(locationVector, ref nextReferenceVector, ref usedUpPositions);
                 else
                     member.CurrentPositionVector = locationVector;
@@ -1183,7 +1256,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.Spawn(this.lastMouseClickLocation, charactersToSpawn);
             lastMouseClickLocation = Vector3.Zero;
         }
-    
+
         #endregion
 
         #region Clear from Desktop
@@ -1204,7 +1277,7 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             new KeyBindsGenerator().CompleteEvent();
             SelectNextCharacterInCrowdCycle();
-            if(charactersToOperateOn.Any(c => c.IsActive))
+            if (charactersToOperateOn.Any(c => c.IsActive))
             {
                 this.DeactivateCharacter();
                 this.DeactivateGang();
@@ -1214,6 +1287,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 Participants.Remove(participant);
                 participant.RosterCrowd = null;
             }
+            if (this.IsSequenceViewActive)
+                this.RefreshSequenceView(); 
             Commands_RaiseCanExecuteChanged();
             eventAggregator.GetEvent<SaveCrowdEvent>().Publish(null);
         }
@@ -1260,7 +1335,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 foreach (var c in this.SelectedParticipants)
                 {
                     var crowdMemberModel = c as CrowdMemberModel;
-                    if (crowdMemberModel != null && crowdMemberModel.RosterCrowd.Name == Constants.ALL_CHARACTER_CROWD_NAME && crowdMemberModel.SavedPosition != null)
+                    if (crowdMemberModel != null && crowdMemberModel.RosterCrowd != null && crowdMemberModel.RosterCrowd.Name == Constants.ALL_CHARACTER_CROWD_NAME && crowdMemberModel.SavedPosition != null)
                     {
                         canPlace = true;
                         break;
@@ -1276,7 +1351,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     }
                 }
             }
-            return canPlace;                                                                                                                                                                        
+            return canPlace;
         }
         public void Place()
         {
@@ -1284,13 +1359,13 @@ namespace Module.HeroVirtualTabletop.Roster
             foreach (CrowdMemberModel member in charactersToOperateOn)
             {
                 //member.Place();
-                
-                if(!member.HasBeenSpawned)
+
+                if (!member.HasBeenSpawned)
                     member.Spawn(false);
             }
             var kbg = new KeyBindsGenerator();
             kbg.CompleteEvent();
-            foreach(CrowdMember member in charactersToOperateOn)
+            foreach (CrowdMember member in charactersToOperateOn)
             {
                 member.Target();
                 if (member.RosterCrowd != null)
@@ -1358,14 +1433,26 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ToggleGangMode()
         {
             this.IsGangModeActive = !this.IsGangModeActive;
-            if(this.IsGangModeActive && this.ActiveCharacter != null)
+            if (this.IsGangModeActive && this.ActiveCharacter != null)
             {
                 CrowdModel gangCrowd = (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd as CrowdModel;
-                if((this.ActiveCharacter as CrowdMemberModel).RosterCrowd == gangCrowd)
+                if ((this.ActiveCharacter as CrowdMemberModel).RosterCrowd == gangCrowd)
                 {
                     ToggleActivateCrowdAsGang();
                 }
             }
+        }
+
+        #endregion
+
+        #region Toggle Sequence View
+
+        private void ToggleSequenceView()
+        {
+            this.IsSequenceViewActive = !IsSequenceViewActive;
+            Helper.GlobalVariables_IntegrateWithHCS = IsSequenceViewActive;
+            if (this.IsSequenceViewActive)
+                this.RefreshSequenceView();
         }
 
         #endregion
@@ -1451,7 +1538,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     }
                 }
             }
-            else {
+            else
+            {
                 if (SelectedParticipants.Count > 0)
                     lastSelected = SelectedParticipants[0] as ICrowdMemberModel;
             }
@@ -1495,7 +1583,7 @@ namespace Module.HeroVirtualTabletop.Roster
             Vector3 nextReferenceVector = Vector3.Zero;
             List<Vector3> usedUpPositions = new List<Vector3>();
             foreach (Character c in charactersToOperateOn)
-            {             
+            {
                 if (this.UseRelativePositioning)
                     c.MoveToLocationWithRelativePositioning(new Camera().GetPositionVector(), closestCharacter, startingPosition);
                 else
@@ -1510,10 +1598,10 @@ namespace Module.HeroVirtualTabletop.Roster
             var cameraPositionVector = new Camera().GetPositionVector();
             distance = Int32.MaxValue;
             Character closestCharacter = null;
-            foreach(Character c in this.SelectedParticipants)
+            foreach (Character c in this.SelectedParticipants)
             {
                 var distanceFromCamera = Vector3.Distance(c.CurrentPositionVector, cameraPositionVector);
-                if(distanceFromCamera < distance)
+                if (distanceFromCamera < distance)
                 {
                     distance = distanceFromCamera;
                     closestCharacter = c;
@@ -1647,11 +1735,11 @@ namespace Module.HeroVirtualTabletop.Roster
         public void ResetOrientation()
         {
             var charactersToOperateOn = this.GetCharactersToOperateOn();
-            foreach(var character in charactersToOperateOn)
+            foreach (var character in charactersToOperateOn)
             {
                 character.ResetOrientation();
             }
-            
+
             SelectNextCharacterInCrowdCycle();
         }
 
@@ -1691,6 +1779,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 //            this.eventAggregator.GetEvent<PlayMovementInitiatedEvent>().Publish(character.ActiveMovement);
                 //    }
                 //}
+                character.PlayDefaultMovement = true;
                 this.eventAggregator.GetEvent<PlayMovementInitiatedEvent>().Publish(character.DefaultMovementToActivate);
             }
             else
@@ -1710,7 +1799,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        #region ToggleManeuverWithCamera
+        #region Toggle Maneuver With Camera
         private bool CanToggleManeuverWithCamera(object arg)
         {
             bool canManeuverWithCamera = false;
@@ -1776,7 +1865,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 else
                 {
                     CrowdModel nextCrowd = GetNextCrowd();
-                    if(nextCrowd != null)
+                    if (nextCrowd != null)
                     {
                         foreach (Character c in this.Participants.Where(p => p.RosterCrowd == nextCrowd))
                             cNext.Add(c as ICrowdMemberModel);
@@ -1786,7 +1875,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (cNext.Count > 0 && !cNext.Any(c => c == cCurrent))
                 {
                     SelectedParticipants.Clear();
-                    foreach(var c in cNext)
+                    foreach (var c in cNext)
                         SelectedParticipants.Add(c);
                     OnPropertyChanged("SelectedParticipants");
                 }
@@ -1798,7 +1887,7 @@ namespace Module.HeroVirtualTabletop.Roster
             var crowd = this.SelectedCrowd;
             var last = this.GetLastSelectedCharacter();
             int currIndex = Participants.IndexOf(last as CrowdMemberModel);
-            if(crowd != null)
+            if (crowd != null)
             {
                 var nextChar = Participants.FirstOrDefault(p => p.RosterCrowd != crowd && Participants.IndexOf(p) > currIndex);
                 if (nextChar != null)
@@ -1824,7 +1913,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ResetDistanceCounter()
         {
-            if(this.CurrentDistanceCountingCharacter != null)
+            if (this.CurrentDistanceCountingCharacter != null)
             {
                 this.CurrentDistanceCountingCharacter.CurrentDistanceCount = 0f;
                 this.CurrentDistanceCountingCharacter.CurrentStartingPositionVectorForDistanceCounting = Vector3.Zero;
@@ -1833,21 +1922,21 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void RestartDistanceCounting()
         {
-            if (SelectedParticipants != null && SelectedParticipants.Count > 0)
+            if (SelectedParticipants != null)
             {
                 if (this.IsPlayingAttack)
                 {
-                    if(this.AttackingCharacters.Count > 1 && this.IsGangActive)
+                    if (this.AttackingCharacters.Count > 1 && this.IsGangActive)
                     {
                         this.CurrentDistanceCountingCharacter = Participants.First(p => (p as Character).IsGangLeader) as Character;
                     }
                     else
                     {
-                        this.CurrentDistanceCountingCharacter = this.AttackingCharacters.First();  
+                        this.CurrentDistanceCountingCharacter = this.AttackingCharacters.First();
                     }
-                    if(SelectedParticipants.Count > 0)
+                    if (SelectedParticipants.Count > 0)
                     {
-                        foreach(Character c in SelectedParticipants)
+                        foreach (Character c in SelectedParticipants)
                         {
                             if (!AttackingCharacters.Contains(c))
                             {
@@ -1862,18 +1951,23 @@ namespace Module.HeroVirtualTabletop.Roster
                     ResetDistanceCounter();
                     if (SelectedParticipants.Count > 1 && IsGangActive)
                         this.CurrentDistanceCountingCharacter = Participants.First(p => (p as Character).IsGangLeader) as Character;
-                    else
+                    else if (this.ActiveCharacter != null)
+                        this.CurrentDistanceCountingCharacter = this.ActiveCharacter as Character;
+                    else if (SelectedParticipants.Count > 0)
                         this.CurrentDistanceCountingCharacter = SelectedParticipants[0] as Character;
-                    if (!CurrentDistanceCountingCharacter.HasBeenSpawned)
-                        this.CurrentDistanceCountingCharacter = null;
-                    else
+                    if (CurrentDistanceCountingCharacter != null)
                     {
-                        this.CurrentDistanceCountingCharacter.CurrentStartingPositionVectorForDistanceCounting = this.CurrentDistanceCountingCharacter.CurrentPositionVector;
+                        if (!CurrentDistanceCountingCharacter.HasBeenSpawned)
+                            this.CurrentDistanceCountingCharacter = null;
+                        else
+                        {
+                            this.CurrentDistanceCountingCharacter.CurrentStartingPositionVectorForDistanceCounting = this.CurrentDistanceCountingCharacter.CurrentPositionVector;
+                        }
                     }
                 }
             }
         }
-    
+
         private void IncrementDistanceCount(Character character)
         {
             if (IsPlayingAttack)
@@ -1944,7 +2038,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
         #endregion
-         
+
         #region Overhead Mode
 
         private bool CanToggleOverheadMode()
@@ -1956,7 +2050,7 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.OverheadMode = !this.OverheadMode;
 
-            if(this.OverheadMode)
+            if (this.OverheadMode)
                 IconInteractionUtility.ExecuteCmd("bindloadfile required_keybinds_alt.txt");
             else
                 IconInteractionUtility.ExecuteCmd("bindloadfile required_keybinds.txt");
@@ -1974,7 +2068,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ActivateCharacter()
         {
-            if(CanActivateCharacterOrGang(null))
+            if (CanActivateCharacterOrGang(null))
                 ToggleActivateCharacter();
         }
 
@@ -1997,9 +2091,26 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private void ActivateCharacterFromHCSActiveCharacterInfo(ActiveCharacterInfo activeCharacterInfo)
+        {
+            Action d = delegate ()
+            {
+                if (activeCharacterInfo != null)
+                {
+                    Character activeChar = this.Participants.FirstOrDefault(p => p.Name == activeCharacterInfo.Name) as Character;
+                    if (activeChar != null && this.ActiveCharacter != activeChar)
+                    {
+                        this.ToggleActivateCharacter(activeChar);
+                    }
+                }
+            };
+            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 1000);
+            adex.ExecuteAsyncDelegate();
+        }
+
         public void ToggleActivateCharacter(Character character = null, string selectedOptionGroupName = null, string selectedOptionName = null)
         {
-            Action action = delegate()
+            Action action = delegate ()
             {
                 if (character == null)
                     if (SelectedParticipants.Count == 0)
@@ -2118,7 +2229,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     DeactivateCharacter(this.ActiveCharacter as Character);
                 ActivateSelectedCharactersAsGang();
             }
-            
+
         }
 
         private void ActivateSelectedCharactersAsGang()
@@ -2156,14 +2267,14 @@ namespace Module.HeroVirtualTabletop.Roster
             }
 
         }
-    
+
         private void ActivateCrowdAsGang()
         {
             var targetedCharacter = GetCurrentTarget();
             if (SelectedParticipants.Contains(targetedCharacter))
             {
                 List<Character> gangMembers = new List<Character>();
-                foreach(Character c in Participants.Where(p => p.RosterCrowd == targetedCharacter.RosterCrowd))
+                foreach (Character c in Participants.Where(p => p.RosterCrowd == targetedCharacter.RosterCrowd))
                 {
                     gangMembers.Add(c);
                 }
@@ -2174,7 +2285,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void ActivateGang(List<Character> gangMembers)
         {
             Character targetedCharacter = GetCurrentTarget() as Character;
-            foreach(var gm in gangMembers)
+            foreach (var gm in gangMembers)
             {
                 gm.SetActive();
                 if (gm == targetedCharacter)
@@ -2183,7 +2294,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     //InitiateGangMovementHandlers(gm);
                 }
             }
-            if(!gangMembers.Any(c => c.IsGangLeader))
+            if (!gangMembers.Any(c => c.IsGangLeader))
             {
                 gangMembers[0].IsGangLeader = true;
                 //InitiateGangMovementHandlers(gangMembers[0]);
@@ -2191,7 +2302,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.IsGangActive = true;
             this.eventAggregator.GetEvent<ActivateGangEvent>().Publish(gangMembers);
         }
-        
+
         private void DeactivateGang()
         {
             foreach (var c in this.Participants)
@@ -2205,7 +2316,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void InitiateGangMovementHandlers(Character gangLeader)
         {
-            foreach(CharacterMovement cm in gangLeader.Movements)
+            foreach (CharacterMovement cm in gangLeader.Movements)
             {
                 cm.MovementActivatedForGangLeader -= this.GangLeader_OnMovementActivated;
                 cm.MovementActivatedForGangLeader += this.GangLeader_OnMovementActivated;
@@ -2227,10 +2338,10 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void GangLeader_OnMovementActivated(object sender, CustomEventArgs<CharacterMovement> e)
         {
-            if (this.IsGangActive)       
+            if (this.IsGangActive)
             {
                 CharacterMovement cm = e.Value;
-                foreach(Character c in this.Participants.Where(p => (p as Character).IsActive && !(p as Character).IsGangLeader))
+                foreach (Character c in this.Participants.Where(p => (p as Character).IsActive && !(p as Character).IsGangLeader))
                 {
                     cm.ActivateMovement(c);
                 }
@@ -2255,9 +2366,9 @@ namespace Module.HeroVirtualTabletop.Roster
 
         public void PlayDefaultAbility()
         {
-            Action d = delegate()
+            Action d = delegate ()
             {
-                if (!IsPlayingAttack && SelectedParticipants != null && (SelectedParticipants.Count == 1 || (SelectedParticipants.Count > 1 && IsGangModeActive) ))
+                if (!IsPlayingAttack && SelectedParticipants != null && (SelectedParticipants.Count == 1 || (SelectedParticipants.Count > 1 && IsGangModeActive)))
                 {
                     Character abilityPlayingCharacter = null;
 
@@ -2275,20 +2386,22 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (abilityPlayingCharacter != null)
                     {
                         var ability = abilityPlayingCharacter.DefaultAbilityToActivate;
-                        if(ability != null)
+                        if (ability != null)
                         {
                             if (IsGangModeActive)
                             {
-                                foreach(Character character in Participants.Where(p => p.RosterCrowd == (abilityPlayingCharacter as CrowdMemberModel).RosterCrowd))
+                                foreach (Character character in Participants.Where(p => p.RosterCrowd == (abilityPlayingCharacter as CrowdMemberModel).RosterCrowd))
                                 {
-                                    ability.Play(Target: character);
+                                    //ability.Play(Target: character);
+                                    this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Publish(new Tuple<Character, AnimatedAbility>(character, ability));
                                 }
                             }
                             else
                             {
-                                abilityPlayingCharacter.Target(false);
-                                //abilityPlayingCharacter.ActiveIdentity.RenderWithoutAnimation(target: abilityPlayingCharacter);
-                                ability.Play();
+                                ////abilityPlayingCharacter.Target(false);
+                                ////abilityPlayingCharacter.ActiveIdentity.RenderWithoutAnimation(target: abilityPlayingCharacter);
+                                //ability.Play();
+                                this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Publish(new Tuple<Character, AnimatedAbility>(null, ability));
                             }
                         }
                     }
@@ -2315,12 +2428,12 @@ namespace Module.HeroVirtualTabletop.Roster
                     }
                 }
                 else
-                    movementTargets.Add(characterMovement.Character);              
+                    movementTargets.Add(characterMovement.Character);
             }
             else if (this.IsGangActive)
             {
                 var gangLeader = this.Participants.FirstOrDefault(p => (p as Character).IsGangLeader);
-                if(characterMovement.Character == gangLeader)
+                if (characterMovement.Character == gangLeader)
                 {
                     foreach (Character c in this.Participants.Where(p => (p as Character).IsActive))
                         movementTargets.Add(c);
@@ -2331,16 +2444,24 @@ namespace Module.HeroVirtualTabletop.Roster
             else
                 movementTargets.Add(characterMovement.Character);
 
-            if(Participants.Any(p => (p as Character).Movements.Any(m => m.IsActive) && !movementTargets.Contains(p as Character)))
+            if (Participants.Any(p => (p as Character).Movements.Any(m => m.IsActive) && !movementTargets.Contains(p as Character)))
             {
-                foreach(CharacterMovement cm in Participants.Where(p => (p as Character).Movements.Any(m => m.IsActive) 
-                && !movementTargets.Contains(p as Character)).SelectMany(p => (p as Character).Movements.Where(m => m.IsActive)))
+                foreach (CharacterMovement cm in Participants.Where(p => (p as Character).Movements.Any(m => m.IsActive)
+                 && !movementTargets.Contains(p as Character)).SelectMany(p => (p as Character).Movements.Where(m => m.IsActive)))
                 {
                     this.eventAggregator.GetEvent<StopMovementEvent>().Publish(cm);
                 }
             }
 
             this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Publish(new Tuple<CharacterMovement, List<Character>>(characterMovement, movementTargets));
+        }
+
+        private void RestartDistanceCountingForHCSActivatedCharacter(Tuple<CharacterMovement, List<Character>> tuple)
+        {
+            if(this.IsSequenceViewActive)
+            {
+                this.RestartDistanceCounting();
+            }
         }
 
         #endregion
@@ -2369,22 +2490,22 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 numRetryHover = 3;
                 Character latestTarget = GetCurrentTarget() as Character;
-                if(character == null && latestTarget != currentTarget)
+                if (character == null && latestTarget != currentTarget)
                 {
                     currentTarget = null;
                     character = latestTarget as CrowdMemberModel;
                 }
-                if (!dontFireAttack &&(this.AttackingCharacters.Contains(character) || character == null))
+                if (!dontFireAttack && (this.AttackingCharacters.Contains(character) || character == null))
                 {
                     AttackDirection direction = new AttackDirection(mousePosition);
-                    if(!this.currentAttack.IsExecutionInProgress)
+                    if (!this.currentAttack.IsExecutionInProgress)
                         this.currentAttack.AnimateAttack(direction, AttackingCharacters);
                 }
                 else
                 {
                     Action d = delegate ()
                     {
-                        if(Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
                             this.SelectedParticipants.Clear();
                             this.SelectedParticipants.Add(character);
@@ -2443,7 +2564,6 @@ namespace Module.HeroVirtualTabletop.Roster
         private void InitiateRosterCharacterAttack(Tuple<Character, Attack> attackInitiatedEventTuple)
         {
             this.targetCharacters = new List<Character>();
-            this.RestartDistanceCounting();
             Character attackingCharacter = attackInitiatedEventTuple.Item1;
             Attack attack = attackInitiatedEventTuple.Item2;
             CrowdMemberModel rosterCharacter = this.Participants.FirstOrDefault(p => p.Name == attackingCharacter.Name) as CrowdMemberModel;
@@ -2474,7 +2594,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         this.AttackingCharacters.Add(c);
                         c.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
-                    }  
+                    }
                 }
                 else
                 {
@@ -2482,6 +2602,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     // Update character properties - icons in roster should show
                     rosterCharacter.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.Attack, AttackEffectOption = AttackEffectOption.None };
                 }
+
+                this.RestartDistanceCounting();
             }
         }
 
@@ -2494,41 +2616,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     Character c = p as Character;
                     return c.gamePlayer != null && c.gamePlayer.Pointer == currentTargetPointer;
                 }).FirstOrDefault();
-            Action action = delegate()
+            Action action = delegate ()
             {
-                //if (this.isPlayingAttack && currentTarget != null)
-                //{
-                //    if (currentTarget.Name != this.AttackingCharacter.Name && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
-                //    {
-                //        if (!this.isPlayingAreaEffect)
-                //        {
-                //            if (targetCharacters.Count == 0 && PopupService.IsOpen("ActiveAttackView") == false)// choose only one character for vanilla attack
-                //            {
-                //                this.targetCharacters.Add(currentTarget);
-                //                //currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
-                //                ActiveAttackConfiguration attackConfig = new ActiveAttackConfiguration();
-                //                attackConfig.AttackMode = AttackMode.Defend;
-                //                attackConfig.AttackEffectOption = AttackEffectOption.None;
-                //                currentTarget.ActiveAttackConfiguration = attackConfig;
-                //                currentTarget.ActiveAttackConfiguration.IsCenterTarget = true;
-                //                //if (PopupService.IsOpen("ActiveAttackView") == false)
-                //                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
-                //            }
-                //        }
-                //    }
-                //}
-                //else 
-                //if (!this.IsPlayingAttack && currentTarget != null)
-                //{
-                //    if (Helper.GlobalVariables_CharacterMovement != null && currentTarget.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && currentTarget.Name != Constants.DEFAULT_CHARACTER_NAME)
-                //    {
-                //        Vector3 destination = new Vector3(currentTarget.Position.X, currentTarget.Position.Y, currentTarget.Position.Z);
-                //        Character activeMovementChar = Helper.GlobalVariables_CharacterMovement.Character;
-                //        activeMovementChar.MoveToLocation(destination);
-                //    }
-                //}
-                //
-                //else 
                 if (currentTarget == null) // Cancel attack
                 {
                     this.CancelActiveAttack(this.currentAttack);
@@ -2539,13 +2628,13 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ConfirmActiveAttack()
         {
-            if(IsPlayingAttack)
+            if (IsPlayingAttack)
                 this.eventAggregator.GetEvent<ConfirmAttackEvent>().Publish(null);
         }
 
         private void CancelActiveAttack(object state)
         {
-            Action action = delegate()
+            Action action = delegate ()
             {
                 if (this.IsPlayingAttack)
                 {
@@ -2576,7 +2665,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 // Commenting out following as we need the fxs to be persisted across attacks
                 //defender.Deactivate(); // restore original costume
             }
-            if(attack.IsAreaEffect)
+            if (attack.IsAreaEffect)
                 attack.AnimateAttackSequence(AttackingCharacters, defendingCharacters);
             else
             {
@@ -2590,12 +2679,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void CancelAttack(List<Character> defendingCharacters)
         {
-            if (this.AttackingCharacters.Count > 0)
-                this.AttackingCharacters.ForEach(ac => ac.Deactivate());
-            foreach (var defender in defendingCharacters)
-            {
-                defender.Deactivate(); // restore original costume
-            }
+            if (this.IsSequenceViewActive)
+                this.hcsIntegrator.CancelAttack();
             this.ResetAttack(defendingCharacters);
         }
 
@@ -2605,7 +2690,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.IsPlayingAreaEffect = false;
             targetObserver.TargetChanged -= RosterTargetUpdated;
             //this.currentAttack.AnimationElements.ToList().ForEach((x) => { if (!x.Persistent) x.Stop(); });
-            this.currentAttack.Stop(useMemoryTargeting:true);
+            this.currentAttack.Stop(useMemoryTargeting: true);
 
             Action d = delegate ()
             {
@@ -2615,13 +2700,13 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         ac.ActiveAttackConfiguration.AttackMode = AttackMode.None;
                         ac.ScanAndFixMemoryPointer();
-                        });
+                    });
                 this.AttackingCharacters.Clear();
 
                 Helper.GlobalVariables_IsPlayingAttack = false;
                 this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
                 foreach (var defender in defenders)
-                 {
+                {
                     defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
                     defender.ActiveAttackConfiguration.AttackResults = null;
                     defender.ScanAndFixMemoryPointer();
@@ -2677,7 +2762,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
             }
         }
-         
+
         public void TargetCharacterForAttack(object state)
         {
             dontFireAttack = true;
@@ -2693,19 +2778,19 @@ namespace Module.HeroVirtualTabletop.Roster
         public void TargetAndExecuteAttack(object state)
         {
             AddAttackTargets();
-            LaunchAttackConfiguration();
+            ConfigureAttack();
         }
 
         public bool CanTargetAndExecuteCrowd()
         {
-            return SelectedParticipants != null && SelectedParticipants.Count > 0 && (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd != null; 
+            return SelectedParticipants != null && SelectedParticipants.Count > 0 && (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd != null;
         }
 
         public void TargetAndExecuteCrowd()
         {
             CrowdModel selectedCrowd = (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd as CrowdModel;
             AddToAttackTarget(selectedCrowd);
-            LaunchAttackConfiguration();
+            ConfigureAttack();
         }
 
         private void AddAttackTargets()
@@ -2749,6 +2834,18 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private void ConfigureAttack()
+        {
+            if (IsSequenceViewActive)
+            {
+                ConfigureAttackThroughCombatSimulator();
+            }
+            else
+            {
+                LaunchAttackConfiguration();
+            }
+        }
+
         private void LaunchAttackConfiguration()
         {
             foreach (var currentTarget in targetCharacters)
@@ -2765,12 +2862,134 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ConfirmAttack(object state)
         {
-            if(this.IsPlayingAttack)
+            if (this.IsPlayingAttack)
             {
-                if(PopupService.IsOpen("ActiveAttackView") == true)
+                if (this.IsSequenceViewActive)
+                    this.hcsIntegrator.ConfirmAttack();
+                if (PopupService.IsOpen("ActiveAttackView") == true)
                 {
                     this.eventAggregator.GetEvent<ConfirmAttackEvent>().Publish(null);
                 }
+            }
+        }
+
+        #endregion
+
+        #region HCS Integration
+
+        private void HCSIntegrator_SequenceUpdated(object sender, CustomEventArgs<object> e)
+        {
+            if (this.IsSequenceViewActive)
+            {
+                object[] values = e.Value as object[];
+                RefreshSequenceView(values);
+            }
+        }
+
+        private void HCSIntegrator_ActiveCharacterUpdated(object sender, CustomEventArgs<object> e)
+        {
+            if (this.IsSequenceViewActive)
+            {
+                ActiveCharacterInfo activeCharacterInfo = e.Value as ActiveCharacterInfo;
+                this.ActivateCharacterFromHCSActiveCharacterInfo(activeCharacterInfo);
+            }
+        }
+
+        private void HCSIntegrator_AttackResultsUpdated(object sender, CustomEventArgs<object> e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                List<Character> targets = e.Value as List<Character>;
+                if (PopupService.IsOpen("ActiveAttackView") == false)
+                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
+            });
+        }
+
+        private void HCSIntegrator_AttackResultsNotFound(object sender, CustomEventArgs<object> e)
+        {
+            Dispatcher.Invoke(() => 
+            {
+                if (e.Value != null)
+                {
+                    List<Character> targets = e.Value as List<Character>;
+                    if (targets == null)
+                        targets = this.targetCharacters;
+                    if (PopupService.IsOpen("ActiveAttackView") == false)
+                        this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
+                }
+                else
+                    LaunchAttackConfiguration();
+            }); 
+        }
+
+        private void RefreshSequenceView(object sequenceInfo = null)
+        {
+            Dispatcher.Invoke(() => { this.BusyService.ShowBusy(); });
+            Action d = delegate ()
+            {
+                if (sequenceInfo == null)
+                    sequenceInfo = hcsIntegrator.GetLatestSequenceInfo();
+                object[] values = sequenceInfo as object[];
+                OnDeckCombatants onDeckCombatants = values[0] as OnDeckCombatants;
+                Chronometer chronometer = values[1] as Chronometer;
+                ActiveCharacterInfo activeCharacterInfo = values[2] as ActiveCharacterInfo;
+                this.SequenceParticipants = new ObservableCollection<HCSIntegration.Combatant>();
+                int order = 0;
+                foreach (var combatant in onDeckCombatants.Combatants)
+                {
+                    Character character = this.Participants.FirstOrDefault(p => p.Name == combatant.CharacterName) as Character;
+                    if (character != null)
+                    {
+                        this.SequenceParticipants.Add(new Combatant { Phase = combatant.Phase, CharacterName = character.Name, CombatantCharacter = character, Order = ++order });
+                    }
+                    else
+                    {
+                        if (!this.SequenceParticipants.Any(sp => sp.Phase == Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME && sp.CharacterName == combatant.CharacterName))
+                            this.SequenceParticipants.Add(new Combatant { Phase = Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME, CharacterName = combatant.CharacterName, CombatantCharacter = new CrowdMemberModel { Name = "", RosterCrowd = new CrowdModel { Name = "" } }, Order = Int32.MaxValue });
+                    }
+                }
+                if (chronometer != null)
+                {
+                    if (chronometer.CurrentPhase == onDeckCombatants.Combatants[0].Phase)
+                    {
+                        this.CurrentPhase = chronometer.CurrentPhase;
+                    }
+                }
+                else if(onDeckCombatants.Combatants.Count > 0)
+                {
+                    this.CurrentPhase = onDeckCombatants.Combatants[0].Phase;
+                }
+                var currCombatant = SequenceParticipants.FirstOrDefault(sp => sp.Phase == this.CurrentPhase);
+                if(currCombatant != null)
+                    currCombatant.IsActivePhase = true;
+                if (activeCharacterInfo != null)
+                {
+                    this.ActivateCharacterFromHCSActiveCharacterInfo(activeCharacterInfo);
+                }
+
+                this.SequenceParticipants = new ObservableCollection<Combatant>(this.SequenceParticipants.OrderBy(sp => sp.Order));
+                this.hcsIntegrator.InGameCharacters = this.Participants.Where(p => (p as Character).HasBeenSpawned).Cast<Character>().ToList();
+                this.BusyService.HideBusy();
+            };
+            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 1000);
+            adex.ExecuteAsyncDelegate();
+        }
+
+        private void ConfigureAttackThroughCombatSimulator()
+        {
+            if (this.ActiveCharacter != null && this.AttackingCharacters.Contains(this.ActiveCharacter as Character))
+            {
+                this.hcsIntegrator.ConfigureAttack(this.currentAttack, this.AttackingCharacters, this.targetCharacters);
+            }
+        }
+
+        private void NotifyCombatSimulatorAboutMovementStop(CharacterMovement characterMovement)
+        {
+            if (this.IsSequenceViewActive)
+            {
+                double distance = Math.Round(this.CurrentDistanceCountingCharacter.CurrentDistanceCount, 2);
+                this.hcsIntegrator.NotifyStopMovement(characterMovement, distance);
+                OnShowNotification(this, new CustomEventArgs<string> { Value = Messages.MOVEMENT_STOPPED_MESSAGE });
             }
         }
 
@@ -2935,7 +3154,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     return this.CycleCommandsThroughCrowd;
                 }
-                else if(inputKey == Key.X && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (inputKey == Key.X && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     return this.ActivateCharacterOrGang;
                 }
@@ -2972,7 +3191,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     this.ToggleRelativePositioning(null);
                 }
-                else if(inputKey == Key.J && Keyboard.Modifiers == ModifierKeys.Control)
+                else if (inputKey == Key.J && Keyboard.Modifiers == ModifierKeys.Control)
                 {
                     this.ToggleSpawnOnClick();
                 }
@@ -3011,7 +3230,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 var activeAbility = targetedCharacter.AnimatedAbilities.First(ab => ab.ActivateOnKey == vkCode);
                 targetedCharacter.Target(false);
                 targetedCharacter.ActiveIdentity.RenderWithoutAnimation(target: targetedCharacter);
-                activeAbility.Play();
+                //activeAbility.Play();
+                this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Publish(new Tuple<Character, AnimatedAbility>(null, activeAbility));
             }
             else if (targetedCharacter != null && Keyboard.Modifiers == ModifierKeys.Alt)
             {
@@ -3052,7 +3272,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     targetedCharacter.TeleportToCamera();
                 }
-                
+
                 if (cm != null)
                 {
                     if (!cm.IsActive)
@@ -3063,7 +3283,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         this.eventAggregator.GetEvent<StopMovementEvent>().Publish(cm);
                 }
             }
-            else if(inputKey == Key.Escape)
+            else if (inputKey == Key.Escape)
             {
                 if (this.IsPlayingAttack)
                 {
@@ -3079,7 +3299,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     this.eventAggregator.GetEvent<StopMovementEvent>().Publish(Helper.GlobalVariables_CharacterMovement);
                 }
-                else if(this.ActiveCharacter != null)
+                else if (this.ActiveCharacter != null)
                 {
                     if (this.IsGangActive)
                         DeactivateGang();

@@ -22,5 +22,10 @@ namespace Module.Shared.Messages
         public const string DUPLICATE_NAME_CAPTION = "Rename Crowd/Character";
         #endregion
 
+        #region HCS
+        public const string MOVEMENT_STOPPED_MESSAGE = "Movement ended";
+
+        #endregion
+
     }
 }

@@ -19,6 +19,7 @@ using Module.HeroVirtualTabletop.Library.Sevices;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.Desktop;
+using Module.HeroVirtualTabletop.HCSIntegration;
 
 namespace Module.HeroVirtualTabletop
 {
@@ -111,6 +112,7 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<ITargetObserver, TargetObserver>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<IDesktopKeyEventHandler, DesktopKeyEventHandler>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<IHCSIntegrator, HCSIntegrator>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<OptionGroupViewModel<Identity>, OptionGroupViewModel<Identity>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty), new InjectionProperty("ShowOptions", false));
             this.container.RegisterType<OptionGroupViewModel<AnimatedAbility>, OptionGroupViewModel<AnimatedAbility>>(new PerResolveLifetimeManager(), new InjectionProperty("IsReadOnlyMode", false), new InjectionProperty("LoadingOptionName", string.Empty), new InjectionProperty("ShowOptions", false));

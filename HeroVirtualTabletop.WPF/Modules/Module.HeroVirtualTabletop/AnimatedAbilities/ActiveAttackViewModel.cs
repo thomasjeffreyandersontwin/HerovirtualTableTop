@@ -62,6 +62,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private string attackSummaryText;
+        public string AttackSummaryText
+        {
+            get
+            {
+                return attackSummaryText;
+            }
+            set
+            {
+                attackSummaryText = value;
+                OnPropertyChanged("AttackSummaryText");
+            }
+        }
+
+        private bool showAttackSummaryText;
+        public bool ShowAttackSummaryText
+        {
+            get
+            {
+                return showAttackSummaryText;
+            }
+            set
+            {
+                showAttackSummaryText = value;
+                OnPropertyChanged("ShowAttackSummaryText");
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -136,6 +164,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     target.ActiveAttackConfiguration.IsHit = true;
                 else
                     target.ActiveAttackConfiguration.IsHit = false;
+                //this.SetAttackSummaryText();
             }
         }
 
@@ -143,6 +172,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             this.DefendingCharacters = new ObservableCollection<Character>(tuple.Item1);
             this.ActiveAttack = tuple.Item2;
+            if (Helper.GlobalVariables_IntegrateWithHCS)
+            {
+                this.ShowAttackSummaryText = true;
+                this.SetAttackSummaryText();
+            }
+            else
+                this.ShowAttackSummaryText = false;
+            //this.AttackSummaryText = "Hi there";
         }
 
         private void SetActiveAttack(object state)
@@ -220,6 +257,150 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             if (Helper.GlobalVariables_CurrentActiveWindowName == panelName)
                 Helper.GlobalVariables_CurrentActiveWindowName = "";
+        }
+
+        private void SetAttackSummaryText()
+        {
+            this.AttackSummaryText = "";
+            List<Character> hitCharacters = this.DefendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsHit).ToList();
+            List<Character> missCharacters = this.DefendingCharacters.Where(dc => !dc.ActiveAttackConfiguration.IsHit).ToList();
+            List<Character> knockbackCharacters = this.DefendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsKnockedBack).ToList();
+            StringBuilder summary = new StringBuilder("The attack hit ");
+            bool hitCharactersFound = hitCharacters.Count > 0;
+            bool missCharactersFound = missCharacters.Count > 0;
+            bool knockbackCharactersFound = knockbackCharacters.Count > 0;
+            Dictionary<Character, bool> summarizedCharacters = new Dictionary<Character, bool>();
+            foreach(Character c in hitCharacters) {
+                if (!summarizedCharacters.ContainsKey(c))
+                    summarizedCharacters.Add(c, false);
+            }
+            if (hitCharactersFound)
+            {
+                for (int i = 0; i < hitCharacters.Count; i++)
+                {
+                    if (i == 0)
+                        summary.Append(hitCharacters[0].Name);
+                    else if (i == hitCharacters.Count - 1 && !missCharactersFound)
+                        summary.AppendFormat(" and {0}", hitCharacters[i].Name);
+                    else
+                        summary.AppendFormat(", {0}", hitCharacters[i].Name);
+                }
+            }
+            if (missCharactersFound)
+            {
+                if(!hitCharactersFound)
+                    summary.Append("The attack missed ");
+                else
+                    summary.Append(" and missed ");
+                for (int i = 0; i < missCharacters.Count; i++)
+                {
+                    if (i == 0)
+                        summary.Append(missCharacters[0].Name);
+                    else if (i == missCharacters.Count - 1)
+                        summary.AppendFormat(" and {0}", missCharacters[i].Name);
+                    else
+                        summary.AppendFormat(", {0}", missCharacters[i].Name);
+                }
+            }
+
+            foreach (var character in hitCharacters)
+            {
+                if (summarizedCharacters[character])
+                    continue;
+                if (character.ActiveAttackConfiguration.IsKnockedBack)
+                {
+                    summary.AppendLine();
+                    summary.AppendFormat("{0} is knocked back {1} hexes", character.Name, character.ActiveAttackConfiguration.KnockBackDistance);
+                    if(character.ActiveAttackConfiguration.ObstructingCharacter != null)
+                    {
+                        Character obsCharacter = character.ActiveAttackConfiguration.ObstructingCharacter;
+                        summary.AppendFormat(" and collided with {0}", obsCharacter.Name);
+                        string obsEffect = GetEffectsString(obsCharacter);
+                        if(obsEffect != "" || obsCharacter.ActiveAttackConfiguration.Body != null)
+                        {
+                            summary.AppendLine();
+                            if (obsCharacter.ActiveAttackConfiguration.Body != null && obsEffect != "")
+                            {
+                                summary.AppendFormat("{0} now has {1} BODY and is {2}", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body, obsEffect);
+                            }
+                            else if(obsCharacter.ActiveAttackConfiguration.Body != null)
+                            {
+                                summary.AppendFormat("{0} now has {1} BODY", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body);
+                            }
+                            else
+                            {
+                                summary.AppendFormat("{0} is {1}", obsCharacter.Name, obsEffect);
+                            }
+                        }
+                        summarizedCharacters[obsCharacter] = true;
+                    }
+                }
+                //else
+                {
+                    if (character.ActiveAttackConfiguration.Stun != null || character.ActiveAttackConfiguration.Body != null)
+                    {
+                        summary.AppendLine();
+                    }
+                    if (character.ActiveAttackConfiguration.Stun != null && character.ActiveAttackConfiguration.Body != null)
+                    {
+                        summary.AppendFormat("{0} has {1} Stun and {2} BODY left", character.Name, character.ActiveAttackConfiguration.Stun,
+                              character.ActiveAttackConfiguration.Body);
+                    }
+                    else if (character.ActiveAttackConfiguration.Stun != null)
+                    {
+                        summary.AppendFormat("{0} has {1} Stun left", character.Name, character.ActiveAttackConfiguration.Stun);
+                    }
+                    else if (character.ActiveAttackConfiguration.Body != null)
+                    {
+                        summary.AppendFormat("{0} has {1} BODY left", character.Name, character.ActiveAttackConfiguration.Body);
+                    }
+
+                    string effects = GetEffectsString(character);
+                    if (!string.IsNullOrEmpty(effects))
+                    {
+                        if (character.ActiveAttackConfiguration.Stun == null && character.ActiveAttackConfiguration.Body == null)
+                        {
+                            summary.AppendLine();
+                            summary.AppendFormat("{0} is {1}", character.Name, effects);
+                        }
+                        else
+                        {
+                            summary.AppendFormat(" and is {0}", effects);
+                        }
+                    }
+                        
+                }
+                summarizedCharacters[character] = true;
+            }
+            this.AttackSummaryText = summary.ToString();
+        }
+
+        private string GetEffectsString(Character character)
+        {
+            List<string> effectsStr = new List<string>();
+            string efstr = "";
+            if (character.ActiveAttackConfiguration.IsStunned)
+                effectsStr.Add("Stunned");
+            if (character.ActiveAttackConfiguration.IsUnconcious)
+                effectsStr.Add("Unconscious");
+            if (character.ActiveAttackConfiguration.IsDying)
+                effectsStr.Add("Dying");
+            if (character.ActiveAttackConfiguration.IsDead)
+                effectsStr.Add("Dead");
+            if (character.ActiveAttackConfiguration.IsDestroyed)
+                effectsStr.Add("Destroyed");
+            if (character.ActiveAttackConfiguration.IsPartiallyDestryoed)
+                effectsStr.Add("Partially Destroyed");
+            if (effectsStr.Count > 0)
+            {
+                efstr = String.Join(", ", effectsStr);
+                if (efstr.IndexOf(",") != efstr.LastIndexOf(","))
+                {
+                    efstr = efstr.Replace(efstr[efstr.LastIndexOf(", ")].ToString(), " and");
+                }
+                efstr += ".";
+            }
+            return efstr;
         }
 
         #region Desktop Key Handling
