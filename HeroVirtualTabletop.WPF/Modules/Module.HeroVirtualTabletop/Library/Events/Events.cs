@@ -67,6 +67,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class PlayMovementInitiatedEvent: PubSubEvent<CharacterMovement> { }
     public class PlayMovementConfirmedEvent: PubSubEvent<Tuple<CharacterMovement, List<Character>>> { }
     public class StopMovementEvent: PubSubEvent<CharacterMovement> { }
+    public class CombatMovementChangedEvent : PubSubEvent<CharacterMovement> { }
 
     #endregion
 }

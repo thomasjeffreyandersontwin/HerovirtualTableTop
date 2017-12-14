@@ -2461,6 +2461,8 @@ namespace Module.HeroVirtualTabletop.Roster
             if(this.IsSequenceViewActive)
             {
                 this.RestartDistanceCounting();
+                if (this.CurrentDistanceCountingCharacter != null)
+                    this.CurrentDistanceCountingCharacter.CurrentDistanceLimit = hcsIntegrator.GetMovementDistanceLimit(tuple.Item1);
             }
         }
 

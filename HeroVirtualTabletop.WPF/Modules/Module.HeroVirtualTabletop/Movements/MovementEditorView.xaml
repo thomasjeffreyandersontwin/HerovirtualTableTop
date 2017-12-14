@@ -54,6 +54,7 @@
                 <Slider  Grid.Row="1"  Minimum="0.5" Maximum="4" TickFrequency="0.25" Value="{Binding CurrentCharacterMovement.MovementSpeed}" behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding SaveMovementCommand}"/>
                 <TextBlock Text="4x" Style="{StaticResource TextBlockDefaultStyle}" FontSize="{StaticResource FontSize_Small}" VerticalAlignment="Center"/>
                 <CheckBox Grid.Row="0" Grid.Column="0" Name="chkBoxDefault" IsChecked="{Binding IsDefaultMovementLoaded}" Content="Default Movement" Margin="7,1, 0, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding SetDefaultMovementCommand}"/>
+                <CheckBox Name="chkBoxCombatMovement" IsChecked="{Binding CurrentCharacterMovement.IsNonCombatMovement, Converter={StaticResource InvertBooleanConverter}}" Content="Combat Movement" Margin="5, 0, 5, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding ToggleSetCombatMovementCommand}"/> 
             </StackPanel>
             <ComboBox Grid.Row="1" Grid.Column="0" Width="{Binding ElementName=lbMovementMembers, Path=ActualWidth}" MinWidth="120" IsEnabled="{Binding CanEditMovementOptions}" Margin="3, 1, 0, 0" HorizontalAlignment="Left"
                           Name="comboBoxMovements" ItemsSource="{Binding AvailableMovements}" DisplayMemberPath="Name" SelectedValue="{Binding SelectedMovement}">
@@ -75,10 +76,10 @@
             </TextBox>
             <StackPanel Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left" Orientation="Horizontal">
                 <CheckBox Name="chkBoxGravity" IsChecked="{Binding SelectedMovement.HasGravity}" Content="Has Gravity" Margin="5, 0, 5, 0"  HorizontalAlignment="Left" VerticalAlignment="Center" Command="{Binding ToggleGravityForMovementCommand}"/>
-                <TextBlock Text="Trigger Key" Style="{StaticResource TextBlockDefaultStyle}" VerticalAlignment="Center"/>
+                <TextBlock Text="Trigger Key" Style="{StaticResource TextBlockDefaultStyle}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
                 <ComboBox Margin="2"
                           Name="cbBoxActivationKey" ItemsSource="{Binding AvailableKeys}"
-                          SelectedValue="{Binding CurrentCharacterMovement.ActivationKey}">
+                          SelectedValue="{Binding CurrentCharacterMovement.ActivationKey}" HorizontalAlignment="Right">
                     <behaviors:CommandBehaviorCollection.Behaviors>
                         <behaviors:BehaviorBinding Event="SelectionChanged" Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=movements:MovementEditorView}, Path=DataContext.SaveMovementCommand}"/>
                     </behaviors:CommandBehaviorCollection.Behaviors>

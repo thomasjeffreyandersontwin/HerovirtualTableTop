@@ -110,6 +110,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             {
                 SetSelectedOption(value);
                 OnPropertyChanged("SelectedOption");
+                OnPropertyChanged("IsCombatMovementSelected");
+                OnPropertyChanged("IsNonCombatMovementSelected");
                 this.PlayOptionCommand.RaiseCanExecuteChanged();
                 this.StopOptionCommand.RaiseCanExecuteChanged();
             }
@@ -233,6 +235,20 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 return OptionGroup.Name == Constants.IDENTITY_OPTION_GROUP_NAME || OptionGroup.Name == Constants.ABILITY_OPTION_GROUP_NAME || OptionGroup.Name == Constants.MOVEMENT_OPTION_GROUP_NAME;
             }
         }
+        public bool IsCombatMovementSelected
+        {
+            get
+            {
+                return this.SelectedOption != null && this.SelectedOption is CharacterMovement && !(this.SelectedOption as CharacterMovement).IsNonCombatMovement;
+            }
+        }
+        public bool IsNonCombatMovementSelected
+        {
+            get
+            {
+                return this.SelectedOption != null && this.SelectedOption is CharacterMovement && (this.SelectedOption as CharacterMovement).IsNonCombatMovement;
+            }
+        }
 
         private IMessageBoxService messageBoxService;
 
@@ -260,6 +276,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         public DelegateCommand<object> ShowHideCharacterOptionCommand { get; private set; }
         public DelegateCommand<object> ActivateOptionGroupCommand { get; private set; }
         public DelegateCommand<object> DeactivateOptionGroupCommand { get; private set; }
+        public DelegateCommand<object> SetNonCombatMovementCommand { get; private set; }
 
         #endregion
 
@@ -276,6 +293,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.OptionGroup = optionGroup;
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.StopAttack);
+            this.eventAggregator.GetEvent<CombatMovementChangedEvent>().Subscribe((CharacterMovement cm) => {
+                OnPropertyChanged("IsNonCombatMovementSelected");
+                OnPropertyChanged("IsCombatMovementSelected");
+            });
             if (!this.IsStandardOptionGroup)
             {
                 this.eventAggregator.GetEvent<RemoveOptionEvent>().Subscribe(this.RemoveOption);
@@ -399,6 +420,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.SubmitOptionGroupRenameCommand = new DelegateCommand<object>(this.SubmitRename);
             this.CancelEditModeCommand = new DelegateCommand<object>(this.CancelEditMode);
             this.RenameNewOptionGroupCommand = new DelegateCommand<object>(this.RenameOptionGroup);
+            this.SetNonCombatMovementCommand = new DelegateCommand<object>(this.SetNonCombatMovement);
         }
 
         #endregion
@@ -816,6 +838,20 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.Owner.Target();
         }
 
+        private void SetNonCombatMovement(object state)
+        {
+            CharacterMovement characterMovement = this.SelectedOption as CharacterMovement;
+            if (state != null)
+            {
+                characterMovement.IsNonCombatMovement = true;
+            }
+            else
+            {
+                characterMovement.IsNonCombatMovement = false;
+            }
+            OnPropertyChanged("IsNonCombatMovementSelected");
+            OnPropertyChanged("IsCombatMovementSelected");
+        }
         private void AddIdentity(object state)
         {
             (optionGroup as OptionGroup<Identity>).Add(GetNewIdentity());

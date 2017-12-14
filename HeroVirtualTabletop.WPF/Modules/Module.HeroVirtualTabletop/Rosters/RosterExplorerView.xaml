@@ -21,6 +21,7 @@
             <converters:BooleanToVisibilityConverter x:Key="boolToVisibilityConverter"/>
             <converters:BooleanMultiValueConverter x:Key="BooleanMultiValueConverter"/>
             <localconverters:characterComparer x:Key="characterComparer"/>
+            <localconverters:DistanceCounterTextColorConverter x:Key="DistanceCounterTextColorConverter"/>
             <localconverters:ActiveAttackEffectToAnimationIconTextConverter x:Key="ActiveAttackEffectToAnimationIconTextConverter"/>
             <localconverters:ActiveAttackModeToVisibilityConverter x:Key="ActiveAttackModeToVisibilityConverter"/>
             <localconverters:ActiveAttackModeToAnimationIconTextConverter x:Key="ActiveAttackModeToAnimationIconTextConverter"/>
@@ -93,8 +94,15 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0" Style="{StaticResource IconButton}" HorizontalAlignment="Left" Content="&#xf0e4;" ToolTip="Reset Counter (Ctrl+K)" Command="{Binding ResetDistanceCounterCommand}"/>
-            <TextBlock Name="txtDistanceCounter"  Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Foreground="White"                    
-                         Text="{Binding Path=CurrentDistanceCountingCharacter.CurrentDistanceCount}"/>
+            <TextBlock Name="txtDistanceCounter"  Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center"                  
+                         Text="{Binding Path=CurrentDistanceCountingCharacter.CurrentDistanceCount}">
+                <TextBlock.Foreground>
+                    <MultiBinding Converter="{StaticResource DistanceCounterTextColorConverter}">
+                        <Binding Path="CurrentDistanceCountingCharacter.CurrentDistanceCount"/>
+                        <Binding Path="CurrentDistanceCountingCharacter.CurrentDistanceLimit"/>
+                    </MultiBinding>
+                </TextBlock.Foreground>
+            </TextBlock>
             <TextBlock Name="txtCurrentPhase"  Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="White"                    
                          Text="{Binding Path=CurrentPhase}" Visibility="{Binding IsSequenceViewActive, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         </Grid>

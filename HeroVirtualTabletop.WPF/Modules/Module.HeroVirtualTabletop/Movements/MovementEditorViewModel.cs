@@ -86,6 +86,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 this.SaveMovementCommand.RaiseCanExecuteChanged();
                 this.SetDefaultMovementCommand.RaiseCanExecuteChanged();
                 this.PlayMovementCommand.RaiseCanExecuteChanged();
+                this.ToggleSetCombatMovementCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -246,6 +247,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public DelegateCommand<object> PlayMovementCommand { get; private set; }
         public DelegateCommand<object> LoadAbilityEditorCommand { get; private set; }
         public DelegateCommand<object> ToggleGravityForMovementCommand { get; private set; }
+        public DelegateCommand<object> ToggleSetCombatMovementCommand { get; private set; }
 
         #endregion
 
@@ -289,6 +291,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.LoadAbilityEditorCommand = new DelegateCommand<object>(this.LoadAbilityEditor, this.CanLoadAbilityEditor);
             this.PlayMovementCommand = new DelegateCommand<object>(this.DemoMovement, this.CanDemoMovement);
             this.ToggleGravityForMovementCommand = new DelegateCommand<object>(this.ToggleGravityForMovement, this.CanToggleGravityForMovement);
+            this.ToggleSetCombatMovementCommand = new DelegateCommand<object>(this.ToggleSetCombatMovement, this.CanToggleSetCombatMovement);
         }
 
         private void InitializeDesktopKeyEventHandlers()
@@ -592,6 +595,21 @@ namespace Module.HeroVirtualTabletop.Movements
         private void ToggleGravityForMovement(object state)
         {
             this.SaveMovement(null);
+        }
+
+        #endregion
+
+        #region Toggle Set Combat Movement
+
+        private bool CanToggleSetCombatMovement(object state)
+        {
+            return CurrentCharacterMovement != null;
+        }
+
+        private void ToggleSetCombatMovement(object state)
+        {
+            this.SaveMovement(null);
+            this.eventAggregator.GetEvent<CombatMovementChangedEvent>().Publish(this.CurrentCharacterMovement);
         }
 
         #endregion

@@ -179,6 +179,20 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("CurrentDistanceCount");
             }
         }
+        private float currentDistanceLimit;
+        [JsonIgnore]
+        public float CurrentDistanceLimit
+        {
+            get
+            {
+                return currentDistanceLimit;
+            }
+            set
+            {
+                currentDistanceLimit = value;
+                OnPropertyChanged("CurrentDistanceLimit");
+            }
+        }
 
         [JsonIgnore]
         public string OldName { get; private set; }

@@ -98,6 +98,20 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
+        private bool isNonCombatMovement;
+        public bool IsNonCombatMovement
+        {
+            get
+            {
+                return isNonCombatMovement;
+            }
+            set
+            {
+                isNonCombatMovement = value;
+                OnPropertyChanged("IsNonCombatMovement");
+            }
+        }
+
         private Keys activationKey;
         public Keys ActivationKey
         {

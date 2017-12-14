@@ -24,6 +24,8 @@
                 <MenuItem Header="Edit" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditOptionCommand}"></MenuItem>
                 <MenuItem Header="Play" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlayOptionCommand}"></MenuItem>
                 <MenuItem Header="Stop" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.StopOptionCommand}"></MenuItem>
+                <MenuItem Header="Combat Movement" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SetNonCombatMovementCommand}" Visibility="{Binding Source={StaticResource BindingProxy}, Path=Data.IsCombatMovementSelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"></MenuItem>
+                <MenuItem Header="Non-combat Movement" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SetNonCombatMovementCommand}" CommandParameter="Combat" Visibility="{Binding Source={StaticResource BindingProxy}, Path=Data.IsNonCombatMovementSelected, Converter={StaticResource BooleanToVisibilityInvertConverter}}"></MenuItem>
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>

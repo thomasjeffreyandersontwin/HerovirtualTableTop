@@ -7,6 +7,7 @@ using Module.HeroVirtualTabletop.Movements;
 using Module.Shared;
 using Module.Shared.Events;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,7 +34,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         void ConfirmAttack();
         void CancelAttack();
         void NotifyStopMovement(CharacterMovement characterMovement, double distanceTravelled);
-    }
+        float GetMovementDistanceLimit(CharacterMovement activeMovement); 
+    } 
     public class HCSIntegrator : IHCSIntegrator
     {
         private CollisionEngine collisionEngine;
@@ -133,7 +135,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     else if (e.Name == Constants.ACTIVE_CHARACTOR_FILE_NAME)
                     {
                         this.LastIntegrationAction = HCSIntegrationAction.ActiveCharacterUpdated;
-                        ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacter();
+                        ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
                         if (activeCharacterInfo != null)
                             OnActiveCharacterUpdated(null, new CustomEventArgs<object> { Value = activeCharacterInfo });
                     }
@@ -187,7 +189,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             OnDeckCombatants onDeckCombatants = GetCurrentCombatants();
             Chronometer chronometer = GetCurrentChronometer();
-            ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacter();
+            ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
             return new object[] { onDeckCombatants, chronometer, activeCharacterInfo };
         }
 
@@ -225,7 +227,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return chronometer;
         }
 
-        private ActiveCharacterInfo GetCurrentActiveCharacter()
+        private ActiveCharacterInfo GetCurrentActiveCharacterInfo()
         {
             string pathActiveCharacter = Path.Combine(EventInfoDirectoryPath, Constants.ACTIVE_CHARACTOR_FILE_NAME);
             ActiveCharacterInfo activeCharacterInfo = null;
@@ -306,7 +308,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 {
                     int distance = knockBackResult.Target.Result.Knockback.Distance;
                     if (this.CurrentActiveCharacterInfo == null)
-                        this.GetCurrentActiveCharacter();
+                        this.GetCurrentActiveCharacterInfo();
                     Character attacker = this.InGameCharacters.FirstOrDefault(c => c.Name == this.CurrentActiveCharacterInfo.Name);
                     Character target = this.InGameCharacters.FirstOrDefault(c => c.Name == knockBackResult.Target.Name);
                     List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && !attackResult.Targets.Any(t => t.Target.Name == c.Name)).ToList();
@@ -338,7 +340,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             {
                 int distance = attackResult.Results.Knockback.Distance;
                 if (this.CurrentActiveCharacterInfo == null)
-                    this.GetCurrentActiveCharacter();
+                    this.GetCurrentActiveCharacterInfo();
                 Character attacker = this.InGameCharacters.FirstOrDefault(c => c.Name == this.CurrentActiveCharacterInfo.Name);
                 Character target = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.Target.Name);
                 List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != target).ToList();
@@ -493,11 +495,53 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return attackTargets;
         }
 
+        private float ParseDistanceLimitForMovement(string movementName, bool nonCombat)
+        {
+            string limitString = GetDistanceLimitString(movementName);
+            float limit = 0;
+            string[] tokens = limitString.Split(',');
+            if (tokens.Length == 3)
+            {
+                string tokenToConsider = nonCombat ? tokens[2] : tokens[1];
+                string[] numbers = Regex.Split(tokenToConsider, @"\D+");
+                if (numbers.Length > 0)
+                {
+                    int k;
+                    foreach (string n in numbers)
+                    {
+                        if (int.TryParse(n, out k))
+                        {
+                            limit = int.Parse(n);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return limit;
+        }
+
+        private string GetDistanceLimitString(string movementName)
+        {
+            string limitString = "";
+            JToken outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
+            JObject inner = outer[movementName].Value<JObject>();
+            dynamic d = inner;
+            limitString = d.Description;
+            // or the following works too
+            //var values = inner.Properties().Where(p => p.Name == "Description").Select(p => p.Value);
+            //foreach(var value in values)
+            //{
+            //    string val = value.Value<string>();
+            //}
+            return limitString;
+        }
+
         private void WaitForAttackUpdates()
         {
             var integrationAction = this.LastIntegrationAction;
-            //timer = new Timer(timer_elapsed, integrationAction, Timeout.Infinite, Timeout.Infinite);
-            //timer.Change(5000, Timeout.Infinite);
+            timer = new Timer(timer_elapsed, integrationAction, Timeout.Infinite, Timeout.Infinite);
+            timer.Change(5000, Timeout.Infinite);
         }
 
         public void PlaySimpleAbility(Character target, AnimatedAbility ability)
@@ -508,6 +552,46 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public void NotifyStopMovement(CharacterMovement characterMovement, double distanceTravelled)
         {
             GenerateSimpleMovementMessage(characterMovement, distanceTravelled);
+        }
+
+        public float GetMovementDistanceLimit(CharacterMovement activeMovement)
+        {
+            float maxDistance = 0f;
+            if (this.CurrentActiveCharacterInfo == null)
+                this.GetCurrentActiveCharacterInfo();
+            
+            if (this.CurrentActiveCharacterInfo.Powers != null)
+            {
+                switch (activeMovement.Name.ToLower())
+                {
+                    case "running":
+                    case "run":
+                        maxDistance = ParseDistanceLimitForMovement("Running", activeMovement.IsNonCombatMovement);
+                        break;
+                    case "walking":
+                    case "walk":
+                        maxDistance = ParseDistanceLimitForMovement("Walking", activeMovement.IsNonCombatMovement);
+                        break;
+                    case "swimming":
+                    case "swim":
+                        maxDistance = ParseDistanceLimitForMovement("Swimming", activeMovement.IsNonCombatMovement);
+                        break;
+                    case "leaping":
+                    case "leap":
+                        maxDistance = ParseDistanceLimitForMovement("Leaping", activeMovement.IsNonCombatMovement);
+                        break;
+                    case "flying":
+                    case "fly":
+                        maxDistance = ParseDistanceLimitForMovement("Flying", activeMovement.IsNonCombatMovement);
+                        break;
+                    case "jumping":
+                    case "jump":
+                        maxDistance = ParseDistanceLimitForMovement("Jumping", activeMovement.IsNonCombatMovement);
+                        break;
+                }
+            }
+            
+            return maxDistance;
         }
 
         public void ConfigureSingleTargetVanillaAttack(Attack attack, Character attacker, Character defender)
@@ -585,6 +669,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             string pathAttackActivated = Path.Combine(EventInfoDirectoryPath, Constants.ABILITY_ACTIVATED_FILE_NAME);
             JsonSerializer serializer = new JsonSerializer();
             serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.Formatting = Formatting.Indented;
             using (StreamWriter streamWriter = new StreamWriter(pathAttackActivated))
             {
                 using (JsonWriter jsonWriter = new JsonTextWriter(streamWriter))
