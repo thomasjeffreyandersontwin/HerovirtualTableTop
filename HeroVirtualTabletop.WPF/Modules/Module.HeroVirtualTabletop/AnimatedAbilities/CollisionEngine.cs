@@ -67,7 +67,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (hasCollision)
             {
                 obstruction = "WALL";
-                collisionDistance = bodyPartCollisionMap.Values.Min(d => d.CollisionDistance);
+                collisionDistance = bodyPartCollisionMap.Values.Min(d => d != null ? d.CollisionDistance : 0);
             }
             else
                 collisionDistance = 10000f;

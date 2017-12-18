@@ -2667,6 +2667,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 // Commenting out following as we need the fxs to be persisted across attacks
                 //defender.Deactivate(); // restore original costume
             }
+            if (this.IsSequenceViewActive)
+                this.hcsIntegrator.ConfirmAttack();
             if (attack.IsAreaEffect)
                 attack.AnimateAttackSequence(AttackingCharacters, defendingCharacters);
             else
@@ -2937,27 +2939,30 @@ namespace Module.HeroVirtualTabletop.Roster
                 ActiveCharacterInfo activeCharacterInfo = values[2] as ActiveCharacterInfo;
                 this.SequenceParticipants = new ObservableCollection<HCSIntegration.Combatant>();
                 int order = 0;
-                foreach (var combatant in onDeckCombatants.Combatants)
+                if (onDeckCombatants != null)
                 {
-                    Character character = this.Participants.FirstOrDefault(p => p.Name == combatant.CharacterName) as Character;
-                    if (character != null)
+                    foreach (var combatant in onDeckCombatants.Combatants)
                     {
-                        this.SequenceParticipants.Add(new Combatant { Phase = combatant.Phase, CharacterName = character.Name, CombatantCharacter = character, Order = ++order });
-                    }
-                    else
-                    {
-                        if (!this.SequenceParticipants.Any(sp => sp.Phase == Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME && sp.CharacterName == combatant.CharacterName))
-                            this.SequenceParticipants.Add(new Combatant { Phase = Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME, CharacterName = combatant.CharacterName, CombatantCharacter = new CrowdMemberModel { Name = "", RosterCrowd = new CrowdModel { Name = "" } }, Order = Int32.MaxValue });
-                    }
+                        Character character = this.Participants.FirstOrDefault(p => p.Name == combatant.CharacterName) as Character;
+                        if (character != null)
+                        {
+                            this.SequenceParticipants.Add(new Combatant { Phase = combatant.Phase, CharacterName = character.Name, CombatantCharacter = character, Order = ++order });
+                        }
+                        else
+                        {
+                            if (!this.SequenceParticipants.Any(sp => sp.Phase == Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME && sp.CharacterName == combatant.CharacterName))
+                                this.SequenceParticipants.Add(new Combatant { Phase = Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME, CharacterName = combatant.CharacterName, CombatantCharacter = new CrowdMemberModel { Name = "", RosterCrowd = new CrowdModel { Name = "" } }, Order = Int32.MaxValue });
+                        }
+                    } 
                 }
                 if (chronometer != null)
                 {
-                    if (chronometer.CurrentPhase == onDeckCombatants.Combatants[0].Phase)
+                    if (onDeckCombatants != null && onDeckCombatants.Combatants.Count > 0 && chronometer.CurrentPhase == onDeckCombatants.Combatants[0].Phase)
                     {
                         this.CurrentPhase = chronometer.CurrentPhase;
                     }
                 }
-                else if(onDeckCombatants.Combatants.Count > 0)
+                else if(onDeckCombatants != null && onDeckCombatants.Combatants.Count > 0)
                 {
                     this.CurrentPhase = onDeckCombatants.Combatants[0].Phase;
                 }
@@ -2979,7 +2984,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ConfigureAttackThroughCombatSimulator()
         {
-            if (this.ActiveCharacter != null && this.AttackingCharacters.Contains(this.ActiveCharacter as Character))
+            if (this.ActiveCharacter != null && this.AttackingCharacters.Contains(this.ActiveCharacter as Character) && this.targetCharacters.Count > 0)
             {
                 this.hcsIntegrator.ConfigureAttack(this.currentAttack, this.AttackingCharacters, this.targetCharacters);
             }

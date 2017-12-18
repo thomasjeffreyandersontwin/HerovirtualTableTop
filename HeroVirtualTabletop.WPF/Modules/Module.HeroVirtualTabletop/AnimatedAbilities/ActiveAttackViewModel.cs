@@ -289,7 +289,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (missCharactersFound)
             {
                 if(!hitCharactersFound)
-                    summary.Append("The attack missed ");
+                    summary = new StringBuilder("The attack missed ");
                 else
                     summary.Append(" and missed ");
                 for (int i = 0; i < missCharacters.Count; i++)
