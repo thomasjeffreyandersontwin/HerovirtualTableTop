@@ -4,6 +4,7 @@ Menu "Character"
 {
 Option "Activate/Deactivate" "bind_save_file activate.txt"
 Option "Activate Crowd as Gang" "bind_save_file activatecrowdasgang.txt"
+Option "Abort" "bind_save_file abortaction.txt"
 Option "Spawn" "bind_save_file spawn.txt"
 Option "Place" "bind_save_file place.txt"
 Option "Save Position" "bind_save_file saveposition.txt"

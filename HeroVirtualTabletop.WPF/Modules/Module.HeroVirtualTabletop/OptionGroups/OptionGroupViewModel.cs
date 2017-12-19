@@ -108,7 +108,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             }
             set
             {
-                SetSelectedOption(value);
+                if(value == null || (value != null && value.IsEnabled))
+                    SetSelectedOption(value);
                 OnPropertyChanged("SelectedOption");
                 OnPropertyChanged("IsCombatMovementSelected");
                 OnPropertyChanged("IsNonCombatMovementSelected");

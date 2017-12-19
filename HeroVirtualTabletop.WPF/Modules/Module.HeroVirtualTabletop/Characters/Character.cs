@@ -23,6 +23,7 @@ using Module.HeroVirtualTabletop.Movements;
 using Microsoft.Xna.Framework;
 using Module.HeroVirtualTabletop.Library.Utility;
 using System.Threading;
+using Module.HeroVirtualTabletop.HCSIntegration;
 
 [assembly: InternalsVisibleTo("Module.UnitTest")]
 namespace Module.HeroVirtualTabletop.Characters
@@ -1325,6 +1326,11 @@ namespace Module.HeroVirtualTabletop.Characters
                 keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.LoadCostume, ActiveIdentity.Surface);
                 keyBindsGenerator.CompleteEvent();
             }
+        }
+
+        public void RefreshAbilitiesActivationEligibility(List<AbilityActivationEligibility> eligibilityCollection)
+        {
+
         }
 
         #region Movements

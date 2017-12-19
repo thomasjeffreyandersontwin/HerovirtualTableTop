@@ -49,6 +49,7 @@
                 <MenuItem Header="Activate Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateCharacterCommand}"></MenuItem>
                 <MenuItem Header="Activate Crowd as Gang" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateCrowdAsGangCommand}"></MenuItem>
                 <MenuItem Header="Activate as Gang" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ActivateGangCommand}"></MenuItem>
+                <MenuItem Header="Abort" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AbortActionCommand}"></MenuItem>
                 <MenuItem Header="Edit Character" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.EditCharacterCommand}"></MenuItem>
                 <MenuItem Header="Save Position" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.SavePositionCommand}"></MenuItem>
                 <MenuItem Header="Place" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.PlaceCommand}"></MenuItem>
@@ -64,6 +65,7 @@
                 <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetCommand}"></MenuItem>
                 <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCommand}"></MenuItem>
                 <MenuItem Header="Target and Execute Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCrowdCommand}"></MenuItem>
+                <MenuItem Header="Abort" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AbortActionCommand}"></MenuItem>      
             </ContextMenu>
         </ResourceDictionary>
     </UserControl.Resources>

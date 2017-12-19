@@ -81,6 +81,12 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public string CurrentPhase { get; set; }
     }
 
+    public class AbilityActivationEligibility
+    {
+        public string AbilityName { get; set; }
+        public bool IsEnabled { get; set; }
+    }
+
     public class SimpleAbility
     {
         public string Type { get; set; }
@@ -171,6 +177,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     public class AttackSingleTargetResult : AttackResultHCS
     {
         public Target Target { get; set; }
+        [JsonProperty("Obstruction Result")]
+        public ObstructionResult ObstructionResult { get; set; }
         public Results Results { get; set; }
     }
 
@@ -224,6 +232,13 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     }
     public class ObstacleDamageResults
     {
+        public List<string> Effects { get; set; }
+    }
+
+    public class ObstructionResult
+    {
+        [JsonProperty("Obstruction Name")]
+        public string ObstructionName { get; set; }
         public List<string> Effects { get; set; }
     }
 

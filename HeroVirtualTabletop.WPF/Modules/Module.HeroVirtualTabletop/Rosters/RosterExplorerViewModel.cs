@@ -439,6 +439,7 @@ namespace Module.HeroVirtualTabletop.Roster
         #region Commands
 
         public DelegateCommand<object> SpawnCommand { get; private set; }
+        public DelegateCommand AbortActionCommand { get; private set; }
         public DelegateCommand<object> SavePositionCommand { get; private set; }
         public DelegateCommand<object> PlaceCommand { get; private set; }
         public DelegateCommand<object> ClearFromDesktopCommand { get; private set; }
@@ -548,6 +549,7 @@ namespace Module.HeroVirtualTabletop.Roster
             desktopContextMenu.AttackTargetAndExecuteMenuItemSelected += desktopContextMenu_AttackTargetAndExecuteMenuItemSelected;
             desktopContextMenu.AttackTargetMenuItemSelected += desktopContextMenu_AttackTargetMenuItemSelected;
             desktopContextMenu.AttackTargetAndExecuteCrowdMenuItemSelected += desktopContextMenu_AttackTargetAndExecuteCrowdMenuItemSelected;
+            desktopContextMenu.AbortMenuItemSelected += desktopContextMenu_AbortMenuItemSelected;
             desktopContextMenu.ClearFromDesktopMenuItemSelected += desktopContextMenu_ClearFromDesktopMenuItemSelected;
             desktopContextMenu.CloneAndLinkMenuItemSelected += desktopContextMenu_CloneAndLinkMenuItemSelected;
             desktopContextMenu.DefaultContextMenuDisplayed += desktopContextMenu_DefaultContextMenuDisplayed;
@@ -577,6 +579,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private void InitializeCommands()
         {
             this.SpawnCommand = new DelegateCommand<object>(delegate (object state) { this.Spawn(); });
+            this.AbortActionCommand = new DelegateCommand(this.AbortAction, this.CanAbortAction);
             this.ClearFromDesktopCommand = new DelegateCommand<object>(delegate (object state) { this.ClearFromDesktop(); }, this.CanClearFromDesktop);
             this.ToggleTargetedCommand = new DelegateCommand<object>(delegate (object state) { this.ToggleTargeted(); }, this.CanToggleTargeted);
             this.SavePositionCommand = new DelegateCommand<object>(delegate (object state) { this.SavePosition(); }, this.CanSavePostion);
@@ -955,7 +958,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else
                 {
-                    desktopContextMenu.GenerateAndDisplay(character, AttackingCharacters.Select(ac => ac.Name).ToList(), IsPlayingAttack);
+                    desktopContextMenu.GenerateAndDisplay(character, AttackingCharacters.Select(ac => ac.Name).ToList(), IsPlayingAttack, IsSequenceViewActive);
                     numRetryPopupMenu = 3;
                 }
                 Vector3 mousePosition = new MouseElement().Position;
@@ -1376,6 +1379,32 @@ namespace Module.HeroVirtualTabletop.Roster
             }
             SelectNextCharacterInCrowdCycle();
             Commands_RaiseCanExecuteChanged();
+        }
+        #endregion
+
+        #region Abort
+
+        private bool CanAbortAction()
+        {
+            bool canAbortAction = false;
+            if (this.IsSequenceViewActive)
+            {
+                foreach (var c in this.SelectedParticipants)
+                {
+                    var character = c as Character;
+                    if (character != null && character.HasBeenSpawned)
+                    {
+                        canAbortAction = true;
+                        break;
+                    }
+                }
+            }
+            return canAbortAction;
+        }
+        private void AbortAction()
+        {
+            List<Character> charactersToOperateOn = this.GetCharactersToOperateOn(false);
+            this.hcsIntegrator.AbortAction(charactersToOperateOn);
         }
         #endregion
 
@@ -2510,12 +2539,14 @@ namespace Module.HeroVirtualTabletop.Roster
                         if (Keyboard.Modifiers == ModifierKeys.Shift)
                         {
                             this.SelectedParticipants.Clear();
+                            this.SelectedParticipants = new List<Character>();
                             this.SelectedParticipants.Add(character);
                             this.TargetCharacterForAttack(null);
                         }
                         else if (!dontFireAttack)
                         {
                             this.SelectedParticipants.Clear();
+                            this.SelectedParticipants = new List<Character>();
                             this.SelectedParticipants.Add(character);
                             this.TargetAndExecuteAttack(null);
                         }
@@ -3003,6 +3034,11 @@ namespace Module.HeroVirtualTabletop.Roster
         #endregion
 
         #region Desktop Context Menu Handlers
+
+        private void desktopContextMenu_AbortMenuItemSelected(object sender, EventArgs e)
+        {
+            this.AbortAction();
+        }
         void desktopContextMenu_SpawnMenuItemSelected(object sender, EventArgs e)
         {
             this.Spawn();

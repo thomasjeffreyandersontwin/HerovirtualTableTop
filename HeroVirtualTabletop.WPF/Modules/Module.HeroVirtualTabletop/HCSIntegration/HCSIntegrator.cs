@@ -35,6 +35,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         void CancelAttack();
         void NotifyStopMovement(CharacterMovement characterMovement, double distanceTravelled);
         float GetMovementDistanceLimit(CharacterMovement activeMovement);
+        void AbortAction(List<Character> abortingCharacters);
     }
     public class HCSIntegrator : IHCSIntegrator
     {
@@ -288,6 +289,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             if(json != null)
                 activeCharacterInfo = JsonConvert.DeserializeObject<ActiveCharacterInfo>(json);
             this.CurrentActiveCharacterInfo = activeCharacterInfo;
+            GetAbilityActivationEligibilityCollection();
             return activeCharacterInfo;
         }
 
@@ -310,6 +312,37 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             {
             }
             return json;
+        }
+
+        private List<AbilityActivationEligibility> GetAbilityActivationEligibilityCollection()
+        {
+            List<AbilityActivationEligibility> eligibilityCollection = new List<HCSIntegration.AbilityActivationEligibility>();
+            string json = this.CurrentActiveCharacterInfo.Powers.ToString();
+
+            JToken outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
+            foreach(JObject jObj in outer.Children<JObject>())
+            {
+                foreach(JProperty jProp in jObj.Properties())
+                {
+                    
+                }
+                //var values = jObj.Properties().Where(p => p.Name == "Is Enabled").Select(p => p.Value);
+                //if(values.Count() > 0)
+                //{
+                //    bool val = values.First().Value<bool>();
+                //}
+                
+            }
+            //JObject inner = outer[movementName].Value<JObject>();
+            //dynamic d = inner;
+            //limitString = d.Description;
+            // or the following works too
+            //var values = inner.Properties().Where(p => p.Name == "Description").Select(p => p.Value);
+            //foreach(var value in values)
+            //{
+            //    string val = value.Value<string>();
+            //}
+            return null;
         }
 
         private string GetAttackResultsFileContents()
@@ -427,7 +460,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         }
         private void ProcessPrimarySingleTargetResult(AttackSingleTargetResult attackResult)
         {
-            if (attackResult.Results.Knockback != null)
+            if (attackResult.Results != null && attackResult.Results.Knockback != null)
             {
                 int distance = attackResult.Results.Knockback.Distance;
                 if (this.CurrentActiveCharacterInfo == null)
@@ -508,29 +541,43 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 attackConfigPrimary.IsHit = attackResult.Results.Hit;
                 attackConfigPrimary.Body = attackResult.Target.Body.Current;
                 attackConfigPrimary.Stun = attackResult.Target.Stun.Current;
+                Character secondaryTarget = null;
+                ActiveAttackConfiguration attackConfigSecondary = new ActiveAttackConfiguration();
                 if (attackResult.Results.Knockback != null && attackResult.Results.Knockback.Distance != 0)
                 {
                     attackConfigPrimary.IsKnockedBack = true;
                     attackConfigPrimary.KnockBackDistance = attackResult.Results.Knockback.Distance;
+                    
                     if (attackResult.Results.Knockback.ObstacleCollision != null)
                     {
-                        Character secondaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.Results.Knockback.ObstacleCollision.Name);
-                        if (secondaryTarget != null)
+                        secondaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.Results.Knockback.ObstacleCollision.Name);
+                        attackConfigSecondary.Body = attackResult.Results.Knockback.ObstacleCollision.Body.Current;
+                        if (attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults != null
+                        && attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults.Effects != null
+                        && attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults.Effects.Count > 0)
                         {
-                            attackTargets.Add(secondaryTarget);
-                            ActiveAttackConfiguration attackConfigSecondary = new ActiveAttackConfiguration();
-                            attackConfigSecondary.IsHit = true;
-                            attackConfigSecondary.ObstructingCharacter = null;
-                            attackConfigSecondary.Body = attackResult.Results.Knockback.ObstacleCollision.Body.Current;
-                            if (attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults.Effects != null
-                                && attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults.Effects.Count > 0)
-                            {
-                                ParseEffects(attackConfigSecondary, attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults.Effects);
-                            }
-                            secondaryTarget.ActiveAttackConfiguration = attackConfigSecondary;
-                            attackConfigPrimary.ObstructingCharacter = secondaryTarget;
+                            ParseEffects(attackConfigSecondary, attackResult.Results.Knockback.ObstacleCollision.ObstacleDamageResults.Effects);
                         }
                     }
+                }
+
+                if (secondaryTarget == null && attackResult.ObstructionResult != null)
+                {
+                    secondaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.ObstructionResult.ObstructionName);
+                    if (attackResult.ObstructionResult.Effects != null
+                        && attackResult.ObstructionResult.Effects.Count > 0)
+                    {
+                        ParseEffects(attackConfigSecondary, attackResult.ObstructionResult.Effects);
+                    }
+                }
+
+                if (secondaryTarget != null)
+                {
+                    attackTargets.Add(secondaryTarget);
+                    attackConfigSecondary.IsHit = true;
+                    attackConfigSecondary.ObstructingCharacter = null;
+                    secondaryTarget.ActiveAttackConfiguration = attackConfigSecondary;
+                    attackConfigPrimary.ObstructingCharacter = secondaryTarget;
                 }
                 ParseEffects(attackConfigPrimary, attackResult.Results.Effects);
                 primaryTarget.ActiveAttackConfiguration = attackConfigPrimary;
@@ -685,7 +732,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return maxDistance;
         }
 
-        public void ConfigureSingleTargetVanillaAttack(Attack attack, Character attacker, Character defender)
+        private void ConfigureSingleTargetVanillaAttack(Attack attack, Character attacker, Character defender)
         {
             this.CurrentAttackType = HCSAttackType.SingleTargetVanilla;
             GenerateAttackSingleTargetInitiationMessage(attack, attacker, defender);
@@ -693,7 +740,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             WaitForAttackUpdates();
         }
 
-        public void ConfigureAreaAttack(Attack attack, Character attacker, List<Character> defenders)
+        private void ConfigureAreaAttack(Attack attack, Character attacker, List<Character> defenders)
         {
             this.CurrentAttackType = HCSAttackType.Area;
             GenerateAttackAreaTargetInitiationMessage(attack, attacker, defenders);
@@ -748,6 +795,12 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             ResetAttackParameters();
         }
 
+        public void AbortAction(List<Character> abortingCharacters)
+        {
+            foreach (Character character in abortingCharacters)
+                GenerateAbortActionMessage(character);
+        }
+
         private void ResetAttackParameters()
         {
             this.CurrentAttackResult = null;
@@ -774,6 +827,13 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             SimpleAbility simpleAbility = new SimpleAbility { Ability = ability.Name, Type = Constants.SIMPLE_ABILITY_TYPE_NAME };
             WriteToAbilityActivatedFile(simpleAbility);
+        }
+
+        private void GenerateAbortActionMessage(Character target)
+        {
+            SimpleAbility abortMessage = new SimpleAbility { Type = Constants.ABORT_ACTION_TYPE_NAME, Character = target.Name };
+            WriteToAbilityActivatedFile(abortMessage);
+            Thread.Sleep(1000);
         }
 
         private void GenerateSimpleMovementMessage(CharacterMovement characterMovement, double distanceTravelled)

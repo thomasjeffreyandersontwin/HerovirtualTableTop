@@ -97,7 +97,7 @@
                                     </ListBox.ItemsPanel>
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
-                                            <Grid Name="optGrid" 
+                                            <Grid Name="optGrid" IsEnabled="{Binding IsEnabled}"
                             ContextMenu="{StaticResource optionListBoxMenu}">
                                                 <Ellipse Name="optionEllipse"  Width="40" Height="40" ToolTip="{Binding Path=OptionTooltip}" behaviors:CommandBehavior.Event="MouseLeftButtonUp" behaviors:CommandBehavior.Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=local:OptionGroupView}, Path=DataContext.TogglePlayOptionCommand}" behaviors:CommandBehavior.CommandParameter="{Binding ElementName=optionEllipse, Path=DataContext}">
                                                     <Ellipse.Style>
