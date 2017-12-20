@@ -655,15 +655,20 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             string limitString = "";
             JToken outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
-            JObject inner = outer[movementName].Value<JObject>();
-            dynamic d = inner;
-            limitString = d.Description;
-            // or the following works too
-            //var values = inner.Properties().Where(p => p.Name == "Description").Select(p => p.Value);
-            //foreach(var value in values)
-            //{
-            //    string val = value.Value<string>();
-            //}
+            bool movementExists = outer.Children().Any(c => (c is JProperty) && (c as JProperty).Name == movementName);
+            if (movementExists)
+            {
+                JObject inner = outer[movementName].Value<JObject>();
+                dynamic d = inner;
+                limitString = d.Description;
+                // or the following works too
+                //var values = inner.Properties().Where(p => p.Name == "Description").Select(p => p.Value);
+                //foreach(var value in values)
+                //{
+                //    string val = value.Value<string>();
+                //}
+            }
+
             return limitString;
         }
 
@@ -692,33 +697,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
             if (this.CurrentActiveCharacterInfo.Powers != null)
             {
-                switch (activeMovement.Name.ToLower())
-                {
-                    case "running":
-                    case "run":
-                        maxDistance = ParseDistanceLimitForMovement("Running", activeMovement.IsNonCombatMovement);
-                        break;
-                    case "walking":
-                    case "walk":
-                        maxDistance = ParseDistanceLimitForMovement("Walking", activeMovement.IsNonCombatMovement);
-                        break;
-                    case "swimming":
-                    case "swim":
-                        maxDistance = ParseDistanceLimitForMovement("Swimming", activeMovement.IsNonCombatMovement);
-                        break;
-                    case "leaping":
-                    case "leap":
-                        maxDistance = ParseDistanceLimitForMovement("Leaping", activeMovement.IsNonCombatMovement);
-                        break;
-                    case "flying":
-                    case "fly":
-                        maxDistance = ParseDistanceLimitForMovement("Flying", activeMovement.IsNonCombatMovement);
-                        break;
-                    case "jumping":
-                    case "jump":
-                        maxDistance = ParseDistanceLimitForMovement("Jumping", activeMovement.IsNonCombatMovement);
-                        break;
-                }
+                string movementName = GetMovementName(activeMovement.Name.ToLower());
+                maxDistance = ParseDistanceLimitForMovement(movementName, activeMovement.IsNonCombatMovement);
             }
 
             return maxDistance;
@@ -802,17 +782,22 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         private void WriteToAbilityActivatedFile(object jsonObject)
         {
-            string pathAttackActivated = Path.Combine(EventInfoDirectoryPath, Constants.ABILITY_ACTIVATED_FILE_NAME);
-            JsonSerializer serializer = new JsonSerializer();
-            serializer.NullValueHandling = NullValueHandling.Ignore;
-            serializer.Formatting = Formatting.Indented;
-            using (StreamWriter streamWriter = new StreamWriter(pathAttackActivated))
+            Action d = delegate ()
             {
-                using (JsonWriter jsonWriter = new JsonTextWriter(streamWriter))
+                string pathAttackActivated = Path.Combine(EventInfoDirectoryPath, Constants.ABILITY_ACTIVATED_FILE_NAME);
+                JsonSerializer serializer = new JsonSerializer();
+                serializer.NullValueHandling = NullValueHandling.Ignore;
+                serializer.Formatting = Formatting.Indented;
+                using (StreamWriter streamWriter = new StreamWriter(pathAttackActivated))
                 {
-                    serializer.Serialize(jsonWriter, jsonObject);
+                    using (JsonWriter jsonWriter = new JsonTextWriter(streamWriter))
+                    {
+                        serializer.Serialize(jsonWriter, jsonObject);
+                    }
                 }
-            }
+            };
+            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 500);
+            adex.ExecuteAsyncDelegate();
         }
 
         private void GenerateSimpleAbilityMessage(Character target, AnimatedAbility ability)
@@ -830,8 +815,41 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         private void GenerateSimpleMovementMessage(CharacterMovement characterMovement, double distanceTravelled)
         {
-            SimpleMovement simpleMovement = new SimpleMovement { Ability = characterMovement.Movement.Name, Type = Constants.MOVEMENT_TYPE_NAME, Distance = distanceTravelled };
+            SimpleMovement simpleMovement = new SimpleMovement { Movement = GetMovementName(characterMovement.Name), Type = Constants.MOVEMENT_TYPE_NAME, Distance = (int)distanceTravelled };
             WriteToAbilityActivatedFile(simpleMovement);
+        }
+
+        private string GetMovementName(string characterMovementName)
+        {
+            string movementName = "";
+            switch (characterMovementName.ToLower())
+            {
+                case "running":
+                case "run":
+                    movementName = "Running";
+                    break;
+                case "walking":
+                case "walk":
+                    movementName = "Walking";
+                    break;
+                case "swimming":
+                case "swim":
+                    movementName = "Swimming";
+                    break;
+                case "leaping":
+                case "leap":
+                    movementName = "Leaping";
+                    break;
+                case "flying":
+                case "fly":
+                    movementName = "Flying";
+                    break;
+                case "jumping":
+                case "jump":
+                    movementName = "Jumping";
+                    break;
+            }
+            return movementName;
         }
 
         private void GenerateAttackSingleTargetInitiationMessage(Attack attack, Character attacker, Character defender)

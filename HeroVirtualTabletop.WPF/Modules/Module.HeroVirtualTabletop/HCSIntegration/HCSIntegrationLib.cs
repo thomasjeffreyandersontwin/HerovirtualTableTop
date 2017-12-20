@@ -119,8 +119,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     public class SimpleMovement
     {
         public string Type { get; set; }
-        public string Ability { get; set; }
-        public double Distance { get; set; }
+        public string Movement { get; set; }
+        public int Distance { get; set; }
     }
 
     public class AttackSingleTarget
