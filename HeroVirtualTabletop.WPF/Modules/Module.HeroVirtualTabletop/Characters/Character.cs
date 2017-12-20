@@ -1328,9 +1328,25 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        public void RefreshAbilitiesActivationEligibility(List<AbilityActivationEligibility> eligibilityCollection)
+        public void RefreshAbilitiesActivationEligibility(List<AbilityActivationEligibility> eligibilityCollection = null)
         {
-
+            if (this.OptionGroups != null && this.OptionGroups.Count > 0)
+            {
+                foreach (var optionGroup in this.OptionGroups)
+                {
+                    foreach (ICharacterOption option in optionGroup.Options)
+                    {
+                        if (eligibilityCollection != null)
+                        {
+                            AbilityActivationEligibility abilityActivationEligibility = eligibilityCollection.FirstOrDefault(e => e.AbilityName == option.Name);
+                            if (abilityActivationEligibility != null)
+                                option.IsEnabled = abilityActivationEligibility.IsEnabled;
+                        }
+                        else
+                            option.IsEnabled = true;
+                    }
+                }
+            }
         }
 
         #region Movements

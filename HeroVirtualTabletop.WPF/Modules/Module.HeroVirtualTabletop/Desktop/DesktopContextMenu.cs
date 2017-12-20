@@ -337,13 +337,16 @@ namespace Module.HeroVirtualTabletop.Desktop
                     case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME:
                         FireContextMenuEvent(ContextMenuEvent.AttackTargetMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                         break;
-                    case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME:
+                    case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME: 
                         ContextCommandFileWatcher.EnableRaisingEvents = false;
                         FireContextMenuEvent(ContextMenuEvent.AttackTargetAndExecuteMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                         break;
                     case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_CROWD_FILENAME:
                         ContextCommandFileWatcher.EnableRaisingEvents = false;
                         FireContextMenuEvent(ContextMenuEvent.AttackTargetAndExecuteCrowdMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_CHARACTER_BINDSAVE_ABORT_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.AbortMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
                         break;
                     case Constants.GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME:
                         FireContextMenuEvent(ContextMenuEvent.SpawnMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });

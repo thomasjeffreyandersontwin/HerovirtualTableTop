@@ -289,7 +289,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             if(json != null)
                 activeCharacterInfo = JsonConvert.DeserializeObject<ActiveCharacterInfo>(json);
             this.CurrentActiveCharacterInfo = activeCharacterInfo;
-            GetAbilityActivationEligibilityCollection();
+            this.CurrentActiveCharacterInfo.AbilitiesEligibilityCollection = GetAbilityActivationEligibilityCollection();
             return activeCharacterInfo;
         }
 
@@ -320,29 +320,21 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             string json = this.CurrentActiveCharacterInfo.Powers.ToString();
 
             JToken outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
-            foreach(JObject jObj in outer.Children<JObject>())
+            foreach(var obj in outer.Children())
             {
-                foreach(JProperty jProp in jObj.Properties())
+                JProperty jProp = obj as JProperty;
+                if(jProp != null)
                 {
-                    
+                    JObject jObj = jProp.Value as JObject;
+                    var values = jObj.Properties().Where(p => p.Name == "Is Enabled").Select(p => p.Value);
+                    if (values.Count() > 0)
+                    {
+                        bool val = values.First().Value<bool>();
+                        eligibilityCollection.Add(new HCSIntegration.AbilityActivationEligibility { AbilityName = jProp.Name, IsEnabled = val });
+                    }
                 }
-                //var values = jObj.Properties().Where(p => p.Name == "Is Enabled").Select(p => p.Value);
-                //if(values.Count() > 0)
-                //{
-                //    bool val = values.First().Value<bool>();
-                //}
-                
             }
-            //JObject inner = outer[movementName].Value<JObject>();
-            //dynamic d = inner;
-            //limitString = d.Description;
-            // or the following works too
-            //var values = inner.Properties().Where(p => p.Name == "Description").Select(p => p.Value);
-            //foreach(var value in values)
-            //{
-            //    string val = value.Value<string>();
-            //}
-            return null;
+            return eligibilityCollection;
         }
 
         private string GetAttackResultsFileContents()

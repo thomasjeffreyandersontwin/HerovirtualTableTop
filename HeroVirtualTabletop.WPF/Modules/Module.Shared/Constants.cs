@@ -66,6 +66,7 @@ namespace Module.Shared
         public const string GAME_MENUS_FOLDERNAME = "menus";
         public const string GAME_AREAATTACK_MENU_FILENAME = "areaattack.mnu";
         public const string GAME_CHARACTER_MENU_FILENAME = "character.mnu";
+        public const string GAME_CHARACTER_BINDSAVE_ABORT_FILENAME = "abortaction.txt";
         public const string GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME = "spawn.txt";
         public const string GAME_CHARACTER_BINDSAVE_PLACE_FILENAME = "place.txt";
         public const string GAME_CHARACTER_BINDSAVE_SAVEPOSITION_FILENAME = "saveposition.txt";

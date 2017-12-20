@@ -67,7 +67,9 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private List<Character> targetCharactersForMove = new List<Character>();
         private List<Character> targetCharacters = new List<Character>();
+        private List<Character> abortedCharacters = new List<Character>();
         private List<CrowdMemberModel> _oldSelection = new List<CrowdMemberModel>();
+        private object[] savedAttackState = null;
 
         Character lastTargetedCharacter = null;
         private Character previousSelectedCharacter = null;
@@ -961,8 +963,11 @@ namespace Module.HeroVirtualTabletop.Roster
                     desktopContextMenu.GenerateAndDisplay(character, AttackingCharacters.Select(ac => ac.Name).ToList(), IsPlayingAttack, IsSequenceViewActive);
                     numRetryPopupMenu = 3;
                 }
-                Vector3 mousePosition = new MouseElement().Position;
-                this.CurrentDistanceCountingCharacter.UpdateDistanceCount(mousePosition);
+                if(this.CurrentDistanceCountingCharacter != null)
+                {
+                    Vector3 mousePosition = new MouseElement().Position;
+                    this.CurrentDistanceCountingCharacter.UpdateDistanceCount(mousePosition);
+                }
             };
             AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 500);
             adex.ExecuteAsyncDelegate();
@@ -1404,6 +1409,12 @@ namespace Module.HeroVirtualTabletop.Roster
         private void AbortAction()
         {
             List<Character> charactersToOperateOn = this.GetCharactersToOperateOn(false);
+            this.abortedCharacters = charactersToOperateOn;
+            if (this.IsPlayingAttack)
+            {
+                this.savedAttackState = new object[] {this.currentAttack, new List<Character>(this.targetCharacters), new List<Character>(this.AttackingCharacters)};
+                this.CancelActiveAttack(this.currentAttack);
+            }
             this.hcsIntegrator.AbortAction(charactersToOperateOn);
         }
         #endregion
@@ -1482,6 +1493,10 @@ namespace Module.HeroVirtualTabletop.Roster
             Helper.GlobalVariables_IntegrateWithHCS = IsSequenceViewActive;
             if (this.IsSequenceViewActive)
                 this.RefreshSequenceView();
+            else if (this.abortedCharacters.Count > 0)
+            {
+                abortedCharacters.ForEach(c => c.RefreshAbilitiesActivationEligibility());
+            }
         }
 
         #endregion
@@ -2127,9 +2142,28 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (activeCharacterInfo != null)
                 {
                     Character activeChar = this.Participants.FirstOrDefault(p => p.Name == activeCharacterInfo.Name) as Character;
-                    if (activeChar != null && this.ActiveCharacter != activeChar)
+                    if (activeChar != null)
                     {
-                        this.ToggleActivateCharacter(activeChar);
+                        if(this.ActiveCharacter != activeChar)
+                            this.ToggleActivateCharacter(activeChar);
+                        activeChar.RefreshAbilitiesActivationEligibility(activeCharacterInfo.AbilitiesEligibilityCollection);
+                        if(activeCharacterInfo.CharacterStates != null 
+                            && activeCharacterInfo.CharacterStates.IsAbortable.HasValue 
+                            && activeCharacterInfo.CharacterStates.IsAbortable.Value
+                            && this.savedAttackState != null)
+                        {
+                            Attack attack = savedAttackState[0] as Attack;
+                            List<Character> targets = savedAttackState[1] as List<Character>;
+                            List<Character> attackers = savedAttackState[2] as List<Character>;
+                            this.InitiateRosterCharacterAttack(new Tuple<Character, Attack>(activeChar, attack));
+                            if(targets != null && targets.Count > 0)
+                            {
+                                this.SelectedParticipants = targets;
+                                this.TargetAndExecuteAttack(this.currentAttack);
+                            }
+                            
+                            this.savedAttackState = null;
+                        }
                     }
                 }
             };
@@ -2637,6 +2671,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
 
                 this.RestartDistanceCounting();
+
+                Dispatcher.Invoke(() => {
+                    Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
+                    Mouse.OverrideCursor = cursor;
+                });
             }
         }
 

@@ -74,6 +74,28 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public object Stats { get; set; }
         public object Powers { get; set; }
         public object Effects { get; set; }
+        [JsonProperty("States")]
+        public CharacterStates CharacterStates { get; set; }
+        [JsonIgnore]
+        public  List<AbilityActivationEligibility> AbilitiesEligibilityCollection { get; set; }
+    }
+
+    public class CharacterStates
+    {
+        [JsonProperty("Is Holding For Dex")]
+        public bool? IsHoldingForDex { get; set; }
+        [JsonProperty("Is Dying")]
+        public bool? IsDying { get; set; }
+        [JsonProperty("Is Alive")]
+        public bool? IsAlive { get; set; }
+        [JsonProperty("Is Abortable")]
+        public bool? IsAbortable { get; set; }
+        [JsonProperty("Is Unconsious")] 
+        public bool? IsUnconscious { get; set; }
+        [JsonProperty("Is Dead")]
+        public bool? IsDead { get; set; }
+        [JsonProperty("Is Stunned")]
+        public bool? IsStunned { get; set; }
     }
 
     public class Chronometer
