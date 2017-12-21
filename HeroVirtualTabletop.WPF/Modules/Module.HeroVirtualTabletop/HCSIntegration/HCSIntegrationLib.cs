@@ -218,6 +218,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     public class AttackAreaTargetResult : AttackResultHCS
     {
         public string Center { get; set; }
+        [JsonProperty("Obstruction Result")]
+        public ObstructionResult ObstructionResult { get; set; }
         public List<AttackAreaTarget> Targets { get; set; }
     }
 

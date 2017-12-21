@@ -2745,7 +2745,7 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 foreach (var defender in defendingCharacters)
                 {
-                    defender.ActiveAttackConfiguration.IsCenterTarget = true;
+                    defender.ActiveAttackConfiguration.IsCenterTarget = !defender.ActiveAttackConfiguration.IsSecondaryTarget;
                 }
                 attack.AnimateAttackSequence(AttackingCharacters, defendingCharacters);
             }

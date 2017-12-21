@@ -567,6 +567,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 {
                     attackTargets.Add(secondaryTarget);
                     attackConfigSecondary.IsHit = true;
+                    attackConfigSecondary.PrimaryTargetCharacter = primaryTarget;
                     attackConfigSecondary.ObstructingCharacter = null;
                     secondaryTarget.ActiveAttackConfiguration = attackConfigSecondary;
                     attackConfigPrimary.ObstructingCharacter = secondaryTarget;
@@ -592,31 +593,43 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     attackConfigPrimary.IsCenterTarget = targetCharacter.Name == attackResult.Center;
                     attackConfigPrimary.Stun = result.DamageResults != null ? result.DamageResults.Stun : null;
                     attackConfigPrimary.Stun = result.DamageResults != null ? result.DamageResults.Stun : null;
-                    if (result.Knockback != null)
+                    Character secondaryTarget = null;
+                    ActiveAttackConfiguration attackConfigSecondary = new ActiveAttackConfiguration();
+                    if (result.Knockback != null && attackConfigPrimary.KnockBackDistance > 0)
                     {
                         attackConfigPrimary.IsKnockedBack = true;
                         attackConfigPrimary.IsHit = true;
                         attackConfigPrimary.KnockBackDistance = result.Knockback.Distance;
                         if (result.Knockback.ObstacleCollision != null)
                         {
-                            Character secondaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == result.Knockback.ObstacleCollision.Name);
-                            if (secondaryTarget != null)
+                            secondaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == result.Knockback.ObstacleCollision.Name);
+                            attackConfigSecondary.Body = result.Knockback.ObstacleCollision.Body.Current;
+                            if (result.Knockback.ObstacleCollision.ObstacleDamageResults.Effects != null
+                            && result.Knockback.ObstacleCollision.ObstacleDamageResults.Effects.Count > 0)
                             {
-                                attackTargets.Add(secondaryTarget);
-                                ActiveAttackConfiguration attackConfigSecondary = new ActiveAttackConfiguration();
-                                attackConfigSecondary.IsHit = true;
-                                attackConfigSecondary.Body = result.Knockback.ObstacleCollision.Body.Current;
-                                attackConfigSecondary.ObstructingCharacter = null;
-                                if (result.Knockback.ObstacleCollision.ObstacleDamageResults.Effects != null
-                                    && result.Knockback.ObstacleCollision.ObstacleDamageResults.Effects.Count > 0)
-                                {
-                                    ParseEffects(attackConfigSecondary, result.Knockback.ObstacleCollision.ObstacleDamageResults.Effects);
-                                }
-                                secondaryTarget.ActiveAttackConfiguration = attackConfigSecondary;
-
-                                attackConfigPrimary.ObstructingCharacter = secondaryTarget;
+                                ParseEffects(attackConfigSecondary, result.Knockback.ObstacleCollision.ObstacleDamageResults.Effects);
                             }
                         }
+                    }
+                    if (secondaryTarget == null && attackResult.ObstructionResult != null)
+                    {
+                        secondaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.ObstructionResult.ObstructionName);
+                        if (attackResult.ObstructionResult.Effects != null
+                            && attackResult.ObstructionResult.Effects.Count > 0)
+                        {
+                            ParseEffects(attackConfigSecondary, attackResult.ObstructionResult.Effects);
+                        }
+                    }
+                    if (secondaryTarget != null)
+                    {
+                        attackTargets.Add(secondaryTarget);
+                        attackConfigSecondary.IsHit = true;
+                        
+                        attackConfigSecondary.ObstructingCharacter = null;
+                        
+                        secondaryTarget.ActiveAttackConfiguration = attackConfigSecondary;
+
+                        attackConfigPrimary.ObstructingCharacter = secondaryTarget;
                     }
                     ParseEffects(attackConfigPrimary, target.Target.Result.Effects);
                     targetCharacter.ActiveAttackConfiguration = attackConfigPrimary;

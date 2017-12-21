@@ -513,7 +513,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.MoveAttackerToTarget))
             {
-                Character centerTarget = defendingCharacters.FirstOrDefault(dc => dc.ActiveAttackConfiguration.IsCenterTarget);
+                Character centerTarget = defendingCharacters.FirstOrDefault(dc => !dc.ActiveAttackConfiguration.IsSecondaryTarget && dc.ActiveAttackConfiguration.IsCenterTarget);
                 if (centerTarget == null)
                     centerTarget = defendingCharacters.FirstOrDefault();
                 if (centerTarget != null)
@@ -536,10 +536,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                     else
                     {
-                        defendingCharacters.ForEach(defender =>
+                        defendingCharacters.Where(dc => !dc.ActiveAttackConfiguration.IsSecondaryTarget).ToList().ForEach(defender =>
                         {
                             List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == defender.Name)];
-                            AnimateAttackSequenceWithoutMovement(attackersForVanilla, new List<Character> { defender });
+                            List<Character> defenders = defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget 
+                                && dc.ActiveAttackConfiguration.PrimaryTargetCharacter == defender).ToList();
+                            defenders.Add(defender);
+                            AnimateAttackSequenceWithoutMovement(attackersForVanilla,defenders);
                         });
                     }
                 }
@@ -551,9 +554,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                     else
                     {
-                        defendingCharacters.ForEach(defender =>
+                        defendingCharacters.Where(dc => !dc.ActiveAttackConfiguration.IsSecondaryTarget).ToList().ForEach(defender =>
                         {
-                            AnimateAttackSequenceWithoutMovement(attackingCharacters, new List<Character> { defender });
+                            List<Character> defenders = defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget
+                            && dc.ActiveAttackConfiguration.PrimaryTargetCharacter == defender).ToList();
+                            defenders.Add(defender);
+                            AnimateAttackSequenceWithoutMovement(attackingCharacters, defenders);
                         });
                     }
                 }
@@ -635,13 +641,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     List<Character> restOfTheDefendingCharacters = defendingCharacters.Where(dc => dc != centerTarget).ToList();
                     if (restOfTheDefendingCharacters.Count > 0)
                     {
+                        List<Character> defenders = restOfTheDefendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget && dc.ActiveAttackConfiguration.PrimaryTargetCharacter == centerTarget).ToList();
+                        defenders.Add(centerTarget);
                         if (centerTarget.ActiveAttackConfiguration.HasMultipleAttackers && centerTarget.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
                         {
                             List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == centerTarget.Name)];
-                            AnimateAttackSequenceWithoutMovement(attackersForVanilla, new List<Character> { centerTarget });
+                            AnimateAttackSequenceWithoutMovement(attackersForVanilla, defenders);
                         }
                         else
-                            AnimateAttackSequenceWithoutMovement(attackingCharacters, new List<Character> { centerTarget });
+                            AnimateAttackSequenceWithoutMovement(attackingCharacters, defenders);
                         // wait for all movements to finish, then resume rest of the attack
                         if (defendersForThisAttack.Any(dc => dc.IsMoving))
                         {
@@ -654,13 +662,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     }
                     else
                     {
+                        List<Character> defenders = restOfTheDefendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget && dc.ActiveAttackConfiguration.PrimaryTargetCharacter == centerTarget).ToList();
+                        defenders.Add(centerTarget);
                         if (centerTarget.ActiveAttackConfiguration.HasMultipleAttackers && centerTarget.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack)
                         {
                             List<Character> attackersForVanilla = defenderVsAttackers[defendingCharacters.First(dc => dc.Name == centerTarget.Name)];
-                            AnimateAttackSequenceWithoutMovement(attackersForVanilla, new List<Character> { centerTarget });
+                            AnimateAttackSequenceWithoutMovement(attackersForVanilla, defenders);
                         }
                         else
-                            AnimateAttackSequenceWithoutMovement(attackingCharacters, new List<Character> { centerTarget });
+                            AnimateAttackSequenceWithoutMovement(attackingCharacters, defenders);
                         OnAttackCompleted(null, new CustomEventArgs<List<Character>> { Value = this.defendersForThisAttack });
                     }
                 }
@@ -1615,6 +1625,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public bool IsDestroyed { get; set; }
         public bool IsPartiallyDestryoed { get; set; }
+        public bool IsSecondaryTarget { get { return PrimaryTargetCharacter != null; } }
+        public Character PrimaryTargetCharacter { get; set; }
 
         private bool moveAttackerToTarget;
         public bool MoveAttackerToTarget
