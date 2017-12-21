@@ -74,6 +74,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 new EventHandler(clickTimer_Tick);
 
             this.viewModel.RosterMemberAdded += this.viewModel_RosterMemberAdded;
+            this.viewModel.SequenceUpdated += this.viewModel_SequenceUpdated;
             this.viewModel.ShowNotification += this.ViewModel_ShowNotification; 
         }
         private void TextBlock_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -221,6 +222,27 @@ namespace Module.HeroVirtualTabletop.Roster
                                 }
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        private void viewModel_SequenceUpdated(object sender, EventArgs e)
+        {
+            CollectionViewSource source = (CollectionViewSource)(this.Resources["SequenceView"]);
+            ListCollectionView view = (ListCollectionView)source.View;
+            if (view != null && view.Groups != null && view.Groups.Count > 0)
+            {
+                view.Refresh();
+                CollectionViewGroup cvg = view.Groups.First() as CollectionViewGroup;
+                GroupItem groupItem = this.SequenceViewListBox.ItemContainerGenerator.ContainerFromItem(cvg) as GroupItem;
+                if (groupItem != null)
+                {
+                    groupItem.UpdateLayout();
+                    Expander expander = Helper.GetDescendantByType(groupItem, typeof(Expander)) as Expander;
+                    if (expander != null)
+                    {
+                        expander.IsExpanded = true;
                     }
                 }
             }

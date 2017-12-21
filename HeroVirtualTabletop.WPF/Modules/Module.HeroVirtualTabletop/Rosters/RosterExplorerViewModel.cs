@@ -97,6 +97,13 @@ namespace Module.HeroVirtualTabletop.Roster
                 RosterMemberAdded(sender, e);
         }
 
+        public event EventHandler SequenceUpdated;
+        public void OnSequenceUpdated(object sender, EventArgs e)
+        {
+            if (SequenceUpdated != null)
+                SequenceUpdated(sender, e);
+        }
+
         public event EventHandler<CustomEventArgs<string>> ShowNotification;
         public void OnShowNotification(object sender, CustomEventArgs<string> e)
         {
@@ -3046,6 +3053,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
                 this.SequenceParticipants = new ObservableCollection<Combatant>(this.SequenceParticipants.OrderBy(sp => sp.Order));
                 this.hcsIntegrator.InGameCharacters = this.Participants.Where(p => (p as Character).HasBeenSpawned).Cast<Character>().ToList();
+                OnSequenceUpdated(this, null);
                 this.BusyService.HideBusy();
             };
             AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 1000);
