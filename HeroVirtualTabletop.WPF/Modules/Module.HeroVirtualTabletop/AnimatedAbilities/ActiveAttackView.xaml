@@ -104,12 +104,11 @@
                                                 <RadioButton Content="KnockBack" 
                                                              IsChecked="{Binding ActiveAttackConfiguration.IsKnockedBack}" 
                                                              IsEnabled="{Binding Path=ActiveAttackConfiguration.IsHit}"
-                                                             HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" ToolTip="Knockback (B)"/>
+                                                             HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" ToolTip="Knockback (K)"/>
                                                 <xctk:IntegerUpDown Increment="1" DefaultValue="0" Minimum="0" Value="{Binding ActiveAttackConfiguration.KnockBackDistance}" 
                                                                     IsEnabled="{Binding ElementName=rdobtnKnockBack, Path=IsChecked}" ToolTip="Enter a number"/>
-                                                <RadioButton Content="Knocked Down" IsChecked="{Binding ActiveAttackConfiguration.IsKnockedBack, Converter={StaticResource InvertBooleanConverter}}" 
-                                                             IsEnabled="{Binding Path=ActiveAttackConfiguration.IsHit}"
-                                                             HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" ToolTip="Knocked Down (K)"/>
+                                                <RadioButton Content="None" IsChecked="{Binding ActiveAttackConfiguration.IsKnockedBack, Converter={StaticResource InvertBooleanConverter}}" 
+                                                             HorizontalAlignment="Left" VerticalAlignment="Center" Foreground="White" ToolTip="None (N)"/>
                                             </StackPanel>
                                         </Grid>
                                     </GroupBox.Content>

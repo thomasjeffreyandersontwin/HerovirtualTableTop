@@ -68,7 +68,7 @@ namespace Module.HeroVirtualTabletop.Library.Enumerations
     }
     public enum KnockBackOption
     {
-        KnockDown,
+        None,
         KnockBack
     }
 

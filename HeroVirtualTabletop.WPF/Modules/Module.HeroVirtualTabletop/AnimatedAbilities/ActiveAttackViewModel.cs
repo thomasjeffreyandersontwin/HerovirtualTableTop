@@ -236,7 +236,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (ch.ActiveAttackConfiguration.IsKnockedBack)
                 ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockBack;
             else
-                ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockDown;
+                ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.None;
         }
         private void CancelActiveAttack(object state)
         {
