@@ -47,6 +47,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
 
     #region Attack Events
     public class PlayAnimatedAbilityEvent: PubSubEvent<Tuple<Character, AnimatedAbility>> { }
+    public class StopAnimatedAbilityEvent : PubSubEvent<Tuple<Character, AnimatedAbility>> { }
     public class AttackInitiatedEvent : PubSubEvent<Tuple<Character, Attack>> { }
     public class AttackCompletedEvent : PubSubEvent<Tuple<Character, Attack>> { }
     public class AttackTargetSelectedEvent : PubSubEvent<Tuple<Character, Attack>> { }

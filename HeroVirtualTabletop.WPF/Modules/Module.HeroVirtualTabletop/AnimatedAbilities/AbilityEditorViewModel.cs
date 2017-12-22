@@ -640,6 +640,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
             this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Subscribe(this.PlayAnimatedAbility);
+            this.eventAggregator.GetEvent<StopAnimatedAbilityEvent>().Subscribe(this.StopAnimatedAbility);
             // Unselect everything at the beginning
             this.InitializeAnimationElementSelections();
             this.InitializeDesktopKeyEventHandlers();
@@ -1656,11 +1657,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (Target != null && ability != null)
             {
                 if (Helper.GlobalVariables_IntegrateWithHCS && !ability.IsAttack)
-                    this.hcsIntegrator.PlaySimpleAbility(target, ability);
+                    this.hcsIntegrator.PlaySimpleAbility(Target, ability);
                 ability.Play(Target: Target);
             }
         }
 
+        private void StopAnimatedAbility(Tuple<Character, AnimatedAbility> tuple)
+        {
+            Character target = tuple.Item1;
+            AnimatedAbility ability = tuple.Item2;
+            StopAnimatedAbility(target, ability);
+        }
+
+        private void StopAnimatedAbility(Character target = null, AnimatedAbility ability = null)
+        {
+            Character Target = target ?? ability.Owner;
+            if (Target != null && ability != null)
+            {
+                if (Helper.GlobalVariables_IntegrateWithHCS && !ability.IsAttack && ability.Persistent && ability.IsActive)
+                    this.hcsIntegrator.PlaySimpleAbility(Target, ability);
+                ability.Stop(Target: Target);
+            }
+        }
         #endregion
 
         #region Clone Animation

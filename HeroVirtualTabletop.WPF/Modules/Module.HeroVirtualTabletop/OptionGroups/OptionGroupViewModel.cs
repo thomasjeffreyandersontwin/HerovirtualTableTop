@@ -623,7 +623,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 {
                     AnimatedAbility ability = selectedOption as AnimatedAbility;
                     if (ability.IsActive && !ability.Persistent)
-                        ability.Stop();
+                        StopAnimatedAbility(ability);
                 }
             }
             selectedOption = value;
@@ -757,7 +757,8 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                 }
             }
             owner.ActiveAbility = null;
-            ability.Stop(Target: currentTarget);
+            //ability.Stop(Target: currentTarget);
+            this.eventAggregator.GetEvent<StopAnimatedAbilityEvent>().Publish(new Tuple<Character, AnimatedAbility>(currentTarget, ability));
         }
 
         private void DeActivateAnimatedAbility(AnimatedAbility ability)
