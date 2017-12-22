@@ -714,7 +714,7 @@ namespace Module.HeroVirtualTabletop.Movements
             if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
             {
                 target.MovementInstruction.AdjustPositionToAvoidCollision = false;
-                target.MovementInstruction.BodyPartsToConsiderForCollision = new List<BodyPart> { BodyPart.Top, BodyPart.TopMiddle };
+                target.MovementInstruction.BodyPartsToConsiderForCollision = new List<BodyPart> { BodyPart.Top, BodyPart.TopMiddle, BodyPart.Middle };
             }
             else
             {
@@ -1099,10 +1099,9 @@ namespace Module.HeroVirtualTabletop.Movements
         private Vector3 GetAllowableDestinationVector(Character target, Vector3 directionVector)//todo
         {
             DateTime startTime, endTime;
-            // TODO: need to take into account the pitch yaw roll etc. in future
             Vector3 currentPositionVector = target.CurrentPositionVector;
             Vector3 destinationVectorNext = GetDestinationVector(directionVector, target.MovementInstruction.MovementUnit, target);//
-            Vector3 destinationVectorFar = GetDestinationVector(directionVector, 200f, target);//
+            Vector3 destinationVectorFar = GetDestinationVector(directionVector, 100f, target);//
 
             if(IsNanAny(currentPositionVector, destinationVectorNext, destinationVectorFar))
             {
@@ -1123,6 +1122,8 @@ namespace Module.HeroVirtualTabletop.Movements
             {
                 startTime = DateTime.Now;
                 collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);//check
+                if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                    collisionVector = GetDestinationVector(-1 * directionVector, 8, collisionVector);
                 endTime = DateTime.Now;
                 logManager.Info(string.Format("CalculateNextCollisionPoint took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
@@ -1138,6 +1139,7 @@ namespace Module.HeroVirtualTabletop.Movements
             }
 
             collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);//check
+            collisionBodyPoint.Y = target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y;
             distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);//check
 
             if (distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1)
@@ -1174,6 +1176,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     else
                     {
                         target.MovementInstruction.IsInCollision = true;
+                        collisionVector = target.MovementInstruction.LastCollisionFreePointInCurrentDirection;
                     }
                 }
                 else
@@ -1181,6 +1184,8 @@ namespace Module.HeroVirtualTabletop.Movements
                 {
                     startTime = DateTime.Now;
                     collisionVector = CalculateNextCollisionPoint(target, destinationVectorFar);//check
+                    if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                        collisionVector = GetDestinationVector(-1 * directionVector, 8, collisionVector);
                     endTime = DateTime.Now;
                     logManager.Info(string.Format("CalculateNextCollisionPoint took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
                     if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
@@ -1202,10 +1207,15 @@ namespace Module.HeroVirtualTabletop.Movements
             Vector3 allowableDestVector = new Vector3();
             // Now we should move to the next destination point or the LastCollisionFreePointInCurrentDirection - whichever is nearer
             collisionBodyPoint = Vector3.Add(currentPositionVector, target.MovementInstruction.CharacterBodyCollisionOffsetVector);
+            collisionBodyPoint.Y = target.MovementInstruction.LastCollisionFreePointInCurrentDirection.Y;
             distanceFromCollisionPoint = Vector3.Distance(collisionBodyPoint, target.MovementInstruction.LastCollisionFreePointInCurrentDirection);
             if ((distanceFromDest > distanceFromCollisionPoint || distanceFromCollisionPoint < 1) && target.MovementInstruction.IsInCollision)
             {
                 allowableDestVector = collisionVector;
+                if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
+                {
+                    this.ApplyGravityToDestinationPoint(target, ref allowableDestVector);
+                }
             }
             else
             {
@@ -1221,7 +1231,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 else
                     allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
             }
-
+            
             if(IsNanAny(allowableDestVector, collisionBodyPoint, collisionVector))
             {
                 logManager.Info(string.Format("Nan value found. AllowableDestVector: {0}, CollisionBodyPoint: {1}, CollisionVector: {2}", allowableDestVector, collisionBodyPoint, collisionVector));
@@ -1794,8 +1804,8 @@ namespace Module.HeroVirtualTabletop.Movements
                     // check if ground collision result is suspicious. 
                     if (((collisionVectorGround.X == 0f && collisionVectorGround.Y == 0f && collisionVectorGround.Z == 0f) || collisionVectorGround.Y < 1f) && Vector3.Distance(allowableDestVector, collisionVectorGround) > 1.5)
                     {
-                        // rest a while and then measure again
-                        new PauseElement("", 500).Play();
+                        //// rest a while and then measure again
+                        //new PauseElement("", 500).Play();
                         var prevCollisionVectorGround = collisionVectorGround;
                         var newCollisionVectorGround = GetCollisionVector(collisionGroundUp, collisionGroundDown);
                         if (prevCollisionVectorGround != newCollisionVectorGround && newCollisionVectorGround.Y > prevCollisionVectorGround.Y)
@@ -2182,14 +2192,14 @@ namespace Module.HeroVirtualTabletop.Movements
                     {
                         if (!target.MovementInstruction.IsInCollision)
                         {
-                            if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
-                            {
-                                target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
-                                this.ResetMovement(target);
-                                this.StopMovement(target);
-                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
-                            }
-                            else
+                            //if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
+                            //{
+                            //    target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
+                            //    this.ResetMovement(target);
+                            //    this.StopMovement(target);
+                            //    OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                            //}
+                            //else
                                 await Move(target); //
                         }
                         else
