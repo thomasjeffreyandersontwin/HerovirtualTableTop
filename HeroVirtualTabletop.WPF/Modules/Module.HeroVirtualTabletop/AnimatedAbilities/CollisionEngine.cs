@@ -14,13 +14,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
     public class CollisionEngine
     {
-        public object FindObstructingObject(Character attacker, Character target, List<Character> otherCharacters)
+        public CollisionInfo FindObstructingObject(Character attacker, Character target, List<Character> otherCharacters)
         {
             return FindObstructingObject(attacker.CurrentPositionVector, target.CurrentPositionVector, otherCharacters);
         }
 
-        private object FindObstructingObject(Vector3 sourcePositionVector, Vector3 targetPositionVector, List<Character> otherCharacters)
+        private CollisionInfo FindObstructingObject(Vector3 sourcePositionVector, Vector3 targetPositionVector, List<Character> otherCharacters)
         {
+            CollisionInfo nearestCollision = null;
             Vector3 sourceFacingTargetVector = targetPositionVector - sourcePositionVector;
             Vector3 targetFacingSourceVector = sourcePositionVector - targetPositionVector;
             if (sourceFacingTargetVector == targetFacingSourceVector)
@@ -51,7 +52,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             bodyPartMap.Add(BodyPart.TopMiddle, true);
             bodyPartMap.Add(BodyPart.Top, true);
 
-            object obstruction = null;
             Dictionary<BodyPart, CollisionInfo> bodyPartCollisionMap = GetCollisionPointsForBodyParts(sourcePositionVector, targetPositionVector, bodyPartMap);
             bool hasCollision = false;
             foreach (BodyPart key in bodyPartCollisionMap.Keys)
@@ -66,8 +66,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             float collisionDistance = 0f;
             if (hasCollision)
             {
-                obstruction = "WALL";
-                collisionDistance = bodyPartCollisionMap.Values.Min(d => d != null ? d.CollisionDistance : 0);
+                collisionDistance = bodyPartCollisionMap.Values.Min(d => d != null ? d.CollisionDistance : 10000f);
+                nearestCollision = new CollisionInfo { CollidingObject = "WALL", CollisionDistance = collisionDistance};
             }
             else
                 collisionDistance = 10000f;
@@ -78,14 +78,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (obsDist < minDistance)
                 {
                     minDistance = obsDist;
-                    obstruction = obsChar;
+                    nearestCollision = new CollisionInfo { CollidingObject = obsChar, CollisionDistance = obsDist };
                 }
             }
 
-            return obstruction;
+            return nearestCollision;
         }
 
-        public object CalculateKnockbackObstruction(Character attacker, Character target, int distance, List<Character> otherCharacters)
+        public CollisionInfo CalculateKnockbackObstruction(Character attacker, Character target, int distance, List<Character> otherCharacters)
         {
             if (target.CurrentPositionVector == attacker.CurrentPositionVector)
                 return null;

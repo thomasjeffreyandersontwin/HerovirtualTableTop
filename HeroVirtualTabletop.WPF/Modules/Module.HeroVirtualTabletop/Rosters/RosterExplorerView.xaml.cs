@@ -228,7 +228,7 @@ namespace Module.HeroVirtualTabletop.Roster
         }
 
         private void viewModel_SequenceUpdated(object sender, EventArgs e)
-        {
+       {
             CollectionViewSource source = (CollectionViewSource)(this.Resources["SequenceView"]);
             ListCollectionView view = (ListCollectionView)source.View;
             if (view != null && view.Groups != null && view.Groups.Count > 0)

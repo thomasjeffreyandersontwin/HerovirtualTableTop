@@ -140,6 +140,15 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         [JsonProperty("Surprise Move")]
         public int? SurpriseMove { get; set; }
         public int? Encumbrance { get; set; }
+        [JsonProperty("Potential Collision")]
+        public PotentialCollision PotentialCollision { get; set; }
+    }
+
+    public class PotentialCollision
+    {
+        public string Obstacle { get; set; }
+        [JsonProperty("Distance From Target")]
+        public int DistanceFromTarget { get; set; }
     }
 
     public class AreaEffectTargetCollection

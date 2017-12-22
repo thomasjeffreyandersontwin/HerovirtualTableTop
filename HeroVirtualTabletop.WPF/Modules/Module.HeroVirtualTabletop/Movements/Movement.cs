@@ -2999,6 +2999,7 @@ namespace Module.HeroVirtualTabletop.Movements
         public BodyPart CollisionBodyPart { get; set; }
         public float CollisionDistance { get; set; }
         public Vector3 CollisionPoint { get; set; }
+        public object CollidingObject { get; set; }
     }
 
     public class MovementProcessor
