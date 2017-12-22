@@ -419,7 +419,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         this.CancelActiveAttackCommand.Execute(null);
                 }
                 else if (inputKey == Key.H || inputKey == Key.M || inputKey == Key.S || inputKey == Key.U
-                    || inputKey == Key.Y || inputKey == Key.D || inputKey == Key.K || inputKey == Key.B || inputKey == Key.T
+                    || inputKey == Key.Y || inputKey == Key.D || inputKey == Key.K || inputKey == Key.N || inputKey == Key.T
                     || (inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
                 {
                     foreach (var defender in this.DefendingCharacters)
@@ -464,11 +464,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         {
                             defender.ActiveAttackConfiguration.IsDead = true;
                         }
-                        else if (inputKey == Key.B)
+                        else if (inputKey == Key.K)
                         {
                             defender.ActiveAttackConfiguration.IsKnockedBack = true;
                         }
-                        else if (inputKey == Key.K)
+                        else if (inputKey == Key.N)
                         {
                             defender.ActiveAttackConfiguration.IsKnockedBack = false;
                         }
