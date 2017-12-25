@@ -115,6 +115,13 @@
                                                                     </DataTrigger.Binding>
                                                                     <Setter Property="Fill" Value="{StaticResource SelectedColorBrush}"></Setter>
                                                                 </DataTrigger>
+                                                                <DataTrigger Value="False">
+                                                                    <DataTrigger.Binding>
+                                                                        <Binding Path="IsEnabled"/>
+                                                                    </DataTrigger.Binding>
+                                                                    <Setter Property="Stroke" Value="{StaticResource DisabledBorderBrush}"></Setter>
+                                                                    <Setter Property="Opacity" Value="0.1"></Setter>
+                                                                </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </Ellipse.Style>
