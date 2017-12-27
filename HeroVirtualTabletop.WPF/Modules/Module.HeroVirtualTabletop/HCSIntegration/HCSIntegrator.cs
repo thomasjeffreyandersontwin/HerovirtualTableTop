@@ -926,7 +926,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     break;
                 case "jumping":
                 case "jump":
-                    movementName = "Jumping";
+                    movementName = "Leaping";
                     break;
             }
             return movementName;
