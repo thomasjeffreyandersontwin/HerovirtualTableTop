@@ -582,7 +582,6 @@ namespace Module.HeroVirtualTabletop.Roster
             hcsIntegrator.SequenceUpdated += this.HCSIntegrator_SequenceUpdated;
             hcsIntegrator.AttackResultsUpdated += this.HCSIntegrator_AttackResultsUpdated;
             hcsIntegrator.AttackResultsNotFound += this.HCSIntegrator_AttackResultsNotFound;
-            hcsIntegrator.StartIntegration();
         }
 
         private void InitializeCommands()
@@ -1499,10 +1498,17 @@ namespace Module.HeroVirtualTabletop.Roster
             this.IsSequenceViewActive = !IsSequenceViewActive;
             Helper.GlobalVariables_IntegrateWithHCS = IsSequenceViewActive;
             if (this.IsSequenceViewActive)
-                this.RefreshSequenceView();
-            else if (this.abortedCharacters.Count > 0)
             {
-                abortedCharacters.ForEach(c => c.RefreshAbilitiesActivationEligibility());
+                this.hcsIntegrator.StartIntegration();
+                this.RefreshSequenceView();
+            }
+            else
+            {
+                if (this.abortedCharacters.Count > 0)
+                {
+                    abortedCharacters.ForEach(c => c.RefreshAbilitiesActivationEligibility());
+                }
+                this.hcsIntegrator.StopIntegration();
             }
         }
 
@@ -2786,6 +2792,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
                 Helper.GlobalVariables_IsPlayingAttack = false;
                 this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Publish(this.currentAttack);
+                this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
                 foreach (var defender in defenders)
                 {
                     defender.ActiveAttackConfiguration.AttackMode = AttackMode.None;
@@ -2937,8 +2944,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     this.AttackingCharacters.ForEach(ac => currentTarget.ActiveAttackConfiguration.AttackResults.Add(new AttackResult { Attacker = ac, IsHit = false, AttackResultOption = AttackResultOption.Miss }));
                 }
             }
-            if (PopupService.IsOpen("ActiveAttackView") == false)
-                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
+            //if (PopupService.IsOpen("ActiveAttackView") == false)
+            this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(this.targetCharacters, this.currentAttack));
         }
 
         private void ConfirmAttack(object state)
@@ -2981,8 +2988,8 @@ namespace Module.HeroVirtualTabletop.Roster
             Dispatcher.Invoke(() =>
             {
                 List<Character> targets = e.Value as List<Character>;
-                if (PopupService.IsOpen("ActiveAttackView") == false)
-                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
+                //if (PopupService.IsOpen("ActiveAttackView") == false)
+                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
             });
         }
 
@@ -2995,8 +3002,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     List<Character> targets = e.Value as List<Character>;
                     if (targets == null)
                         targets = this.targetCharacters;
-                    if (PopupService.IsOpen("ActiveAttackView") == false)
-                        this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
+                    //if (PopupService.IsOpen("ActiveAttackView") == false)
+                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
                 }
                 else
                     LaunchAttackConfiguration();

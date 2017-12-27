@@ -73,6 +73,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public object Defenses { get; set; }
         public object Stats { get; set; }
         public object Powers { get; set; }
+        public object Defaults { get; set; }
         public object Effects { get; set; }
         [JsonProperty("States")]
         public CharacterStates CharacterStates { get; set; }
@@ -123,47 +124,20 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public int Distance { get; set; }
     }
 
-    public class AttackSingleTarget
+    public class AttackRequest
     {
+        public string Token { get; set; }
         public string Type { get; set; }
         public string Ability { get; set; }
-        public string Character { get; set; }
-        public string Target { get; set; }
-        public int? Range { get; set; }
         public string Obstruction { get; set; }
-        public int? PushedStr { get; set; }
-        public int? Generic { get; set; }
-        [JsonProperty("Off Hand")]
-        public bool? OffHand { get; set; }
-        [JsonProperty("Unfamiliar Weapon")]
-        public bool? UnfamiliarWeapon { get; set; }
-        [JsonProperty("Surprise Move")]
-        public int? SurpriseMove { get; set; }
-        public int? Encumbrance { get; set; }
         [JsonProperty("Potential Collision")]
         public PotentialCollision PotentialCollision { get; set; }
     }
 
-    public class PotentialCollision
-    {
-        public string Obstacle { get; set; }
-        [JsonProperty("Distance From Target")]
-        public int DistanceFromTarget { get; set; }
-    }
-
-    public class AreaEffectTargetCollection
-    {
-        public string Type { get; set; }
-        public string Ability { get; set; }
-        public string Center { get; set; }
-        public List<AreaEffectTarget> Targets { get; set; }
-    }
-
-    public class AreaEffectTarget
+    public class AttackTargetRequest : AttackRequest
     {
         public string Target { get; set; }
         public int? Range { get; set; }
-        public string Obstruction { get; set; }
         public int? PushedStr { get; set; }
         public int? Generic { get; set; }
         [JsonProperty("Off Hand")]
@@ -176,6 +150,19 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         [JsonProperty("From Behind")]
         public bool? FromBehind { get; set; }
         public bool? Surprised { get; set; }
+    }
+
+    public class PotentialCollision
+    {
+        public string Obstacle { get; set; }
+        [JsonProperty("Distance From Target")]
+        public int DistanceFromTarget { get; set; }
+    }
+
+    public class AreaEffectRequest : AttackRequest
+    {
+        public string Center { get; set; }
+        public List<AttackTargetRequest> Targets { get; set; }
     }
 
     public class KnockbackCollisionSingleTarget
@@ -195,17 +182,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     public class KnockbackTargetObstruction
     {
         public string Target { get; set; }
-        [JsonProperty("Knockback Target]")]
+        [JsonProperty("Knockback Target")]
         public string ObstructingTarget { get; set; }
     }
 
-    public class AttackResultHCS
+    public class AttackResponse
     {
+        public string Token { get; set; }
         public string Type { get; set; }
         public string Ability { get; set; }
     }
 
-    public class AttackSingleTargetResult : AttackResultHCS
+    public class AttackSingleTargetResponse : AttackResponse
     {
         public Target Target { get; set; }
         [JsonProperty("Obstruction Result")]
@@ -224,7 +212,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public HealthMeasures Endurance { get; set; }
     }
 
-    public class AttackAreaTargetResult : AttackResultHCS
+    public class AttackAreaTargetResponse : AttackResponse
     {
         public string Center { get; set; }
         [JsonProperty("Obstruction Result")]
@@ -304,16 +292,20 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public string ConfirmationStatus { get; set; }
     }
 
+    public enum HCSIntegrationStatus
+    {
+        Started,
+        Stopped
+    }
     public enum HCSIntegrationAction
     {
         DeckUpdated,
         ActiveCharacterUpdated,
+        EligibleCombatantsUpdated,
         AttackInitiated,
         AttackCancelled,
         AttackConfirmed,
-        AttackResultReceived,
-        AttackInfoUpdatedWithPossibleCollision,
-        AttackResultReceivedWithPossibleCollision 
+        AttackResultReceived
     }
 
     public enum HCSAttackType

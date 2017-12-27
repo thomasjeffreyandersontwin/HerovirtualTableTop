@@ -137,8 +137,9 @@ namespace Module.Shared
 
         public const string NOT_FOUND_IN_ROSTER_PHASE_NAME = "Not Found";
         public const string COMBATANTS_FILE_NAME = "OnDeckCombatants.info";
+        public const string ELIGIBLE_COMBATANTS_FILE_NAME = "EligibleCombatants.info";
         public const string CHRONOMETER_FILE_NAME = "Chronometer.info";
-        public const string  ACTIVE_CHARACTOR_FILE_NAME= "ActiveCharacter.info";
+        public const string  ACTIVE_CHARACTER_FILE_NAME= "ActiveCharacter.info";
         public const string ABILITY_ACTIVATED_FILE_NAME = "AbilityActivatedFromDesktop.event";
         public const string ATTACK_RESULT_FILE_NAME = "AbilityAttackResult.event";
         public const string SIMPLE_ABILITY_TYPE_NAME = "SimpleAbility";

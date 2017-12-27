@@ -104,7 +104,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Double rotationAngle = isLeft ? -90 : 90;
             MovementDirection direction = isLeft ? MovementDirection.Left : MovementDirection.Right;
             Vector3 directionVector = GetDirectionVector(rotationAngle, direction, facingVector);
-            Vector3 destinationVector = GetDestinationVector(directionVector, 5, currentPositionVector);
+            Vector3 destinationVector = GetDestinationVector(directionVector, 7.5f, currentPositionVector);
             return destinationVector;
         }
 
@@ -177,6 +177,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private bool IsPointWithinRegion(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector3 pointD, Vector3 pointX)
         {
+            // Following considers 3d
             Vector3 lineAB = pointB - pointA;
             Vector3 lineAC = pointC - pointA;
             Vector3 lineAX = pointX - pointA;
@@ -186,6 +187,48 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             float ACdotAC = Vector3.Dot(lineAC, lineAC);
 
             return (0 < AXdotAB && AXdotAB < ABdotAB) && (0 < AXdotAC && AXdotAC < ACdotAC);
+            //// Following considers 2d
+            //Point a = new Point((int)pointA.X, (int)pointA.Z);
+            //Point b = new Point((int)pointB.X, (int)pointB.Z);
+            //Point c = new Point((int)pointC.X, (int)pointC.Z);
+            //Point d = new Point((int)pointD.X, (int)pointD.Z);
+            //Point p = new Point((int)pointX.X, (int)pointX.Z);
+
+            //return IsPointInPolygon(p, new Point[] { a, b, c, d});
+        }
+
+        public bool IsPointInPolygon(Point p, Point[] polygon)
+        {
+            double minX = polygon[0].X;
+            double maxX = polygon[0].X;
+            double minY = polygon[0].Y;
+            double maxY = polygon[0].Y;
+            for (int i = 1; i < polygon.Length; i++)
+            {
+                Point q = polygon[i];
+                minX = Math.Min(q.X, minX);
+                maxX = Math.Max(q.X, maxX);
+                minY = Math.Min(q.Y, minY);
+                maxY = Math.Max(q.Y, maxY);
+            }
+
+            if (p.X < minX || p.X > maxX || p.Y < minY || p.Y > maxY)
+            {
+                return false;
+            }
+
+            // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+            bool inside = false;
+            for (int i = 0, j = polygon.Length - 1; i < polygon.Length; j = i++)
+            {
+                if ((polygon[i].Y > p.Y) != (polygon[j].Y > p.Y) &&
+                     p.X < (polygon[j].X - polygon[i].X) * (p.Y - polygon[i].Y) / (polygon[j].Y - polygon[i].Y) + polygon[i].X)
+                {
+                    inside = !inside;
+                }
+            }
+
+            return inside;
         }
 
         private Vector3 GetCollisionVector(Vector3 sourceVector, Vector3 destVector)
@@ -221,6 +264,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private Dictionary<BodyPart, CollisionInfo> GetCollisionPointsForBodyParts(Vector3 currentPositionVector, Vector3 destinationVector, Dictionary<BodyPart, bool> bodyPartMap)
         {
+            float totalDistance = Vector3.Distance(currentPositionVector, destinationVector);
+            float yDistance = Math.Abs(destinationVector.Y - currentPositionVector.Y);
+            bool considerY = yDistance > totalDistance / 10;
+
             Dictionary<BodyPart, CollisionInfo> bodyPartCollisionMap = new Dictionary<BodyPart, CollisionInfo>();
             bodyPartCollisionMap.Add(BodyPart.BottomMiddle, null);
             bodyPartCollisionMap.Add(BodyPart.Middle, null);
@@ -229,31 +276,29 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             Vector3 topOffsetVector = GetBodyPartOffsetVector(BodyPart.Top);
             Vector3 currentTopVector = new Vector3(currentPositionVector.X + topOffsetVector.X, currentPositionVector.Y + topOffsetVector.Y, currentPositionVector.Z + topOffsetVector.Z);
-            Vector3 destinationTopVector = new Vector3(destinationVector.X + topOffsetVector.X, destinationVector.Y + topOffsetVector.Y, destinationVector.Z + topOffsetVector.Z);
+            Vector3 destinationTopVector = new Vector3(destinationVector.X + topOffsetVector.X, considerY ? destinationVector.Y + topOffsetVector.Y : currentTopVector.Y, destinationVector.Z + topOffsetVector.Z);
             Vector3 collisionVectorTop = GetCollisionVector(currentTopVector, destinationTopVector);
 
             Thread.Sleep(5);
 
             Vector3 topMiddleOffsetVector = GetBodyPartOffsetVector(BodyPart.TopMiddle);
             Vector3 currentTopMiddleVector = new Vector3(currentPositionVector.X + topMiddleOffsetVector.X, currentPositionVector.Y + topMiddleOffsetVector.Y, currentPositionVector.Z + topMiddleOffsetVector.Z);
-            Vector3 destinationTopMiddleVector = new Vector3(destinationVector.X + topMiddleOffsetVector.X, destinationVector.Y + topMiddleOffsetVector.Y, destinationVector.Z + topMiddleOffsetVector.Z);
+            Vector3 destinationTopMiddleVector = new Vector3(destinationVector.X + topMiddleOffsetVector.X, considerY ? destinationVector.Y + topMiddleOffsetVector.Y : currentTopMiddleVector.Y, destinationVector.Z + topMiddleOffsetVector.Z);
             Vector3 collisionVectorTopMiddle = GetCollisionVector(currentTopMiddleVector, destinationTopMiddleVector);
 
             Thread.Sleep(5);
 
             Vector3 middleOffsetVector = GetBodyPartOffsetVector(BodyPart.Middle);
             Vector3 currentMiddleVector = new Vector3(currentPositionVector.X + middleOffsetVector.X, currentPositionVector.Y + middleOffsetVector.Y, currentPositionVector.Z + middleOffsetVector.Z);
-            Vector3 destinationMiddleVector = new Vector3(destinationVector.X + middleOffsetVector.X, destinationVector.Y + middleOffsetVector.Y, destinationVector.Z + middleOffsetVector.Z);
+            Vector3 destinationMiddleVector = new Vector3(destinationVector.X + middleOffsetVector.X, considerY ? destinationVector.Y + middleOffsetVector.Y : currentMiddleVector.Y, destinationVector.Z + middleOffsetVector.Z);
             Vector3 collisionVectorMiddle = GetCollisionVector(currentMiddleVector, destinationMiddleVector);
 
             Thread.Sleep(5);
 
             Vector3 bottomMiddleOffsetVector = GetBodyPartOffsetVector(BodyPart.BottomMiddle);
             Vector3 currentBottomMiddleVector = new Vector3(currentPositionVector.X + bottomMiddleOffsetVector.X, currentPositionVector.Y + bottomMiddleOffsetVector.Y, currentPositionVector.Z + bottomMiddleOffsetVector.Z);
-            Vector3 destinationBottomMiddleVector = new Vector3(destinationVector.X + bottomMiddleOffsetVector.X, destinationVector.Y + bottomMiddleOffsetVector.Y, destinationVector.Z + bottomMiddleOffsetVector.Z);
+            Vector3 destinationBottomMiddleVector = new Vector3(destinationVector.X + bottomMiddleOffsetVector.X, considerY ? destinationVector.Y + currentBottomMiddleVector.Y : currentBottomMiddleVector.Y, destinationVector.Z + bottomMiddleOffsetVector.Z);
             Vector3 collisionVectorBottomMiddle = GetCollisionVector(currentBottomMiddleVector, destinationBottomMiddleVector);
-
-            
 
             float distanceFromCollisionPoint = 10000f;
             

@@ -17,6 +17,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Framework.WPF.Extensions;
 
 namespace Module.HeroVirtualTabletop.HCSIntegration
 {
@@ -28,6 +29,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         event EventHandler<CustomEventArgs<Object>> AttackResultsNotFound;
         List<Character> InGameCharacters { get; set; }
         void StartIntegration();
+        void StopIntegration();
         object GetLatestSequenceInfo();
         void ConfigureAttack(Attack attack, List<Character> attackers, List<Character> defenders);
         void PlaySimpleAbility(Character target, AnimatedAbility ability);
@@ -41,17 +43,24 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     {
         private CollisionEngine collisionEngine;
         private Timer timer;
-        private object lockObj = new object();
+        private object lockObjFileWatcher = new object();
+        private object lockObjAttackSensor = new object();
+        private string currentToken = null;
         private static FileSystemWatcher HCSIntegratorFileWatcher;
+        private bool deckUpdatePending = false;
+        private bool eligibleCombatantsUpdatePending = false;
+        private bool attackInfoUpdatedForCurrentAttack = false;
         public List<Character> InGameCharacters { get; set; }
         public HCSIntegrationAction LastIntegrationAction { get; set; }
         public ActiveCharacterInfo CurrentActiveCharacterInfo { get; set; }
-        public AttackResultHCS CurrentAttackResult { get; set; }
+        public AttackResponse CurrentAttackResult { get; set; }
         public string CurrentAttackResultFileContents { get; set; }
         public string CurrentOnDeckCombatantsFileContents { get; set; }
         public string CurrentChronometerFileContents { get; set; }
         public string CurrentActiveCharacterInfoFileContents { get; set; }
+        public string CurrentEligibleCombatantsFileContents { get; set; }
         public HCSAttackType CurrentAttackType { get; set; }
+        public HCSIntegrationStatus CurrentIntegrationStatus { get; set; }
 
         public event EventHandler<CustomEventArgs<Object>> SequenceUpdated;
         public event EventHandler<CustomEventArgs<Object>> ActiveCharacterUpdated;
@@ -112,60 +121,70 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 HCSIntegratorFileWatcher.Created += HCSIntegratorFileWatcher_Changed;
                 HCSIntegratorFileWatcher.Renamed += HCSIntegratorFileWatcher_Changed;
             }
+            HCSIntegratorFileWatcher.EnableRaisingEvents = false;
+            timer = new Timer(timer_elapsed);
+            CurrentIntegrationStatus = HCSIntegrationStatus.Stopped;
         }
 
         public void StartIntegration()
         {
+            CurrentIntegrationStatus = HCSIntegrationStatus.Started;
             if (EventInfoDirectoryPath != null)
                 HCSIntegratorFileWatcher.EnableRaisingEvents = true;
+            timer.Change(5, 2000);
         }
-
-        private DateTime lastReadTime = DateTime.MinValue;
+        
+        public void StopIntegration()
+        {
+            CurrentIntegrationStatus = HCSIntegrationStatus.Stopped;
+            HCSIntegratorFileWatcher.EnableRaisingEvents = false;
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
+        }
         private void HCSIntegratorFileWatcher_Changed(object sender, FileSystemEventArgs e)
         {
-            lock (lockObj)
+            lock (lockObjFileWatcher)
             {
                 string fileExt = Path.GetExtension(e.FullPath);
                 if ((e.ChangeType == WatcherChangeTypes.Changed || e.ChangeType == WatcherChangeTypes.Created) && fileExt == ".info" || fileExt == ".event")
                 {
                     if (e.Name == Constants.COMBATANTS_FILE_NAME || e.Name == Constants.CHRONOMETER_FILE_NAME)
                     {
-                        string currentCombatantsJson = this.GetCurrentCombatantsFileContents();
-                        string currentChronoMeterJson = this.GetCurrentChronometerFileContents();
-                        if(currentCombatantsJson != null && currentChronoMeterJson != null && this.CurrentChronometerFileContents != currentChronoMeterJson || this.CurrentOnDeckCombatantsFileContents != currentCombatantsJson)
+                        if (this.LastIntegrationAction != HCSIntegrationAction.AttackInitiated)
                         {
-                            this.LastIntegrationAction = HCSIntegrationAction.DeckUpdated;
-                            object sequenceInfo = this.GetLatestSequenceInfo();
-                            object[] seqArray = sequenceInfo as object[];
-                            if (seqArray != null && seqArray.Length == 3 && seqArray[0] != null && seqArray[1] != null && seqArray[2] != null)
-                            {
-                                OnSequenceUpdated(null, new CustomEventArgs<object> { Value = seqArray });
-                            }
+                            UpdateSequence();
+                        }
+                        else
+                        {
+                            deckUpdatePending = true;
                         }
                     }
-                    else if (e.Name == Constants.ACTIVE_CHARACTOR_FILE_NAME)
+                    else if (e.Name == Constants.ACTIVE_CHARACTER_FILE_NAME)
                     {
-                        string currentActiveCharacterInfoJson = this.GetCurrentActiveCharacterInfoFileContents();
-                        if(this.CurrentActiveCharacterInfoFileContents != currentActiveCharacterInfoJson)
-                        {
-                            this.LastIntegrationAction = HCSIntegrationAction.ActiveCharacterUpdated;
-                            ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
-                            if (activeCharacterInfo != null)
-                                OnActiveCharacterUpdated(null, new CustomEventArgs<object> { Value = activeCharacterInfo });
-                        }
-                        
+                        UpdateActiveCharacter();
                     }
-                    else if (e.Name == Constants.ATTACK_RESULT_FILE_NAME && this.CurrentAttackType != HCSAttackType.None)
+                    //else if (e.Name == Constants.ATTACK_RESULT_FILE_NAME && this.CurrentAttackType != HCSAttackType.None)
+                    //{
+                    //    if (this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated || this.LastIntegrationAction == HCSIntegrationAction.AttackResultReceived)
+                    //    {
+                    //        string currentJson = this.GetAttackResultsFileContents();
+                    //        if (currentJson != CurrentAttackResultFileContents)
+                    //        {
+                    //            ProcessAttackResults();
+                    //        }
+                    //        else
+                    //            this.CurrentAttackResultFileContents = null;
+                    //    }
+                    //}
+                    else if(e.Name == Constants.ELIGIBLE_COMBATANTS_FILE_NAME)
                     {
-                        if (this.LastIntegrationAction == HCSIntegrationAction.AttackInfoUpdatedWithPossibleCollision || this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated)
+                        if (this.LastIntegrationAction != HCSIntegrationAction.AttackInitiated)
                         {
-                            string currentJson = this.GetAttackResultsFileContents();
-                            if (currentJson != CurrentAttackResultFileContents)
-                            {
-                                ProcessAttackResults();
-                            }
-                            else
-                                this.CurrentAttackResultFileContents = null;
+
+                            UpdateEligibleCombatantsInfo();
+                        }
+                        else
+                        {
+                            eligibleCombatantsUpdatePending = true;
                         }
                     }
                 }
@@ -174,39 +193,53 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         private void timer_elapsed(object state)
         {
-            HCSIntegrationAction integrationAction = (HCSIntegrationAction)state;
-            if (integrationAction == this.LastIntegrationAction)
+            if (CurrentIntegrationStatus != HCSIntegrationStatus.Stopped)
             {
-                timer.Change(Timeout.Infinite, Timeout.Infinite);
-                if (this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated || this.LastIntegrationAction == HCSIntegrationAction.AttackInfoUpdatedWithPossibleCollision)
+                string pathAttackResult = Path.Combine(EventInfoDirectoryPath, Constants.ATTACK_RESULT_FILE_NAME);
+                if (File.Exists(pathAttackResult))
                 {
-                    // First check if it has been modified in last 5 secs
-                    DateTime now = DateTime.Now;
-                    bool resultsReceived = false;
-                    string pathAttackResult = Path.Combine(EventInfoDirectoryPath, Constants.ATTACK_RESULT_FILE_NAME);
-                    if (File.Exists(pathAttackResult))
-                    {
-                        DateTime lastModTime = File.GetLastWriteTime(pathAttackResult);
-                        if((now - lastModTime).Milliseconds < 5000)
-                        {
-                            string currentJson = this.GetAttackResultsFileContents();
-                            if (currentJson != CurrentAttackResultFileContents)
-                            {
-                                resultsReceived = true;
-                                ProcessAttackResults();
-                            }
-                        }
-                    }
-                    if (!resultsReceived)
-                    {
-                        var customEventArgs = new CustomEventArgs<object>();
-                        if (this.CurrentAttackResult != null)
-                            customEventArgs.Value = ParseAttackTargetsFromAttackResult(this.CurrentAttackResult);
-                        else
-                            customEventArgs.Value = null;
-                        OnAttackResultsNotFound(this, customEventArgs);
-                    }
+                    ProcessAttackResults();
                 }
+            }
+        }
+
+        private void UpdateSequence()
+        {
+            string currentCombatantsJson = this.GetCurrentCombatantsFileContents();
+            string currentChronoMeterJson = this.GetCurrentChronometerFileContents();
+            if (currentCombatantsJson != null && currentChronoMeterJson != null && this.CurrentChronometerFileContents != currentChronoMeterJson || this.CurrentOnDeckCombatantsFileContents != currentCombatantsJson)
+            {
+                this.LastIntegrationAction = HCSIntegrationAction.DeckUpdated;
+                object sequenceInfo = this.GetLatestSequenceInfo();
+                object[] seqArray = sequenceInfo as object[];
+                if (seqArray != null && seqArray.Length == 3 && seqArray[0] != null && seqArray[1] != null && seqArray[2] != null)
+                {
+                    OnSequenceUpdated(null, new CustomEventArgs<object> { Value = seqArray });
+                }
+            }
+        }
+
+        private void UpdateActiveCharacter()
+        {
+            string currentActiveCharacterInfoJson = this.GetCurrentActiveCharacterInfoFileContents();
+            if (this.CurrentActiveCharacterInfoFileContents != currentActiveCharacterInfoJson)
+            {
+                this.LastIntegrationAction = HCSIntegrationAction.ActiveCharacterUpdated;
+                ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
+                if (activeCharacterInfo != null)
+                    OnActiveCharacterUpdated(null, new CustomEventArgs<object> { Value = activeCharacterInfo });
+            }
+        }
+
+        private void UpdateEligibleCombatantsInfo()
+        {
+            string currentEligibleCombatantsJson = this.GetCurrentEligibleCombatantsFileContents();
+            if (this.CurrentEligibleCombatantsFileContents != currentEligibleCombatantsJson)
+            {
+                this.LastIntegrationAction = HCSIntegrationAction.EligibleCombatantsUpdated;
+                //ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
+                //if (activeCharacterInfo != null)
+                //    OnActiveCharacterUpdated(null, new CustomEventArgs<object> { Value = activeCharacterInfo });
             }
         }
 
@@ -228,9 +261,11 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return onDeckCombatants;
         }
 
+        int combatantsFileReadRetryCount = 5;
         private string GetCurrentCombatantsFileContents()
         {
             string pathCombatants = Path.Combine(EventInfoDirectoryPath, Constants.COMBATANTS_FILE_NAME);
+            
             string json = null;
             try
             {
@@ -240,12 +275,16 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     using (StreamReader r = new StreamReader(pathCombatants))
                     {
                         json = r.ReadToEnd();
+                        combatantsFileReadRetryCount = 5;
                     }
                 }
             }
             catch (Exception ex)
             {
-                
+                if(combatantsFileReadRetryCount-- > 0)
+                {
+                    json = GetCurrentCombatantsFileContents();
+                }
             }
             return json;
         }
@@ -295,7 +334,28 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         private string GetCurrentActiveCharacterInfoFileContents()
         {
-            string pathActiveCharacter = Path.Combine(EventInfoDirectoryPath, Constants.ACTIVE_CHARACTOR_FILE_NAME);
+            string pathActiveCharacter = Path.Combine(EventInfoDirectoryPath, Constants.ACTIVE_CHARACTER_FILE_NAME);
+            string json = null;
+            try
+            {
+                if (File.Exists(pathActiveCharacter))
+                {
+                    System.Threading.Thread.Sleep(1000);
+                    using (StreamReader r = new StreamReader(pathActiveCharacter))
+                    {
+                        json = r.ReadToEnd();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return json;
+        }
+
+        private string GetCurrentEligibleCombatantsFileContents()
+        {
+            string pathActiveCharacter = Path.Combine(EventInfoDirectoryPath, Constants.ELIGIBLE_COMBATANTS_FILE_NAME);
             string json = null;
             try
             {
@@ -317,24 +377,48 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private List<AbilityActivationEligibility> GetAbilityActivationEligibilityCollection()
         {
             List<AbilityActivationEligibility> eligibilityCollection = new List<HCSIntegration.AbilityActivationEligibility>();
-            string json = this.CurrentActiveCharacterInfo.Powers.ToString();
+            Dictionary<string, bool> abilityEligibilityDictionary = new Dictionary<string, bool>();
+            if (this.CurrentActiveCharacterInfo.Powers != null)
+            {
+                string json = this.CurrentActiveCharacterInfo.Powers.ToString();
+                abilityEligibilityDictionary = GetAbilityEligiblityDictionary(json);
+            }
+            if(this.CurrentActiveCharacterInfo.Defaults != null)
+            {
+                string json = this.CurrentActiveCharacterInfo.Defaults.ToString();
+                var abilityEligibilityDictionaryOther = GetAbilityEligiblityDictionary(json);
+                abilityEligibilityDictionary.AddRange(abilityEligibilityDictionaryOther);
+            } 
+            foreach(var entry in abilityEligibilityDictionary)
+            {
+                if (!eligibilityCollection.Any(e => e.AbilityName == entry.Key))
+                    eligibilityCollection.Add(new AbilityActivationEligibility { AbilityName = entry.Key, IsEnabled = entry.Value});
+            }
 
-            JToken outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
-            foreach(var obj in outer.Children())
+            return eligibilityCollection;
+        }
+
+        private Dictionary<string, bool> GetAbilityEligiblityDictionary(string json)
+        {
+            Dictionary<string, bool> abilityEligibilityDictionary = new Dictionary<string, bool>();
+            JToken outer = JToken.Parse(json);
+            foreach (var obj in outer.Children())
             {
                 JProperty jProp = obj as JProperty;
-                if(jProp != null)
+                if (jProp != null)
                 {
                     JObject jObj = jProp.Value as JObject;
                     var values = jObj.Properties().Where(p => p.Name == "Is Enabled").Select(p => p.Value);
                     if (values.Count() > 0)
                     {
                         bool val = values.First().Value<bool>();
-                        eligibilityCollection.Add(new HCSIntegration.AbilityActivationEligibility { AbilityName = jProp.Name, IsEnabled = val });
+                        if(!abilityEligibilityDictionary.ContainsKey(jProp.Name))
+                            abilityEligibilityDictionary.Add(jProp.Name, val);
                     }
                 }
             }
-            return eligibilityCollection;
+
+            return abilityEligibilityDictionary;
         }
 
         private string GetAttackResultsFileContents()
@@ -358,18 +442,20 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             }
             return json;
         }
-        private AttackResultHCS GetAttackResults()
+        private AttackResponse GetAttackResults()
         {
-            AttackResultHCS attackResult = null;
+            AttackResponse attackResult = null;
             string json = GetAttackResultsFileContents();
+            if (json != this.CurrentAttackResultFileContents)
+                this.attackInfoUpdatedForCurrentAttack = true;
             this.CurrentAttackResultFileContents = json;
             switch (this.CurrentAttackType)
             {
                 case HCSAttackType.Area:
-                    attackResult = JsonConvert.DeserializeObject<AttackAreaTargetResult>(json);
+                    attackResult = JsonConvert.DeserializeObject<AttackAreaTargetResponse>(json);
                     break;
                 case HCSAttackType.SingleTargetVanilla:
-                    attackResult = JsonConvert.DeserializeObject<AttackSingleTargetResult>(json);
+                    attackResult = JsonConvert.DeserializeObject<AttackSingleTargetResponse>(json);
                     break;
                 default:
                     break;
@@ -377,113 +463,87 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
             return attackResult;
         }
-
-        private void ProcessAttackResults()
+        
+        private bool ProcessAttackResults()
         {
-            AttackResultHCS attackResult = GetAttackResults();
-
-            if (this.LastIntegrationAction == HCSIntegrationAction.AttackInfoUpdatedWithPossibleCollision)
+            lock (lockObjAttackSensor)
             {
-                this.LastIntegrationAction = HCSIntegrationAction.AttackResultReceivedWithPossibleCollision;
-                ProcessSecondaryAttackResults(attackResult);
-            }
-            else if (this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated)
-            {
-                this.LastIntegrationAction = HCSIntegrationAction.AttackResultReceived;
-                ProcessPrimaryAttackResults(attackResult);
-            }
-        }
-
-        private void ProcessPrimaryAttackResults(AttackResultHCS attackResult)
-        {
-            Action d = delegate ()
-            {
-                this.CurrentAttackResult = attackResult;
-                switch (this.CurrentAttackType)
+                AttackResponse attackResult = GetAttackResults();
+                bool resultsReceivedWithToken = attackResult != null && attackResult.Token != null && attackResult.Token == this.currentToken;
+                if (resultsReceivedWithToken)
                 {
-                    case HCSAttackType.Area:
-                        ProcessPrimaryAreaTargetResult(attackResult as AttackAreaTargetResult);
-                        break;
-                    case HCSAttackType.SingleTargetVanilla:
-                        ProcessPrimarySingleTargetResult(attackResult as AttackSingleTargetResult);
-                        break;
-                    default:
-                        break;
+                    if (this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated)
+                    {
+                        this.LastIntegrationAction = HCSIntegrationAction.AttackResultReceived;
+                        attackInfoUpdatedForCurrentAttack = false;
+                        ProcessAttackResults(attackResult);
+                    }
+                    else if (this.attackInfoUpdatedForCurrentAttack)
+                    {
+                        attackInfoUpdatedForCurrentAttack = false;
+                        ProcessAttackResults(attackResult);
+                    }
+
+                    if (deckUpdatePending)
+                    {
+                        deckUpdatePending = false;
+                        UpdateSequence();
+                    }
+                    if (eligibleCombatantsUpdatePending)
+                    {
+                        eligibleCombatantsUpdatePending = false;
+                        UpdateEligibleCombatantsInfo();
+                    }
+                }
+                else if (attackResult != null && attackResult.Token == null)
+                {
+                    //DeleteCurrentResultFile();
+                }
+                else
+                {
+
                 }
 
-            };
-            AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 100);
-            adex.ExecuteAsyncDelegate();
-        }
-        private void ProcessPrimaryAreaTargetResult(AttackAreaTargetResult attackResult)
-        {
-            //if (attackResult.Targets.Any(t => t.Target.Result.Knockback != null))
-            //{
-            //    Dictionary<Character, object> targetKnockbackObstructionDictionary = new Dictionary<Character, object>();
-            //    foreach (var knockBackResult in attackResult.Targets.Where(t => t.Target.Result.Knockback != null))
-            //    {
-            //        int distance = knockBackResult.Target.Result.Knockback.Distance;
-            //        if (this.CurrentActiveCharacterInfo == null)
-            //            this.GetCurrentActiveCharacterInfo();
-            //        Character attacker = this.InGameCharacters.FirstOrDefault(c => c.Name == this.CurrentActiveCharacterInfo.Name);
-            //        Character target = this.InGameCharacters.FirstOrDefault(c => c.Name == knockBackResult.Target.Name);
-            //        List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && !attackResult.Targets.Any(t => t.Target.Name == c.Name)).ToList();
-            //        object obstruction = collisionEngine.CalculateKnockbackObstruction(attacker, target, distance, otherCharacters);
-            //        if (obstruction != null)
-            //        {
-            //            targetKnockbackObstructionDictionary.Add(target, obstruction);
-            //        }
-            //    }
-            //    if (targetKnockbackObstructionDictionary.Count > 0)
-            //    {
-            //        GenerateKnockbackMultiTargetMessage(targetKnockbackObstructionDictionary);
-            //        this.LastIntegrationAction = HCSIntegrationAction.AttackInfoUpdatedWithPossibleCollision;
-            //        WaitForAttackUpdates();
-            //    }
-            //    else
-            //    {
-            //        ProcessSecondaryAttackResults(attackResult);
-            //    }
-            //}
-            //else
-            {
-                ProcessSecondaryAttackResults(attackResult);
+                return resultsReceivedWithToken;
             }
         }
-        private void ProcessPrimarySingleTargetResult(AttackSingleTargetResult attackResult)
-        {
-            //if (attackResult.Results != null && attackResult.Results.Knockback != null)
-            //{
-            //    int distance = attackResult.Results.Knockback.Distance;
-            //    if (this.CurrentActiveCharacterInfo == null)
-            //        this.GetCurrentActiveCharacterInfo();
-            //    Character attacker = this.InGameCharacters.FirstOrDefault(c => c.Name == this.CurrentActiveCharacterInfo.Name);
-            //    Character target = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.Target.Name);
-            //    List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != target).ToList();
-            //    object obstruction = collisionEngine.CalculateKnockbackObstruction(attacker, target, distance, otherCharacters);
-            //    if (obstruction != null)
-            //    {
-            //        GenerateKnockbackSingleTargetMessage(obstruction);
-            //        this.LastIntegrationAction = HCSIntegrationAction.AttackInfoUpdatedWithPossibleCollision;
-            //        WaitForAttackUpdates();
-            //    }
-            //    else
-            //    {
-            //        ProcessSecondaryAttackResults(attackResult);
-            //    }
-            //}
-            //else
-            {
-                ProcessSecondaryAttackResults(attackResult);
-            }
-        }
-        private void ProcessSecondaryAttackResults(AttackResultHCS attackResult)
+
+        private void ProcessAttackResults(AttackResponse attackResult)
         {
             this.CurrentAttackResult = attackResult;
+            this.CurrentAttackResult = attackResult;
             List<Character> attackTargets = ParseAttackTargetsFromAttackResult(attackResult);
+            //DeleteCurrentResultFile();
             OnAttackResultsUpdated(this, new CustomEventArgs<object> { Value = attackTargets });
         }
 
+        int numDeleteRetry = 5;
+        private void DeleteCurrentResultFile()
+        {
+            string pathAttackResult = Path.Combine(EventInfoDirectoryPath, Constants.ATTACK_RESULT_FILE_NAME);
+            string json = null;
+            try
+            {
+                if (File.Exists(pathAttackResult))
+                {
+                    File.Delete(pathAttackResult);
+                    numDeleteRetry = 5;
+                }
+            }
+            catch(IOException ioex)
+            {
+                numDeleteRetry--;
+                if(numDeleteRetry > 0)
+                {
+                    Thread.Sleep(1000);
+                    DeleteCurrentResultFile();
+                }
+            }
+            catch
+            {
+
+            }
+        }
         private void ParseEffects(ActiveAttackConfiguration attackConfig, List<string> effects)
         {
             if (effects != null)
@@ -503,16 +563,16 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             }
         }
 
-        private List<Character> ParseAttackTargetsFromAttackResult(AttackResultHCS attackResult)
+        private List<Character> ParseAttackTargetsFromAttackResult(AttackResponse attackResult)
         {
             List<Character> targets = null;
             switch (this.CurrentAttackType)
             {
                 case HCSAttackType.Area:
-                    targets = ParseAttackTargetsFromAttackAreaTargetResult(attackResult as AttackAreaTargetResult);
+                    targets = ParseAttackTargetsFromAttackAreaTargetResult(attackResult as AttackAreaTargetResponse);
                     break;
                 case HCSAttackType.SingleTargetVanilla:
-                    targets = ParseAttackTargetsFromAttackSingleTargetResult(attackResult as AttackSingleTargetResult);
+                    targets = ParseAttackTargetsFromAttackSingleTargetResult(attackResult as AttackSingleTargetResponse);
                     break;
                 default:
                     break;
@@ -521,7 +581,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return targets;
         }
 
-        private List<Character> ParseAttackTargetsFromAttackSingleTargetResult(AttackSingleTargetResult attackResult)
+        private List<Character> ParseAttackTargetsFromAttackSingleTargetResult(AttackSingleTargetResponse attackResult)
         {
             List<Character> attackTargets = new List<Character>();
             Character primaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResult.Target.Name);
@@ -578,7 +638,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return attackTargets;
         }
 
-        private List<Character> ParseAttackTargetsFromAttackAreaTargetResult(AttackAreaTargetResult attackResult)
+        private List<Character> ParseAttackTargetsFromAttackAreaTargetResult(AttackAreaTargetResponse attackResult)
         {
             List<Character> attackTargets = new List<Characters.Character>();
             foreach (var target in attackResult.Targets)
@@ -667,8 +727,15 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private string GetDistanceLimitString(string movementName)
         {
             string limitString = "";
-            JToken outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
+            JToken outer = null;
+            if(this.CurrentActiveCharacterInfo.Powers != null)
+                outer = JToken.Parse(this.CurrentActiveCharacterInfo.Powers.ToString());
             bool movementExists = outer.Children().Any(c => (c is JProperty) && (c as JProperty).Name == movementName);
+            if(!movementExists && this.CurrentActiveCharacterInfo.Defaults != null)
+            {
+                outer = JToken.Parse(this.CurrentActiveCharacterInfo.Defaults.ToString());
+                movementExists = outer.Children().Any(c => (c is JProperty) && (c as JProperty).Name == movementName);
+            }
             if (movementExists)
             {
                 JObject inner = outer[movementName].Value<JObject>();
@@ -687,9 +754,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         private void WaitForAttackUpdates()
         {
-            var integrationAction = this.LastIntegrationAction;
-            timer = new Timer(timer_elapsed, integrationAction, Timeout.Infinite, Timeout.Infinite);
-            timer.Change(5000, Timeout.Infinite);
+            //timer.Change(2000, Timeout.Infinite);
         }
 
         public void PlaySimpleAbility(Character target, AnimatedAbility ability)
@@ -722,7 +787,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             this.CurrentAttackType = HCSAttackType.SingleTargetVanilla;
             GenerateAttackSingleTargetInitiationMessage(attack, attacker, defender);
             this.LastIntegrationAction = HCSIntegrationAction.AttackInitiated;
-            WaitForAttackUpdates();
+            //WaitForAttackUpdates();
         }
 
         private void ConfigureAreaAttack(Attack attack, Character attacker, List<Character> defenders)
@@ -730,7 +795,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             this.CurrentAttackType = HCSAttackType.Area;
             GenerateAttackAreaTargetInitiationMessage(attack, attacker, defenders);
             this.LastIntegrationAction = HCSIntegrationAction.AttackInitiated;
-            WaitForAttackUpdates();
+            //WaitForAttackUpdates();
         }
         public void ConfigureAttack(Attack attack, List<Character> attackers, List<Character> defenders)
         {
@@ -774,8 +839,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         public void CancelAttack()
         {
-            if (this.LastIntegrationAction == HCSIntegrationAction.AttackInfoUpdatedWithPossibleCollision || this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated
-                || this.LastIntegrationAction == HCSIntegrationAction.AttackResultReceived || this.LastIntegrationAction == HCSIntegrationAction.AttackResultReceivedWithPossibleCollision)
+            if (this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated || this.LastIntegrationAction == HCSIntegrationAction.AttackResultReceived)
                 this.GenerateAttackConfirmationMessage(false);
             ResetAttackParameters();
         }
@@ -791,6 +855,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             this.CurrentAttackResult = null;
             this.CurrentAttackResultFileContents = null;
             this.CurrentAttackType = HCSAttackType.None;
+            //if (timer != null)
+            //    timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         private void WriteToAbilityActivatedFile(object jsonObject)
@@ -806,6 +872,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     using (JsonWriter jsonWriter = new JsonTextWriter(streamWriter))
                     {
                         serializer.Serialize(jsonWriter, jsonObject);
+                        streamWriter.Flush();
                     }
                 }
             };
@@ -868,11 +935,13 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private void GenerateAttackSingleTargetInitiationMessage(Attack attack, Character attacker, Character defender)
         {
             this.CurrentAttackResult = null;
+            this.currentToken = Guid.NewGuid().ToString();
             float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
             var obstruction = collisionEngine.FindObstructingObject(attacker, defender, this.InGameCharacters.Where(c => c != attacker && c != defender).ToList());
-            AttackSingleTarget attackSingleTarget = new AttackSingleTarget
+            AttackTargetRequest attackSingleTarget = new AttackTargetRequest
             {
                 Type = Constants.ATTACK_SINGLE_TARGET_INITIATION_TYPE_NAME,
+                Token = this.currentToken,
                 Ability = attack.Name,
                 Target = defender.Name,
                 Range = (int)Math.Round((range - 5) / 8f, 2)
@@ -885,7 +954,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     attackSingleTarget.Obstruction = obstruction.CollidingObject.ToString();
             }
             List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
-            var knockbackObstacle = collisionEngine.CalculateKnockbackObstruction(attacker, defender, 200, otherCharacters);
+            var knockbackObstacle = collisionEngine.CalculateKnockbackObstruction(attacker, defender, 50, otherCharacters);
             if (knockbackObstacle != null)
             {
                 attackSingleTarget.PotentialCollision = new HCSIntegration.PotentialCollision
@@ -893,6 +962,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     Obstacle = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
                     DistanceFromTarget = (int)Math.Round((knockbackObstacle.CollisionDistance - 5) / 8f, 2)
                 };
+
             }
 
             WriteToAbilityActivatedFile(attackSingleTarget);
@@ -938,15 +1008,17 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private void GenerateAttackAreaTargetInitiationMessage(Attack attack, Character attacker, List<Character> defenders)
         {
             this.CurrentAttackResult = null;
-            AreaEffectTargetCollection areaEffectTargetCollection = new AreaEffectTargetCollection
+            this.currentToken = Guid.NewGuid().ToString();
+            AreaEffectRequest areaEffectTargetCollection = new AreaEffectRequest
             {
                 Type = Constants.ATTACK_AREA_TARGET_INITIATION_TYPE_NAME,
+                Token = this.currentToken,
                 Ability = attack.Name
             };
-            areaEffectTargetCollection.Targets = new List<AreaEffectTarget>();
+            areaEffectTargetCollection.Targets = new List<AttackTargetRequest>();
             foreach (Character defender in defenders)
             {
-                AreaEffectTarget areaEffectTarget = new HCSIntegration.AreaEffectTarget();
+                AttackTargetRequest areaEffectTarget = new HCSIntegration.AttackTargetRequest();
                 areaEffectTarget.Target = defender.Name;
                 float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
                 areaEffectTarget.Range = (int)Math.Round((range - 5) / 8f, 2);
