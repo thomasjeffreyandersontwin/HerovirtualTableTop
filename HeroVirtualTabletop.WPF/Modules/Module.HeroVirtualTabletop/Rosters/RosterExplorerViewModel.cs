@@ -2170,10 +2170,11 @@ namespace Module.HeroVirtualTabletop.Roster
                             List<Character> targets = savedAttackState[1] as List<Character>;
                             List<Character> attackers = savedAttackState[2] as List<Character>;
                             this.InitiateRosterCharacterAttack(new Tuple<Character, Attack>(activeChar, attack));
-                            if(targets != null && targets.Count > 0)
+                            if(targets != null && targets.Count > 0 && attackers.Contains(this.ActiveCharacter as Character))
                             {
                                 this.SelectedParticipants = targets;
                                 this.TargetAndExecuteAttack(this.currentAttack);
+                                this.hcsIntegrator.ResumeAttack();
                             }
                             
                             this.savedAttackState = null;
@@ -2211,7 +2212,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
 
             };
-            Application.Current.Dispatcher.BeginInvoke(action);
+            Application.Current.Dispatcher.Invoke(action);
         }
 
         private void ActivateCharacter(Character character, string selectedOptionGroupName = null, string selectedOptionName = null)

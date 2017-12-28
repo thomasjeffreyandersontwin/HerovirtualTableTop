@@ -34,8 +34,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Vector3 pointA = GetAdjacentPoint(sourcePositionVector, sourceFacingTargetVector, true);
             Vector3 pointB = GetAdjacentPoint(sourcePositionVector, sourceFacingTargetVector, false);
             // Calculate points C and D to left and right of target
-            Vector3 pointC = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, true);
-            Vector3 pointD = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, false);
+            Vector3 pointC = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, false);
+            Vector3 pointD = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, true);
             // Now we have four co-ordinates of rectangle ABCD.  Need to check if any of the other characters falls within this rectangular region
             List<Character> obstructingCharacters = new List<Characters.Character>();
             foreach (Character otherCharacter in otherCharacters)
@@ -104,7 +104,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Double rotationAngle = isLeft ? -90 : 90;
             MovementDirection direction = isLeft ? MovementDirection.Left : MovementDirection.Right;
             Vector3 directionVector = GetDirectionVector(rotationAngle, direction, facingVector);
-            Vector3 destinationVector = GetDestinationVector(directionVector, 7.5f, currentPositionVector);
+            Vector3 destinationVector = GetDestinationVector(directionVector, 2.5f, currentPositionVector);
             return destinationVector;
         }
 

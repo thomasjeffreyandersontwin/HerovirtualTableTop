@@ -35,6 +35,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         void PlaySimpleAbility(Character target, AnimatedAbility ability);
         void ConfirmAttack();
         void CancelAttack();
+        void ResumeAttack();
         void NotifyStopMovement(CharacterMovement characterMovement, double distanceTravelled);
         float GetMovementDistanceLimit(CharacterMovement activeMovement);
         void AbortAction(List<Character> abortingCharacters);
@@ -843,10 +844,19 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             ResetAttackParameters();
         }
 
+        public void ResumeAttack()
+        {
+            this.CurrentAttackType = this.savedAttackType;
+            var attackResults = this.GetAttackResults();
+            if (attackResults != null)
+                ProcessAttackResults(attackResults);
+        }
+        private HCSAttackType savedAttackType = HCSAttackType.None;
         public void AbortAction(List<Character> abortingCharacters)
         {
             foreach (Character character in abortingCharacters)
                 GenerateAbortActionMessage(character);
+            this.savedAttackType = this.CurrentAttackType;
         }
 
         private void ResetAttackParameters()
