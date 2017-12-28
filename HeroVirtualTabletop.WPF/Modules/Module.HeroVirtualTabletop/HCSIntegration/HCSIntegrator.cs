@@ -839,8 +839,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         public void CancelAttack()
         {
-            if (this.LastIntegrationAction == HCSIntegrationAction.AttackInitiated || this.LastIntegrationAction == HCSIntegrationAction.AttackResultReceived)
-                this.GenerateAttackConfirmationMessage(false);
+            this.GenerateAttackConfirmationMessage(false);
             ResetAttackParameters();
         }
 

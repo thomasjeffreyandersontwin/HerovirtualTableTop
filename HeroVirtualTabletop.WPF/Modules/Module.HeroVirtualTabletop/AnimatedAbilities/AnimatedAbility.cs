@@ -1164,6 +1164,16 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             )
             ).ToList();
 
+            List<Character> destroyedTargets = defendingCharacters.Where(t =>
+            ((t.ActiveAttackConfiguration.IsDestroyed || t.ActiveAttackConfiguration.IsPartiallyDestryoed) && t.ActiveAttackConfiguration.AttackResults == null)
+            ||
+            ((t.ActiveAttackConfiguration.IsDestroyed || t.ActiveAttackConfiguration.IsPartiallyDestryoed)
+            && t.ActiveAttackConfiguration.AttackResults != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit) != null
+            && t.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
+            )
+            ).ToList();
+
             if (deadTargets.Count > 0 && globalDeadAbility != null)
             {
                 var deadAbilityToPlay = this.GetSequenceToPlay(globalDeadAbility);
@@ -1218,6 +1228,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     attackEffectSequenceElement.AddAnimationElement(stunnedAnimation);
                     stunnedAnimation.PlayWithNext = animation.PlayWithNext;
                     characterAnimationMappingDictionary.Add(stunnedAnimation, stunnedTargets);
+                }
+            }
+
+            if(destroyedTargets.Count > 0)
+            {
+                foreach(var destroyedTarget in destroyedTargets)
+                {
+                    var destroyedAbility = destroyedTarget.AnimatedAbilities.FirstOrDefault(aa => aa.Name == "Explode" || aa.Name == "Dead");
+                    if(destroyedAbility != null)
+                    {
+                        var destroyedAbilityToPlay = this.GetSequenceToPlay(destroyedAbility);
+                        var destroyedAbilityFlattened = destroyedAbilityToPlay.GetFlattenedAnimationList();
+                        foreach (var animation in destroyedAbilityFlattened)
+                        {
+                            AnimationElement destroyedAnimation = animation.Clone();
+                            destroyedAnimation.Name = AnimatedAbility.GetAppropriateAnimationName(destroyedAnimation.Type, attackEffectSequenceElement.AnimationElements.ToList());
+                            attackEffectSequenceElement.AddAnimationElement(destroyedAnimation);
+                            destroyedAnimation.PlayWithNext = animation.PlayWithNext;
+                            characterAnimationMappingDictionary.Add(destroyedAnimation, new List<Character> { destroyedTarget });
+                        }
+                    }
                 }
             }
 

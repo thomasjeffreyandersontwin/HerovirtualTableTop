@@ -2165,6 +2165,7 @@ namespace Module.HeroVirtualTabletop.Roster
                             && activeCharacterInfo.CharacterStates.IsAbortable.Value
                             && this.savedAttackState != null)
                         {
+                            // NEED To RESUME ATTACK FROM HCSINTEGRATOR
                             Attack attack = savedAttackState[0] as Attack;
                             List<Character> targets = savedAttackState[1] as List<Character>;
                             List<Character> attackers = savedAttackState[2] as List<Character>;
