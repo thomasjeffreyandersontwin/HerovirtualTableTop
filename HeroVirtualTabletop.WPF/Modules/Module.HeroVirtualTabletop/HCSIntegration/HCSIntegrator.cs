@@ -246,8 +246,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
         public object GetLatestSequenceInfo()
         {
-            OnDeckCombatants onDeckCombatants = GetCurrentCombatants();
             Chronometer chronometer = GetCurrentChronometer();
+            OnDeckCombatants onDeckCombatants = GetCurrentCombatants();
             ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
             return new object[] { onDeckCombatants, chronometer, activeCharacterInfo };
         }
@@ -272,7 +272,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             {
                 if (File.Exists(pathCombatants))
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(500);
                     using (StreamReader r = new StreamReader(pathCombatants))
                     {
                         json = r.ReadToEnd();
@@ -308,7 +308,6 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             {
                 if (File.Exists(pathChronometer))
                 {
-                    System.Threading.Thread.Sleep(1000);
                     using (StreamReader r = new StreamReader(pathChronometer))
                     {
                         json = r.ReadToEnd();
@@ -341,7 +340,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             {
                 if (File.Exists(pathActiveCharacter))
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(500);
                     using (StreamReader r = new StreamReader(pathActiveCharacter))
                     {
                         json = r.ReadToEnd();
@@ -362,7 +361,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             {
                 if (File.Exists(pathActiveCharacter))
                 {
-                    System.Threading.Thread.Sleep(1000);
+                    System.Threading.Thread.Sleep(500);
                     using (StreamReader r = new StreamReader(pathActiveCharacter))
                     {
                         json = r.ReadToEnd();
