@@ -180,14 +180,17 @@ namespace Module.HeroVirtualTabletop.Library
         }
         private void LoadActiveAttackWidget(Tuple<List<Character>, Attack> tuple)
         {
-            if (tuple.Item1 != null && tuple.Item2 != null && PopupService.IsOpen("ActiveAttackView") == false)
+            if (tuple.Item1 != null && tuple.Item2 != null)
             {
-                System.Windows.Style style = Helper.GetCustomWindowStyle();
-                ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
-                Mouse.OverrideCursor = Cursors.Arrow; 
-                PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+                if (!PopupService.IsOpen("ActiveAttackView"))
+                {
+                    System.Windows.Style style = Helper.GetCustomWindowStyle();
+                    ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
+                    Mouse.OverrideCursor = Cursors.Arrow;
+                    PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+                    Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_ATTACK_WIDGET;
+                }
                 this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Publish(tuple);
-                Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_ATTACK_WIDGET;
             }
             else if ((tuple.Item1 == null || tuple.Item2 == null) && PopupService.IsOpen("ActiveAttackView"))
             {

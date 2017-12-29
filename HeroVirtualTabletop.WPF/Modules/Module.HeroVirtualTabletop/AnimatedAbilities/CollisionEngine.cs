@@ -3,6 +3,7 @@ using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.HeroVirtualTabletop.Movements;
+using Module.Shared.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,12 +39,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Vector3 pointD = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, true);
             // Now we have four co-ordinates of rectangle ABCD.  Need to check if any of the other characters falls within this rectangular region
             List<Character> obstructingCharacters = new List<Characters.Character>();
-            foreach (Character otherCharacter in otherCharacters)
+            try
             {
-                if (IsPointWithinRegion(pointA, pointB, pointC, pointD, otherCharacter.CurrentPositionVector))
+                foreach (Character otherCharacter in otherCharacters)
                 {
-                    obstructingCharacters.Add(otherCharacter);
+                    if (IsPointWithinRegion(pointA, pointB, pointC, pointD, otherCharacter.CurrentPositionVector))
+                    {
+                        obstructingCharacters.Add(otherCharacter);
+                    }
                 }
+            }
+            catch
+            {
+                FileLogManager.ForceLog(string.Format("Boundary case found for obstacle collision. Source vector {0}, Target vector {1}, other characters {2}", sourcePositionVector, targetPositionVector, string.Join(", ", otherCharacters.Select(c => c.Name))));
             }
 
             Dictionary<BodyPart, bool> bodyPartMap = new Dictionary<BodyPart, bool>();
@@ -186,6 +194,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             float AXdotAC = Vector3.Dot(lineAX, lineAC);
             float ACdotAC = Vector3.Dot(lineAC, lineAC);
 
+#if DEBUG
+            if(AXdotAB == 0f || AXdotAC == 0f)
+            {
+                throw new Exception("Boundary case found for obstacle collision!");
+            }
+#endif
             return (0 < AXdotAB && AXdotAB < ABdotAB) && (0 < AXdotAC && AXdotAC < ACdotAC);
             //// Following considers 2d
             //Point a = new Point((int)pointA.X, (int)pointA.Z);
