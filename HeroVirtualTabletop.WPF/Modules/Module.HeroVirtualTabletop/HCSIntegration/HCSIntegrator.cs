@@ -26,11 +26,12 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         event EventHandler<CustomEventArgs<Object>> SequenceUpdated;
         event EventHandler<CustomEventArgs<Object>> ActiveCharacterUpdated;
         event EventHandler<CustomEventArgs<Object>> AttackResultsUpdated;
-        event EventHandler<CustomEventArgs<Object>> AttackResultsNotFound;
+        event EventHandler<CustomEventArgs<Object>> EligibleCombatantsUpdated;
         List<Character> InGameCharacters { get; set; }
         void StartIntegration();
         void StopIntegration();
         object GetLatestSequenceInfo();
+        void ActivateHeldCharacter(Character heldCharacter);
         void ConfigureAttack(Attack attack, List<Character> attackers, List<Character> defenders);
         void PlaySimpleAbility(Character target, AnimatedAbility ability);
         void ConfirmAttack();
@@ -66,7 +67,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public event EventHandler<CustomEventArgs<Object>> SequenceUpdated;
         public event EventHandler<CustomEventArgs<Object>> ActiveCharacterUpdated;
         public event EventHandler<CustomEventArgs<Object>> AttackResultsUpdated;
-        public event EventHandler<CustomEventArgs<Object>> AttackResultsNotFound;
+        public event EventHandler<CustomEventArgs<Object>> EligibleCombatantsUpdated;
         private void OnSequenceUpdated(object sender, CustomEventArgs<Object> e)
         {
             if (SequenceUpdated != null)
@@ -82,10 +83,10 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             if (AttackResultsUpdated != null)
                 AttackResultsUpdated(sender, e);
         }
-        private void OnAttackResultsNotFound(object sender, CustomEventArgs<Object> e)
+        private void OnEligibleCombatantsUpdated(object sender, CustomEventArgs<Object> e)
         {
-            if (AttackResultsNotFound != null)
-                AttackResultsNotFound(sender, e);
+            if (EligibleCombatantsUpdated != null)
+                EligibleCombatantsUpdated(sender, e);
         }
 
         private string eventInfoDirectoryPath;
@@ -213,7 +214,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 this.LastIntegrationAction = HCSIntegrationAction.DeckUpdated;
                 object sequenceInfo = this.GetLatestSequenceInfo();
                 object[] seqArray = sequenceInfo as object[];
-                if (seqArray != null && seqArray.Length == 3 && seqArray[0] != null && seqArray[1] != null && seqArray[2] != null)
+                if (seqArray != null && seqArray.Length == 4 && seqArray[0] != null && seqArray[1] != null && seqArray[2] != null && seqArray[3] != null)
                 {
                     OnSequenceUpdated(null, new CustomEventArgs<object> { Value = seqArray });
                 }
@@ -238,27 +239,28 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             if (this.CurrentEligibleCombatantsFileContents != currentEligibleCombatantsJson)
             {
                 this.LastIntegrationAction = HCSIntegrationAction.EligibleCombatantsUpdated;
-                //ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
-                //if (activeCharacterInfo != null)
-                //    OnActiveCharacterUpdated(null, new CustomEventArgs<object> { Value = activeCharacterInfo });
+                CombatantsCollection eligibleCombatants = GetCurrentEligibleCombatants();
+                if (eligibleCombatants != null)
+                    OnEligibleCombatantsUpdated(null, new CustomEventArgs<object> { Value = eligibleCombatants });
             }
         }
 
         public object GetLatestSequenceInfo()
         {
             Chronometer chronometer = GetCurrentChronometer();
-            OnDeckCombatants onDeckCombatants = GetCurrentCombatants();
+            CombatantsCollection onDeckCombatants = GetCurrentCombatants();
             ActiveCharacterInfo activeCharacterInfo = GetCurrentActiveCharacterInfo();
-            return new object[] { onDeckCombatants, chronometer, activeCharacterInfo };
+            CombatantsCollection eligibleCombatants = GetCurrentEligibleCombatants();
+            return new object[] { onDeckCombatants, chronometer, activeCharacterInfo, eligibleCombatants };
         }
 
-        private OnDeckCombatants GetCurrentCombatants()
+        private CombatantsCollection GetCurrentCombatants()
         {
-            OnDeckCombatants onDeckCombatants = null;
+            CombatantsCollection onDeckCombatants = null;
             string json = GetCurrentCombatantsFileContents();
             this.CurrentOnDeckCombatantsFileContents = json;
             if(json != null)
-                onDeckCombatants = JsonConvert.DeserializeObject<OnDeckCombatants>(json);
+                onDeckCombatants = JsonConvert.DeserializeObject<CombatantsCollection>(json);
             return onDeckCombatants;
         }
 
@@ -352,24 +354,39 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             }
             return json;
         }
-
+        private CombatantsCollection GetCurrentEligibleCombatants()
+        {
+            CombatantsCollection eligibleCombatants = null;
+            string json = GetCurrentEligibleCombatantsFileContents();
+            this.CurrentEligibleCombatantsFileContents = json;
+            if (json != null)
+                eligibleCombatants = JsonConvert.DeserializeObject<CombatantsCollection>(json);
+            return eligibleCombatants;
+        }
+        int eligibleCombatantsFileReadRetryCount = 5;
         private string GetCurrentEligibleCombatantsFileContents()
         {
-            string pathActiveCharacter = Path.Combine(EventInfoDirectoryPath, Constants.ELIGIBLE_COMBATANTS_FILE_NAME);
+            string pathEligibleCombatants = Path.Combine(EventInfoDirectoryPath, Constants.ELIGIBLE_COMBATANTS_FILE_NAME);
+
             string json = null;
             try
             {
-                if (File.Exists(pathActiveCharacter))
+                if (File.Exists(pathEligibleCombatants))
                 {
                     System.Threading.Thread.Sleep(500);
-                    using (StreamReader r = new StreamReader(pathActiveCharacter))
+                    using (StreamReader r = new StreamReader(pathEligibleCombatants))
                     {
                         json = r.ReadToEnd();
+                        eligibleCombatantsFileReadRetryCount = 5;
                     }
                 }
             }
             catch (Exception ex)
             {
+                if (eligibleCombatantsFileReadRetryCount-- > 0)
+                {
+                    json = GetCurrentEligibleCombatantsFileContents();
+                }
             }
             return json;
         }
@@ -858,13 +875,17 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             this.savedAttackType = this.CurrentAttackType;
         }
 
+        public void ActivateHeldCharacter(Character heldCharacter)
+        {
+            GenerateActivateHeldCharacterMessage(heldCharacter);
+            this.savedAttackType = this.CurrentAttackType;
+        }
+
         private void ResetAttackParameters()
         {
             this.CurrentAttackResult = null;
             this.CurrentAttackResultFileContents = null;
             this.CurrentAttackType = HCSAttackType.None;
-            //if (timer != null)
-            //    timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
         private void WriteToAbilityActivatedFile(object jsonObject)
@@ -897,6 +918,13 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private void GenerateAbortActionMessage(Character target)
         {
             SimpleAbility abortMessage = new SimpleAbility { Type = Constants.ABORT_ACTION_TYPE_NAME, Character = target.Name };
+            WriteToAbilityActivatedFile(abortMessage);
+            Thread.Sleep(1000);
+        }
+
+        private void GenerateActivateHeldCharacterMessage(Character target)
+        {
+            SimpleAbility abortMessage = new SimpleAbility { Type = Constants.ACTIVATE_HELD_CHARACTER_TYPE_NAME, Character = target.Name };
             WriteToAbilityActivatedFile(abortMessage);
             Thread.Sleep(1000);
         }

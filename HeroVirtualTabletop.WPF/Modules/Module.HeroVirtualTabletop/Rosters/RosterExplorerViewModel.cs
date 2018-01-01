@@ -68,6 +68,7 @@ namespace Module.HeroVirtualTabletop.Roster
         private List<Character> targetCharactersForMove = new List<Character>();
         private List<Character> targetCharacters = new List<Character>();
         private List<Character> abortedCharacters = new List<Character>();
+        private CombatantsCollection holdingCombatants = null;
         private List<CrowdMemberModel> _oldSelection = new List<CrowdMemberModel>();
         private object[] savedAttackState = null;
 
@@ -196,6 +197,10 @@ namespace Module.HeroVirtualTabletop.Roster
                         previousSelectedCharacter = this.Participants.FirstOrDefault(p => (p as Character).Label == targetedBeforeMouseCLick.Label) as Character;
                     else
                         previousSelectedCharacter = this.Participants.FirstOrDefault(p => (p as Character).Label == target.Label) as Character;
+                }
+                if (IsHoldingCharacterSelected)
+                {
+                    this.ActivateHeldCharacter();
                 }
             }
         }
@@ -443,6 +448,14 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        public bool IsHoldingCharacterSelected
+        {
+            get
+            {
+                return this.SelectedParticipants.Count == 1 && this.holdingCombatants != null && this.holdingCombatants.Combatants != null && this.holdingCombatants.Combatants.Any(c => c.CharacterName == (this.SelectedParticipants[0] as ICrowdMemberModel).Name);
+            }
+        }
+
         #endregion
 
         #region Commands
@@ -581,7 +594,7 @@ namespace Module.HeroVirtualTabletop.Roster
             hcsIntegrator.ActiveCharacterUpdated += this.HCSIntegrator_ActiveCharacterUpdated;
             hcsIntegrator.SequenceUpdated += this.HCSIntegrator_SequenceUpdated;
             hcsIntegrator.AttackResultsUpdated += this.HCSIntegrator_AttackResultsUpdated;
-            hcsIntegrator.AttackResultsNotFound += this.HCSIntegrator_AttackResultsNotFound;
+            hcsIntegrator.EligibleCombatantsUpdated += this.HCSIntegrator_EligibleCombatantsUpdated;
         }
 
         private void InitializeCommands()
@@ -2163,6 +2176,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         if(activeCharacterInfo.CharacterStates != null 
                             && activeCharacterInfo.CharacterStates.IsAbortable.HasValue 
                             && activeCharacterInfo.CharacterStates.IsAbortable.Value
+                            && !this.IsCharacterHolding(this.ActiveCharacter as Character)
                             && this.savedAttackState != null)
                         {
                             // NEED To RESUME ATTACK FROM HCSINTEGRATOR
@@ -2995,20 +3009,18 @@ namespace Module.HeroVirtualTabletop.Roster
             });
         }
 
-        private void HCSIntegrator_AttackResultsNotFound(object sender, CustomEventArgs<object> e)
+        private void HCSIntegrator_EligibleCombatantsUpdated(object sender, CustomEventArgs<object> e)
         {
             Dispatcher.Invoke(() => 
             {
                 if (e.Value != null)
                 {
-                    List<Character> targets = e.Value as List<Character>;
-                    if (targets == null)
-                        targets = this.targetCharacters;
-                    //if (PopupService.IsOpen("ActiveAttackView") == false)
-                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
+                    CombatantsCollection combatantsColl = e.Value as CombatantsCollection;
+                    this.holdingCombatants = combatantsColl;
+                    this.UpdateHoldingCharactersInSequence();
+                    this.OrderSequence();
+                    OnSequenceUpdated(this, null);
                 }
-                else
-                    LaunchAttackConfiguration();
             }); 
         }
 
@@ -3020,9 +3032,10 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (sequenceInfo == null)
                     sequenceInfo = hcsIntegrator.GetLatestSequenceInfo();
                 object[] values = sequenceInfo as object[];
-                OnDeckCombatants onDeckCombatants = values[0] as OnDeckCombatants;
+                CombatantsCollection onDeckCombatants = values[0] as CombatantsCollection;
                 Chronometer chronometer = values[1] as Chronometer;
                 ActiveCharacterInfo activeCharacterInfo = values[2] as ActiveCharacterInfo;
+                CombatantsCollection eligibleCombatants = values[3] as CombatantsCollection;
                 this.SequenceParticipants = new ObservableCollection<HCSIntegration.Combatant>();
                 int order = 0;
                 if (onDeckCombatants != null)
@@ -3036,8 +3049,8 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                         else
                         {
-                            if (!this.SequenceParticipants.Any(sp => sp.Phase == Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME && sp.CharacterName == combatant.CharacterName))
-                                this.SequenceParticipants.Add(new Combatant { Phase = Constants.NOT_FOUND_IN_ROSTER_PHASE_NAME, CharacterName = combatant.CharacterName, CombatantCharacter = new CrowdMemberModel { Name = "", RosterCrowd = new CrowdModel { Name = "" } }, Order = Int32.MaxValue });
+                            if (!this.SequenceParticipants.Any(sp => sp.Phase == Constants.NOT_FOUND_IN_ROSTER_GROUP_NAME && sp.CharacterName == combatant.CharacterName))
+                                this.SequenceParticipants.Add(new Combatant { Phase = Constants.NOT_FOUND_IN_ROSTER_GROUP_NAME, CharacterName = combatant.CharacterName, CombatantCharacter = new CrowdMemberModel { Name = "", RosterCrowd = new CrowdModel { Name = "" } }, Order = Int32.MaxValue });
                         }
                     } 
                 }
@@ -3059,14 +3072,45 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     this.ActivateCharacterFromHCSActiveCharacterInfo(activeCharacterInfo);
                 }
-
-                this.SequenceParticipants = new ObservableCollection<Combatant>(this.SequenceParticipants.OrderBy(sp => sp.Order));
+                this.holdingCombatants = eligibleCombatants;
+                UpdateHoldingCharactersInSequence();
+                OrderSequence();
                 this.hcsIntegrator.InGameCharacters = this.Participants.Where(p => (p as Character).HasBeenSpawned).Cast<Character>().ToList();
                 OnSequenceUpdated(this, null);
                 this.BusyService.HideBusy();
             };
             AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 1000);
             adex.ExecuteAsyncDelegate();
+        }
+
+        private void UpdateHoldingCharactersInSequence()
+        {
+            if(this.holdingCombatants != null && this.holdingCombatants.Combatants != null && this.holdingCombatants.Combatants.Count > 0)
+            {
+                foreach (Combatant c in this.holdingCombatants.Combatants)
+                {
+                    Combatant holdingCombatant = this.SequenceParticipants.FirstOrDefault(sp => sp.CharacterName == c.CharacterName && sp.Phase == Constants.HOLDING_CHARACTERS_GROUP_NAME);
+                    if(holdingCombatant == null)
+                    {
+                        Character character = this.Participants.FirstOrDefault(p => p.Name == c.CharacterName) as Character;
+                        this.SequenceParticipants.Add(new Combatant { Phase = Constants.HOLDING_CHARACTERS_GROUP_NAME, CharacterName = c.CharacterName, CombatantCharacter = character, Order = Int32.MinValue });
+                    }
+                }
+            }
+            else
+            {
+                List<Combatant> previousHoldingCombatants = this.SequenceParticipants.Where(sp => sp.Phase == Constants.HOLDING_CHARACTERS_GROUP_NAME).ToList();
+                foreach (Combatant c in previousHoldingCombatants)
+                {
+                    Combatant deletingCombatant = this.SequenceParticipants.First(sp => sp.CharacterName == c.CharacterName);
+                    this.SequenceParticipants.Remove(deletingCombatant);
+                }
+            }
+        }
+
+        private void OrderSequence()
+        {
+            this.SequenceParticipants = new ObservableCollection<Combatant>(this.SequenceParticipants.OrderBy(sp => sp.Order));
         }
 
         private void ConfigureAttackThroughCombatSimulator()
@@ -3077,6 +3121,16 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private void ActivateHeldCharacter()
+        {
+            if (this.IsPlayingAttack)
+            {
+                this.savedAttackState = new object[] { this.currentAttack, new List<Character>(this.targetCharacters), new List<Character>(this.AttackingCharacters) };
+                this.CancelActiveAttack(this.currentAttack);
+            }
+            this.hcsIntegrator.ActivateHeldCharacter(this.SelectedParticipants[0] as Character);
+        }
+
         private void NotifyCombatSimulatorAboutMovementStop(CharacterMovement characterMovement)
         {
             if (this.IsSequenceViewActive)
@@ -3085,6 +3139,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.hcsIntegrator.NotifyStopMovement(characterMovement, distance);
                 OnShowNotification(this, new CustomEventArgs<string> { Value = Messages.MOVEMENT_STOPPED_MESSAGE });
             }
+        }
+
+        public bool IsCharacterHolding(Character character)
+        {
+            return this.holdingCombatants != null && this.holdingCombatants.Combatants != null && this.holdingCombatants.Combatants.Any(c => c.CharacterName == character.Name);
         }
 
         #endregion

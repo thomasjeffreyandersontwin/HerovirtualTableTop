@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Module.HeroVirtualTabletop.HCSIntegration
 {
-    public class OnDeckCombatants
+    public class CombatantsCollection
     {
         public List<Combatant> Combatants { get; set; }
     }

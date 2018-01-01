@@ -235,6 +235,10 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 view.Refresh();
                 CollectionViewGroup cvg = view.Groups.First() as CollectionViewGroup;
+                if(cvg.Name.ToString() == Constants.HOLDING_CHARACTERS_GROUP_NAME && view.Groups.Count > 1)
+                {
+                    cvg = view.Groups[1] as CollectionViewGroup;
+                }
                 GroupItem groupItem = this.SequenceViewListBox.ItemContainerGenerator.ContainerFromItem(cvg) as GroupItem;
                 if (groupItem != null)
                 {

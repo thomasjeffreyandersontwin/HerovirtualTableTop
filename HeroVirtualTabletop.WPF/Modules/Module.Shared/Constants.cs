@@ -135,7 +135,9 @@ namespace Module.Shared
 
         #region HCS
 
-        public const string NOT_FOUND_IN_ROSTER_PHASE_NAME = "Not Found";
+        public const string NOT_FOUND_IN_ROSTER_GROUP_NAME = "Not Found";
+        public const string NOT_FOUND_IN_SEQUENCE_GROUP_NAME = "Not Found in HCS";
+        public const string HOLDING_CHARACTERS_GROUP_NAME = "Holding Characters";
         public const string COMBATANTS_FILE_NAME = "OnDeckCombatants.info";
         public const string ELIGIBLE_COMBATANTS_FILE_NAME = "EligibleCombatants.info";
         public const string CHRONOMETER_FILE_NAME = "Chronometer.info";
@@ -144,6 +146,7 @@ namespace Module.Shared
         public const string ATTACK_RESULT_FILE_NAME = "AbilityAttackResult.event";
         public const string SIMPLE_ABILITY_TYPE_NAME = "SimpleAbility";
         public const string ABORT_ACTION_TYPE_NAME = "AbortNextAction";
+        public const string ACTIVATE_HELD_CHARACTER_TYPE_NAME = "ActivateHeldCharacter";
         public const string ATTACK_SINGLE_TARGET_INITIATION_TYPE_NAME = "AttackSingleTarget";
         public const string ATTACK_AREA_TARGET_INITIATION_TYPE_NAME = "AreaEffectTargets";
         public const string ATTACK_SINGLE_TARGET_RESULT_TYPE_NAME = "AttackSingleTargetResult";
