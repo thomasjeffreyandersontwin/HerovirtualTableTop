@@ -672,7 +672,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 directionVector = GetDirectionVector(0, target.MovementInstruction.CurrentMovementDirection, facingToDest);
                 if (IsNan(directionVector))
                 {
-                    logManager.Info(string.Format("DirectionVector is NAN: {0}, target: {1}, facingToDest: {2}", directionVector, target.Name, facingToDest));
+                    //logManager.Info(string.Format("DirectionVector is NAN: {0}, target: {1}, facingToDest: {2}", directionVector, target.Name, facingToDest));
                 }
             }
             else
@@ -687,7 +687,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 DateTime endTime = DateTime.Now;
                 float dist = Vector3.Distance(allowableDestinationVector, target.CurrentPositionVector);
-                logManager.Info(string.Format("GetAllowableDestinationVector took {0} milliseconds for {1} who advanced {2} units", (endTime - startTime).Milliseconds, target.Name, dist));
+                //logManager.Info(string.Format("GetAllowableDestinationVector took {0} milliseconds for {1} who advanced {2} units", (endTime - startTime).Milliseconds, target.Name, dist));
                 target.CurrentPositionVector = allowableDestinationVector;
                 target.AlignGhost();
             }
@@ -758,16 +758,31 @@ namespace Module.HeroVirtualTabletop.Movements
             {
 
             }
+            startTime = DateTime.Now;this.target = target;
             this.StartMovement(target);
             if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
             {
                 this.MovementFinished += delegate (object sender, CustomEventArgs<Character> e)
                 {
+                    DateTime endTime = DateTime.Now;
+                    logManager.Info(string.Format("Knockback Distance {0} blocks, time taken {1} milliseconds", target.ActiveAttackConfiguration.KnockBackDistance, (endTime - startTime).Milliseconds));
                     if (e.Value == target)
                         target.AlignGhost();
                 };
 
             }
+            else
+            {
+                this.MovementFinished -= OnMovementFinishedAlt;
+                this.MovementFinished += OnMovementFinishedAlt;
+            }
+        }
+        Character target = null;
+        DateTime startTime;
+        private void OnMovementFinishedAlt(object sender, CustomEventArgs<Character> e)
+        {
+            DateTime endTime = DateTime.Now;
+            logManager.Info(string.Format("Knockback Distance {0} blocks, time taken {1} milliseconds", target.ActiveAttackConfiguration.KnockBackDistance, (endTime - startTime).TotalMilliseconds));
         }
 
         public void Move(Character target, Vector3 destinationVector)
@@ -901,7 +916,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 Vector3 allowableDestinationVector = GetAllowableDestinationVector(target, directionVector);
                 DateTime endTime = DateTime.Now;
                 float dist = Vector3.Distance(allowableDestinationVector, target.CurrentPositionVector);
-                logManager.Info(string.Format("GetAllowableDestinationVector took {0} milliseconds for {1} who advanced {2} units", (endTime - startTime).Milliseconds, target.Name, dist));
+                //logManager.Info(string.Format("GetAllowableDestinationVector took {0} milliseconds for {1} who advanced {2} units", (endTime - startTime).Milliseconds, target.Name, dist));
                 var xDiff = allowableDestinationVector.X - target.CurrentPositionVector.X;
                 var yDiff = allowableDestinationVector.Y - target.CurrentPositionVector.Y;
                 var zDiff = allowableDestinationVector.Z - target.CurrentPositionVector.Z;
@@ -1105,7 +1120,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
             if(IsNanAny(currentPositionVector, destinationVectorNext, destinationVectorFar))
             {
-                logManager.Info(string.Format("Nan value found. CurrentPositionVector: {0}, DestinationVectorNext: {1}, DestinationVectorFar: {2}", currentPositionVector, destinationVectorNext, destinationVectorFar));
+                //logManager.Info(string.Format("Nan value found. CurrentPositionVector: {0}, DestinationVectorNext: {1}, DestinationVectorFar: {2}", currentPositionVector, destinationVectorNext, destinationVectorFar));
             }
 
             MovementDirection direction = target.MovementInstruction.CurrentMovementDirection;//
@@ -1125,7 +1140,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
                     collisionVector = GetDestinationVector(-1 * directionVector, 8, collisionVector);
                 endTime = DateTime.Now;
-                logManager.Info(string.Format("CalculateNextCollisionPoint took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
+                //logManager.Info(string.Format("CalculateNextCollisionPoint took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
                 if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                 {
                     target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -1155,11 +1170,11 @@ namespace Module.HeroVirtualTabletop.Movements
                         Vector3 nextTravelPointToAvoidCollision = GetNextTravelPointToAvoidCollision(target,
                             out canAvoidCollision); //check
                         endTime = DateTime.Now;
-                        logManager.Info(string.Format("GetNextTravelPointToAvoidCollision took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
+                        //logManager.Info(string.Format("GetNextTravelPointToAvoidCollision took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
                         collisionVector = nextTravelPointToAvoidCollision;
                         if (IsNan(nextTravelPointToAvoidCollision))
                         {
-                            logManager.Info(string.Format("NextTravelPointToAvoidCollision is Nan: {0}", nextTravelPointToAvoidCollision));
+                            //logManager.Info(string.Format("NextTravelPointToAvoidCollision is Nan: {0}", nextTravelPointToAvoidCollision));
                         }
                         target.MovementInstruction.IsInCollision = !canAvoidCollision;
                         if (canAvoidCollision)
@@ -1187,7 +1202,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     if (this.Name == Constants.KNOCKBACK_MOVEMENT_NAME)
                         collisionVector = GetDestinationVector(-1 * directionVector, 8, collisionVector);
                     endTime = DateTime.Now;
-                    logManager.Info(string.Format("CalculateNextCollisionPoint took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
+                    //logManager.Info(string.Format("CalculateNextCollisionPoint took {0} milliseconds at {1}", (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
                     if (HasCollision(collisionVector)) // Collision ahead - can only move upto the collision point
                     {
                         target.MovementInstruction.LastCollisionFreePointInCurrentDirection = collisionVector;
@@ -1225,8 +1240,8 @@ namespace Module.HeroVirtualTabletop.Movements
                     startTime = DateTime.Now;
                     allowableDestVector = GetNextTravelPointToAvoidCollision(target, out canAvoidCollision);
                     endTime = DateTime.Now;
-                    logManager.Info(string.Format("GetNextTravelPointToAvoidCollision took {0} milliseconds at {1}", 
-                        (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
+                    //logManager.Info(string.Format("GetNextTravelPointToAvoidCollision took {0} milliseconds at {1}", 
+                    //    (endTime - startTime).Milliseconds, target.CurrentPositionVector.ToString()));
                 }
                 else
                     allowableDestVector = new Vector3(destinationVectorNext.X, destinationVectorNext.Y, destinationVectorNext.Z);
@@ -1234,7 +1249,7 @@ namespace Module.HeroVirtualTabletop.Movements
             
             if(IsNanAny(allowableDestVector, collisionBodyPoint, collisionVector))
             {
-                logManager.Info(string.Format("Nan value found. AllowableDestVector: {0}, CollisionBodyPoint: {1}, CollisionVector: {2}", allowableDestVector, collisionBodyPoint, collisionVector));
+                //logManager.Info(string.Format("Nan value found. AllowableDestVector: {0}, CollisionBodyPoint: {1}, CollisionVector: {2}", allowableDestVector, collisionBodyPoint, collisionVector));
             }
 
             if (this.HasGravity)

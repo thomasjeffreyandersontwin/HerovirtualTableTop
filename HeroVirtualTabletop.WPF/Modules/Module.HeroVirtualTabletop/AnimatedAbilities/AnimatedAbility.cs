@@ -237,6 +237,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         #endregion
 
+        private Dictionary<Character, System.Threading.Timer> characterAnimationTimerDictionary = new Dictionary<Character, System.Threading.Timer>();
+
         [JsonConstructor]
         private Attack() : base(string.Empty) { }
         public Attack(string name, Keys activateOnKey = Keys.None, AnimationSequenceType seqType = AnimationSequenceType.And, bool persistent = false, int order = 1, Character owner = null)
@@ -569,7 +571,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         private void AnimateAttackSequence(Character attackingCharacter, List<Character> defendingCharacters, bool useMemoryTargetingForDefenders = false)
-
         {
             int attackDelay = 0;
             AttackDirection direction = GetAttackDirection(attackingCharacter, defendingCharacters);
@@ -583,17 +584,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
 
             AnimateAttack(direction, new List<Character> { attackingCharacter }, true);
+            AnimateAttackConsequenceForObstructingCharacters(attackingCharacter, defendingCharacters, attackDelay);
             System.Threading.Thread.Sleep(attackDelay); // Delay between attack and on hit animations
 
-            List<Character> charactersWithImpacts = defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList();
+            List<Character> charactersWithImpacts = defendingCharacters.Where(c => !c.ActiveAttackConfiguration.IsSecondaryTarget && c.ActiveAttackConfiguration.KnockBackOption != KnockBackOption.KnockBack).ToList();
 
             if (defendingCharacters.Count == 1)
                 useMemoryTargetingForDefenders = true;
-
             if (useMemoryTargetingForDefenders)
             {
                 AnimateHitAndMissForOffCameraTargets(attackingCharacter, defendingCharacters);
                 AnimateAttackEffectsForOffCameraTargets(attackingCharacter, defendingCharacters);
+                AnimateAttackConsequenceForKnockbackObstacles(attackingCharacter, defendingCharacters);
             }
             else
             {
@@ -605,32 +607,32 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
 
-        System.Threading.Timer timer = null;
+        System.Threading.Timer timerMoveThenAttack = null;
         private void AnimateAttackSequenceWithMovement(List<Character> attackingCharacters, List<Character> defendingCharacters, Character centerTarget)
         {
-            timer = new System.Threading.Timer(TimerCallback, new object[] { attackingCharacters.ToList(), defendingCharacters.ToList(), centerTarget }, Timeout.Infinite, Timeout.Infinite);
-            timer.Change(5, Timeout.Infinite);
+            timerMoveThenAttack = new System.Threading.Timer(timerMoveThenAttack_Callback, new object[] { attackingCharacters.ToList(), defendingCharacters.ToList(), centerTarget }, Timeout.Infinite, Timeout.Infinite);
+            timerMoveThenAttack.Change(5, Timeout.Infinite);
         }
 
         private bool waitingForMovementToFinish = false;
-        private void TimerCallback(object state)
+        private void timerMoveThenAttack_Callback(object state)
         {
             object[] states = state as object[];
             List<Character> attackingCharacters = states[0] as List<Character>;
             List<Character> defendingCharacters = states[1] as List<Character>;
             Character centerTarget = states[2] as Character;
             if (attackingCharacters.Any(ac => ac.IsMoving) || defendersForThisAttack.Any(dc => dc.IsMoving))
-                timer.Change(50, Timeout.Infinite);
+                timerMoveThenAttack.Change(50, Timeout.Infinite);
             else if (waitingForMovementToFinish)
             {
                 waitingForMovementToFinish = false;
-                timer.Change(Timeout.Infinite, Timeout.Infinite);
+                timerMoveThenAttack.Change(Timeout.Infinite, Timeout.Infinite);
                 CompleteTheAttackSequence(attackingCharacters, defendingCharacters);
             }
             else
             {
                 waitingForMovementToFinish = false;
-                timer.Change(Timeout.Infinite, Timeout.Infinite);
+                timerMoveThenAttack.Change(Timeout.Infinite, Timeout.Infinite);
                 if (this.IsAreaEffect)
                 {
                     AnimateAttackSequenceWithoutMovement(attackingCharacters, defendingCharacters);
@@ -654,8 +656,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         if (defendersForThisAttack.Any(dc => dc.IsMoving))
                         {
                             waitingForMovementToFinish = true;
-                            timer = new System.Threading.Timer(TimerCallback, new object[] { attackingCharacters, restOfTheDefendingCharacters, centerTarget }, Timeout.Infinite, Timeout.Infinite);
-                            timer.Change(50, Timeout.Infinite);
+                            timerMoveThenAttack = new System.Threading.Timer(timerMoveThenAttack_Callback, new object[] { attackingCharacters, restOfTheDefendingCharacters, centerTarget }, Timeout.Infinite, Timeout.Infinite);
+                            timerMoveThenAttack.Change(50, Timeout.Infinite);
                         }
                         else
                             CompleteTheAttackSequence(attackingCharacters, restOfTheDefendingCharacters);
@@ -689,6 +691,87 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     AnimateAttackSequence(ac, offCameraDefenders, true);
             });
         }
+        
+        private void AnimateAttackConsequenceForObstructingCharacters(Character attackingCharacter, List<Character> defendingCharacters, int delayForPrimaryTarget)
+        {
+            if(delayForPrimaryTarget > 0 && defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget))
+            {
+                var primaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsCenterTarget);
+                var secondaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget);
+                var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
+                var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                if(distanceForSecondary < distanceForPrimary)
+                {
+                    int delayForSecondayTarget = (int)(delayForPrimaryTarget * distanceForSecondary / distanceForPrimary);
+                    var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
+                    this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
+                    timerObstructionAnimation.Change(delayForSecondayTarget, Timeout.Infinite);
+                }
+            }
+        }
+
+        private void timerObstructionAnimation_Callback(object state)
+        {
+            object[] attackParams = state as object[];
+            Character attacker = attackParams[0] as Character;
+            Character target = attackParams[1] as Character;
+            var timerObstructionAnimation = this.characterAnimationTimerDictionary[target];
+            timerObstructionAnimation.Change(Timeout.Infinite, Timeout.Infinite);
+            
+            if(target.ActiveAttackConfiguration.IsHit)
+            {
+                var hitAbility = this.GetHitAbility();
+                hitAbility.Play(false, target, false, true);
+                if (target.ActiveAttackConfiguration.IsKnockedBack)
+                {
+                    AnimateKnockBack(attacker, new List<Character> { target });
+                }
+                AnimateAttackEffectsForOffCameraTargets(attacker, new List<Character> { target });
+            }
+            else
+            {
+                var missAbility = this.GetMissAbility();
+                missAbility.Play(false, target, false, true);
+            }
+        }
+
+        private void AnimateAttackConsequenceForKnockbackObstacles(Character attackingCharacter, List<Character> defendingCharacters)
+        {
+            if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget && dc.ActiveAttackConfiguration.PrimaryTargetCharacter.ActiveAttackConfiguration.IsKnockedBack))
+            {
+                var primaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsCenterTarget);
+                var secondaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget);
+                var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
+                var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                if (distanceForSecondary > distanceForPrimary)
+                {
+                    int obstacleHitPeriod = 0;
+                    int knockbackDistance = primaryTarget.ActiveAttackConfiguration.KnockBackDistance;
+                    int knockbackDistanceInVectorUnits = knockbackDistance * 8 + 5;
+                    var distanceFromPrimaryToSecondary = Vector3.Distance(primaryTarget.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                    //distanceFromPrimaryToSecondary = (distanceFromPrimaryToSecondary - 5) / 8f;
+                    if(knockbackDistanceInVectorUnits < 50) // 1 to 5 blocks - 1 sec
+                    {
+                        obstacleHitPeriod = 800;// (int)((distanceFromPrimaryToSecondary / knockbackDistance) * 1000);
+                    }
+                    else if(knockbackDistanceInVectorUnits < 150) // 6 o 18 blocks - 2 sec
+                    {
+                        obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 2000);
+                    }
+                    else // >18 blocks - 3 sec
+                    {
+                        obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 3000);
+                    }
+
+                    if (obstacleHitPeriod < 800)
+                        obstacleHitPeriod = 800;
+
+                    var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
+                    this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
+                    timerObstructionAnimation.Change(obstacleHitPeriod, Timeout.Infinite);
+                }
+            }
+        }
 
         private float GetTargetDistance(Character attackingCharacter, List<Character> defendingCharacters)
         {
@@ -697,7 +780,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (centerTargetCharacter == null)
             {
                 distance = GetClosestTargetDistance(attackingCharacter, defendingCharacters);
-
             }
             else
             {
@@ -883,12 +965,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             List<Character> hitTargets = null;
             if (!defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.HasMultipleAttackers))
             {
-                hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
+                hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit && !t.ActiveAttackConfiguration.IsSecondaryTarget).ToList();
             }
             else
             {
-                hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter && ar.IsHit) != null).ToList();
+                hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter && ar.IsHit && !t.ActiveAttackConfiguration.IsSecondaryTarget) != null).ToList();
             }
+
+            hitTargets = hitTargets.Where(ht => !ht.ActiveAttackConfiguration.IsSecondaryTarget).ToList();
 
             int knockbackPlaySequence = -1; // denotes the index of the animation in the flattened list after which we should play knockback if needed. This is played after the first mov element, and would mostly be played
             // after the 0th animation (which is a mov)
@@ -914,17 +998,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
             // Now we have the flattened sequence ready with character mapping, so play each of them in proper order on respective targets
             bool playWithKnockback = defendingCharacters.Any(dc =>
-                           (!dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack) // not multiple attackers
+                           (!dc.ActiveAttackConfiguration.IsSecondaryTarget && !dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack) // not multiple attackers
                            ||
                            (
-                           dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack
-                           && dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == attackingCharacter && ar.IsHit)// this attacker hits
-                           &&
-                           (!(dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit)) // no other attackers hit
-                           ||
-                           (dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit) // other hitting attackers come before this attacker
-                           && dc.ActiveAttackConfiguration.AttackResults.IndexOf(dc.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.Attacker != attackingCharacter && ar.IsHit))
-                           < dc.ActiveAttackConfiguration.AttackResults.IndexOf(dc.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter))))
+                               !dc.ActiveAttackConfiguration.IsSecondaryTarget &&
+                               dc.ActiveAttackConfiguration.HasMultipleAttackers && dc.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack
+                               && dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker == attackingCharacter && ar.IsHit)// this attacker hits
+                               &&
+                               (!(dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit)) // no other attackers hit
+                               ||
+                               (dc.ActiveAttackConfiguration.AttackResults.Any(ar => ar.Attacker != attackingCharacter && ar.IsHit) // other hitting attackers come before this attacker
+                               && dc.ActiveAttackConfiguration.AttackResults.IndexOf(dc.ActiveAttackConfiguration.AttackResults.LastOrDefault(ar => ar.Attacker != attackingCharacter && ar.IsHit))
+                               < dc.ActiveAttackConfiguration.AttackResults.IndexOf(dc.ActiveAttackConfiguration.AttackResults.FirstOrDefault(ar => ar.Attacker == attackingCharacter))))
                            )
                         );// whether we need to play knockback or not
             if (playWithKnockback)
@@ -932,9 +1017,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 Task knockbackTask = new Task(() => { AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList()); });
                 Action d = delegate ()
                {
+                   AnimateAttackConsequenceForKnockbackObstacles(attackingCharacter, defendingCharacters);
                    AnimateKnockBack(attackingCharacter, defendingCharacters.Where(c => c.ActiveAttackConfiguration.KnockBackOption == KnockBackOption.KnockBack).ToList());
                };
-                hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask, d);
+               hitMissSequenceElement.PlayFlattenedAnimationsOnTargetsWithKnockbackMovement(characterAnimationMappingDictionary, knockbackPlaySequence, knockbackTask, d);
             }
             else
             {
@@ -1030,6 +1116,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 )
                 ).ToList();
             }
+
+            missTargets = missTargets.Where(mt => !mt.ActiveAttackConfiguration.IsSecondaryTarget).ToList();
+
             var missAbility = this.GetMissAbility();
 
             //Jeff if we have one target we can look to see if it has a custom miss animation, if it does we can use that
@@ -1408,6 +1497,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             else
                 base.Play(persistent, target, playAsSequence, useMemoryTargeting);
+        }
+
+        private void AddToAnimationTimerDictionary(Character character, System.Threading.Timer timer)
+        {
+            if (this.characterAnimationTimerDictionary.ContainsKey(character))
+            {
+                //this.characterAnimationTimerDictionary[character].Change(Timeout.Infinite, Timeout.Infinite);
+                //this.characterAnimationTimerDictionary[character] = null;
+                this.characterAnimationTimerDictionary[character] = timer;
+            }
+            else
+                this.characterAnimationTimerDictionary.Add(character, timer);
         }
 
         #region old knockback code
