@@ -441,7 +441,183 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             return (Math.PI / 180) * angle;
         }
-         
+
+        public static Vector3 GetAdjacentPoint(Vector3 currentPositionVector, Vector3 facingVector, bool isLeft, float unitsToAdjacent = 2.5f)
+        {
+            Double rotationAngle = isLeft ? -90 : 90;
+            MovementDirection direction = isLeft ? MovementDirection.Left : MovementDirection.Right;
+            Vector3 directionVector = GetDirectionVector(rotationAngle, direction, facingVector);
+            Vector3 destinationVector = GetDestinationVector(directionVector, unitsToAdjacent, currentPositionVector);
+            return destinationVector;
+        }
+
+        public static Vector3 GetDirectionVector(double rotationAngle, MovementDirection direction, Vector3 facingVector)
+        {
+            float vX, vY, vZ;
+            double rotationAxisX = 0, rotationAxisY = 1, rotationAxisZ = 0;
+            if (direction == MovementDirection.Upward)
+            {
+                vX = 0;
+                vY = 1;
+                vZ = 0;
+            }
+            else if (direction == MovementDirection.Downward)
+            {
+                vX = 0;
+                vY = -1;
+                vZ = 0;
+            }
+            else
+
+            {
+                double rotationAngleRadian = Helper.GetRadianAngle(rotationAngle);
+                double tr = 1 - Math.Sin(rotationAngleRadian);
+                //a1 = (t(r) * X * X) + cos(r)
+                var a1 = tr * rotationAxisX * rotationAxisX + Math.Cos(rotationAngleRadian);
+                //a2 = (t(r) * X * Y) - (sin(r) * Z)
+                var a2 = tr * rotationAxisX * rotationAxisY - Math.Sin(rotationAngleRadian) * rotationAxisZ;
+                //a3 = (t(r) * X * Z) + (sin(r) * Y)
+                var a3 = tr * rotationAxisX * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisY;
+                //b1 = (t(r) * X * Y) + (sin(r) * Z)
+                var b1 = tr * rotationAxisX * rotationAxisY + Math.Sin(rotationAngleRadian) * rotationAxisZ;
+                //b2 = (t(r) * Y * Y) + cos(r)
+                var b2 = tr * rotationAxisY * rotationAxisY + Math.Cos(rotationAngleRadian);
+                //b3 = (t(r) * Y * Z) - (sin(r) * X)
+                var b3 = tr * rotationAxisY * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisX;
+                //c1 = (t(r) * X * Z) - (sin(r) * Y)
+                var c1 = tr * rotationAxisX * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisY;
+                //c2 = (t(r) * Y * Z) + (sin(r) * X)
+                var c2 = tr * rotationAxisY * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisX;
+                //c3 = (t(r) * Z * Z) + cos (r)
+                var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
+
+
+                Vector3 facingVectorToDestination = facingVector;
+                vX = (float)(a1 * facingVectorToDestination.X + a2 * facingVectorToDestination.Y + a3 * facingVectorToDestination.Z);
+                vY = (float)(b1 * facingVectorToDestination.X + b2 * facingVectorToDestination.Y + b3 * facingVectorToDestination.Z);
+                vZ = (float)(c1 * facingVectorToDestination.X + c2 * facingVectorToDestination.Y + c3 * facingVectorToDestination.Z);
+            }
+
+            return Helper.GetRoundedVector(new Vector3(vX, vY, vZ), 2);
+        }
+
+        public static Vector3 GetDestinationVector(Vector3 directionVector, float units, Character target)
+        {
+            return GetDestinationVector(directionVector, units, target.CurrentPositionVector);
+        }
+
+        public static Vector3 GetDestinationVector(Vector3 directionVector, float units, Vector3 positionVector)
+        {
+            Vector3 vCurrent = positionVector;
+            directionVector.Normalize();
+            var destX = vCurrent.X + directionVector.X * units;
+            var destY = vCurrent.Y + directionVector.Y * units;
+            var destZ = vCurrent.Z + directionVector.Z * units;
+            Vector3 dest = new Vector3(destX, destY, destZ);
+            dest = Helper.GetRoundedVector(dest, 2);
+            return dest;
+        }
+
+        public static bool IsPointWithinQuadraticRegion(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector3 pointD, Vector3 pointX)
+        {
+            // Following considers 3d
+            Vector3 lineAB = pointB - pointA;
+            Vector3 lineAC = pointC - pointA;
+            Vector3 lineAX = pointX - pointA;
+            float AXdotAB = Vector3.Dot(lineAX, lineAB);
+            float ABdotAB = Vector3.Dot(lineAB, lineAB);
+            float AXdotAC = Vector3.Dot(lineAX, lineAC);
+            float ACdotAC = Vector3.Dot(lineAC, lineAC);
+
+#if DEBUG
+            if (AXdotAB == 0f || AXdotAC == 0f)
+            {
+                throw new Exception("Boundary case found for obstacle collision!");
+            }
+#endif
+            return (0 < AXdotAB && AXdotAB < ABdotAB) && (0 < AXdotAC && AXdotAC < ACdotAC);
+            //// Following considers 2d
+            //Point a = new Point((int)pointA.X, (int)pointA.Z);
+            //Point b = new Point((int)pointB.X, (int)pointB.Z);
+            //Point c = new Point((int)pointC.X, (int)pointC.Z);
+            //Point d = new Point((int)pointD.X, (int)pointD.Z);
+            //Point p = new Point((int)pointX.X, (int)pointX.Z);
+
+            //return IsPointInPolygon(p, new Point[] { a, b, c, d});
+        }
+
+        public static bool IsPointInPolygon(System.Windows.Point p, System.Windows.Point[] polygon)
+        {
+            double minX = polygon[0].X;
+            double maxX = polygon[0].X;
+            double minY = polygon[0].Y;
+            double maxY = polygon[0].Y;
+            for (int i = 1; i < polygon.Length; i++)
+            {
+                System.Windows.Point q = polygon[i];
+                minX = Math.Min(q.X, minX);
+                maxX = Math.Max(q.X, maxX);
+                minY = Math.Min(q.Y, minY);
+                maxY = Math.Max(q.Y, maxY);
+            }
+
+            if (p.X < minX || p.X > maxX || p.Y < minY || p.Y > maxY)
+            {
+                return false;
+            }
+
+            // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+            bool inside = false;
+            for (int i = 0, j = polygon.Length - 1; i < polygon.Length; j = i++)
+            {
+                if ((polygon[i].Y > p.Y) != (polygon[j].Y > p.Y) &&
+                     p.X < (polygon[j].X - polygon[i].X) * (p.Y - polygon[i].Y) / (polygon[j].Y - polygon[i].Y) + polygon[i].X)
+                {
+                    inside = !inside;
+                }
+            }
+
+            return inside;
+        }
+
+        static public bool isLyingInCone(Vector3 apexVector, Vector3 baseCircleCenterVector, Vector3 pointToConsiderVector,
+                                    float aperture)
+        {
+
+            // This is for our convenience
+            float halfAperture = aperture / 2f;
+
+            // Vector pointing to X point from apex
+            Vector3 apexToXVect = apexVector - pointToConsiderVector;
+
+            // Vector pointing from apex to circle-center point.
+            Vector3 axisVect = apexVector - baseCircleCenterVector;
+
+            // X is lying in cone only if it's lying in 
+            // infinite version of its cone -- that is, 
+            // not limited by "round basement".
+            // We'll use dotProd() to 
+            // determine angle between apexToXVect and axis.
+            bool isInInfiniteCone = Vector3.Dot(apexToXVect, axisVect)
+                                       /apexToXVect.Length() / axisVect.Length()
+                                         >
+                                       // We can safely compare cos() of angles 
+                                       // between vectors instead of bare angles.
+                                       Math.Cos(halfAperture);
+
+
+            if (!isInInfiniteCone) return false;
+
+            // X is contained in cone only if projection of apexToXVect to axis
+            // is shorter than axis. 
+            // We'll use dotProd() to figure projection length.
+            bool isUnderRoundCap = Vector3.Dot(apexToXVect, axisVect)
+                                      / axisVect.Length()
+                                        <
+                                      axisVect.Length();
+            return isUnderRoundCap;
+        }
+
         #endregion
 
         #region UI Settings

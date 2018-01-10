@@ -164,6 +164,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 }
                 if(character != null && collection != null)
                 {
+                    character.AddDefaultAbilities();
                     this.OptionGroups = new ObservableCollection<IOptionGroupViewModel>();
                     foreach (IOptionGroup group in character.OptionGroups)
                     {

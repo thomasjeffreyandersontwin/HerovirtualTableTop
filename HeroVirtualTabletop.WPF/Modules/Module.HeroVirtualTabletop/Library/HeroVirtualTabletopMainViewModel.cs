@@ -74,6 +74,8 @@ namespace Module.HeroVirtualTabletop.Library
             this.eventAggregator.GetEvent<DeactivateGangEvent>().Subscribe(this.CloseActiveGangWidget);
             this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.ConfigureAttack);
             this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Subscribe(this.CloseActiveAttackWidget);
+            this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Subscribe(this.LoadTargetSelectionWidget);
+            this.eventAggregator.GetEvent<AttackTargetsConfirmedEvent>().Subscribe(this.CloseAttackTargetSelectionWidget);
         }
 
         #endregion
@@ -213,7 +215,23 @@ namespace Module.HeroVirtualTabletop.Library
             this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ACTIVE_CHARACTER_WIDGET);
         }
 
-       
+        private void LoadTargetSelectionWidget(List<Character> potentialTargets)
+        {
+            if (!PopupService.IsOpen("AttackTargetSelectionView"))
+            {
+                System.Windows.Style style = Helper.GetCustomWindowStyle();
+                AttackTargetSelectionViewModel viewModel = this.Container.Resolve<AttackTargetSelectionViewModel>();
+                PopupService.ShowDialog("AttackTargetSelectionView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+            }
+            this.eventAggregator.GetEvent<AttackTargetsSelectionRequiredEvent>().Publish(potentialTargets);
+        }
+
+        private void CloseAttackTargetSelectionWidget(List<Character> confirmedTargets)
+        {
+            PopupService.CloseDialog("AttackTargetSelectionView");
+        }
+
+
         private void LaunchGame()
         {
             bool directoryExists = CheckGameDirectory();

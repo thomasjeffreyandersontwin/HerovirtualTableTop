@@ -124,17 +124,17 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public int Distance { get; set; }
     }
 
-    public class AttackRequest
+    public class AttackRequestBase
     {
         public string Token { get; set; }
         public string Type { get; set; }
         public string Ability { get; set; }
-        public string Obstruction { get; set; }
-        [JsonProperty("Potential Collision")]
-        public PotentialCollision PotentialCollision { get; set; }
+        public List<string> Obstructions { get; set; }
+        [JsonProperty("Potential Knockback Collisions")]
+        public List<PotentialKnockbackCollision> PotentialKnockbackCollisions { get; set; }
     }
 
-    public class AttackTargetRequest : AttackRequest
+    public class AttackRequest : AttackRequestBase
     {
         public string Target { get; set; }
         public int? Range { get; set; }
@@ -152,17 +152,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public bool? Surprised { get; set; }
     }
 
-    public class PotentialCollision
+    public class PotentialKnockbackCollision
     {
-        public string Obstacle { get; set; }
-        [JsonProperty("Distance From Target")]
-        public int DistanceFromTarget { get; set; }
+        [JsonProperty("Collision Object")]
+        public string CollisionObject { get; set; }
+        [JsonProperty("Collision Distance")]
+        public int CollisionDistance { get; set; }
     }
 
-    public class AreaEffectRequest : AttackRequest
+    public class AreaAttackRequest : AttackRequestBase
     {
         public string Center { get; set; }
-        public List<AttackTargetRequest> Targets { get; set; }
+        public List<AttackRequest> Targets { get; set; }
     }
 
     public class KnockbackCollisionSingleTarget
@@ -186,22 +187,29 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public string ObstructingTarget { get; set; }
     }
 
-    public class AttackResponse
+    public class AttackResponseBase
     {
         public string Token { get; set; }
         public string Type { get; set; }
         public string Ability { get; set; }
+        [JsonProperty("Hit")]
+        public bool IsHit { get; set; }
+        [JsonProperty("Move Before Attack Required")]
+        public bool MoveBeforeAttackRequired { get; set; }
     }
 
-    public class AttackSingleTargetResponse : AttackResponse
+    public class AttackResponse : AttackResponseBase
     {
-        public Target Target { get; set; }
-        [JsonProperty("Obstruction Result")]
-        public ObstructionResult ObstructionResult { get; set; }
-        public Results Results { get; set; }
+        public TargetObject Defender { get; set; }
+        [JsonProperty("Obstruction Damage Results")]
+        public List<AttackResponse> ObstructionDamageResults { get; set; }
+        [JsonProperty("Damage Results")]
+        public DamageResults DamageResults { get; set; }
+        [JsonProperty("Knockback Result")]
+        public KnockbackResult KnockbackResult { get; set; }
     }
 
-    public class Target
+    public class TargetObject
     {
         public string Name { get; set; }
         [JsonProperty("STUN")]
@@ -210,13 +218,19 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public HealthMeasures Body { get; set; }
         [JsonProperty("END")]
         public HealthMeasures Endurance { get; set; }
+        public List<String> Effects { get; set; }
     }
 
-    public class AttackAreaTargetResponse : AttackResponse
+    public class AreaAttackResponse : AttackResponseBase
+    {
+        public List<AttackResponse> Targets { get; set; }
+    }
+
+    public class AttackAreaTargetResponse : AttackResponseBase
     {
         public string Center { get; set; }
         [JsonProperty("Obstruction Result")]
-        public ObstructionResult ObstructionResult { get; set; }
+        public List<ObstructionDamageResult> ObstructionDamageResults { get; set; }
         public List<AttackAreaTarget> Targets { get; set; }
     }
 
@@ -232,11 +246,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public Statistics Stats { get; set; }
         public Results Result { get; set; }
     }
-    public class Knockback
+    public class KnockbackResult
     {
-        [JsonProperty("Obstacle Collision")]
-        public ObstacleCollision ObstacleCollision { get; set; }
+        public List<KnockbackCollision> Collisions { get; set; }
         public int Distance { get; set; }
+    }
+
+    public class KnockbackCollision
+    {
+        [JsonProperty("Object Collided With")]
+        public TargetObject CollidingObject { get; set; }
+        [JsonProperty("Collision Damage Results")]
+        public DamageResults CollisionDamageResults { get; set; }
     }
     public class ObstacleCollision
     {
@@ -250,13 +271,25 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     {
         public int? Max { get; set; }
         public int? Current { get; set; }
+        public int? Starting { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class DamageResults
+    {
+        [JsonProperty("STUN")]
+        public int? Stun { get; set; }
+        [JsonProperty("BODY")]
+        public int? Body { get; set; }
+        [JsonProperty("END")]
+        public int? Endurance { get; set; }
     }
     public class ObstacleDamageResults
     {
         public List<string> Effects { get; set; }
     }
 
-    public class ObstructionResult
+    public class ObstructionDamageResult
     {
         [JsonProperty("Obstruction Name")]
         public string ObstructionName { get; set; }
@@ -271,16 +304,10 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public HealthMeasures Endurance { get; set; }
     }
 
-    public class DamageResults
-    {
-        public int? Stun { get; set; }
-        public int? Body { get; set; }
-    }
-
     public class Results
     {
         public bool Hit { get; set; }
-        public Knockback Knockback { get; set; }
+        public KnockbackResult Knockback { get; set; }
         public List<string> Effects { get; set; }
         public DamageResults DamageResults { get; set; }
     }

@@ -15,14 +15,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
     public class CollisionEngine
     {
-        public CollisionInfo FindObstructingObject(Character attacker, Character target, List<Character> otherCharacters)
+        public List<CollisionInfo> FindObstructingObjects(Character attacker, Character target, List<Character> otherCharacters)
         {
-            return FindObstructingObject(attacker.CurrentPositionVector, target.CurrentPositionVector, otherCharacters);
+            return FindObstructingObjects(attacker.CurrentPositionVector, target.CurrentPositionVector, otherCharacters);
         }
 
-        private CollisionInfo FindObstructingObject(Vector3 sourcePositionVector, Vector3 targetPositionVector, List<Character> otherCharacters)
+        private List<CollisionInfo> FindObstructingObjects(Vector3 sourcePositionVector, Vector3 targetPositionVector, List<Character> otherCharacters)
         {
-            CollisionInfo nearestCollision = null;
+            List<CollisionInfo> collisions = new List<CollisionInfo>();
             Vector3 sourceFacingTargetVector = targetPositionVector - sourcePositionVector;
             Vector3 targetFacingSourceVector = sourcePositionVector - targetPositionVector;
             if (sourceFacingTargetVector == targetFacingSourceVector)
@@ -32,18 +32,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if(targetFacingSourceVector != Vector3.Zero)
                 targetFacingSourceVector.Normalize();
             // Calculate points A and B to the left and right of source
-            Vector3 pointA = GetAdjacentPoint(sourcePositionVector, sourceFacingTargetVector, true);
-            Vector3 pointB = GetAdjacentPoint(sourcePositionVector, sourceFacingTargetVector, false);
+            Vector3 pointA = Helper.GetAdjacentPoint(sourcePositionVector, sourceFacingTargetVector, true);
+            Vector3 pointB = Helper.GetAdjacentPoint(sourcePositionVector, sourceFacingTargetVector, false);
             // Calculate points C and D to left and right of target
-            Vector3 pointC = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, false);
-            Vector3 pointD = GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, true);
+            Vector3 pointC = Helper.GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, false);
+            Vector3 pointD = Helper.GetAdjacentPoint(targetPositionVector, targetFacingSourceVector, true);
             // Now we have four co-ordinates of rectangle ABCD.  Need to check if any of the other characters falls within this rectangular region
             List<Character> obstructingCharacters = new List<Characters.Character>();
             try
             {
                 foreach (Character otherCharacter in otherCharacters)
                 {
-                    if (IsPointWithinRegion(pointA, pointB, pointC, pointD, otherCharacter.CurrentPositionVector))
+                    if (Helper.IsPointWithinQuadraticRegion(pointA, pointB, pointC, pointD, otherCharacter.CurrentPositionVector))
                     {
                         obstructingCharacters.Add(otherCharacter);
                     }
@@ -71,178 +71,32 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
 
             }
-            float collisionDistance = 0f;
             if (hasCollision)
             {
-                collisionDistance = bodyPartCollisionMap.Values.Min(d => d != null ? d.CollisionDistance : 10000f);
-                nearestCollision = new CollisionInfo { CollidingObject = "WALL", CollisionDistance = collisionDistance};
+                var collisionDistance = bodyPartCollisionMap.Values.Min(d => d != null ? d.CollisionDistance : 10000f);
+                collisions.Add(new CollisionInfo { CollidingObject = "WALL", CollisionDistance = collisionDistance});
             }
-            else
-                collisionDistance = 10000f;
-            float minDistance = collisionDistance;
             foreach (Character obsChar in obstructingCharacters)
             {
                 float obsDist = Vector3.Distance(sourcePositionVector, obsChar.CurrentPositionVector);
-                if (obsDist < minDistance)
-                {
-                    minDistance = obsDist;
-                    nearestCollision = new CollisionInfo { CollidingObject = obsChar, CollisionDistance = obsDist };
-                }
+                collisions.Add(new CollisionInfo { CollidingObject = obsChar, CollisionDistance = obsDist });
             }
 
-            return nearestCollision;
+            return collisions;
         }
 
-        public CollisionInfo CalculateKnockbackObstruction(Character attacker, Character target, int distance, List<Character> otherCharacters)
+        public List<CollisionInfo> CalculateKnockbackObstructions(Character attacker, Character target, int distance, List<Character> otherCharacters)
         {
             if (target.CurrentPositionVector == attacker.CurrentPositionVector)
                 return null;
-            float knockbackDistance = distance * 8f + 5;
+            float knockbackDistance = distance * 8f;
             Vector3 directionVector = target.CurrentPositionVector - attacker.CurrentPositionVector;
             directionVector.Normalize();
             var destX = target.CurrentPositionVector.X + directionVector.X * knockbackDistance;
             var destY = target.CurrentPositionVector.Y + directionVector.Y * knockbackDistance;
             var destZ = target.CurrentPositionVector.Z + directionVector.Z * knockbackDistance;
             Vector3 destVector = new Vector3(destX, destY, destZ);
-            return FindObstructingObject(target.CurrentPositionVector, destVector, otherCharacters);
-        }
-
-        private Vector3 GetAdjacentPoint(Vector3 currentPositionVector, Vector3 facingVector, bool isLeft)
-        {
-            Double rotationAngle = isLeft ? -90 : 90;
-            MovementDirection direction = isLeft ? MovementDirection.Left : MovementDirection.Right;
-            Vector3 directionVector = GetDirectionVector(rotationAngle, direction, facingVector);
-            Vector3 destinationVector = GetDestinationVector(directionVector, 2.5f, currentPositionVector);
-            return destinationVector;
-        }
-
-        private Vector3 GetDirectionVector(double rotationAngle, MovementDirection direction, Vector3 facingVector)
-        {
-            float vX, vY, vZ;
-            double rotationAxisX = 0, rotationAxisY = 1, rotationAxisZ = 0;
-            if (direction == MovementDirection.Upward)
-            {
-                vX = 0;
-                vY = 1;
-                vZ = 0;
-            }
-            else if (direction == MovementDirection.Downward)
-            {
-                vX = 0;
-                vY = -1;
-                vZ = 0;
-            }
-            else
-
-            {
-                double rotationAngleRadian = Helper.GetRadianAngle(rotationAngle);
-                double tr = 1 - Math.Sin(rotationAngleRadian);
-                //a1 = (t(r) * X * X) + cos(r)
-                var a1 = tr * rotationAxisX * rotationAxisX + Math.Cos(rotationAngleRadian);
-                //a2 = (t(r) * X * Y) - (sin(r) * Z)
-                var a2 = tr * rotationAxisX * rotationAxisY - Math.Sin(rotationAngleRadian) * rotationAxisZ;
-                //a3 = (t(r) * X * Z) + (sin(r) * Y)
-                var a3 = tr * rotationAxisX * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisY;
-                //b1 = (t(r) * X * Y) + (sin(r) * Z)
-                var b1 = tr * rotationAxisX * rotationAxisY + Math.Sin(rotationAngleRadian) * rotationAxisZ;
-                //b2 = (t(r) * Y * Y) + cos(r)
-                var b2 = tr * rotationAxisY * rotationAxisY + Math.Cos(rotationAngleRadian);
-                //b3 = (t(r) * Y * Z) - (sin(r) * X)
-                var b3 = tr * rotationAxisY * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisX;
-                //c1 = (t(r) * X * Z) - (sin(r) * Y)
-                var c1 = tr * rotationAxisX * rotationAxisZ - Math.Sin(rotationAngleRadian) * rotationAxisY;
-                //c2 = (t(r) * Y * Z) + (sin(r) * X)
-                var c2 = tr * rotationAxisY * rotationAxisZ + Math.Sin(rotationAngleRadian) * rotationAxisX;
-                //c3 = (t(r) * Z * Z) + cos (r)
-                var c3 = tr * rotationAxisZ * rotationAxisZ + Math.Cos(rotationAngleRadian);
-
-
-                Vector3 facingVectorToDestination = facingVector;
-                vX = (float)(a1 * facingVectorToDestination.X + a2 * facingVectorToDestination.Y + a3 * facingVectorToDestination.Z);
-                vY = (float)(b1 * facingVectorToDestination.X + b2 * facingVectorToDestination.Y + b3 * facingVectorToDestination.Z);
-                vZ = (float)(c1 * facingVectorToDestination.X + c2 * facingVectorToDestination.Y + c3 * facingVectorToDestination.Z);
-            }
-
-            return Helper.GetRoundedVector(new Vector3(vX, vY, vZ), 2);
-        }
-
-        private Vector3 GetDestinationVector(Vector3 directionVector, float units, Character target)
-        {
-            return GetDestinationVector(directionVector, units, target.CurrentPositionVector);
-        }
-
-        private Vector3 GetDestinationVector(Vector3 directionVector, float units, Vector3 positionVector)
-        {
-            Vector3 vCurrent = positionVector;
-            directionVector.Normalize();
-            var destX = vCurrent.X + directionVector.X * units;
-            var destY = vCurrent.Y + directionVector.Y * units;
-            var destZ = vCurrent.Z + directionVector.Z * units;
-            Vector3 dest = new Vector3(destX, destY, destZ);
-            dest = Helper.GetRoundedVector(dest, 2);
-            return dest;
-        }
-
-        private bool IsPointWithinRegion(Vector3 pointA, Vector3 pointB, Vector3 pointC, Vector3 pointD, Vector3 pointX)
-        {
-            // Following considers 3d
-            Vector3 lineAB = pointB - pointA;
-            Vector3 lineAC = pointC - pointA;
-            Vector3 lineAX = pointX - pointA;
-            float AXdotAB = Vector3.Dot(lineAX, lineAB);
-            float ABdotAB = Vector3.Dot(lineAB, lineAB);
-            float AXdotAC = Vector3.Dot(lineAX, lineAC);
-            float ACdotAC = Vector3.Dot(lineAC, lineAC);
-
-#if DEBUG
-            if(AXdotAB == 0f || AXdotAC == 0f)
-            {
-                throw new Exception("Boundary case found for obstacle collision!");
-            }
-#endif
-            return (0 < AXdotAB && AXdotAB < ABdotAB) && (0 < AXdotAC && AXdotAC < ACdotAC);
-            //// Following considers 2d
-            //Point a = new Point((int)pointA.X, (int)pointA.Z);
-            //Point b = new Point((int)pointB.X, (int)pointB.Z);
-            //Point c = new Point((int)pointC.X, (int)pointC.Z);
-            //Point d = new Point((int)pointD.X, (int)pointD.Z);
-            //Point p = new Point((int)pointX.X, (int)pointX.Z);
-
-            //return IsPointInPolygon(p, new Point[] { a, b, c, d});
-        }
-
-        public bool IsPointInPolygon(Point p, Point[] polygon)
-        {
-            double minX = polygon[0].X;
-            double maxX = polygon[0].X;
-            double minY = polygon[0].Y;
-            double maxY = polygon[0].Y;
-            for (int i = 1; i < polygon.Length; i++)
-            {
-                Point q = polygon[i];
-                minX = Math.Min(q.X, minX);
-                maxX = Math.Max(q.X, maxX);
-                minY = Math.Min(q.Y, minY);
-                maxY = Math.Max(q.Y, maxY);
-            }
-
-            if (p.X < minX || p.X > maxX || p.Y < minY || p.Y > maxY)
-            {
-                return false;
-            }
-
-            // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
-            bool inside = false;
-            for (int i = 0, j = polygon.Length - 1; i < polygon.Length; j = i++)
-            {
-                if ((polygon[i].Y > p.Y) != (polygon[j].Y > p.Y) &&
-                     p.X < (polygon[j].X - polygon[i].X) * (p.Y - polygon[i].Y) / (polygon[j].Y - polygon[i].Y) + polygon[i].X)
-                {
-                    inside = !inside;
-                }
-            }
-
-            return inside;
+            return FindObstructingObjects(target.CurrentPositionVector, destVector, otherCharacters);
         }
 
         private Vector3 GetCollisionVector(Vector3 sourceVector, Vector3 destVector)

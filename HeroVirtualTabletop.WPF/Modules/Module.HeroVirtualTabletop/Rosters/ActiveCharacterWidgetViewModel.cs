@@ -102,6 +102,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ActiveCharacter = character;
             if (character != null)
             {
+                character.AddDefaultAbilities();
                 this.OptionGroups = new ObservableCollection<IOptionGroupViewModel>();
                 foreach (IOptionGroup group in character.OptionGroups)
                 {

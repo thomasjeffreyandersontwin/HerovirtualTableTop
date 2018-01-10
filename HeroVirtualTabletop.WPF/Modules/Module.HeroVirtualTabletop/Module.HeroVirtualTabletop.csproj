@@ -173,6 +173,10 @@
     <Compile Include="AnimatedAbilities\AnimatedAbility.cs" />
     <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="AnimatedAbilities\AnimationResource.cs" />
+    <Compile Include="AnimatedAbilities\AttackTargetSelectionView.xaml.cs">
+      <DependentUpon>AttackTargetSelectionView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AnimatedAbilities\AttackTargetSelectionViewModel.cs" />
     <Compile Include="AnimatedAbilities\CollisionEngine.cs" />
     <Compile Include="AnimatedAbilities\DelayManager.cs" />
     <Compile Include="AnimatedAbilities\ResourceRepository.cs" />
@@ -301,6 +305,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="AnimatedAbilities\ActiveAttackView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="AnimatedAbilities\AttackTargetSelectionView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

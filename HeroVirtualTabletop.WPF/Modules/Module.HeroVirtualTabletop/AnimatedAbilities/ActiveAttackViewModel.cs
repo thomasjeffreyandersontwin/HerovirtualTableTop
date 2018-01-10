@@ -311,28 +311,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     summary.AppendLine();
                     summary.AppendFormat("{0} is knocked back {1} hexes", character.Name, character.ActiveAttackConfiguration.KnockBackDistance);
-                    if(character.ActiveAttackConfiguration.ObstructingCharacter != null)
+                    if(character.ActiveAttackConfiguration.ObstructingCharacters != null && character.ActiveAttackConfiguration.ObstructingCharacters.Count > 0)
                     {
-                        Character obsCharacter = character.ActiveAttackConfiguration.ObstructingCharacter;
-                        summary.AppendFormat(" and collided with {0}", obsCharacter.Name);
-                        string obsEffect = GetEffectsString(obsCharacter);
-                        if(obsEffect != "" || obsCharacter.ActiveAttackConfiguration.Body != null)
+                        foreach(Character obsCharacter in character.ActiveAttackConfiguration.ObstructingCharacters)
                         {
                             summary.AppendLine();
-                            if (obsCharacter.ActiveAttackConfiguration.Body != null && obsEffect != "")
-                            {
-                                summary.AppendFormat("{0} now has {1} BODY and is {2}", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body, obsEffect);
-                            }
-                            else if(obsCharacter.ActiveAttackConfiguration.Body != null)
-                            {
-                                summary.AppendFormat("{0} now has {1} BODY", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body);
-                            }
+                            if(character.ActiveAttackConfiguration.IsKnockbackObstruction)
+                                summary.AppendFormat("{0} collided with {1}", character.Name, obsCharacter.Name);
                             else
+                                summary.AppendFormat("Attack is intercepted by {0}", obsCharacter.Name);
+                            string obsEffect = GetEffectsString(obsCharacter);
+                            if (obsEffect != "" || obsCharacter.ActiveAttackConfiguration.Body != null)
                             {
-                                summary.AppendFormat("{0} is {1}", obsCharacter.Name, obsEffect);
+                                summary.AppendLine();
+                                if (obsCharacter.ActiveAttackConfiguration.Body != null && obsEffect != "")
+                                {
+                                    summary.AppendFormat("{0} now has {1} BODY and is {2}", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body, obsEffect);
+                                }
+                                else if (obsCharacter.ActiveAttackConfiguration.Body != null)
+                                {
+                                    summary.AppendFormat("{0} now has {1} BODY", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body);
+                                }
+                                else
+                                {
+                                    summary.AppendFormat("{0} is {1}", obsCharacter.Name, obsEffect);
+                                }
                             }
+                            summarizedCharacters[obsCharacter] = true;
                         }
-                        summarizedCharacters[obsCharacter] = true;
                     }
                 }
                 //else

@@ -498,7 +498,8 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Constructor
 
-        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, IDesktopKeyEventHandler keyEventHandler, IHCSIntegrator hcsIntegrator, EventAggregator eventAggregator)
+        public RosterExplorerViewModel(IBusyService busyService, IUnityContainer container, IMessageBoxService messageBoxService, ITargetObserver targetObserver, 
+            IDesktopKeyEventHandler keyEventHandler, IHCSIntegrator hcsIntegrator, EventAggregator eventAggregator)
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
@@ -518,6 +519,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Subscribe(this.RestartDistanceCountingForHCSActivatedCharacter);
             this.eventAggregator.GetEvent<SpawnToRosterEvent>().Subscribe(this.SpawnToRoster);
             this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.NotifyCombatSimulatorAboutMovementStop);
+            this.eventAggregator.GetEvent<AttackTargetsConfirmedEvent>().Subscribe(ConfigureAreaAttackWithConfirmedTargets);
 
             timer_RespondToDesktop.AutoReset = false;
             timer_RespondToDesktop.Interval = 50;
@@ -1367,10 +1369,10 @@ namespace Module.HeroVirtualTabletop.Roster
                         canPlace = true;
                         break;
                     }
-                    else if (crowdMemberModel != null && crowdMemberModel.RosterCrowd.Name != Constants.ALL_CHARACTER_CROWD_NAME)
+                    else if (crowdMemberModel != null)
                     {
                         CrowdModel rosterCrowdModel = crowdMemberModel.RosterCrowd as CrowdModel;
-                        if (rosterCrowdModel.SavedPositions.ContainsKey(crowdMemberModel.Name))
+                        if (rosterCrowdModel != null && rosterCrowdModel.SavedPositions.ContainsKey(crowdMemberModel.Name))
                         {
                             canPlace = true;
                             break;
@@ -2591,27 +2593,42 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 if (!dontFireAttack && (this.AttackingCharacters.Contains(character) || character == null))
                 {
-                    AttackDirection direction = new AttackDirection(mousePosition);
-                    if (!this.currentAttack.IsExecutionInProgress)
-                        this.currentAttack.AnimateAttack(direction, AttackingCharacters);
+                    if(this.IsSequenceViewActive && this.IsPlayingAreaEffect)
+                    {
+                        this.ConfigureAreaAttackThroughCombatSimulator(mousePosition);
+                    }
+                    else
+                    {
+                        AttackDirection direction = new AttackDirection(mousePosition);
+                        if (!this.currentAttack.IsExecutionInProgress)
+                            this.currentAttack.AnimateAttack(direction, AttackingCharacters);
+                    }
+                    
                 }
                 else
                 {
                     Action d = delegate ()
                     {
-                        if (Keyboard.Modifiers == ModifierKeys.Shift)
+                        if (!dontFireAttack && this.IsSequenceViewActive && this.IsPlayingAreaEffect)
                         {
-                            this.SelectedParticipants.Clear();
-                            this.SelectedParticipants = new List<Character>();
-                            this.SelectedParticipants.Add(character);
-                            this.TargetCharacterForAttack(null);
+                            this.ConfigureAreaAttackThroughCombatSimulator(mousePosition);
                         }
-                        else if (!dontFireAttack)
+                        else
                         {
-                            this.SelectedParticipants.Clear();
-                            this.SelectedParticipants = new List<Character>();
-                            this.SelectedParticipants.Add(character);
-                            this.TargetAndExecuteAttack(null);
+                            if (Keyboard.Modifiers == ModifierKeys.Shift)
+                            {
+                                this.SelectedParticipants.Clear();
+                                this.SelectedParticipants = new List<Character>();
+                                this.SelectedParticipants.Add(character);
+                                this.TargetCharacterForAttack(null);
+                            }
+                            else if (!dontFireAttack)
+                            {
+                                this.SelectedParticipants.Clear();
+                                this.SelectedParticipants = new List<Character>();
+                                this.SelectedParticipants.Add(character);
+                                this.TargetAndExecuteAttack(null);
+                            }
                         }
                     };
                     Dispatcher.Invoke(d);
@@ -2867,6 +2884,30 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private void ConfigureAreaAttackThroughCombatSimulator(object attackCenter)
+        {
+            AttackInfo attackInfo = this.hcsIntegrator.GetAttackInfo(this.currentAttack.Name);
+            if(attackInfo != null)
+            {
+                this.AttackingCharacters.ForEach(ac => ac.ActiveAttackConfiguration.AttackCenterPosition = (attackCenter is Character) ? (attackCenter as Character).CurrentPositionVector : (Vector3)attackCenter);
+
+                this.currentAttack.AttackInfo = attackInfo;
+                List<Character> targets = this.currentAttack.CalculateAreaAttackTargets(this.AttackingCharacters.First(), this.Participants.Where(p => (p as Character).HasBeenSpawned && !this.AttackingCharacters.Contains(p as Character)).Cast<Character>().ToList());
+                foreach (Character target in targets)
+                    AddToAttackTarget(target);
+                if (attackInfo.TargetSelective)
+                    this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Publish(targets);
+                else
+                    ConfigureAttackThroughCombatSimulator();
+            }
+        }
+
+        private void ConfigureAreaAttackWithConfirmedTargets(List<Character> confirmedTargets)
+        {
+            this.targetCharacters = confirmedTargets;
+            this.ConfigureAttackThroughCombatSimulator();
+        }
+
         public void TargetCharacterForAttack(object state)
         {
             dontFireAttack = true;
@@ -3004,7 +3045,11 @@ namespace Module.HeroVirtualTabletop.Roster
             Dispatcher.Invoke(() =>
             {
                 List<Character> targets = e.Value as List<Character>;
-                //if (PopupService.IsOpen("ActiveAttackView") == false)
+                if (this.IsPlayingAreaEffect)
+                {
+                    if (targets.All(t => !t.ActiveAttackConfiguration.IsCenterTarget && t.ActiveAttackConfiguration.MoveAttackerToTarget))
+                        this.AttackingCharacters.ForEach(ac => ac.ActiveAttackConfiguration.AttackCenterPosition = Vector3.Zero);
+                }
                 this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<List<Character>, Attack>(targets, this.currentAttack));
             });
         }
@@ -3054,6 +3099,7 @@ namespace Module.HeroVirtualTabletop.Roster
                         }
                     } 
                 }
+                
                 if (chronometer != null)
                 {
                     if (onDeckCombatants != null && onDeckCombatants.Combatants.Count > 0 && chronometer.CurrentPhase == onDeckCombatants.Combatants[0].Phase)
@@ -3074,6 +3120,10 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 this.holdingCombatants = eligibleCombatants;
                 UpdateHoldingCharactersInSequence();
+                foreach (var rosterOnlyParticipant in this.Participants.Where(p => !this.SequenceParticipants.Any(sp => sp.CombatantCharacter == (p as Character))))
+                {
+                    this.SequenceParticipants.Add(new Combatant { Phase = Constants.NOT_FOUND_IN_SEQUENCE_GROUP_NAME, CharacterName = rosterOnlyParticipant.Name, CombatantCharacter = rosterOnlyParticipant as Character, Order = Int32.MaxValue });
+                }
                 OrderSequence();
                 this.hcsIntegrator.InGameCharacters = this.Participants.Where(p => (p as Character).HasBeenSpawned).Cast<Character>().ToList();
                 OnSequenceUpdated(this, null);

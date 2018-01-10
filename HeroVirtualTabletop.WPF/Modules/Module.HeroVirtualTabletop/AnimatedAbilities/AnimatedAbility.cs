@@ -167,16 +167,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
     }
 
-    //public class AbilityComparer : IComparer<AnimatedAbility>
-    //{
-    //    public int Compare(AnimatedAbility aa1, AnimatedAbility aa2)
-    //    {
-    //        string s1 = aa1.Name;
-    //        string s2 = aa2.Name;
-    //        return Helper.CompareStrings(s1, s2);
-    //    }
-    //}
-
     public class AttackEffect : AnimatedAbility
     {
         [JsonConstructor]
@@ -261,6 +251,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        private AttackInfo attackInfo;
+        public AttackInfo AttackInfo
+        {
+            get
+            {
+                return attackInfo;
+            }
+            set
+            {
+                attackInfo = value;
+                OnPropertyChanged("AttackInfo");
+            }
+        }
+
         private AttackEffect attackEffect;
         public AttackEffect AttackEffect
         {
@@ -339,6 +343,65 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             OnAttackInitiated(character, new CustomEventArgs<Attack> { Value = this });
 
             return null;
+        }
+
+        public List<Character> CalculateAreaAttackTargets(Character attackingCharacter, List<Character> potentialTargets)
+        {
+            if (!this.IsAreaEffect)
+                throw new InvalidOperationException();
+            List<Character> attackTargets = null;
+            if(this.AttackInfo != null)
+            {
+                attackTargets = new List<Character>();
+                Vector3 attackCenter = attackingCharacter.ActiveAttackConfiguration.AttackCenterPosition;
+                int range = this.AttackInfo.Range * 8;
+                Vector3 directionVector = attackCenter - attackingCharacter.CurrentPositionVector;
+                directionVector.Normalize();
+                switch (this.AttackInfo.AttackShape)
+                {
+                    case AttackShape.Line:
+                        Vector3 maxDestinationVector = attackCenter + directionVector * range;
+                        var destinationToAttackerVector = maxDestinationVector - attackCenter;
+                        destinationToAttackerVector.Normalize();
+                        // Calculate points A and B to the left and right of source
+                        Vector3 pointA = Helper.GetAdjacentPoint(attackCenter, directionVector, true);
+                        Vector3 pointB = Helper.GetAdjacentPoint(attackCenter, directionVector, false);
+                        // Calculate points C and D to left and right of target
+                        Vector3 pointC = Helper.GetAdjacentPoint(maxDestinationVector, destinationToAttackerVector, false, 4);
+                        Vector3 pointD = Helper.GetAdjacentPoint(maxDestinationVector, destinationToAttackerVector, true, 4);
+                        foreach (Character target in potentialTargets)
+                        {
+                            if (Helper.IsPointWithinQuadraticRegion(pointA, pointB, pointC, pointD, target.CurrentPositionVector))
+                            {
+                                attackTargets.Add(target);
+                            }
+                        }
+                        break;
+                    case AttackShape.Radius:
+                        foreach (Character target in potentialTargets)
+                        {
+                            if (Vector3.Distance(attackCenter, target.CurrentPositionVector) < range)
+                            {
+                                attackTargets.Add(target);
+                            }
+                        }
+                        break;
+                    case AttackShape.Cone:
+                        Vector3 baseCircleCenterVector = attackCenter + directionVector * range;
+                        foreach(Character target in potentialTargets)
+                        {
+                            if (Helper.isLyingInCone(attackCenter, baseCircleCenterVector, target.CurrentPositionVector, (float)Helper.GetRadianAngle(60)))
+                            {
+                                attackTargets.Add(target);
+                            }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            return attackTargets;
         }
 
         private AnimatedAbility GetHitAbility()
@@ -633,12 +696,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 waitingForMovementToFinish = false;
                 timerMoveThenAttack.Change(Timeout.Infinite, Timeout.Infinite);
-                if (this.IsAreaEffect)
-                {
-                    AnimateAttackSequenceWithoutMovement(attackingCharacters, defendingCharacters);
-                    OnAttackCompleted(null, new CustomEventArgs<List<Character>> { Value = defendingCharacters });
-                }
-                else
+                //// Commenting out the following because for Area Attacks if Move to Attacker is enabled, we now want the attacker to go to each target and execute attack animations
+                //if (this.IsAreaEffect)
+                //{
+                //    AnimateAttackSequenceWithoutMovement(attackingCharacters, defendingCharacters);
+                //    OnAttackCompleted(null, new CustomEventArgs<List<Character>> { Value = defendingCharacters });
+                //}
+                //else
                 {
                     List<Character> restOfTheDefendingCharacters = defendingCharacters.Where(dc => dc != centerTarget).ToList();
                     if (restOfTheDefendingCharacters.Count > 0)
@@ -694,18 +758,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         
         private void AnimateAttackConsequenceForObstructingCharacters(Character attackingCharacter, List<Character> defendingCharacters, int delayForPrimaryTarget)
         {
-            if(delayForPrimaryTarget > 0 && defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget))
+            if(defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget))
             {
-                var primaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsCenterTarget);
-                var secondaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget);
-                var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
-                var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
-                if(distanceForSecondary < distanceForPrimary)
+                foreach(var secondaryTarget in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget))
                 {
-                    int delayForSecondayTarget = (int)(delayForPrimaryTarget * distanceForSecondary / distanceForPrimary);
-                    var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
-                    this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
-                    timerObstructionAnimation.Change(delayForSecondayTarget, Timeout.Infinite);
+                    var primaryTarget = defendingCharacters.First(dc => dc == secondaryTarget.ActiveAttackConfiguration.PrimaryTargetCharacter);
+                    var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
+                    var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                    if (distanceForSecondary < distanceForPrimary)
+                    {
+                        int delayForSecondayTarget = (int)(delayForPrimaryTarget * distanceForSecondary / distanceForPrimary);
+                        var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
+                        this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
+                        timerObstructionAnimation.Change(delayForSecondayTarget, Timeout.Infinite);
+                    }
                 }
             }
         }
@@ -739,36 +805,38 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             if (defendingCharacters.Any(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget && dc.ActiveAttackConfiguration.PrimaryTargetCharacter.ActiveAttackConfiguration.IsKnockedBack))
             {
-                var primaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsCenterTarget);
-                var secondaryTarget = defendingCharacters.First(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget);
-                var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
-                var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
-                if (distanceForSecondary > distanceForPrimary)
+                foreach(var secondaryTarget in defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsSecondaryTarget))
                 {
-                    int obstacleHitPeriod = 0;
-                    int knockbackDistance = primaryTarget.ActiveAttackConfiguration.KnockBackDistance;
-                    int knockbackDistanceInVectorUnits = knockbackDistance * 8 + 5;
-                    var distanceFromPrimaryToSecondary = Vector3.Distance(primaryTarget.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
-                    //distanceFromPrimaryToSecondary = (distanceFromPrimaryToSecondary - 5) / 8f;
-                    if(knockbackDistanceInVectorUnits < 50) // 1 to 5 blocks - 1 sec
+                    var primaryTarget = defendingCharacters.First(dc => dc == secondaryTarget.ActiveAttackConfiguration.PrimaryTargetCharacter);
+                    var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
+                    var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                    if (distanceForSecondary > distanceForPrimary)
                     {
-                        obstacleHitPeriod = 800;// (int)((distanceFromPrimaryToSecondary / knockbackDistance) * 1000);
-                    }
-                    else if(knockbackDistanceInVectorUnits < 150) // 6 o 18 blocks - 2 sec
-                    {
-                        obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 2000);
-                    }
-                    else // >18 blocks - 3 sec
-                    {
-                        obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 3000);
-                    }
+                        int obstacleHitPeriod = 0;
+                        int knockbackDistance = primaryTarget.ActiveAttackConfiguration.KnockBackDistance;
+                        int knockbackDistanceInVectorUnits = knockbackDistance * 8 + 5;
+                        var distanceFromPrimaryToSecondary = Vector3.Distance(primaryTarget.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                        //distanceFromPrimaryToSecondary = (distanceFromPrimaryToSecondary - 5) / 8f;
+                        if (knockbackDistanceInVectorUnits < 50) // 1 to 5 blocks - 1 sec
+                        {
+                            obstacleHitPeriod = 800;// (int)((distanceFromPrimaryToSecondary / knockbackDistance) * 1000);
+                        }
+                        else if (knockbackDistanceInVectorUnits < 150) // 6 o 18 blocks - 2 sec
+                        {
+                            obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 2000);
+                        }
+                        else // >18 blocks - 3 sec
+                        {
+                            obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 3000);
+                        }
 
-                    if (obstacleHitPeriod < 800)
-                        obstacleHitPeriod = 800;
+                        if (obstacleHitPeriod < 800)
+                            obstacleHitPeriod = 800;
 
-                    var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
-                    this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
-                    timerObstructionAnimation.Change(obstacleHitPeriod, Timeout.Infinite);
+                        var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
+                        this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
+                        timerObstructionAnimation.Change(obstacleHitPeriod, Timeout.Infinite);
+                    }
                 }
             }
         }
@@ -807,7 +875,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private AttackDirection GetAttackDirection(Character attackingCharacter, List<Character> defendingCharacters)
         {
             AttackDirection direction = new AttackDirection();
-            if (defendingCharacters == null || defendingCharacters.Count == 0)
+            // Find the center of attack and then animate.
+            if ((defendingCharacters == null || defendingCharacters.Count == 0) && (attackingCharacter.ActiveAttackConfiguration.AttackCenterPosition == Vector3.Zero))
             {
                 var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
                 direction.AttackDirectionX = targetInFacingDirection.X;
@@ -817,7 +886,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             else
             {
                 Character centerTargetCharacter = defendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsCenterTarget).FirstOrDefault();
-                if (centerTargetCharacter == null)
+                if(centerTargetCharacter == null && attackingCharacter.ActiveAttackConfiguration.AttackCenterPosition != Vector3.Zero)
+                {
+                    Vector3 attackCenter = attackingCharacter.ActiveAttackConfiguration.AttackCenterPosition;
+                    direction.AttackDirectionX = attackCenter.X;
+                    direction.AttackDirectionY = attackCenter.Y;
+                    direction.AttackDirectionZ = attackCenter.Z;
+                }
+                else if (centerTargetCharacter == null)
                 {
                     var targetInFacingDirection = (attackingCharacter.Position as Module.HeroVirtualTabletop.Library.ProcessCommunicator.Position).GetTargetInFacingDirection();
                     direction.AttackDirectionX = targetInFacingDirection.X;
@@ -886,72 +962,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
             return sequenceToPlay;
         }
-        [Obsolete]
-        private void AnimateHitAndMissAndEffectsAsChained(List<Character> defendingCharacters)
-        {
-            SequenceElement attackChainSequenceElement = new SequenceElement("attackChainSequence", AnimationSequenceType.And);
-            Dictionary<AnimationElement, List<Character>> characterAnimationMappingDictionary = new Dictionary<AnimationElement, List<Character>>();
-
-            if (defendingCharacters != null && defendingCharacters.Count > 0)
-            {
-                // Attack results
-                var hitAbility = this.GetHitAbility();
-                List<Character> hitTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Hit).ToList();
-                var missAbility = this.GetMissAbility();
-                List<Character> missTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackResult == AttackResultOption.Miss).ToList();
-
-                if (hitTargets.Count > 0)
-                {
-                    attackChainSequenceElement.AddAnimationElement(hitAbility);
-                    characterAnimationMappingDictionary.Add(hitAbility, hitTargets);
-                }
-
-                if (missTargets.Count > 0)
-                {
-                    attackChainSequenceElement.AddAnimationElement(missAbility);
-                    characterAnimationMappingDictionary.Add(missAbility, missTargets);
-                }
-
-                // Effects
-                var globalDeadAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DEAD_ABITIY_NAME);
-                List<Character> dyingTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dying).ToList();
-                var globalDyingAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.DYING_ABILITY_NAME);
-                List<Character> deadTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Dead).ToList();
-                var globalUnconciousAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.UNCONCIOUS_ABITIY_NAME);
-                List<Character> unconciousTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Unconcious).ToList();
-                var globalStunnedAbility = Helper.GlobalCombatAbilities.FirstOrDefault(a => a.Name == Constants.STUNNED_ABITIY_NAME);
-                List<Character> stunnedTargets = defendingCharacters.Where(t => t.ActiveAttackConfiguration.AttackEffectOption == AttackEffectOption.Stunned).ToList();
-
-                if (deadTargets.Count > 0)
-                {
-                    attackChainSequenceElement.AddAnimationElement(globalDeadAbility);
-                    characterAnimationMappingDictionary.Add(globalDeadAbility, deadTargets);
-                }
-
-                if (dyingTargets.Count > 0)
-                {
-                    attackChainSequenceElement.AddAnimationElement(globalDyingAbility);
-                    characterAnimationMappingDictionary.Add(globalDyingAbility, dyingTargets);
-                }
-
-                if (unconciousTargets.Count > 0)
-                {
-                    attackChainSequenceElement.AddAnimationElement(globalUnconciousAbility);
-                    characterAnimationMappingDictionary.Add(globalUnconciousAbility, unconciousTargets);
-                }
-
-                if (stunnedTargets.Count > 0)
-                {
-                    attackChainSequenceElement.AddAnimationElement(globalStunnedAbility);
-                    characterAnimationMappingDictionary.Add(globalStunnedAbility, stunnedTargets);
-                }
-            }
-
-
-            // Finally play as chained 
-            //IconInteractionUtility.ExecuteCmd(new KeyBindsGenerator().PopEvents());
-            attackChainSequenceElement.PlayGrouped(characterAnimationMappingDictionary).RunSynchronously();
-        }
+        
 
         private void AnimateHitAndMiss(Character attackingCharacter, List<Character> defendingCharacters)
         {
@@ -1580,6 +1591,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsCenterTarget");
             }
         }
+
+        public Vector3 AttackCenterPosition
+        {
+            get;set;
+        }
+
         private AttackMode attackMode;
         public AttackMode AttackMode // None/Attack/Defend
         {
@@ -1776,7 +1793,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public int? Stun { get; set; }
         public int? Body { get; set; }
-        public Character ObstructingCharacter { get; set; }
+        public List<Character> ObstructingCharacters { get; set; }
+        public bool IsKnockbackObstruction { get; set; }
     }
     public class AttackDirection
     {
@@ -1849,5 +1867,59 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 OnPropertyChanged("IsHit");
             }
         }
+    }
+
+    public class AttackInfo
+    {
+        public AttackType AttackType { get; set; }
+        public int Range { get; set; }
+        public AttackShape AttackShape { get; set; }
+        public bool TargetSelective { get; set; }
+    }
+
+    public class AttackTarget : NotifyPropertyChanged
+    {
+        private Character defender;
+        public Character Defender
+        {
+            get
+            {
+                return defender;
+            }
+            set
+            {
+                defender = value;
+                OnPropertyChanged("Defender");
+            }
+        }
+        private bool targeted;
+        public bool Targeted
+        {
+            get
+            {
+                return targeted;
+            }
+            set
+            {
+                targeted = value;
+                OnPropertyChanged("Targeted");
+            }
+        }
+    }
+
+    public enum AttackType
+    {
+        None,
+        Vanilla,
+        Area,
+        AutoFire,
+        Sweep
+    }
+    public enum AttackShape
+    {
+        None,
+        Line,
+        Radius,
+        Cone
     }
 }

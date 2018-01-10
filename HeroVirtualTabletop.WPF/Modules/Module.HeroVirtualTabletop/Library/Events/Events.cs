@@ -16,7 +16,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class SpawnToRosterEvent : PubSubEvent<IEnumerable<CrowdMemberModel>> { }
     public class CloneAndSpawnCrowdMemberEvent : PubSubEvent<object> { }
     public class DeleteCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { }
-    public class CloneLinkCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { } 
+    public class CloneLinkCrowdMemberEvent : PubSubEvent<ICrowdMemberModel> { }
     public class EditCharacterEvent : PubSubEvent<Tuple<ICrowdMemberModel, IEnumerable<ICrowdMemberModel>>> { }
     public class SaveCrowdEvent : PubSubEvent<object> { }
     public class SaveCrowdCompletedEvent : PubSubEvent<object> { }
@@ -46,7 +46,7 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class GameLoadedEvent : PubSubEvent<object> { }
 
     #region Attack Events
-    public class PlayAnimatedAbilityEvent: PubSubEvent<Tuple<Character, AnimatedAbility>> { }
+    public class PlayAnimatedAbilityEvent : PubSubEvent<Tuple<Character, AnimatedAbility>> { }
     public class StopAnimatedAbilityEvent : PubSubEvent<Tuple<Character, AnimatedAbility>> { }
     public class AttackInitiatedEvent : PubSubEvent<Tuple<Character, Attack>> { }
     public class AttackCompletedEvent : PubSubEvent<Tuple<Character, Attack>> { }
@@ -59,6 +59,10 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class CloseActiveAttackWidgetEvent : PubSubEvent<object> { }
     public class CancelActiveAttackEvent : PubSubEvent<object> { }
     public class CloseActiveAttackEvent : PubSubEvent<object> { }
+    public class LoadAttackTargetsSelectionWidgetEvent : PubSubEvent<List<Character>> { }
+    public class AttackTargetsSelectionRequiredEvent : PubSubEvent<List<Character>> { }
+    public class AttackTargetsConfirmedEvent : PubSubEvent<List<Character>> { }
+
     #endregion
 
     #region Movement Events

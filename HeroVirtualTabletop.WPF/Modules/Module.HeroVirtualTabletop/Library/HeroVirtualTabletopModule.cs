@@ -69,6 +69,7 @@ namespace Module.HeroVirtualTabletop
             //popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
             popupService.Register("ActiveCharacterWidgetView", typeof(ActiveCharacterWidgetView));
             popupService.Register("ActiveAttackView", typeof(ActiveAttackView));
+            popupService.Register("AttackTargetSelectionView", typeof(AttackTargetSelectionView));
 
             this.regionManager.RegisterViewWithRegion(RegionNames.Instance.HeroVirtualTabletopRegion, typeof(HeroVirtualTabletopMainView));
         }
@@ -106,6 +107,8 @@ namespace Module.HeroVirtualTabletop
             this.container.RegisterType<ActiveCharacterWidgetViewModel, ActiveCharacterWidgetViewModel>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<ActiveAttackView, ActiveAttackView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AttackTargetSelectionView, AttackTargetSelectionView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AttackTargetSelectionViewModel, AttackTargetSelectionViewModel>(new ContainerControlledLifetimeManager());
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<IResourceRepository, ResourceRepository>(new ContainerControlledLifetimeManager());

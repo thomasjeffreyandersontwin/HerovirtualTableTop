@@ -572,7 +572,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 float currentDistance = Vector3.Distance(this.CurrentPositionVector, this.CurrentStartingPositionVectorForDistanceCounting);
                 if (currentDistance < 5)
                     currentDistance = 5;
-                this.CurrentDistanceCount = (float)Math.Round((currentDistance - 5) / 8f, 2);
+                this.CurrentDistanceCount = (float)Math.Round((currentDistance) / 8f, 2);
             }
         }
 
@@ -583,7 +583,7 @@ namespace Module.HeroVirtualTabletop.Characters
                 float currentDistance = Vector3.Distance(positionVector, this.CurrentStartingPositionVectorForDistanceCounting);
                 if (currentDistance < 5)
                     currentDistance = 5;
-                this.CurrentDistanceCount = (float)Math.Round((currentDistance - 5) / 8f, 2);
+                this.CurrentDistanceCount = (float)Math.Round((currentDistance) / 8f, 2);
             }
         }
 
@@ -1224,7 +1224,20 @@ namespace Module.HeroVirtualTabletop.Characters
                 }
             }
         }
-        
+
+        public void AddDefaultAbilities()
+        {
+            if(Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0 && !this.OptionGroups.Any(og => og.Name == Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME))
+            {
+                OptionGroup<AnimatedAbility> optGroup = new OptionGroup<AnimatedAbility>(Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME);
+                foreach (var defaultAbility in Helper.GlobalDefaultAbilities)
+                {
+                    optGroup.Add(defaultAbility);
+                }
+                this.AddOptionGroup(optGroup);
+            }
+        }
+
         internal void SetAsSpawned()
         {
             hasBeenSpawned = true;

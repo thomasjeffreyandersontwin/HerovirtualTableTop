@@ -114,6 +114,7 @@ namespace Module.Shared
         public const string ABILITY_OPTION_GROUP_NAME = "Powers";
         public const string IDENTITY_OPTION_GROUP_NAME = "Identities";
         public const string MOVEMENT_OPTION_GROUP_NAME = "Movements";
+        public const string DEFAULT_ABILITIES_OPTION_GROUP_NAME = "Default Abilities";
 
         public const string OPTION_DRAG_KEY = "CharacterOptionDrag";
         public const string OPTION_GROUP_DRAG_KEY = "CharacterOptionGroupDrag";
@@ -147,12 +148,10 @@ namespace Module.Shared
         public const string SIMPLE_ABILITY_TYPE_NAME = "SimpleAbility";
         public const string ABORT_ACTION_TYPE_NAME = "AbortNextAction";
         public const string ACTIVATE_HELD_CHARACTER_TYPE_NAME = "ActivateHeldCharacter";
-        public const string ATTACK_SINGLE_TARGET_INITIATION_TYPE_NAME = "AttackSingleTarget";
-        public const string ATTACK_AREA_TARGET_INITIATION_TYPE_NAME = "AreaEffectTargets";
-        public const string ATTACK_SINGLE_TARGET_RESULT_TYPE_NAME = "AttackSingleTargetResult";
-        public const string ATTACK_AREA_TARGET_RESULT_TYPE_NAME = "AttackAreaTargetsResult";
-        public const string KNOCKBACK_COLLISION_SINGLE_TARGET_TYPE_NAME = "KnockbackCollisionSingleTarget";
-        public const string KNOCKBACK_COLLISION_MULTI_TARGET_TYPE_NAME = "KnockbackCollisionMultiTarget";
+        public const string ATTACK_INITIATION_TYPE_NAME = "Attack";
+        public const string AREA_ATTACK_INITIATION_TYPE_NAME = "AreaEffect";
+        public const string ATTACK_RESULT_TYPE_NAME = "AttackResult";
+        public const string AREA_ATTACK_RESULT_TYPE_NAME = "AreaAttackResult";
         public const string ATTACK_CONFIRMATION_TYPE_NAME = "ConfirmAttack";
         public const string ATTACK_CONFIRMED_STATUS = "Confirm";
         public const string ATTACK_CANCELLED_STATUS = "Cancel";
