@@ -49,19 +49,26 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class PlayAnimatedAbilityEvent : PubSubEvent<Tuple<Character, AnimatedAbility>> { }
     public class StopAnimatedAbilityEvent : PubSubEvent<Tuple<Character, AnimatedAbility>> { }
     public class AttackInitiatedEvent : PubSubEvent<Tuple<Character, Attack>> { }
-    public class AttackCompletedEvent : PubSubEvent<Tuple<Character, Attack>> { }
-    public class AttackTargetSelectedEvent : PubSubEvent<Tuple<Character, Attack>> { }
-    public class ResetCharacterStateEvent : PubSubEvent<Character> { }
-    public class AttackTargetUpdatedEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
-    public class ConfigureActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
-    public class ConfirmAttackEvent : PubSubEvent<object> { }
-    public class SetActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
-    public class CloseActiveAttackWidgetEvent : PubSubEvent<object> { }
-    public class CancelActiveAttackEvent : PubSubEvent<object> { }
-    public class CloseActiveAttackEvent : PubSubEvent<object> { }
+    public class AttackTargetUpdatedEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
+    //public class ConfigureActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
+    public class ExecuteSweepAttackEvent : PubSubEvent<object> { }
+    public class ConfigureSweepAttackEvent : PubSubEvent<List<Tuple<Attack, List<Character>, Guid>>> { }
+    public class ResetSweepEvent: PubSubEvent<object> { }
+    public class ConfigureAttacksEvent : PubSubEvent<List<Tuple<Attack, List<Character>, Guid>>> { }
+    //public class ConfirmAttackEvent : PubSubEvent<object> { }
+    public class ConfirmAttacksEvent : PubSubEvent<object> { }
+    //public class SetActiveAttackEvent : PubSubEvent<Tuple<List<Character>, Attack>> { }
+    public class LaunchAttacksEvent : PubSubEvent<List<Tuple<Attack, List<Character>, Guid>>> { }
+    public class CloseAttackConfigurationWidgetEvent : PubSubEvent<object> { }
+    public class CancelActiveAttackEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
+    public class CancelAttacksEvent : PubSubEvent<List<Tuple<Attack, List<Character>, Guid>>> { }
+    public class AttackExecutionsFinishedEvent : PubSubEvent<object> { }
     public class LoadAttackTargetsSelectionWidgetEvent : PubSubEvent<List<Character>> { }
     public class AttackTargetsSelectionRequiredEvent : PubSubEvent<List<Character>> { }
     public class AttackTargetsConfirmedEvent : PubSubEvent<List<Character>> { }
+    public class LoadAutoFireAttackConfigurationWidgetEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
+    public class ConfigureAutoFireAttackEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
+    public class AutoFireAttackConfiguredEvent : PubSubEvent<List<Character>> { }
 
     #endregion
 

@@ -263,7 +263,7 @@ namespace Module.HeroVirtualTabletop.Movements
             this.eventAggregator.GetEvent<EditMovementEvent>().Subscribe(this.LoadMovement);
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Subscribe(this.PlayMovement);
             this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.StopMovement);
             // Unselect everything at the beginning
@@ -637,10 +637,7 @@ namespace Module.HeroVirtualTabletop.Movements
 
         private void AttackEnded(object state)
         {
-            if (state != null && state is AnimatedAbility)
-            {
-                this.UpdateCommandsAndControls();
-            }
+            this.UpdateCommandsAndControls();
         }
 
         private void UpdateCommandsAndControls()

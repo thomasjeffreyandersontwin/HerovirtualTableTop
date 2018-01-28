@@ -48,7 +48,7 @@ namespace Module.HeroVirtualTabletop.Characters
             //animatedAbilities = new OptionGroup<AnimatedAbility>();
             optionGroups = new HashedObservableCollection<IOptionGroup, string>(x => x.Name);
             OptionGroups = new ReadOnlyHashedObservableCollection<IOptionGroup, string>(optionGroups);
-            this.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
+            this.AttackConfigurationMap = new Dictionary<Guid, Tuple<Attack, AttackConfiguration>>();
             this.OptionGroupExpansionStates = new Dictionary<string, bool>();
         }
 
@@ -151,18 +151,18 @@ namespace Module.HeroVirtualTabletop.Characters
             }
         }
 
-        private ActiveAttackConfiguration activeAttackConfig;
+        private Dictionary<Guid, Tuple<Attack, AttackConfiguration>> attackConfigMap;
         [JsonIgnore]
-        public ActiveAttackConfiguration ActiveAttackConfiguration
+        public Dictionary<Guid, Tuple<Attack, AttackConfiguration>> AttackConfigurationMap
         {
             get
             {
-                return activeAttackConfig;
+                return attackConfigMap;
             }
             set
             {
-                activeAttackConfig = value;
-                OnPropertyChanged("ActiveAttackConfiguration");
+                attackConfigMap = value;
+                OnPropertyChanged("AttackConfigurationMap");
             }
         }
 
@@ -564,7 +564,74 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("IsGangLeader");
             }
         }
-
+        [JsonIgnore]
+        public bool IsAttacker
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.AttackMode == AttackMode.Attack);
+            }   
+        }
+        [JsonIgnore]
+        public bool IsDefender
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.AttackMode == AttackMode.Defend);
+            }
+        }
+        [JsonIgnore]
+        public bool IsStunned
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.IsStunned);
+            }
+        }
+        [JsonIgnore]
+        public bool IsUnconscious
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.IsUnconcious);
+            }
+        }
+        [JsonIgnore]
+        public bool IsDying
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.IsDying);
+            }
+        }
+        [JsonIgnore]
+        public bool IsDead
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.IsDead);
+            }
+        }
+        [JsonIgnore]
+        public bool IsKnockedBack
+        {
+            get
+            {
+                return this.AttackConfigurationMap.Any(ac => ac.Value.Item2.IsKnockedBack);
+            }
+        }
+        
+        public void RefreshAttackConfigurationParameters()
+        {
+            OnPropertyChanged("AttackConfigurationMap");
+            OnPropertyChanged("IsAttacker");
+            OnPropertyChanged("IsDefender");
+            OnPropertyChanged("IsStunned");
+            OnPropertyChanged("IsUnconscious");
+            OnPropertyChanged("IsDying");
+            OnPropertyChanged("IsDead");
+            OnPropertyChanged("IsKnockedBack");
+        }
         public void UpdateDistanceCount()
         {
             if(this.CurrentPositionVector != Vector3.Zero && this.CurrentStartingPositionVectorForDistanceCounting != Vector3.Zero)
@@ -1227,18 +1294,50 @@ namespace Module.HeroVirtualTabletop.Characters
 
         public void AddDefaultAbilities()
         {
-            if(Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0 && !this.OptionGroups.Any(og => og.Name == Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME))
+            if(this.OptionGroups.Any(og => og.Name == Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME))
+            {
+                var defaultOptGroup = this.OptionGroups.First(og => og.Name == Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME);
+                this.RemoveOptionGroup(defaultOptGroup);
+            }
+            if (Helper.GlobalDefaultAbilities != null && Helper.GlobalDefaultAbilities.Count > 0 && !this.OptionGroups.Any(og => og.Name == Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME))
             {
                 OptionGroup<AnimatedAbility> optGroup = new OptionGroup<AnimatedAbility>(Constants.DEFAULT_ABILITIES_OPTION_GROUP_NAME);
                 foreach (var defaultAbility in Helper.GlobalDefaultAbilities)
                 {
-                    optGroup.Add(defaultAbility);
+                    if(IsCoreDefaultAbility(defaultAbility))
+                        optGroup.Add(defaultAbility);
                 }
                 this.AddOptionGroup(optGroup);
             }
         }
-
-        internal void SetAsSpawned()
+        List<string> defaultAbilities = new List<string>
+            {
+                "Recovery",
+                "Stun Recovery",
+                "Pass Turn",
+                "Half Phase Action",
+                "Hold Action",
+                "Draw A Weapon",
+                "Dodge",
+                "Strike",
+                "Haymaker",
+                "Prone",
+                "Move By",
+                "Move Through",
+                "Grab",
+                "Disarm",
+                "Block",
+                "Set",
+                "Sweep",
+                "Rapid Fire",
+                "Off Ground",
+                "Generic Damage/Power"
+            };
+        private bool IsCoreDefaultAbility(AnimatedAbility ability)
+        {
+            return defaultAbilities.Contains(ability.Name);
+        }
+        public void SetAsSpawned()
         {
             hasBeenSpawned = true;
             gamePlayer = new MemoryElement();
@@ -1359,6 +1458,71 @@ namespace Module.HeroVirtualTabletop.Characters
                             option.IsEnabled = true;
                     }
                 }
+            }
+        }
+
+        public void DisableAttacks(List<Attack> exclusionList = null)
+        {
+            if (this.OptionGroups != null && this.OptionGroups.Count > 0)
+            {
+                foreach (var optionGroup in this.OptionGroups)
+                {
+                    foreach (ICharacterOption option in optionGroup.Options)
+                    {
+                        if (option is AnimatedAbility)
+                        {
+                            if ((option as AnimatedAbility).IsAttack && !(exclusionList != null && exclusionList.Contains(option as Attack)))
+                                option.IsEnabled = false;
+                        }
+                        else
+                            option.IsEnabled = true;
+                    }
+                }
+            }
+        }
+        public void DisableSimpleAbilities(List<AnimatedAbility> exclusionList = null)
+        {
+            if (this.OptionGroups != null && this.OptionGroups.Count > 0)
+            {
+                foreach (var optionGroup in this.OptionGroups)
+                {
+                    foreach (ICharacterOption option in optionGroup.Options)
+                    {
+                        if (option is AnimatedAbility)
+                        {
+                            if (!(option as AnimatedAbility).IsAttack && !(exclusionList != null && exclusionList.Contains(option as AnimatedAbility)))
+                                option.IsEnabled = false;
+                        }
+                        else
+                            option.IsEnabled = true;
+                    }
+                }
+            }
+        }
+
+        public Guid AddAttackConfiguration(Attack attack, AttackConfiguration attackConfig, Guid configKey = default(Guid))
+        {
+            if (configKey == Guid.Empty)
+                configKey = Guid.NewGuid();
+            if (this.AttackConfigurationMap.ContainsKey(configKey))
+            {
+                this.AttackConfigurationMap[configKey] = new Tuple<Attack, AttackConfiguration>(attack, attackConfig);
+            }
+            else
+            {
+                this.AttackConfigurationMap.Add(configKey, new Tuple<Attack, AttackConfiguration>(attack, attackConfig));
+            }
+            this.RefreshAttackConfigurationParameters();
+
+            return configKey;
+        }
+
+        public void RemoveAttackConfiguration(Guid configKey)
+        {
+            if (this.AttackConfigurationMap.ContainsKey(configKey))
+            {
+                this.AttackConfigurationMap.Remove(configKey);
+                this.RefreshAttackConfigurationParameters();
             }
         }
 

@@ -232,7 +232,7 @@ namespace Module.HeroVirtualTabletop.Identities
             eventAggregator.GetEvent<EditIdentityEvent>().Subscribe(this.LoadIdentity);
             eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.CreateAbilitiesViewSource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Subscribe(this.AttackEnded);
         }
         
         #endregion
@@ -272,10 +272,7 @@ namespace Module.HeroVirtualTabletop.Identities
 
         private void AttackEnded(object state)
         {
-            if (state != null && state is AnimatedAbility)
-            {
-                OnPropertyChanged("CanEditIdentityOptions");
-            }
+            OnPropertyChanged("CanEditIdentityOptions");
         }
 
         private void LoadIdentity(Tuple<Identity, Character> data)

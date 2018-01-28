@@ -306,7 +306,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.eventAggregator.GetEvent<AddToRosterThruCharExplorerEvent>().Subscribe(this.AddToRoster);
             this.eventAggregator.GetEvent<StopAllActiveAbilitiesEvent>().Subscribe(this.StopAllActiveAbilities);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<CloneLinkCrowdMemberEvent>().Subscribe(this.CloneLinkCharacter);
             this.eventAggregator.GetEvent<NeedAbilityCollectionRetrievalEvent>().Subscribe(this.GetAbilityCollection);
             //this.eventAggregator.GetEvent<NeedIdentityCollectionRetrievalEvent>().Subscribe(this.GetIdentityCollection);
@@ -371,10 +371,7 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void AttackEnded(object state)
         {
-            if (state != null && state is AnimatedAbility)
-            {
-                this.UpdateCommandsAndControls();
-            }
+            this.UpdateCommandsAndControls();
         }
 
         private void UpdateCommandsAndControls()
@@ -608,6 +605,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             Helper.GlobalDefaultAbilities = (defaultCharacter as Character).AnimatedAbilities.ToList();
             Helper.GlobalCombatAbilities = (combatEffectsCharacter as Character).AnimatedAbilities.ToList();
             Helper.GlobalMovements = (defaultCharacter as Character).Movements.ToList();
+            Helper.GlobalDefaultSweepAbility = Helper.GlobalDefaultAbilities.FirstOrDefault(a => a.Name == Constants.SWEEP_ABILITY_NAME);
         }
 
         #endregion

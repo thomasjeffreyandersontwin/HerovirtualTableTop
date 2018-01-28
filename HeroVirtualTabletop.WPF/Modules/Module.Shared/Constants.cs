@@ -61,6 +61,7 @@ namespace Module.Shared
         public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_FILENAME = "bindsavetarget.txt";
         public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_FILENAME = "bindsavetargetexecute.txt";
         public const string GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_CROWD_FILENAME = "bindsavetargetexecutecrowd.txt";
+        public const string GAME_SWEEP_ATTACK_EXECUTE_FILENAME = "bindsaveexecutesweep.txt";
         public const string GAME_TEXTS_FOLDERNAME = "texts";
         public const string GAME_LANGUAGE_FOLDERNAME = "english";
         public const string GAME_MENUS_FOLDERNAME = "menus";
@@ -107,6 +108,7 @@ namespace Module.Shared
         public const string DYING_ABILITY_NAME = "Dying";
         public const string DEAD_ABITIY_NAME = "Dead";
         public const string MISS_ABITIY_NAME = "Miss";
+        public const string SWEEP_ABILITY_NAME = "Sweep";
         public const string ANIMATION_DRAG_KEY = "AnimationElementDragFromAbilityEditor";
         #endregion
 
@@ -150,6 +152,7 @@ namespace Module.Shared
         public const string ACTIVATE_HELD_CHARACTER_TYPE_NAME = "ActivateHeldCharacter";
         public const string ATTACK_INITIATION_TYPE_NAME = "Attack";
         public const string AREA_ATTACK_INITIATION_TYPE_NAME = "AreaEffect";
+        public const string AUTO_FIRE_ATTACK_INITIATION_TYPE_NAME = "Autofire";
         public const string ATTACK_RESULT_TYPE_NAME = "AttackResult";
         public const string AREA_ATTACK_RESULT_TYPE_NAME = "AreaAttackResult";
         public const string ATTACK_CONFIRMATION_TYPE_NAME = "ConfirmAttack";

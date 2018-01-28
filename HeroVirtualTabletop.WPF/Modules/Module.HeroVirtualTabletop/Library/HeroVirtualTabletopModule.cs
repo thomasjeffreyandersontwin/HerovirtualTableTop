@@ -68,8 +68,10 @@ namespace Module.HeroVirtualTabletop
             IPopupService popupService = this.container.Resolve<IPopupService>();
             //popupService.Register("CharacterCrowdMainView", typeof(CharacterCrowdMainView));
             popupService.Register("ActiveCharacterWidgetView", typeof(ActiveCharacterWidgetView));
-            popupService.Register("ActiveAttackView", typeof(ActiveAttackView));
+            //popupService.Register("ActiveAttackView", typeof(ActiveAttackView));
             popupService.Register("AttackTargetSelectionView", typeof(AttackTargetSelectionView));
+            popupService.Register("AutoFireAttackConfigurationView", typeof(AutoFireAttackConfigurationView));
+            popupService.Register("AttackConfigurationView", typeof(AttackConfigurationView));
 
             this.regionManager.RegisterViewWithRegion(RegionNames.Instance.HeroVirtualTabletopRegion, typeof(HeroVirtualTabletopMainView));
         }
@@ -105,10 +107,16 @@ namespace Module.HeroVirtualTabletop
 
             this.container.RegisterType<ActiveCharacterWidgetView, ActiveCharacterWidgetView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<ActiveCharacterWidgetViewModel, ActiveCharacterWidgetViewModel>(new ContainerControlledLifetimeManager());
-            this.container.RegisterType<ActiveAttackView, ActiveAttackView>(new ContainerControlledLifetimeManager());
-            this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>(new ContainerControlledLifetimeManager());
+            //this.container.RegisterType<ActiveAttackView, ActiveAttackView>(new ContainerControlledLifetimeManager());
+            //this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<AttackTargetSelectionView, AttackTargetSelectionView>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<AttackTargetSelectionViewModel, AttackTargetSelectionViewModel>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AutoFireAttackConfigurationView, AutoFireAttackConfigurationView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AutoFireAttackConfigurationViewModel, AutoFireAttackConfigurationViewModel>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AttackConfigurationView, AttackConfigurationView>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<AttackConfigurationViewModel, AttackConfigurationViewModel>(new ContainerControlledLifetimeManager());
+            this.container.RegisterType<ActiveAttackView, ActiveAttackView>(new PerResolveLifetimeManager());
+            this.container.RegisterType<ActiveAttackViewModel, ActiveAttackViewModel>(new PerResolveLifetimeManager());
 
             this.container.RegisterType<ICrowdRepository, CrowdRepository>(new ContainerControlledLifetimeManager());
             this.container.RegisterType<IResourceRepository, ResourceRepository>(new ContainerControlledLifetimeManager());

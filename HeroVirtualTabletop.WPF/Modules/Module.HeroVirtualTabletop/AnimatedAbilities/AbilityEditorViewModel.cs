@@ -46,7 +46,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public bool isUpdatingCollection = false;
         public object lastAnimationElementsStateToUpdate = null;
-
+        private Character currentSweeper = null;
 
         #endregion
 
@@ -638,7 +638,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<FinishedAbilityCollectionRetrievalEvent>().Subscribe(this.LoadReferenceResource);
             //this.eventAggregator.GetEvent<FinishedIdentityCollectionRetrievalEvent>().Subscribe(this.LoadIdentityResource);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<ResetSweepEvent>().Subscribe(this.ResetSweep);
+            this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Subscribe(this.AttackEnded);
             this.eventAggregator.GetEvent<PlayAnimatedAbilityEvent>().Subscribe(this.PlayAnimatedAbility);
             this.eventAggregator.GetEvent<StopAnimatedAbilityEvent>().Subscribe(this.StopAnimatedAbility);
             // Unselect everything at the beginning
@@ -725,10 +726,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void AttackEnded(object state)
         {
-            if (state != null && state is AnimatedAbility)
-            {
-                this.UpdateCommandsAndControls();
-            }
+            this.UpdateCommandsAndControls();
         }
 
         private void UpdateCommandsAndControls()
@@ -1651,14 +1649,21 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             PlayAnimatedAbility(target, ability);
         }
 
-        private void PlayAnimatedAbility(Character target = null, AnimatedAbility ability = null)
+        private void PlayAnimatedAbility(Character targetCharacter = null, AnimatedAbility ability = null)
         {
-            Character Target = target ?? ability.Owner;
-            if (Target != null && ability != null)
+            Character target = targetCharacter ?? ability.Owner;
+            if (target != null && ability != null)
             {
                 if (Helper.GlobalVariables_IntegrateWithHCS && !ability.IsAttack)
-                    this.hcsIntegrator.PlaySimpleAbility(Target, ability);
-                ability.Play(Target: Target);
+                    this.hcsIntegrator.PlaySimpleAbility(target, ability);
+                ability.Play(Target: target);
+                if (ability.Name == Constants.SWEEP_ABILITY_NAME)
+                {
+                    target.DisableSimpleAbilities(new List<AnimatedAbility> { Helper.GlobalDefaultSweepAbility });
+                    List<Attack> nonAutoFireAttacks = target.AnimatedAbilities.Where(aa => aa.IsAttack && !(aa as Attack).IsAutoFire).Cast<Attack>().ToList();
+                    target.DisableAttacks(nonAutoFireAttacks);
+                    this.currentSweeper = target; 
+                }
             }
         }
 
@@ -1666,7 +1671,12 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             Character target = tuple.Item1;
             AnimatedAbility ability = tuple.Item2;
-            StopAnimatedAbility(target, ability);
+            if (ability.Name == Constants.SWEEP_ABILITY_NAME)
+            {
+                this.eventAggregator.GetEvent<ExecuteSweepAttackEvent>().Publish(this.currentSweeper);
+            }
+            else
+                StopAnimatedAbility(target, ability);
         }
 
         private void StopAnimatedAbility(Character target = null, AnimatedAbility ability = null)
@@ -1679,6 +1689,24 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 ability.Stop(Target: Target);
             }
         }
+        #endregion
+
+        #region Reset Sweep
+
+        private void ResetSweep(object state)
+        {
+            if(this.currentSweeper != null)
+            {
+                var sweepAbility = Helper.GlobalDefaultSweepAbility;
+                 if(sweepAbility != null && sweepAbility.IsActive)
+                {
+                    StopAnimatedAbility(this.currentSweeper, sweepAbility);
+                    this.currentSweeper.RefreshAbilitiesActivationEligibility();
+                    this.currentSweeper = null;
+                }
+            }
+        }
+
         #endregion
 
         #region Clone Animation

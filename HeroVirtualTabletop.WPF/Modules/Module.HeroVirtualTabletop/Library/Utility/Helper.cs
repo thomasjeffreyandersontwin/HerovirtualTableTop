@@ -67,6 +67,12 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             set;
         }
 
+        public static AnimatedAbility GlobalDefaultSweepAbility
+        {
+            get;
+            set;
+        }
+
         public static System.Windows.Point GlobalVariables_OptionGroupDragStartPoint { get; set; }
         public static string GlobalVariables_DraggingOptionGroupName { get; set; }
 
@@ -616,6 +622,49 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                                         <
                                       axisVect.Length();
             return isUnderRoundCap;
+        }
+
+        public static Vector3 GetIntersectionPointOfPerpendicularProjectionVectorOnAnotherVector(Vector3 referenceVector, Vector3 projectingVector)
+        {
+            Vector3 p1 = Vector3.Zero;//new Vector3(x1, y1, z1);
+            //Vector3 p2 = new Vector3(x2, y2, z2);
+            Vector3 q = projectingVector;
+
+            Vector3 u = referenceVector;
+            Vector3 pq = q - p1;
+            Vector3 w2 = pq - Vector3.Multiply(u, Vector3.Dot(pq, u) / u.LengthSquared());
+
+            Vector3 point = q - w2;
+            return point;
+        }
+
+        public static double CalculateMaximumDistanceBetweenTwoPointsInASetOfPoints(params Vector3[] points)
+        {
+            float maxDistance = 0f;
+            Vector3 maxDistancePoint = Vector3.Zero;
+            var firstPoint = points.First();
+            foreach(Vector3 otherPoint in points.Where(p => p != firstPoint))
+            {
+                float dist = Vector3.Distance(otherPoint, firstPoint);
+                if(dist > maxDistance)
+                {
+                    maxDistance = dist;
+                    maxDistancePoint = otherPoint;
+                }
+            }
+            if(maxDistancePoint != Vector3.Zero)
+            {
+                foreach (Vector3 otherPoint in points.Where(p => p != maxDistancePoint))
+                {
+                    float dist = Vector3.Distance(otherPoint, maxDistancePoint);
+                    if (dist > maxDistance)
+                    {
+                        maxDistance = dist;
+                        maxDistancePoint = otherPoint;
+                    }
+                }
+            }
+            return Math.Round(maxDistance, MidpointRounding.AwayFromZero);
         }
 
         #endregion

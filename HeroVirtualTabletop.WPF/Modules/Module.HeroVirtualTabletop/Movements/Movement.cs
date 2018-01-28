@@ -568,8 +568,8 @@ namespace Module.HeroVirtualTabletop.Movements
         private Movement() { }
         private ILogManager logManager = new FileLogManager(typeof(Movement));
 
-        public event EventHandler<CustomEventArgs<Character>> MovementFinished;
-        public void OnMovementFinished(object sender, CustomEventArgs<Character> e)
+        public event EventHandler<CustomEventArgs<Tuple<Character, Guid>>> MovementFinished;
+        public void OnMovementFinished(object sender, CustomEventArgs<Tuple<Character, Guid>> e)
         {
             if (MovementFinished != null)
                 MovementFinished(sender, e);
@@ -697,8 +697,15 @@ namespace Module.HeroVirtualTabletop.Movements
             }
         }
 
-        public void MoveBack(Character target, Vector3 lookatVector, Vector3 destinationVector)
+        private Guid currentConfigKey = Guid.Empty;
+
+        public void MoveBack(Character target, Vector3 lookatVector, Vector3 destinationVector, Guid configKey = default(Guid))
         {
+            if(configKey == default(Guid))
+            {
+                configKey = target.AttackConfigurationMap.Where(ac => ac.Value.Item1.IsExecutionInProgress).Select(ac => ac.Key).FirstOrDefault();
+            }
+            this.currentConfigKey = configKey;
             if (target.CurrentPositionVector == destinationVector)
                 return;
 
@@ -758,31 +765,19 @@ namespace Module.HeroVirtualTabletop.Movements
             {
 
             }
-            startTime = DateTime.Now;this.target = target;
+            //this.knockbackDist = target.AttackConfigurationMap[target.ActiveAbility as Attack].KnockBackDistance;
             this.StartMovement(target);
             if (target.GhostShadow != null && target.GhostShadow.HasBeenSpawned && target.ActiveIdentity.Type == IdentityType.Model)
             {
-                this.MovementFinished += delegate (object sender, CustomEventArgs<Character> e)
+                this.MovementFinished += delegate (object sender, CustomEventArgs<Tuple<Character, Guid>> e)
                 {
                     DateTime endTime = DateTime.Now;
-                    logManager.Info(string.Format("Knockback Distance {0} blocks, time taken {1} milliseconds", target.ActiveAttackConfiguration.KnockBackDistance, (endTime - startTime).Milliseconds));
-                    if (e.Value == target)
+                    //logManager.Info(string.Format("Knockback Distance {0} blocks, time taken {1} milliseconds", target.AttackConfigurationMap[target.ActiveAbility as Attack].KnockBackDistance, (endTime - startTime).Milliseconds));
+                    if (e.Value.Item1 == target)
                         target.AlignGhost();
                 };
 
             }
-            else
-            {
-                this.MovementFinished -= OnMovementFinishedAlt;
-                this.MovementFinished += OnMovementFinishedAlt;
-            }
-        }
-        Character target = null;
-        DateTime startTime;
-        private void OnMovementFinishedAlt(object sender, CustomEventArgs<Character> e)
-        {
-            DateTime endTime = DateTime.Now;
-            logManager.Info(string.Format("Knockback Distance {0} blocks, time taken {1} milliseconds", target.ActiveAttackConfiguration.KnockBackDistance, (endTime - startTime).TotalMilliseconds));
         }
 
         public void Move(Character target, Vector3 destinationVector)
@@ -2189,7 +2184,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     }
                     this.ResetMovement(target);
                     this.StopMovement(target);
-                    OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                    OnMovementFinished(this, new CustomEventArgs<Tuple<Character, Guid>> { Value = new Tuple<Character, Guid>(target, currentConfigKey) });
                 }
                 else
                 {   
@@ -2223,7 +2218,7 @@ namespace Module.HeroVirtualTabletop.Movements
                             {
                                 this.ResetMovement(target);
                                 this.StopMovement(target);
-                                OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
+                                OnMovementFinished(this, new CustomEventArgs<Tuple<Character, Guid>> { Value = new Tuple<Character, Guid>(target, currentConfigKey) });
                             }
                         }
                     }

@@ -73,9 +73,12 @@ namespace Module.HeroVirtualTabletop.Library
             this.eventAggregator.GetEvent<DeactivateCharacterEvent>().Subscribe(this.CloseActiveCharacterWidget);
             this.eventAggregator.GetEvent<DeactivateGangEvent>().Subscribe(this.CloseActiveGangWidget);
             this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Subscribe(this.ConfigureAttack);
-            this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Subscribe(this.CloseActiveAttackWidget);
+            this.eventAggregator.GetEvent<CloseAttackConfigurationWidgetEvent>().Subscribe(this.CloseAttackConfigurationWidget);
             this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Subscribe(this.LoadTargetSelectionWidget);
             this.eventAggregator.GetEvent<AttackTargetsConfirmedEvent>().Subscribe(this.CloseAttackTargetSelectionWidget);
+            this.eventAggregator.GetEvent<ConfigureSweepAttackEvent>().Subscribe(this.ConfigureAttacks);
+            this.eventAggregator.GetEvent<LoadAutoFireAttackConfigurationWidgetEvent>().Subscribe(this.LoadAutoFireAttackConfigurationWidget);
+            this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Subscribe(this.CloseAutoFireAttackConfigurationWidget);
         }
 
         #endregion
@@ -162,51 +165,49 @@ namespace Module.HeroVirtualTabletop.Library
         {
             this.CloseActiveCharacterWidget(null);
         }
-
-        private void ConfigureAttack(Tuple<List<Character>, Attack> tuple)
+        private void ConfigureAttack(Tuple<Attack, List<Character>, Guid> attackTuple)
         {
-            List<Character> defendingCharacters = tuple.Item1;
-            if (defendingCharacters != null && defendingCharacters.Count > 0)
+            if(attackTuple.Item2 != null && attackTuple.Item2.Count > 0)
             {
-                this.LoadActiveAttackWidget(tuple);
-                IntPtr foregroundWindow = WindowsUtilities.FindWindow(null, "MainWindow");
-                WindowsUtilities.SetForegroundWindow(foregroundWindow);
+                ConfigureAttacks(new List<Tuple<Attack, List<Character>, Guid>> { attackTuple });
             }
             else // blank target
             {
-                ActiveAttackConfiguration config = new ActiveAttackConfiguration();
-                config.AttackMode = AttackMode.None;
-                config.AttackResult = AttackResultOption.Miss;
-                this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(tuple.Item1, tuple.Item2));
+                this.eventAggregator.GetEvent<LaunchAttacksEvent>().Publish(null);
             }
         }
-        private void LoadActiveAttackWidget(Tuple<List<Character>, Attack> tuple)
+        private void ConfigureAttacks(List<Tuple<Attack, List<Character>, Guid>> attacksToConfigure)
         {
-            if (tuple.Item1 != null && tuple.Item2 != null)
+            this.LoadAttackConfigurationWidget(attacksToConfigure);
+            IntPtr foregroundWindow = WindowsUtilities.FindWindow(null, "MainWindow");
+            WindowsUtilities.SetForegroundWindow(foregroundWindow);
+        }
+        private void LoadAttackConfigurationWidget(List<Tuple<Attack, List<Character>, Guid>> attackList)
+        {
+            if (attackList != null)
             {
-                if (!PopupService.IsOpen("ActiveAttackView"))
+                if (!PopupService.IsOpen("AttackConfigurationView"))
                 {
                     System.Windows.Style style = Helper.GetCustomWindowStyle();
-                    ActiveAttackViewModel viewModel = this.Container.Resolve<ActiveAttackViewModel>();
+                    AttackConfigurationViewModel viewModel = this.Container.Resolve<AttackConfigurationViewModel>();
                     Mouse.OverrideCursor = Cursors.Arrow;
-                    PopupService.ShowDialog("ActiveAttackView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+                    PopupService.ShowDialog("AttackConfigurationView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
                     Helper.GlobalVariables_CurrentActiveWindowName = Constants.ACTIVE_ATTACK_WIDGET;
                 }
-                this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Publish(tuple);
+                this.eventAggregator.GetEvent<ConfigureAttacksEvent>().Publish(attackList);
             }
-            else if ((tuple.Item1 == null || tuple.Item2 == null) && PopupService.IsOpen("ActiveAttackView"))
+            else if (attackList == null && PopupService.IsOpen("AttackConfigurationView"))
             {
-                PopupService.CloseDialog("ActiveAttackView");
+                PopupService.CloseDialog("AttackConfigurationView");
                 this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ACTIVE_ATTACK_WIDGET);
             }
         }
 
-        private void CloseActiveAttackWidget(object state)
+        private void CloseAttackConfigurationWidget(object state)
         {
-            PopupService.CloseDialog("ActiveAttackView");
+            PopupService.CloseDialog("AttackConfigurationView");
             this.eventAggregator.GetEvent<PanelClosedEvent>().Publish(Constants.ACTIVE_ATTACK_WIDGET);
         }
-
         private void CloseActiveCharacterWidget(object state)
         {
             Character target = state as Character;
@@ -229,6 +230,22 @@ namespace Module.HeroVirtualTabletop.Library
         private void CloseAttackTargetSelectionWidget(List<Character> confirmedTargets)
         {
             PopupService.CloseDialog("AttackTargetSelectionView");
+        }
+
+        private void LoadAutoFireAttackConfigurationWidget(Tuple<Attack, List<Character>, Guid> tuple)
+        {
+            if (!PopupService.IsOpen("AutoFireAttackConfigurationView"))
+            {
+                System.Windows.Style style = Helper.GetCustomWindowStyle();
+                AutoFireAttackConfigurationViewModel viewModel = this.Container.Resolve<AutoFireAttackConfigurationViewModel>();
+                PopupService.ShowDialog("AutoFireAttackConfigurationView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
+            }
+            this.eventAggregator.GetEvent<ConfigureAutoFireAttackEvent>().Publish(tuple);
+        }
+
+        private void CloseAutoFireAttackConfigurationWidget(List<Character> confirmedTargets)
+        {
+            PopupService.CloseDialog("AutoFireAttackConfigurationView");
         }
 
 
@@ -439,7 +456,7 @@ namespace Module.HeroVirtualTabletop.Library
             
             if (!File.Exists(fileAreaAttackMenu))
             {
-                var resourceName = "Module.HeroVirtualTabletop.Resources.areaattack.mnu";
+                var resourceName = "Module.HeroVirtualTabletop.Resources.attack.mnu";
 
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 using (StreamReader reader = new StreamReader(stream))

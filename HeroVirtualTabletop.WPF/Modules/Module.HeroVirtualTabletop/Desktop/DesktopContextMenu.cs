@@ -42,6 +42,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         AttackTargetMenuItemSelected,
         AttackTargetAndExecuteMenuItemSelected,
         AttackTargetAndExecuteCrowdMenuItemSelected,
+        AttackExecuteSweepMenuItemSelected,
         AbortMenuItemSelected,
         SpawnMenuItemSelected,
         PlaceMenuItemSelected,
@@ -64,9 +65,10 @@ namespace Module.HeroVirtualTabletop.Desktop
 
         public bool IsDisplayed { get; set; }
 
-        public bool ShowAreaAttackMenu { get; set; }
+        public bool ShowAttackMenu { get; set; }
 
         public bool IsSequenceViewActive { get; set; }
+        public bool IsSweepAttackInProgress { get; set; }
         public List<string> AttackingCharacterNames { get; set; }
 
         public event EventHandler<CustomEventArgs<Object>> AttackContextMenuDisplayed;
@@ -74,6 +76,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         public event EventHandler<CustomEventArgs<Object>> AttackTargetMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> AttackTargetAndExecuteMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> AttackTargetAndExecuteCrowdMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> AttackExecuteSweepMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> AbortMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> SpawnMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> PlaceMenuItemSelected;
@@ -111,6 +114,10 @@ namespace Module.HeroVirtualTabletop.Desktop
                 case ContextMenuEvent.AttackTargetAndExecuteCrowdMenuItemSelected:
                     if (AttackTargetAndExecuteCrowdMenuItemSelected != null)
                         AttackTargetAndExecuteCrowdMenuItemSelected(sender, e);
+                    break;
+                case ContextMenuEvent.AttackExecuteSweepMenuItemSelected:
+                    if (AttackExecuteSweepMenuItemSelected != null)
+                        AttackExecuteSweepMenuItemSelected(sender, e);
                     break;
                 case ContextMenuEvent.AbortMenuItemSelected:
                     if (AbortMenuItemSelected != null)
@@ -187,12 +194,13 @@ namespace Module.HeroVirtualTabletop.Desktop
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
 
-        public void GenerateAndDisplay(CrowdMemberModel character, List<string> attackingCharacterNames, bool showAreaAttackMenu, bool isSequenceView)
+        public void GenerateAndDisplay(CrowdMemberModel character, List<string> attackingCharacterNames, bool showAttackMenu, bool isSequenceView = false, bool isSweepAttackInProgress = false)
         {
             Character = character;
             AttackingCharacterNames = attackingCharacterNames;
-            ShowAreaAttackMenu = showAreaAttackMenu;
+            ShowAttackMenu = showAttackMenu;
             IsSequenceViewActive = isSequenceView;
+            IsSweepAttackInProgress = isSweepAttackInProgress;
             GenerateAndDisplay();
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
@@ -218,6 +226,8 @@ namespace Module.HeroVirtualTabletop.Desktop
                 for (int i = 0; i < menuFileLines.Count - 1; i++)
                 {
                     if (menuFileLines[i].StartsWith("Option \"Abort\"") && !IsSequenceViewActive)
+                        continue;
+                    if (menuFileLines[i].StartsWith("Option \"Execute Sweep\"") && !IsSweepAttackInProgress)
                         continue;
                     sb.AppendLine(menuFileLines[i]);
                 }
@@ -258,12 +268,12 @@ namespace Module.HeroVirtualTabletop.Desktop
             if (Character != null)
             {
 
-                if (ShowAreaAttackMenu)
+                if (ShowAttackMenu)
                 {
                     if (!AttackingCharacterNames.Contains(Character.Name))
                     {
                         System.Threading.Thread.Sleep(200); // Delay so that the file write completes before calling the pop menu
-                        GenerateAreaEffectMenu();
+                        GenerateAttackMenu();
                         DisplayAreaEffectMenu();
                         IsDisplayed = true;
                         FireContextMenuEvent(ContextMenuEvent.AreaAttackContextMenuDisplayed, null, new CustomEventArgs<object> { Value = Character });
@@ -279,12 +289,12 @@ namespace Module.HeroVirtualTabletop.Desktop
             }
         }
 
-        private void GenerateAreaEffectMenu()
+        private void GenerateAttackMenu()
         {
             string fileAreaAtackMenu = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME, Constants.GAME_LANGUAGE_FOLDERNAME, Constants.GAME_MENUS_FOLDERNAME, Constants.GAME_CHARACTER_MENU_FILENAME);
             var assembly = Assembly.GetExecutingAssembly();
 
-            var resourceName = "Module.HeroVirtualTabletop.Resources.areaattack.mnu";
+            var resourceName = "Module.HeroVirtualTabletop.Resources.attack.mnu";
             List<string> menuFileLines = new List<string>();
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             using (StreamReader reader = new StreamReader(stream))
@@ -299,6 +309,8 @@ namespace Module.HeroVirtualTabletop.Desktop
                 for (int i = 0; i < menuFileLines.Count; i++)
                 {
                     if (menuFileLines[i].StartsWith("Option \"Abort\"") && !IsSequenceViewActive)
+                        continue;
+                    else if (menuFileLines[i].StartsWith("Option \"Execute Sweep\"") && !Helper.GlobalDefaultSweepAbility.IsActive)
                         continue;
                     sb.AppendLine(menuFileLines[i]);
                 }
@@ -329,7 +341,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         {
             Action action = delegate()
             {
-                IsDisplayed = false;
+                //IsDisplayed = false;
 
                 ContextCommandFileWatcher.EnableRaisingEvents = false;
                 switch (e.Name)
@@ -344,6 +356,9 @@ namespace Module.HeroVirtualTabletop.Desktop
                     case Constants.GAME_AREA_ATTACK_BINDSAVE_TARGET_EXECUTE_CROWD_FILENAME:
                         ContextCommandFileWatcher.EnableRaisingEvents = false;
                         FireContextMenuEvent(ContextMenuEvent.AttackTargetAndExecuteCrowdMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });
+                        break;
+                    case Constants.GAME_SWEEP_ATTACK_EXECUTE_FILENAME:
+                        FireContextMenuEvent(ContextMenuEvent.AttackExecuteSweepMenuItemSelected, null, new CustomEventArgs<object> { Value = null});
                         break;
                     case Constants.GAME_CHARACTER_BINDSAVE_ABORT_FILENAME:
                         FireContextMenuEvent(ContextMenuEvent.AbortMenuItemSelected, null, new CustomEventArgs<object> { Value = Character });

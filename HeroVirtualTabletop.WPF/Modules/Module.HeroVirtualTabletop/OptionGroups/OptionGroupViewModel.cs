@@ -293,7 +293,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             this.Owner.PropertyChanged += Owner_PropertyChanged;
             this.OptionGroup = optionGroup;
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.StopAttack);
+            this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Subscribe(this.OnAttackExecutionFinished);
             this.eventAggregator.GetEvent<CombatMovementChangedEvent>().Subscribe((CharacterMovement cm) => {
                 OnPropertyChanged("IsNonCombatMovementSelected");
                 OnPropertyChanged("IsCombatMovementSelected");
@@ -646,7 +646,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             clickTimer_AbilityPlay.Stop();
             Action d = delegate()
             {
-                if(owner.ActiveAbility != null && !owner.ActiveAbility.Persistent && !owner.ActiveAbility.IsAttack)
+                if(owner.ActiveAbility != null && !owner.ActiveAbility.Persistent && !owner.ActiveAbility.IsAttack && owner.ActiveAbility != Helper.GlobalDefaultSweepAbility)
                 {
                     DeActivateAnimatedAbility(owner.ActiveAbility);
                     //owner.ActiveAbility.IsActive = false;
@@ -745,6 +745,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
             if (!ability.PlayOnTargeted)
             {
                 this.SpawnAndTargetOwnerCharacter();
+                currentTarget = this.Owner;
             }
             else
             {
@@ -756,7 +757,7 @@ namespace Module.HeroVirtualTabletop.OptionGroups
                     currentTarget = this.Owner;
                 }
             }
-            owner.ActiveAbility = null;
+            this.Owner.ActiveAbility = null;
             //ability.Stop(Target: currentTarget);
             this.eventAggregator.GetEvent<StopAnimatedAbilityEvent>().Publish(new Tuple<Character, AnimatedAbility>(currentTarget, ability));
         }
@@ -819,14 +820,10 @@ namespace Module.HeroVirtualTabletop.OptionGroups
         {
             this.UpdateCommands();
         }
-        private void StopAttack(object state)
+        private void OnAttackExecutionFinished(object state)
         {
-            if (state != null && state is AnimatedAbility)
-            {
-                StopOption(state);
-                Helper.GlobalVariables_IsPlayingAttack = false;
-                this.UpdateCommands();
-            }
+            this.Owner.ActiveAbility = null;
+            this.UpdateCommands();
         }
         private void SpawnAndTargetOwnerCharacter()
         {

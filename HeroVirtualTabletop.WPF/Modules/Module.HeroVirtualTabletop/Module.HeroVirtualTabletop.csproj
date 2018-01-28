@@ -173,10 +173,18 @@
     <Compile Include="AnimatedAbilities\AnimatedAbility.cs" />
     <Compile Include="AnimatedAbilities\AnimatedElement.cs" />
     <Compile Include="AnimatedAbilities\AnimationResource.cs" />
+    <Compile Include="AnimatedAbilities\AttackConfigurationView.xaml.cs">
+      <DependentUpon>AttackConfigurationView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AnimatedAbilities\AttackConfigurationViewModel.cs" />
     <Compile Include="AnimatedAbilities\AttackTargetSelectionView.xaml.cs">
       <DependentUpon>AttackTargetSelectionView.xaml</DependentUpon>
     </Compile>
     <Compile Include="AnimatedAbilities\AttackTargetSelectionViewModel.cs" />
+    <Compile Include="AnimatedAbilities\AutoFireAttackConfigurationView.xaml.cs">
+      <DependentUpon>AutoFireAttackConfigurationView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AnimatedAbilities\AutoFireAttackConfigurationViewModel.cs" />
     <Compile Include="AnimatedAbilities\CollisionEngine.cs" />
     <Compile Include="AnimatedAbilities\DelayManager.cs" />
     <Compile Include="AnimatedAbilities\ResourceRepository.cs" />
@@ -308,7 +316,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="AnimatedAbilities\AttackConfigurationView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="AnimatedAbilities\AttackTargetSelectionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="AnimatedAbilities\AutoFireAttackConfigurationView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -369,7 +385,7 @@
     <Content Include="Fasm.NET.xml" />
     <EmbeddedResource Include="Resources\enable_camera.txt" />
     <EmbeddedResource Include="Resources\disable_camera.txt" />
-    <EmbeddedResource Include="Resources\areaattack.mnu" />
+    <EmbeddedResource Include="Resources\attack.mnu" />
     <EmbeddedResource Include="Resources\Bullseye.cur" />
     <EmbeddedResource Include="Resources\FXElements.csv" />
     <EmbeddedResource Include="Resources\DefaultCharactersWithAbilities.data" />

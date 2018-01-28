@@ -24,7 +24,16 @@ namespace Module.HeroVirtualTabletop.Library.Converters
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             string iconText = null;
-            AttackEffectOption activeAttackEffectOption = (AttackEffectOption)value;
+            var activeAttackEffectOption = (AttackEffectOption)value;                                   
+            //Dictionary<Attack, AttackConfiguration> attackConfigMap = value as Dictionary<Attack, AttackConfiguration>;
+            //if(attackConfigMap.Any(ac => ac.Value.AttackEffectOption == AttackEffectOption.Stunned))
+            //    iconText = "\uf119";
+            //if(attackConfigMap.Any(ac => ac.Value.AttackEffectOption == AttackEffectOption.Unconcious))
+            //    iconText = "\uf236";
+            //if (attackConfigMap.Any(ac => ac.Value.AttackEffectOption == AttackEffectOption.Stunned))
+            //    iconText = "\uf119";
+            //if (attackConfigMap.Any(ac => ac.Value.AttackEffectOption == AttackEffectOption.Unconcious))
+            //    iconText = "\uf236";
             switch (activeAttackEffectOption)
             {
                 case Enumerations.AttackEffectOption.Stunned:
@@ -75,17 +84,17 @@ namespace Module.HeroVirtualTabletop.Library.Converters
             throw new NotImplementedException();
         }
     }
-    public class ActiveAttackModeToVisibilityConverter : IValueConverter
+    public class AttackConfigMapToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             Visibility visibility = Visibility.Collapsed;
-            AttackMode activeAttackMode = (AttackMode)value;
-            if (activeAttackMode != Enumerations.AttackMode.None)
+            Dictionary<Attack, AttackConfiguration> attackConfigMap = value as Dictionary<Attack, AttackConfiguration>;
+            bool attackModeExists = attackConfigMap.Any(ac => ac.Value.AttackMode != AttackMode.None);
+            if (attackModeExists)
                 visibility = Visibility.Visible;
             return visibility;
         }
-
         public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotImplementedException();

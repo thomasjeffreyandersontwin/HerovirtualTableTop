@@ -23,7 +23,7 @@
             <localconverters:characterComparer x:Key="characterComparer"/>
             <localconverters:DistanceCounterTextColorConverter x:Key="DistanceCounterTextColorConverter"/>
             <localconverters:ActiveAttackEffectToAnimationIconTextConverter x:Key="ActiveAttackEffectToAnimationIconTextConverter"/>
-            <localconverters:ActiveAttackModeToVisibilityConverter x:Key="ActiveAttackModeToVisibilityConverter"/>
+            <localconverters:AttackConfigMapToVisibilityConverter x:Key="AttackConfigMapToVisibilityConverter"/>
             <localconverters:ActiveAttackModeToAnimationIconTextConverter x:Key="ActiveAttackModeToAnimationIconTextConverter"/>
             <localconverters:ActiveAttackEffectToVisibilityConverter x:Key="ActiveAttackEffectToVisibilityConverter"/>
             <CollectionViewSource 
@@ -65,6 +65,7 @@
                 <MenuItem Header="Target" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetCommand}"></MenuItem>
                 <MenuItem Header="Target and Execute" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCommand}"></MenuItem>
                 <MenuItem Header="Target and Execute Crowd" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AttackTargetAndExecuteCrowdCommand}"></MenuItem>
+                <MenuItem Header="Execute Sweep" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.ExecuteSweepAttackCommand}"></MenuItem>
                 <MenuItem Header="Abort" Command="{Binding Source={StaticResource BindingProxy}, Path=Data.AbortActionCommand}"></MenuItem>      
             </ContextMenu>
         </ResourceDictionary>
@@ -214,7 +215,22 @@
                                 </Style>
                             </TextBlock.Style>
                         </TextBlock>
-                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackMode, Converter={StaticResource ActiveAttackModeToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Grid.Column="2" FontFamily="{StaticResource FontFamily_FontAwesome}"  HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsAttacker}" Value="true">
+                                            <Setter Property="Visibility" Value="Visible"></Setter>
+                                            <Setter Property="Text" Value="&#xf0e7;"></Setter>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsDefender}" Value="true">
+                                            <Setter Property="Visibility" Value="Visible"></Setter>
+                                            <Setter Property="Text" Value="&#xf140;"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
                         </TextBlock>
                         <!--<TextBlock Grid.Column="3" FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToVisibilityConverter}}" Text="{Binding ActiveAttackConfiguration.AttackEffectOption, Converter={StaticResource ActiveAttackEffectToAnimationIconTextConverter}}" HorizontalAlignment="Right" VerticalAlignment="Center">
                             <TextBlock.InputBindings>
@@ -222,27 +238,27 @@
                             </TextBlock.InputBindings>
                         </TextBlock>-->
                         <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsStunned, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf119;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding IsStunned, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf119;" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsUnconcious, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf236;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding IsUnconscious, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf236;" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsDying, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf0f9;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding IsDying, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf0f9;" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsDead, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf011;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding IsDead, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf011;" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                                 </TextBlock.InputBindings>
                             </TextBlock>
-                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding ActiveAttackConfiguration.IsKnockedBack, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf263;" HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <TextBlock FontFamily="{StaticResource FontFamily_FontAwesome}" Visibility="{Binding IsKnockedBack, Converter={StaticResource BooleanToVisibilityConverter}}" Text="&#xf263;" HorizontalAlignment="Right" VerticalAlignment="Center">
                                 <TextBlock.InputBindings>
                                     <MouseBinding Command="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=roster:RosterExplorerView}, Path=DataContext.ResetCharacterStateCommand}" CommandParameter="{Binding ElementName=txtBlockCharacterName, Path=Text}" MouseAction="LeftClick"/>
                                 </TextBlock.InputBindings>

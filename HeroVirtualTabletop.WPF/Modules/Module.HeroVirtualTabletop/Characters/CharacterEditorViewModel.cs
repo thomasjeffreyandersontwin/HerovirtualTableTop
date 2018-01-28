@@ -115,7 +115,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.eventAggregator.GetEvent<EditCharacterEvent>().Subscribe(this.LoadCharacter);
             this.eventAggregator.GetEvent<DeleteCrowdMemberEvent>().Subscribe(this.UnLoadCharacter);
             this.eventAggregator.GetEvent<AttackInitiatedEvent>().Subscribe(this.AttackInitiated);
-            this.eventAggregator.GetEvent<CloseActiveAttackEvent>().Subscribe(this.AttackEnded);
+            this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Subscribe(this.AttackEnded);
         }
 
         #endregion
@@ -141,7 +141,7 @@ namespace Module.HeroVirtualTabletop.Characters
             this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
-        internal void LoadCharacter(object state)
+        public void LoadCharacter(object state)
         {
             if (this.OptionGroups != null)
             {
@@ -228,10 +228,7 @@ namespace Module.HeroVirtualTabletop.Characters
 
         private void AttackEnded(object state)
         {
-            if (state != null && state is AnimatedAbility)
-            {
-                this.Commands_RaiseCanExecuteChanged();
-            }
+            this.Commands_RaiseCanExecuteChanged();
         }
 
         private void Commands_RaiseCanExecuteChanged()

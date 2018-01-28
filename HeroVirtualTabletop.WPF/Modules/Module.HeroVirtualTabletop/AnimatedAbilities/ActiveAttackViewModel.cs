@@ -22,6 +22,36 @@ using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
+    public class DefenderActiveAttackConfiguration : NotifyPropertyChanged
+    {
+        private Character defender;
+        public Character Defender
+        {
+            get
+            {
+                return defender;
+            }
+            set
+            {
+                defender = value;
+                OnPropertyChanged("Defender");
+            }
+        }
+        public AttackConfiguration attackConfiguration;
+        public AttackConfiguration ActiveAttackConfiguration
+        {
+            get
+            {
+                return attackConfiguration;
+            }
+            set
+            {
+                attackConfiguration = value;
+                OnPropertyChanged("ActiveAttackConfiguration");
+            }
+        }
+    }
+
     public class ActiveAttackViewModel : BaseViewModel
     {
         #region Private Fields
@@ -48,8 +78,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private ObservableCollection<Character> defendingCharacters;
-        public ObservableCollection<Character> DefendingCharacters
+        private List<Character> defendingCharacters;
+        public List<Character> DefendingCharacters
         {
             get
             {
@@ -59,6 +89,34 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 defendingCharacters = value;
                 OnPropertyChanged("DefendingCharacters");
+            }
+        }
+
+        private ObservableCollection<DefenderActiveAttackConfiguration> defenderActiveAttackConfigurations;
+        public ObservableCollection<DefenderActiveAttackConfiguration> DefenderActiveAttackConfigurations
+        {
+            get
+            {
+                return defenderActiveAttackConfigurations;
+            }
+            set
+            {
+                defenderActiveAttackConfigurations = value;
+                OnPropertyChanged("DefenderActiveAttackConfigurations");
+            }
+        }
+
+        private bool moveAttackerToTarget;
+        public bool MoveAttackerToTarget
+        {
+            get
+            {
+                return moveAttackerToTarget;
+            }
+            set
+            {
+                moveAttackerToTarget = value;
+                OnPropertyChanged("MoveAttackerToTarget");
             }
         }
 
@@ -90,6 +148,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
+        public Guid AttackConfigKey { get; set; }
+
         #endregion
 
         #region Commands
@@ -112,8 +172,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.messageBoxService = messageBoxService;
             this.desktopKeyEventHandler = keyEventHandler;
             InitializeCommands();
-            this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Subscribe(this.ConfigureActiveAttack);
-            this.eventAggregator.GetEvent<ConfirmAttackEvent>().Subscribe(this.SetActiveAttack);
+            //this.eventAggregator.GetEvent<ConfigureActiveAttackEvent>().Subscribe(this.ConfigureActiveAttack);
+            //this.eventAggregator.GetEvent<ConfirmAttackEvent>().Subscribe(this.SetActiveAttack);
             InitializeDesktopKeyEventHandlers();
         }
 
@@ -136,6 +196,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
         }
 
+        public void RemoveDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.RemoveKeyEventHandler(this.RetrieveEventFromKeyInput);
+        }
+
         #endregion
 
         #region Methods
@@ -145,12 +210,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (this.ActiveAttack.IsAreaEffect)
             {
                 Character character = state as Character;
-                if (character != null && character.ActiveAttackConfiguration.IsCenterTarget)
+                if (character != null && character.AttackConfigurationMap[AttackConfigKey].Item2.IsCenterTarget)
                 {
                     foreach (Character ch in this.DefendingCharacters.Where(dc => dc.Name != character.Name))
                     {
-                        ch.ActiveAttackConfiguration.IsCenterTarget = false;
+                        ch.AttackConfigurationMap[AttackConfigKey].Item2.IsCenterTarget = false;
+                        ch.RefreshAttackConfigurationParameters();
                     }
+                    character.RefreshAttackConfigurationParameters();
                 }
             }
         }
@@ -160,18 +227,27 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character target = state as Character;
             if (target != null)
             {
-                if (target.ActiveAttackConfiguration.AttackResults.Any(ar => ar.IsHit))
-                    target.ActiveAttackConfiguration.IsHit = true;
+                if (target.AttackConfigurationMap[AttackConfigKey].Item2.AttackResults.Any(ar => ar.IsHit))
+                    target.AttackConfigurationMap[AttackConfigKey].Item2.IsHit = true;
                 else
-                    target.ActiveAttackConfiguration.IsHit = false;
-                //this.SetAttackSummaryText();
+                    target.AttackConfigurationMap[AttackConfigKey].Item2.IsHit = false;
+                target.RefreshAttackConfigurationParameters();
             }
         }
 
-        private void ConfigureActiveAttack(Tuple<List<Character>, Attack> tuple)
+        public void ConfigureActiveAttack(Tuple<List<Character>, Attack, Guid> tuple)
         {
-            this.DefendingCharacters = new ObservableCollection<Character>(tuple.Item1);
+            //this.DefendingCharacters = new ObservableCollection<Character>(tuple.Item1);
+            this.DefendingCharacters = tuple.Item1;
             this.ActiveAttack = tuple.Item2;
+            this.AttackConfigKey = tuple.Item3;
+
+            this.DefenderActiveAttackConfigurations = new ObservableCollection<DefenderActiveAttackConfiguration>();
+            foreach(var defender in this.DefendingCharacters)
+            {
+                this.DefenderActiveAttackConfigurations.Add(new DefenderActiveAttackConfiguration { Defender = defender, ActiveAttackConfiguration = defender.AttackConfigurationMap[AttackConfigKey].Item2 });
+            }
+
             if (Helper.GlobalVariables_IntegrateWithHCS)
             {
                 this.ShowAttackSummaryText = true;
@@ -186,66 +262,70 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             SetActiveAttack();
         }
-        private void SetActiveAttack()
+        public void SetActiveAttack()
         {
             foreach (Character ch in this.DefendingCharacters)
             {
                 SetAttackParameters(ch);
             }
-            if (this.DefendingCharacters.Any(dc => dc.ActiveAttackConfiguration.MoveAttackerToTarget))
+            //if (this.DefendingCharacters.Any(dc => dc.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget))
+            if(this.MoveAttackerToTarget)
             {
                 foreach (Character dc in this.DefendingCharacters)
-                    dc.ActiveAttackConfiguration.MoveAttackerToTarget = true;
+                    dc.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget = true;
             }
 
-            // Change mouse pointer to back to bulls eye
-            Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
-            Mouse.OverrideCursor = cursor;
+            //// Change mouse pointer to back to bulls eye
+            //Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
+            //Mouse.OverrideCursor = cursor;
 
-            this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
-            this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
+            //this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
+            //this.eventAggregator.GetEvent<SetActiveAttackEvent>().Publish(new Tuple<List<Character>, Attack>(this.DefendingCharacters.ToList(), this.ActiveAttack));
         }
         private void SetAttackParameters(Character ch)
         {
-            if (!ch.ActiveAttackConfiguration.HasMultipleAttackers)
+            if (!ch.AttackConfigurationMap[AttackConfigKey].Item2.HasMultipleAttackers)
             {
-                if (ch.ActiveAttackConfiguration.IsHit)
-                    ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Hit;
+                if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsHit)
+                    ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackResult = AttackResultOption.Hit;
                 else
-                    ch.ActiveAttackConfiguration.AttackResult = AttackResultOption.Miss;
+                    ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackResult = AttackResultOption.Miss;
             }
             else
             {
-                foreach (AttackResult ar in ch.ActiveAttackConfiguration.AttackResults)
+                foreach (AttackResult ar in ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackResults)
                 {
                     ar.AttackResultOption = ar.IsHit ? AttackResultOption.Hit : AttackResultOption.Miss;
                 }
             }
 
-            if (ch.ActiveAttackConfiguration.IsDead)
-                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dead;
-            else if (ch.ActiveAttackConfiguration.IsDying)
-                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Dying;
-            else if (ch.ActiveAttackConfiguration.IsUnconcious)
-                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Unconcious;
-            else if (ch.ActiveAttackConfiguration.IsStunned)
-                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.Stunned;
+            if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsDead)
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackEffectOption = AttackEffectOption.Dead;
+            else if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsDying)
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackEffectOption = AttackEffectOption.Dying;
+            else if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsUnconcious)
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackEffectOption = AttackEffectOption.Unconcious;
+            else if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsStunned)
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackEffectOption = AttackEffectOption.Stunned;
             else
-                ch.ActiveAttackConfiguration.AttackEffectOption = AttackEffectOption.None;
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.AttackEffectOption = AttackEffectOption.None;
 
-            if (ch.ActiveAttackConfiguration.IsKnockedBack)
-                ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.KnockBack;
+            if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockedBack)
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackOption = KnockBackOption.KnockBack;
             else
-                ch.ActiveAttackConfiguration.KnockBackOption = KnockBackOption.None;
+                ch.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackOption = KnockBackOption.None;
+
+            ch.RefreshAttackConfigurationParameters();
         }
-        private void CancelActiveAttack(object state)
+        public void CancelActiveAttack(object state)
         {
             foreach (var c in this.DefendingCharacters)
             {
-                c.ActiveAttackConfiguration = new ActiveAttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None };
+                //c.AddAttackConfiguration(this.ActiveAttack, new AttackConfiguration { AttackMode = AttackMode.None, AttackEffectOption = AttackEffectOption.None });
+                c.RemoveAttackConfiguration(AttackConfigKey);
             }
-            this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
-            this.eventAggregator.GetEvent<CancelActiveAttackEvent>().Publish(this.DefendingCharacters.ToList());
+            //this.eventAggregator.GetEvent<CloseActiveAttackWidgetEvent>().Publish(null);
+            //this.eventAggregator.GetEvent<CancelActiveAttackEvent>().Publish(this.DefendingCharacters.ToList());
         }
 
         private void ActivatePanel(string panelName)
@@ -262,9 +342,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void SetAttackSummaryText()
         {
             this.AttackSummaryText = "";
-            List<Character> hitCharacters = this.DefendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsHit).ToList();
-            List<Character> missCharacters = this.DefendingCharacters.Where(dc => !dc.ActiveAttackConfiguration.IsHit).ToList();
-            List<Character> knockbackCharacters = this.DefendingCharacters.Where(dc => dc.ActiveAttackConfiguration.IsKnockedBack).ToList();
+            List<Character> hitCharacters = this.DefendingCharacters.Where(dc => dc.AttackConfigurationMap[AttackConfigKey].Item2.IsHit).ToList();
+            List<Character> missCharacters = this.DefendingCharacters.Where(dc => !dc.AttackConfigurationMap[AttackConfigKey].Item2.IsHit).ToList();
+            List<Character> knockbackCharacters = this.DefendingCharacters.Where(dc => dc.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockedBack).ToList();
             StringBuilder summary = new StringBuilder("The attack hit ");
             bool hitCharactersFound = hitCharacters.Count > 0;
             bool missCharactersFound = missCharacters.Count > 0;
@@ -307,30 +387,30 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 if (summarizedCharacters[character])
                     continue;
-                if (character.ActiveAttackConfiguration.IsKnockedBack)
+                if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockedBack)
                 {
                     summary.AppendLine();
-                    summary.AppendFormat("{0} is knocked back {1} hexes", character.Name, character.ActiveAttackConfiguration.KnockBackDistance);
-                    if(character.ActiveAttackConfiguration.ObstructingCharacters != null && character.ActiveAttackConfiguration.ObstructingCharacters.Count > 0)
+                    summary.AppendFormat("{0} is knocked back {1} hexes", character.Name, character.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackDistance);
+                    if(character.AttackConfigurationMap[AttackConfigKey].Item2.ObstructingCharacters != null && character.AttackConfigurationMap[AttackConfigKey].Item2.ObstructingCharacters.Count > 0)
                     {
-                        foreach(Character obsCharacter in character.ActiveAttackConfiguration.ObstructingCharacters)
+                        foreach(Character obsCharacter in character.AttackConfigurationMap[AttackConfigKey].Item2.ObstructingCharacters)
                         {
                             summary.AppendLine();
-                            if(character.ActiveAttackConfiguration.IsKnockbackObstruction)
+                            if(character.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockbackObstruction)
                                 summary.AppendFormat("{0} collided with {1}", character.Name, obsCharacter.Name);
                             else
                                 summary.AppendFormat("Attack is intercepted by {0}", obsCharacter.Name);
                             string obsEffect = GetEffectsString(obsCharacter);
-                            if (obsEffect != "" || obsCharacter.ActiveAttackConfiguration.Body != null)
+                            if (obsEffect != "" || obsCharacter.AttackConfigurationMap[AttackConfigKey].Item2.Body != null)
                             {
                                 summary.AppendLine();
-                                if (obsCharacter.ActiveAttackConfiguration.Body != null && obsEffect != "")
+                                if (obsCharacter.AttackConfigurationMap[AttackConfigKey].Item2.Body != null && obsEffect != "")
                                 {
-                                    summary.AppendFormat("{0} now has {1} BODY and is {2}", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body, obsEffect);
+                                    summary.AppendFormat("{0} now has {1} BODY and is {2}", obsCharacter.Name, obsCharacter.AttackConfigurationMap[AttackConfigKey].Item2.Body, obsEffect);
                                 }
-                                else if (obsCharacter.ActiveAttackConfiguration.Body != null)
+                                else if (obsCharacter.AttackConfigurationMap[AttackConfigKey].Item2.Body != null)
                                 {
-                                    summary.AppendFormat("{0} now has {1} BODY", obsCharacter.Name, obsCharacter.ActiveAttackConfiguration.Body);
+                                    summary.AppendFormat("{0} now has {1} BODY", obsCharacter.Name, obsCharacter.AttackConfigurationMap[AttackConfigKey].Item2.Body);
                                 }
                                 else
                                 {
@@ -343,28 +423,28 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 }
                 //else
                 {
-                    if (character.ActiveAttackConfiguration.Stun != null || character.ActiveAttackConfiguration.Body != null)
+                    if (character.AttackConfigurationMap[AttackConfigKey].Item2.Stun != null || character.AttackConfigurationMap[AttackConfigKey].Item2.Body != null)
                     {
                         summary.AppendLine();
                     }
-                    if (character.ActiveAttackConfiguration.Stun != null && character.ActiveAttackConfiguration.Body != null)
+                    if (character.AttackConfigurationMap[AttackConfigKey].Item2.Stun != null && character.AttackConfigurationMap[AttackConfigKey].Item2.Body != null)
                     {
-                        summary.AppendFormat("{0} has {1} Stun and {2} BODY left", character.Name, character.ActiveAttackConfiguration.Stun,
-                              character.ActiveAttackConfiguration.Body);
+                        summary.AppendFormat("{0} has {1} Stun and {2} BODY left", character.Name, character.AttackConfigurationMap[AttackConfigKey].Item2.Stun,
+                              character.AttackConfigurationMap[AttackConfigKey].Item2.Body);
                     }
-                    else if (character.ActiveAttackConfiguration.Stun != null)
+                    else if (character.AttackConfigurationMap[AttackConfigKey].Item2.Stun != null)
                     {
-                        summary.AppendFormat("{0} has {1} Stun left", character.Name, character.ActiveAttackConfiguration.Stun);
+                        summary.AppendFormat("{0} has {1} Stun left", character.Name, character.AttackConfigurationMap[AttackConfigKey].Item2.Stun);
                     }
-                    else if (character.ActiveAttackConfiguration.Body != null)
+                    else if (character.AttackConfigurationMap[AttackConfigKey].Item2.Body != null)
                     {
-                        summary.AppendFormat("{0} has {1} BODY left", character.Name, character.ActiveAttackConfiguration.Body);
+                        summary.AppendFormat("{0} has {1} BODY left", character.Name, character.AttackConfigurationMap[AttackConfigKey].Item2.Body);
                     }
 
                     string effects = GetEffectsString(character);
                     if (!string.IsNullOrEmpty(effects))
                     {
-                        if (character.ActiveAttackConfiguration.Stun == null && character.ActiveAttackConfiguration.Body == null)
+                        if (character.AttackConfigurationMap[AttackConfigKey].Item2.Stun == null && character.AttackConfigurationMap[AttackConfigKey].Item2.Body == null)
                         {
                             summary.AppendLine();
                             summary.AppendFormat("{0} is {1}", character.Name, effects);
@@ -385,17 +465,17 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             List<string> effectsStr = new List<string>();
             string efstr = "";
-            if (character.ActiveAttackConfiguration.IsStunned)
+            if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsStunned)
                 effectsStr.Add("Stunned");
-            if (character.ActiveAttackConfiguration.IsUnconcious)
+            if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsUnconcious)
                 effectsStr.Add("Unconscious");
-            if (character.ActiveAttackConfiguration.IsDying)
+            if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsDying)
                 effectsStr.Add("Dying");
-            if (character.ActiveAttackConfiguration.IsDead)
+            if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsDead)
                 effectsStr.Add("Dead");
-            if (character.ActiveAttackConfiguration.IsDestroyed)
+            if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsDestroyed)
                 effectsStr.Add("Destroyed");
-            if (character.ActiveAttackConfiguration.IsPartiallyDestryoed)
+            if (character.AttackConfigurationMap[AttackConfigKey].Item2.IsPartiallyDestryoed)
                 effectsStr.Add("Partially Destroyed");
             if (effectsStr.Count > 0)
             {
@@ -432,11 +512,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     {
                         if (inputKey == Key.H)
                         {
-                            if (!defender.ActiveAttackConfiguration.HasMultipleAttackers)
-                                defender.ActiveAttackConfiguration.IsHit = true;
+                            if (!defender.AttackConfigurationMap[AttackConfigKey].Item2.HasMultipleAttackers)
+                                defender.AttackConfigurationMap[AttackConfigKey].Item2.IsHit = true;
                             else
                             {
-                                foreach (var ar in defender.ActiveAttackConfiguration.AttackResults)
+                                foreach (var ar in defender.AttackConfigurationMap[AttackConfigKey].Item2.AttackResults)
                                 {
                                     ar.IsHit = true;
                                 }
@@ -444,11 +524,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         }
                         else if (inputKey == Key.M)
                         {
-                            if (!defender.ActiveAttackConfiguration.HasMultipleAttackers)
-                                defender.ActiveAttackConfiguration.IsHit = false;
+                            if (!defender.AttackConfigurationMap[AttackConfigKey].Item2.HasMultipleAttackers)
+                                defender.AttackConfigurationMap[AttackConfigKey].Item2.IsHit = false;
                             else
                             {
-                                foreach (var ar in defender.ActiveAttackConfiguration.AttackResults)
+                                foreach (var ar in defender.AttackConfigurationMap[AttackConfigKey].Item2.AttackResults)
                                 {
                                     ar.IsHit = false;
                                 }
@@ -456,46 +536,48 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         }
                         else if (inputKey == Key.S)
                         {
-                            defender.ActiveAttackConfiguration.IsStunned = true;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.IsStunned = true;
                         }
                         else if (inputKey == Key.U)
                         {
-                            defender.ActiveAttackConfiguration.IsUnconcious = true;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.IsUnconcious = true;
                         }
                         else if (inputKey == Key.Y)
                         {
-                            defender.ActiveAttackConfiguration.IsDying = true;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.IsDying = true;
                         }
                         else if (inputKey == Key.D)
                         {
-                            defender.ActiveAttackConfiguration.IsDead = true;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.IsDead = true;
                         }
                         else if (inputKey == Key.K)
                         {
-                            defender.ActiveAttackConfiguration.IsKnockedBack = true;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockedBack = true;
                         }
                         else if (inputKey == Key.N)
                         {
-                            defender.ActiveAttackConfiguration.IsKnockedBack = false;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockedBack = false;
                         }
                         else if (inputKey == Key.T)
                         {
-                            defender.ActiveAttackConfiguration.MoveAttackerToTarget = true;
+                            defender.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget = true;
                         }
                         else if ((inputKey >= Key.D0 && inputKey <= Key.D9) || (inputKey >= Key.NumPad0 && inputKey <= Key.NumPad9))
                         {
                             var intkey = (inputKey >= Key.D0 && inputKey <= Key.D9) ? inputKey - Key.D0 : inputKey - Key.NumPad0;
-                            if (defender.ActiveAttackConfiguration.KnockBackDistance > 0)
+                            if (defender.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackDistance > 0)
                             {
-                                string current = defender.ActiveAttackConfiguration.KnockBackDistance.ToString();
+                                string current = defender.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackDistance.ToString();
                                 current += intkey.ToString();
-                                defender.ActiveAttackConfiguration.KnockBackDistance = Convert.ToInt32(current);
+                                defender.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackDistance = Convert.ToInt32(current);
                             }
                             else
                             {
-                                defender.ActiveAttackConfiguration.KnockBackDistance = intkey;
+                                defender.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackDistance = intkey;
                             }
                         }
+
+                        defender.RefreshAttackConfigurationParameters();
                     }
                 }
             }

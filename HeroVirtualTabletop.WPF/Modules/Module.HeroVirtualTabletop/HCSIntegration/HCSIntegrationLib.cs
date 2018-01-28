@@ -136,7 +136,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
     public class AttackRequest : AttackRequestBase
     {
-        public string Target { get; set; }
+        public string Defender { get; set; }
         public int? Range { get; set; }
         public int? PushedStr { get; set; }
         public int? Generic { get; set; }
@@ -144,12 +144,23 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public bool? OffHand { get; set; }
         [JsonProperty("Unfamiliar Weapon")]
         public bool? UnfamiliarWeapon { get; set; }
-        [JsonProperty("Surprise Move")]
-        public int? SurpriseMove { get; set; }
         public int? Encumbrance { get; set; }
+        public bool? Surprised { get; set; }
+        [JsonProperty("Targeting Sense")]
+        public string TargetingSense { get; set; }
+        [JsonProperty("To Hit Modifiers")]
+        public ToHitModifiers ToHitModifiers { get; set; }
+
+    }
+
+    public class ToHitModifiers
+    {
         [JsonProperty("From Behind")]
         public bool? FromBehind { get; set; }
-        public bool? Surprised { get; set; }
+        [JsonProperty("Defender Entangled")]
+        public bool? DefenderEntangled { get; set; }
+        [JsonProperty("Surprise Move")]
+        public int? SurpriseMove { get; set; }
     }
 
     public class PotentialKnockbackCollision
@@ -164,6 +175,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     {
         public string Center { get; set; }
         public List<AttackRequest> Targets { get; set; }
+    }
+
+    public class AutoFireAttackRequest : AttackRequestBase
+    {
+        public int Width { get; set; }
+        public bool? Spray { get; set; }
+        public List<AttackRequest> Targets { get; set; }
+    }
+
+    public class SweepAttackRequest : AttackRequestBase
+    {
+        public List<AttackRequestBase> Attacks { get; set; }
     }
 
     public class KnockbackCollisionSingleTarget
@@ -221,9 +244,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public List<String> Effects { get; set; }
     }
 
-    public class AreaAttackResponse : AttackResponseBase
+    public class MultiTargetAttackResponse : AttackResponseBase
     {
         public List<AttackResponse> Targets { get; set; }
+    }
+
+    public class AreaAttackResponse : MultiTargetAttackResponse
+    {
+        
+    }
+    public class AutoFireAttackResponse : MultiTargetAttackResponse
+    {
+
     }
 
     public class AttackAreaTargetResponse : AttackResponseBase
@@ -269,20 +301,20 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     }
     public class HealthMeasures
     {
-        public int? Max { get; set; }
-        public int? Current { get; set; }
-        public int? Starting { get; set; }
+        public double? Max { get; set; }
+        public double? Current { get; set; }
+        public double? Starting { get; set; }
         public string Name { get; set; }
     }
 
     public class DamageResults
     {
         [JsonProperty("STUN")]
-        public int? Stun { get; set; }
+        public double? Stun { get; set; }
         [JsonProperty("BODY")]
-        public int? Body { get; set; }
+        public double? Body { get; set; }
         [JsonProperty("END")]
-        public int? Endurance { get; set; }
+        public double? Endurance { get; set; }
     }
     public class ObstacleDamageResults
     {
@@ -338,10 +370,9 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     public enum HCSAttackType
     {
         None,
-        SingleTargetVanilla,
-        MultiTargetVanilla,
-        GangVanilla,
+        Vanilla,
         Area,
-        GangArea
+        AutoFire,
+        Sweep
     }
 }

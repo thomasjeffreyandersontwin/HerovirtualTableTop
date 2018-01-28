@@ -24,7 +24,7 @@
             <converters:BooleanToVisibilityInvertConverter x:Key="BooleanToVisibilityInvertConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
-    <GroupBox Header="Configure Active Attack" Foreground="White" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+    <GroupBox Header="{Binding ActiveAttack.Name}" Foreground="White" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
         <Border Background="Transparent">
             <Grid>
                 <Grid.RowDefinitions>
@@ -37,11 +37,11 @@
                 <StackPanel Grid.Row="0" Orientation="Vertical" Width="250" Visibility="{Binding ShowAttackSummaryText, Converter={StaticResource BooleanToVisibilityConverter}}">
                     <TextBlock  Text="{Binding AttackSummaryText}" Foreground="White" Background="Transparent" FontWeight="Bold" TextWrapping="Wrap" />
                 </StackPanel>
-                <ListView Grid.Row="1" Margin="1" Name="lvAttackConfig" ItemsSource="{Binding DefendingCharacters}" Background="Transparent" BorderBrush="Transparent" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}">
+                <ListView Grid.Row="1" Margin="1" Name="lvAttackConfig" ItemsSource="{Binding DefenderActiveAttackConfigurations}" Background="Transparent" BorderBrush="Transparent" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <WrapPanel>
-                                <GroupBox Header="{Binding Name}" Foreground="White" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
+                                <GroupBox Header="{Binding Defender.Name}" Foreground="White" Style="{StaticResource GroupBoxWithBlueBorderStyle}">
                                     <GroupBox.Content>
                                         <Grid>
                                             <Grid.RowDefinitions>
@@ -118,13 +118,13 @@
                     </ListView.ItemTemplate>
                 </ListView>
                 <StackPanel Grid.Row="2" Orientation="Horizontal">
-                    <CheckBox IsChecked="{Binding Path=DefendingCharacters[0].ActiveAttackConfiguration.MoveAttackerToTarget}" Content="Move to target before attacking" Foreground="White"  HorizontalAlignment="Left" 
+                    <CheckBox IsChecked="{Binding Path=MoveAttackerToTarget}" Content="Move to target before attacking" Foreground="White"  HorizontalAlignment="Left" 
                                                           ToolTip="Move to target before attacking (T)"/>
                 </StackPanel>
-                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="3" Grid.ColumnSpan="2">
+                <!--<StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="3" Grid.ColumnSpan="2">
                     <Button x:Name="btnOk"  Margin="2" Content="OK" Command="{Binding SetActiveAttackCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
                     <Button x:Name="btnCancel"  Margin="2"  Content="Cancel" Command="{Binding CancelActiveAttackCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
-                </StackPanel>
+                </StackPanel>-->
             </Grid>
             <behaviors:CommandBehaviorCollection.Behaviors>
                 <behaviors:BehaviorBinding Event="PreviewMouseDown" Command="{Binding ActivatePanelCommand}" CommandParameter="ActiveAttackWidget"/>
