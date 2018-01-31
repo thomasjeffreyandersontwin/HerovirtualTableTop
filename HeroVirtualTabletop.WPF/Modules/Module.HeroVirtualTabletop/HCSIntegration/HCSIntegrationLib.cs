@@ -246,6 +246,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
     public class MultiTargetAttackResponse : AttackResponseBase
     {
+        [JsonProperty("Affected Targets")]
         public List<AttackResponse> Targets { get; set; }
     }
 
@@ -257,6 +258,12 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     {
 
     }
+
+    public class SweepAttackResponse : AttackResponseBase
+    {
+        public List<AttackResponseBase> Attacks { get; set; }
+    }
+
 
     public class AttackAreaTargetResponse : AttackResponseBase
     {

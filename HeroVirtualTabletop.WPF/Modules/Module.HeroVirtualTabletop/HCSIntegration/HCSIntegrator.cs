@@ -26,13 +26,14 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         event EventHandler<CustomEventArgs<Object>> SequenceUpdated;
         event EventHandler<CustomEventArgs<Object>> ActiveCharacterUpdated;
         event EventHandler<CustomEventArgs<Object>> AttackResultsUpdated;
+        event EventHandler<CustomEventArgs<Object>> SweepAttackResultsUpdated;
         event EventHandler<CustomEventArgs<Object>> EligibleCombatantsUpdated;
         List<Character> InGameCharacters { get; set; }
         void StartIntegration();
         void StopIntegration();
         object GetLatestSequenceInfo();
         void ActivateHeldCharacter(Character heldCharacter);
-        void ConfigureAttacks(List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToConfigure);
+        void ConfigureAttacks(List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToConfigure, bool sweep = false);
         void PlaySimpleAbility(Character target, AnimatedAbility ability);
         void ConfirmAttack();
         void CancelAttack();
@@ -70,6 +71,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public event EventHandler<CustomEventArgs<Object>> SequenceUpdated;
         public event EventHandler<CustomEventArgs<Object>> ActiveCharacterUpdated;
         public event EventHandler<CustomEventArgs<Object>> AttackResultsUpdated;
+        public event EventHandler<CustomEventArgs<Object>> SweepAttackResultsUpdated;
         public event EventHandler<CustomEventArgs<Object>> EligibleCombatantsUpdated;
         private void OnSequenceUpdated(object sender, CustomEventArgs<Object> e)
         {
@@ -85,6 +87,12 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             if (AttackResultsUpdated != null)
                 AttackResultsUpdated(sender, e);
+        }
+
+        private void OnSweepAttackResultsUpdated(object sender, CustomEventArgs<Object> e)
+        {
+            if (SweepAttackResultsUpdated != null)
+                SweepAttackResultsUpdated(sender, e);
         }
         private void OnEligibleCombatantsUpdated(object sender, CustomEventArgs<Object> e)
         {
@@ -480,11 +488,46 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 case HCSAttackType.AutoFire:
                     attackResult = JsonConvert.DeserializeObject<AutoFireAttackResponse>(json);
                     break;
+                case HCSAttackType.Sweep:
+                    attackResult = GetSweepAttackResults(json);
+                    break;
                 default:
                     break;
             }
 
             return attackResult;
+        }
+
+        private AttackResponseBase GetSweepAttackResults(string json)
+        {
+            SweepAttackResponse sweepResponse = new SweepAttackResponse();
+            sweepResponse.Attacks = new List<AttackResponseBase>();
+            dynamic sweepResponseObj = JsonConvert.DeserializeObject(json);
+            sweepResponse.Token = sweepResponseObj.Token;
+            dynamic attacks = sweepResponseObj.Attacks;
+            if(attacks != null)
+            {
+                foreach(var attack in attacks)
+                {
+                    AttackResponseBase attackResponse = null;
+                    var jsonString = JsonConvert.SerializeObject(attack);
+                    if (attack.Type == Constants.ATTACK_RESULT_TYPE_NAME)
+                    {
+                        attackResponse = JsonConvert.DeserializeObject<AttackResponse>(jsonString);
+                    }
+                    else if(attack.Type == Constants.AREA_ATTACK_RESULT_TYPE_NAME)
+                    {
+                        attackResponse = JsonConvert.DeserializeObject<AreaAttackResponse>(jsonString);
+                    }
+
+                    if(attackResponse != null)
+                    {
+                        sweepResponse.Attacks.Add(attackResponse);
+                    }
+                }
+            }
+
+            return sweepResponse;
         }
 
         private bool ProcessAttackResults()
@@ -534,10 +577,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private void ProcessAttackResults(AttackResponseBase attackResult)
         {
             this.CurrentAttackResult = attackResult;
-            this.CurrentAttackResult = attackResult;
-            List<Character> attackTargets = ParseAttackTargetsFromAttackResult(attackResult);
-            //DeleteCurrentResultFile();
-            OnAttackResultsUpdated(this, new CustomEventArgs<object> { Value = attackTargets });
+            if(this.CurrentAttackType != HCSAttackType.Sweep)
+            {
+                List<Character> attackTargets = ParseAttackTargetsFromAttackResult(attackResult);
+                //DeleteCurrentResultFile();
+                OnAttackResultsUpdated(this, new CustomEventArgs<object> { Value = attackTargets });
+            }
+            else
+            {
+                SweepAttackResponse sweepResponse = attackResult as SweepAttackResponse;
+                List<Tuple<Guid, List<Character>>> attacksWithTargets = this.ParseAttackTargetsFromSweepAttackResponse(sweepResponse);
+                OnSweepAttackResultsUpdated(this, new CustomEventArgs<object> { Value = attacksWithTargets });
+            }
         }
 
         int numDeleteRetry = 5;
@@ -596,7 +647,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     targets = ParseAttackTargetsFromMultiTargetAttackResponse(attackResult as AreaAttackResponse);
                     break;
                 case HCSAttackType.Vanilla:
-                    targets = ParseAttackTargetsFromAttackResult(attackResult as AttackResponse);
+                    targets = ParseAttackTargetsFromAttackResponse(attackResult as AttackResponse);
                     break;
                 case HCSAttackType.AutoFire:
                     targets = ParseAttackTargetsFromMultiTargetAttackResponse(attackResult as AutoFireAttackResponse);
@@ -608,17 +659,19 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return targets;
         }
 
-        private List<Character> ParseAttackTargetsFromAttackResult(AttackResponse attackResponse)
+        private List<Character> ParseAttackTargetsFromAttackResponse(AttackResponse attackResponse, AttackResponseBase parentResponse = null)
         {
             List<Character> attackTargets = new List<Character>();
             Character primaryTarget = this.InGameCharacters.FirstOrDefault(c => c.Name == attackResponse.Defender.Name);
-            Attack respondedAttack = this.AttacksToConfigure.Where(ac => ac.Item1.Name == attackResponse.Ability).Select(ac => ac.Item1).First();
-            Guid respondedAttackKey = this.GetConfigKeyForRespondedAttack(attackResponse);
+            string abilityName = attackResponse.Ability != null ? attackResponse.Ability : parentResponse != null ? parentResponse.Ability : null;
+            Attack respondedAttack = this.AttacksToConfigure.Where(ac => ac.Item1.Name == abilityName).Select(ac => ac.Item1).First();
+            Guid respondedAttackKey = this.GetConfigKeyForRespondedAttack(attackResponse, parentResponse);
             if (primaryTarget != null)
             {
                 attackTargets.Add(primaryTarget);
 
                 AttackConfiguration attackConfigPrimary = new AttackConfiguration();
+
                 attackConfigPrimary.IsHit = attackResponse.IsHit;
                 attackConfigPrimary.Body = (int)attackResponse.Defender.Body.Current;
                 attackConfigPrimary.Stun = (int)attackResponse.Defender.Stun.Current;
@@ -664,7 +717,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                         attackConfigPrimary.ObstructingCharacters = new List<Characters.Character>();
                     foreach (var obstruction in attackResponse.ObstructionDamageResults.Where(odr => odr.IsHit && odr.Defender != null))
                     {
-                        List<Character> obstructingTargets = ParseAttackTargetsFromAttackResult(obstruction);
+                        List<Character> obstructingTargets = ParseAttackTargetsFromAttackResponse(obstruction);
                         secondaryTargets.AddRange(obstructingTargets);
                     }
                     foreach(var secondaryTarget in secondaryTargets)
@@ -678,7 +731,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     }
                 }
                 ParseEffects(attackConfigPrimary, attackResponse.Defender.Effects);
-                primaryTarget.AddAttackConfiguration(respondedAttack, attackConfigPrimary);
+                primaryTarget.AddAttackConfiguration(respondedAttack, attackConfigPrimary, respondedAttackKey);
                 if(!this.RespondedConfigKeysWithDefenders.Any(rcd =>rcd.Item1 == respondedAttackKey))
                     this.RespondedConfigKeysWithDefenders.Add(new Tuple<Guid, Character>(respondedAttackKey, primaryTarget));
             }
@@ -691,9 +744,9 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
             foreach (var attackResponse in multiAttackResponse.Targets)
             {
-                Attack respondedAttack = this.AttacksToConfigure.Where(ac => ac.Item1.Name == attackResponse.Ability).Select(ac => ac.Item1).First();
-                Guid respondedAttackKey = this.GetConfigKeyForRespondedAttack(attackResponse);
-                var targetsForThisResponse = ParseAttackTargetsFromAttackResult(attackResponse);
+                Attack respondedAttack = this.AttacksToConfigure.Where(ac => ac.Item1.Name == multiAttackResponse.Ability).Select(ac => ac.Item1).First();
+                Guid respondedAttackKey = this.GetConfigKeyForRespondedAttack(attackResponse, multiAttackResponse);
+                var targetsForThisResponse = ParseAttackTargetsFromAttackResponse(attackResponse, multiAttackResponse);
                 foreach (var targetForThisResponse in targetsForThisResponse)
                 {
                     if (attackResponse.MoveBeforeAttackRequired)
@@ -708,6 +761,26 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             }
 
             return attackTargets;
+        }
+
+        private List<Tuple<Guid, List<Character>>> ParseAttackTargetsFromSweepAttackResponse(SweepAttackResponse sweepAttackResponse)
+        {
+            List<Tuple<Guid, List<Character>>> attacksWithDefenders = new List<Tuple<Guid, List<Character>>>();
+            foreach(var response in sweepAttackResponse.Attacks)
+            {
+                if(response is AreaAttackResponse)
+                {
+                    List<Character> targets = ParseAttackTargetsFromMultiTargetAttackResponse(response as AreaAttackResponse);
+                    attacksWithDefenders.Add(new Tuple<Guid, List<Character>>(new Guid(response.Token), targets));
+                }
+                else if(response is AttackResponse)
+                {
+                    List<Character> targets = ParseAttackTargetsFromAttackResponse(response as AttackResponse);
+                    attacksWithDefenders.Add(new Tuple<Guid, List<Character>>(new Guid(response.Token), targets));
+                }
+            }
+
+            return attacksWithDefenders;
         }
 
         private List<Character> ParseAttackTargetsFromAreaAttackResult(AttackAreaTargetResponse attackResponse)
@@ -775,26 +848,34 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return attackTargets;
         }
 
-        private Guid GetConfigKeyForRespondedAttack(AttackResponse attackResponse)
+        private Guid GetConfigKeyForRespondedAttack(AttackResponse attackResponse, AttackResponseBase parentResponse = null)
         {
             Guid currentConfigKey = Guid.Empty;
-            Attack respondedAttack = this.AttacksToConfigure.Where(ac => ac.Item1.Name == attackResponse.Ability).Select(ac => ac.Item1).First();
-            var respondedAttackConfigKeys = this.AttacksToConfigure.Where(ac => ac.Item1.Name == attackResponse.Ability).Select(ac => ac.Item4).ToList();
-            if(respondedAttackConfigKeys.Count == 1)
+            if (!string.IsNullOrEmpty(attackResponse.Token))
+                currentConfigKey = new Guid(attackResponse.Token);
+            else if (parentResponse != null && !string.IsNullOrEmpty(parentResponse.Token))
+                currentConfigKey = new Guid(parentResponse.Token);
+            else
             {
-                currentConfigKey = respondedAttackConfigKeys.First();
-            }
-            else if(respondedAttackConfigKeys.Count > 1)
-            {
-                foreach(var respondedKey in respondedAttackConfigKeys)
+                string abilityName = attackResponse.Ability != null ? attackResponse.Ability : parentResponse != null ? parentResponse.Ability : null;                                                                                    
+                var respondedAttackConfigKeys = this.AttacksToConfigure.Where(ac => ac.Item1.Name == abilityName).Select(ac => ac.Item4).ToList();
+                if (respondedAttackConfigKeys.Count == 1)
                 {
-                    if(!this.RespondedConfigKeysWithDefenders.Any(rcd => rcd.Item1 == respondedKey && rcd.Item2.Name == attackResponse.Defender.Name))
+                    currentConfigKey = respondedAttackConfigKeys.First();
+                }
+                else if (respondedAttackConfigKeys.Count > 1)
+                {
+                    foreach (var respondedKey in respondedAttackConfigKeys)
                     {
-                        currentConfigKey = respondedKey;
-                        break;
+                        if (!this.RespondedConfigKeysWithDefenders.Any(rcd => rcd.Item1 == respondedKey && rcd.Item2.Name == attackResponse.Defender.Name))
+                        {
+                            currentConfigKey = respondedKey;
+                            break;
+                        }
                     }
                 }
             }
+            
             return currentConfigKey;
         }
 
@@ -951,7 +1032,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                             if(rangeInfo != null)
                             {
                                 bool b;
-                                if (Boolean.TryParse(rangeInfo, out b))
+                                if (Boolean.TryParse(rangeInfo.Value, out b))
                                     attackInfo.IsRanged = b;
                             }
                         }
@@ -963,7 +1044,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                             if (spreadInfo != null)
                             {
                                 bool b;
-                                if (Boolean.TryParse(spreadInfo, out b))
+                                if (Boolean.TryParse(spreadInfo.Value, out b))
                                     attackInfo.CanSpread = b;
                             }
                         }
@@ -974,23 +1055,24 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             return attackInfo;
         }
 
-        public void ConfigureAttacks(List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToConfigure)
+        public void ConfigureAttacks(List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToConfigure, bool sweep = false)
         {
             this.ResetAttackParameters();
             this.AttacksToConfigure = attacksToConfigure.ToList();
-            if(attacksToConfigure.Count == 1)
+            if(!sweep)
             {
                 var attackToConfigure = attacksToConfigure[0];
                 ConfigureAttack(attackToConfigure.Item1, attackToConfigure.Item2, attackToConfigure.Item3);
             }
-            else
+            else   
             {
                 //sweep attack
+                this.ConfigureSweepAttack();
             }
         }
         private void ConfigureAttack(Attack attack, List<Character> attackers, List<Character> defenders)
         {
-            if (attack.IsAreaEffect)
+            if (attack.AttackInfo != null && attack.AttackInfo.AttackType == AttackType.Area)
             {
                 if (attackers.Count > 1)// Gang Area Attack
                 {
@@ -1024,6 +1106,41 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 }
             }
         }
+
+        private void ConfigureSweepAttack()
+        {
+            this.CurrentAttackType = HCSAttackType.Sweep;
+            this.currentToken = Guid.NewGuid().ToString();
+            SweepAttackRequest sweepAttackRequest = new HCSIntegration.SweepAttackRequest();
+            sweepAttackRequest.Token = this.currentToken;
+            sweepAttackRequest.Attacks = new List<AttackRequestBase>();
+
+            foreach (var tuple in this.AttacksToConfigure)
+            {
+                Attack attack = tuple.Item1;
+                List<Character> attackers = tuple.Item2;
+                List<Character> defenders = tuple.Item3;
+                Guid configKey = tuple.Item4;
+                if (attack.AttackInfo != null && attack.AttackInfo.AttackType == AttackType.Area)
+                {
+                    AreaAttackRequest areaAttackRequest = GetAreaAttackRequest(attack, attackers[0], defenders);
+                    areaAttackRequest.Type = Constants.AREA_ATTACK_INITIATION_TYPE_NAME;
+                    areaAttackRequest.Token = configKey.ToString();
+                    sweepAttackRequest.Attacks.Add(areaAttackRequest);
+                }
+                else if (!attack.IsAutoFire)
+                {
+                    AttackRequest attackRequest = GetVanillaAttackRequest(attack, attackers.First(), defenders.First());
+                    attackRequest.Type = Constants.ATTACK_INITIATION_TYPE_NAME;
+                    attackRequest.Token = configKey.ToString();
+                    sweepAttackRequest.Attacks.Add(attackRequest);
+                }
+            }
+
+            WriteToAbilityActivatedFile(sweepAttackRequest);
+            this.LastIntegrationAction = HCSIntegrationAction.AttackInitiated;
+            GenerateSampleSweepAttackResult(sweepAttackRequest);
+        }
         private void ConfigureVanillaAttack(Attack attack, Character attacker, Character defender)
         {
             this.CurrentAttackType = HCSAttackType.Vanilla;
@@ -1045,11 +1162,6 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             GenerateAutoFireAttackInitiationMessage(attack, attacker, defenders);
             this.LastIntegrationAction = HCSIntegrationAction.AttackInitiated;
             //WaitForAttackUpdates();
-        }
-
-        public void ConfigureSweepAttack(List<Character> attackers, List<Tuple<Attack, List<Character>>> attacksAndDefenders)
-        {
-
         }
 
         public void ConfirmAttack()
@@ -1092,8 +1204,164 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             this.CurrentAttackResult = null;
             this.CurrentAttackResultFileContents = null;
             this.CurrentAttackType = HCSAttackType.None;
-            this.AttacksToConfigure.Clear();
+            this.AttacksToConfigure = new List<Tuple<AnimatedAbilities.Attack, List<Characters.Character>, List<Characters.Character>, Guid>>();
             this.RespondedConfigKeysWithDefenders = new List<Tuple<Guid, Character>>();
+        }
+
+        private AttackRequest GetVanillaAttackRequest(Attack attack, Character attacker, Character defender)
+        {
+            float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
+            var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, this.InGameCharacters.Where(c => c != attacker && c != defender).ToList());
+            AttackRequest attackSingleTarget = new AttackRequest
+            {
+                Ability = attack.Name,
+                Defender = defender.Name,
+                Range = (int)Math.Round((range) / 8f, MidpointRounding.AwayFromZero),
+                PushedStr = 0,
+                ToHitModifiers = new HCSIntegration.ToHitModifiers(),
+                TargetingSense = "Normal Hearing",
+            };
+            attackSingleTarget.Obstructions = new List<string>();
+            if (obstructions != null && obstructions.Count > 0)
+            {
+                foreach (var obstruction in obstructions)
+                {
+                    if (obstruction.CollidingObject is Character)
+                    {
+                        attackSingleTarget.Obstructions.Add((obstruction.CollidingObject as Character).Name);
+                    }
+                    else
+                    {
+                        attackSingleTarget.Obstructions.Add(obstruction.CollidingObject.ToString());
+                    }
+                }
+            }
+            List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
+            var knockbackObstacles = collisionEngine.CalculateKnockbackObstructions(attacker, defender, 50, otherCharacters);
+            attackSingleTarget.PotentialKnockbackCollisions = new List<HCSIntegration.PotentialKnockbackCollision>();
+            if (knockbackObstacles != null && knockbackObstacles.Count > 0)
+            {
+                foreach (var knockbackObstacle in knockbackObstacles)
+                {
+                    attackSingleTarget.PotentialKnockbackCollisions.Add(
+                        new PotentialKnockbackCollision
+                        {
+                            CollisionObject = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
+                            CollisionDistance = (int)Math.Round((knockbackObstacle.CollisionDistance) / 8f, MidpointRounding.AwayFromZero)
+                        }
+                        );
+                }
+
+            }
+
+            return attackSingleTarget;
+        }
+
+        private AreaAttackRequest GetAreaAttackRequest(Attack attack, Character attacker, List<Character> defenders)
+        {
+            AreaAttackRequest areaAttackRequest = new AreaAttackRequest
+            {
+                Ability = attack.Name,
+            };
+
+            areaAttackRequest.Targets = new List<AttackRequest>();
+            foreach (Character defender in defenders)
+            {
+                AttackRequest areaEffectTarget = new HCSIntegration.AttackRequest();
+                areaEffectTarget.Defender = defender.Name;
+                float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
+                areaEffectTarget.Range = (int)Math.Round((range) / 8f, MidpointRounding.AwayFromZero);
+                List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
+                var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, otherCharacters);
+                if (obstructions != null && obstructions.Count > 0)
+                {
+                    areaEffectTarget.Obstructions = new List<string>();
+                    foreach (var obstruction in obstructions)
+                    {
+                        if (obstruction.CollidingObject is Character)
+                            areaEffectTarget.Obstructions.Add((obstruction.CollidingObject as Character).Name);
+                        else
+                            areaEffectTarget.Obstructions.Add(obstruction.CollidingObject.ToString());
+                    }
+                }
+
+                var knockbackObstacles = collisionEngine.CalculateKnockbackObstructions(attacker, defender, 50, otherCharacters);
+                if (knockbackObstacles != null && knockbackObstacles.Count > 0)
+                {
+                    areaEffectTarget.PotentialKnockbackCollisions = new List<HCSIntegration.PotentialKnockbackCollision>();
+                    foreach (var knockbackObstacle in knockbackObstacles)
+                    {
+                        areaEffectTarget.PotentialKnockbackCollisions.Add(
+                            new PotentialKnockbackCollision
+                            {
+                                CollisionObject = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
+                                CollisionDistance = (int)Math.Round((knockbackObstacle.CollisionDistance) / 8f, MidpointRounding.AwayFromZero)
+                            }
+                            );
+                    }
+
+                }
+                areaAttackRequest.Targets.Add(areaEffectTarget);
+            }
+            return areaAttackRequest;
+        }
+
+        private AutoFireAttackRequest GetAutoFireAttackRequest(Attack attack, Character attacker, List<Character> defenders)
+        {
+            AutoFireAttackRequest autoFireAttackRequest = new AutoFireAttackRequest
+            {
+                Ability = attack.Name,
+            };
+            Vector3 possibleFacing = defenders[0].CurrentPositionVector - attacker.CurrentPositionVector;
+            Vector3 left = Helper.GetAdjacentPoint(attacker.CurrentPositionVector, possibleFacing, true, 1000);
+            Vector3 right = Helper.GetAdjacentPoint(attacker.CurrentPositionVector, possibleFacing, false, 1000);
+            Vector3 referenceVector = right - left;
+            List<Vector3> intersectionPointsOfDefenderProjections = new List<Vector3>();
+            autoFireAttackRequest.Targets = new List<AttackRequest>();
+            foreach (Character defender in defenders)
+            {
+                AttackRequest autoFireTarget = new HCSIntegration.AttackRequest();
+                autoFireTarget.Defender = defender.Name;
+                List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
+                var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, otherCharacters);
+                if (obstructions != null && obstructions.Count > 0)
+                {
+                    autoFireTarget.Obstructions = new List<string>();
+                    foreach (var obstruction in obstructions)
+                    {
+                        if (obstruction.CollidingObject is Character)
+                            autoFireTarget.Obstructions.Add((obstruction.CollidingObject as Character).Name);
+                        else
+                            autoFireTarget.Obstructions.Add(obstruction.CollidingObject.ToString());
+                    }
+                }
+
+                var knockbackObstacles = collisionEngine.CalculateKnockbackObstructions(attacker, defender, 50, otherCharacters);
+                if (knockbackObstacles != null && knockbackObstacles.Count > 0)
+                {
+                    autoFireTarget.PotentialKnockbackCollisions = new List<HCSIntegration.PotentialKnockbackCollision>();
+                    foreach (var knockbackObstacle in knockbackObstacles)
+                    {
+                        autoFireTarget.PotentialKnockbackCollisions.Add(
+                            new PotentialKnockbackCollision
+                            {
+                                CollisionObject = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
+                                CollisionDistance = (int)Math.Round((knockbackObstacle.CollisionDistance) / 8f, MidpointRounding.AwayFromZero)
+                            }
+                            );
+                    }
+
+                }
+                autoFireAttackRequest.Targets.Add(autoFireTarget);
+
+                Vector3 projectingVector = defender.CurrentPositionVector - left;
+                Vector3 intersectionPoint = Helper.GetIntersectionPointOfPerpendicularProjectionVectorOnAnotherVector(referenceVector, projectingVector);
+                intersectionPointsOfDefenderProjections.Add(intersectionPoint);
+            }
+            var maxDist = Helper.CalculateMaximumDistanceBetweenTwoPointsInASetOfPoints(intersectionPointsOfDefenderProjections.ToArray());
+            autoFireAttackRequest.Width = (int)Math.Round(maxDist / 8f, MidpointRounding.AwayFromZero);
+
+            return autoFireAttackRequest;
         }
         private void WriteToAbilityActivatedFile(object jsonObject)
         {
@@ -1179,52 +1447,9 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             this.CurrentAttackResult = null;
             this.currentToken = Guid.NewGuid().ToString();
-            float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
-            var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, this.InGameCharacters.Where(c => c != attacker && c != defender).ToList());
-            AttackRequest attackSingleTarget = new AttackRequest
-            {
-                Type = Constants.ATTACK_INITIATION_TYPE_NAME,
-                Token = this.currentToken,
-                Ability = attack.Name,
-                Defender = defender.Name,
-                Range = (int)Math.Round((range) / 8f, MidpointRounding.AwayFromZero),
-                PushedStr = 0,
-                ToHitModifiers = new HCSIntegration.ToHitModifiers(),
-                TargetingSense = "Normal Hearing",
-            };
-            attackSingleTarget.Obstructions = new List<string>();
-            if (obstructions != null && obstructions.Count > 0)
-            {
-                foreach (var obstruction in obstructions)
-                {
-                    if(obstruction.CollidingObject is Character)
-                    {
-                        attackSingleTarget.Obstructions.Add((obstruction.CollidingObject as Character).Name);
-                    }
-                    else
-                    {
-                        attackSingleTarget.Obstructions.Add(obstruction.CollidingObject.ToString());
-                    }
-                }
-            }
-            List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
-            var knockbackObstacles = collisionEngine.CalculateKnockbackObstructions(attacker, defender, 50, otherCharacters);
-            attackSingleTarget.PotentialKnockbackCollisions = new List<HCSIntegration.PotentialKnockbackCollision>();
-            if (knockbackObstacles != null && knockbackObstacles.Count > 0)
-            {
-                foreach(var knockbackObstacle in knockbackObstacles)
-                {
-                    attackSingleTarget.PotentialKnockbackCollisions.Add(
-                        new PotentialKnockbackCollision
-                        {
-                            CollisionObject = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
-                            CollisionDistance = (int)Math.Round((knockbackObstacle.CollisionDistance) / 8f, MidpointRounding.AwayFromZero)
-                        }
-                        );
-                }
-
-            }
-
+            AttackRequest attackSingleTarget = GetVanillaAttackRequest(attack, attacker, defender);
+            attackSingleTarget.Token = this.currentToken;
+            attackSingleTarget.Type = Constants.ATTACK_INITIATION_TYPE_NAME;
             WriteToAbilityActivatedFile(attackSingleTarget);
         }
 
@@ -1241,128 +1466,15 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             this.CurrentAttackResult = null;
             this.currentToken = Guid.NewGuid().ToString();
-            AreaAttackRequest areaAttackRequest = new AreaAttackRequest
-            {
-                Type = Constants.AREA_ATTACK_INITIATION_TYPE_NAME,
-                Token = this.currentToken,
-                Ability = attack.Name,
-            };
-            
-            areaAttackRequest.Targets = new List<AttackRequest>();
-            foreach (Character defender in defenders)
-            {
-                AttackRequest areaEffectTarget = new HCSIntegration.AttackRequest();
-                areaEffectTarget.Defender = defender.Name;
-                float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
-                areaEffectTarget.Range = (int)Math.Round((range) / 8f, MidpointRounding.AwayFromZero);
-                List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
-                var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, otherCharacters);
-                if (obstructions != null && obstructions.Count > 0)
-                {
-                    areaEffectTarget.Obstructions = new List<string>();
-                    foreach (var obstruction in obstructions)
-                    {
-                        if (obstruction.CollidingObject is Character)
-                            areaEffectTarget.Obstructions.Add((obstruction.CollidingObject as Character).Name);
-                        else
-                            areaEffectTarget.Obstructions.Add(obstruction.CollidingObject.ToString());
-                    }
-                }
-                
-                var knockbackObstacles = collisionEngine.CalculateKnockbackObstructions(attacker, defender, 50, otherCharacters);
-                if (knockbackObstacles != null && knockbackObstacles.Count > 0)
-                {
-                    areaEffectTarget.PotentialKnockbackCollisions = new List<HCSIntegration.PotentialKnockbackCollision>();
-                    foreach (var knockbackObstacle in knockbackObstacles)
-                    {
-                        areaEffectTarget.PotentialKnockbackCollisions.Add(
-                            new PotentialKnockbackCollision
-                            {
-                                CollisionObject = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
-                                CollisionDistance = (int)Math.Round((knockbackObstacle.CollisionDistance) / 8f, MidpointRounding.AwayFromZero)
-                            }
-                            );
-                    }
-
-                }
-                areaAttackRequest.Targets.Add(areaEffectTarget);
-            }
-
+            AreaAttackRequest areaAttackRequest = GetAreaAttackRequest(attack, attacker, defenders);
+            areaAttackRequest.Type = Constants.AREA_ATTACK_INITIATION_TYPE_NAME;
+            areaAttackRequest.Token = this.currentToken;
             WriteToAbilityActivatedFile(areaAttackRequest);
             //GenerateSampleAreaAttackResult(areaAttackRequest);
         }
         private void GenerateSampleAreaAttackResult(AreaAttackRequest areaAttackRequest)
         {
-            AreaAttackResponse attackResponse = new AreaAttackResponse();
-            attackResponse.Ability = areaAttackRequest.Ability;
-            attackResponse.IsHit = true;
-            attackResponse.MoveBeforeAttackRequired = false;
-            attackResponse.Type = areaAttackRequest.Type;
-            attackResponse.Token = attackResponse.Token;
-            attackResponse.Targets = new List<AttackResponse>();
-            foreach (var target in areaAttackRequest.Targets)
-            {
-                AttackResponse targetResponse = new HCSIntegration.AttackResponse();
-                targetResponse.Ability = areaAttackRequest.Ability;
-                targetResponse.IsHit = true;
-                targetResponse.MoveBeforeAttackRequired = false;
-                targetResponse.Defender = new HCSIntegration.TargetObject
-                {
-                    Name = target.Defender,
-                    Body = new HealthMeasures { Name = "BODY", Starting = 70, Current = 35 },
-                    Stun = new HealthMeasures { Name = "Stun", Starting = 40, Current = 15 },
-                    Endurance = new HealthMeasures { Name = "End", Starting = 90, Current = 25 },
-                    Effects = new List<string> { "Stunned", "Unconscious", "Dying", "Dead" }
-                };
-
-                if (target.Obstructions != null && target.Obstructions.Count > 0)
-                {
-                    targetResponse.ObstructionDamageResults = new List<HCSIntegration.AttackResponse>();
-                    foreach (var obstr in target.Obstructions)
-                    {
-                        AttackResponse obsResponse = new HCSIntegration.AttackResponse();
-                        obsResponse.IsHit = true;
-                        obsResponse.Ability = targetResponse.Ability;
-                        obsResponse.Defender = new TargetObject
-                        {
-                            Name = obstr,
-                            Body = new HealthMeasures { Name = "BODY", Starting = 70, Current = 5 },
-                            Stun = new HealthMeasures { Name = "Stun", Starting = 20, Current = 5 },
-                            Endurance = new HealthMeasures { Name = "End", Starting = 50, Current = 15 },
-                            Effects = new List<string> { "Stunned", "Unconscious", "Dying", "Dead" }
-                        };
-                        obsResponse.DamageResults = new DamageResults { Body = 15, Stun = 5, Endurance = 15 };
-                        targetResponse.ObstructionDamageResults.Add(obsResponse);
-                    }
-                }
-
-                targetResponse.DamageResults = new DamageResults { Body = 15, Stun = 5, Endurance = 15 };
-
-                if (target.PotentialKnockbackCollisions != null && target.PotentialKnockbackCollisions.Count > 0)
-                {
-                    targetResponse.KnockbackResult = new KnockbackResult
-                    {
-                        Distance = 10,
-                        Collisions = new List<KnockbackCollision>
-                        {
-                            new KnockbackCollision
-                            {
-                                CollidingObject = new TargetObject
-                                {
-                                    Name = target.PotentialKnockbackCollisions.First(kd => kd.CollisionDistance ==  target.PotentialKnockbackCollisions.Min(kds => kds.CollisionDistance)).CollisionObject,
-                                    Body = new HealthMeasures { Name = "BODY", Starting = 50, Current = 15 },
-                                    Stun = new HealthMeasures { Name = "Stun", Starting = 20, Current = 5 },
-                                    Endurance = new HealthMeasures { Name = "End", Starting = 50, Current = 15 },
-                                    Effects = new List<string> { "Stunned", "Unconscious", "Dying", "Dead" }
-                                },
-                                CollisionDamageResults = new DamageResults { Body = 15, Stun = 5, Endurance = 15}
-                            }
-                        }
-                    };
-                }
-
-                attackResponse.Targets.Add(targetResponse);
-            }
+            AreaAttackResponse attackResponse = GetSampleAreaAttackResponse(areaAttackRequest);
             string pathAttackRes = Path.Combine(EventInfoDirectoryPath, Constants.ATTACK_RESULT_FILE_NAME);
             JsonSerializer serializer = new JsonSerializer();
             serializer.NullValueHandling = NullValueHandling.Ignore;
@@ -1377,67 +1489,134 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             }
         }
 
+        private AreaAttackResponse GetSampleAreaAttackResponse(AreaAttackRequest areaAttackRequest)
+        {
+            AreaAttackResponse attackResponse = new AreaAttackResponse();
+            attackResponse.Ability = areaAttackRequest.Ability;
+            attackResponse.IsHit = true;
+            attackResponse.MoveBeforeAttackRequired = false;
+            attackResponse.Type = areaAttackRequest.Type;
+            attackResponse.Token = attackResponse.Token;
+            attackResponse.Targets = new List<AttackResponse>();
+            foreach (var target in areaAttackRequest.Targets)
+            {
+                AttackResponse targetResponse = GetSampleAttackResponse(target);
+                target.Ability = areaAttackRequest.Ability;
+                attackResponse.Targets.Add(targetResponse);
+            }
+
+            return attackResponse;
+        }
+
+        private AttackResponse GetSampleAttackResponse(AttackRequest attackRequest)
+        {
+            AttackResponse attackResponse = new HCSIntegration.AttackResponse();
+            attackResponse.Ability = attackRequest.Ability;
+            attackResponse.IsHit = true;
+            attackResponse.MoveBeforeAttackRequired = false;
+            attackResponse.Defender = new HCSIntegration.TargetObject
+            {
+                Name = attackRequest.Defender,
+                Body = new HealthMeasures { Name = "BODY", Starting = 70, Current = 35 },
+                Stun = new HealthMeasures { Name = "Stun", Starting = 40, Current = 15 },
+                Endurance = new HealthMeasures { Name = "End", Starting = 90, Current = 25 },
+                Effects = new List<string> { "Stunned", "Unconscious", "Dying", "Dead" }
+            };
+
+            if (attackRequest.Obstructions != null && attackRequest.Obstructions.Count > 0)
+            {
+                attackResponse.ObstructionDamageResults = new List<HCSIntegration.AttackResponse>();
+                foreach (var obstr in attackRequest.Obstructions)
+                {
+                    AttackResponse obsResponse = new HCSIntegration.AttackResponse();
+                    obsResponse.IsHit = true;
+                    obsResponse.Ability = attackResponse.Ability;
+                    obsResponse.Defender = new TargetObject
+                    {
+                        Name = obstr,
+                        Body = new HealthMeasures { Name = "BODY", Starting = 70, Current = 5 },
+                        Stun = new HealthMeasures { Name = "Stun", Starting = 20, Current = 5 },
+                        Endurance = new HealthMeasures { Name = "End", Starting = 50, Current = 15 },
+                        Effects = new List<string> { "Stunned", "Unconscious", "Dying", "Dead" }
+                    };
+                    obsResponse.DamageResults = new DamageResults { Body = 15, Stun = 5, Endurance = 15 };
+                    attackResponse.ObstructionDamageResults.Add(obsResponse);
+                }
+            }
+
+            attackResponse.DamageResults = new DamageResults { Body = 15, Stun = 5, Endurance = 15 };
+
+            if (attackRequest.PotentialKnockbackCollisions != null && attackRequest.PotentialKnockbackCollisions.Count > 0)
+            {
+                attackResponse.KnockbackResult = new KnockbackResult
+                {
+                    Distance = 10,
+                    Collisions = new List<KnockbackCollision>
+                        {
+                            new KnockbackCollision
+                            {
+                                CollidingObject = new TargetObject
+                                {
+                                    Name = attackRequest.PotentialKnockbackCollisions.First(kd => kd.CollisionDistance ==  attackRequest.PotentialKnockbackCollisions.Min(kds => kds.CollisionDistance)).CollisionObject,
+                                    Body = new HealthMeasures { Name = "BODY", Starting = 50, Current = 15 },
+                                    Stun = new HealthMeasures { Name = "Stun", Starting = 20, Current = 5 },
+                                    Endurance = new HealthMeasures { Name = "End", Starting = 50, Current = 15 },
+                                    Effects = new List<string> { "Stunned", "Unconscious", "Dying", "Dead" }
+                                },
+                                CollisionDamageResults = new DamageResults { Body = 15, Stun = 5, Endurance = 15}
+                            }
+                        }
+                };
+            }
+            return attackResponse;
+        }
+
         private void GenerateAutoFireAttackInitiationMessage(Attack attack, Character attacker, List<Character> defenders)
         {
             this.CurrentAttackResult = null;
             this.currentToken = Guid.NewGuid().ToString();
-            AutoFireAttackRequest autoFireAttackRequest = new AutoFireAttackRequest
-            {
-                Type = Constants.AUTO_FIRE_ATTACK_INITIATION_TYPE_NAME,
-                Token = this.currentToken,
-                Ability = attack.Name,
-            };
-            Vector3 possibleFacing = defenders[0].CurrentPositionVector - attacker.CurrentPositionVector;
-            Vector3 left = Helper.GetAdjacentPoint(attacker.CurrentPositionVector, possibleFacing, true, 1000);
-            Vector3 right = Helper.GetAdjacentPoint(attacker.CurrentPositionVector, possibleFacing, false, 1000);
-            Vector3 referenceVector = right - left;
-            List<Vector3> intersectionPointsOfDefenderProjections = new List<Vector3>();
-            autoFireAttackRequest.Targets = new List<AttackRequest>();
-            foreach (Character defender in defenders)
-            {
-                AttackRequest autoFireTarget = new HCSIntegration.AttackRequest();
-                autoFireTarget.Defender = defender.Name;
-                List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
-                var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, otherCharacters);
-                if (obstructions != null && obstructions.Count > 0)
-                {
-                    autoFireTarget.Obstructions = new List<string>();
-                    foreach (var obstruction in obstructions)
-                    {
-                        if (obstruction.CollidingObject is Character)
-                            autoFireTarget.Obstructions.Add((obstruction.CollidingObject as Character).Name);
-                        else
-                            autoFireTarget.Obstructions.Add(obstruction.CollidingObject.ToString());
-                    }
-                }
-
-                var knockbackObstacles = collisionEngine.CalculateKnockbackObstructions(attacker, defender, 50, otherCharacters);
-                if (knockbackObstacles != null && knockbackObstacles.Count > 0)
-                {
-                    autoFireTarget.PotentialKnockbackCollisions = new List<HCSIntegration.PotentialKnockbackCollision>();
-                    foreach (var knockbackObstacle in knockbackObstacles)
-                    {
-                        autoFireTarget.PotentialKnockbackCollisions.Add(
-                            new PotentialKnockbackCollision
-                            {
-                                CollisionObject = knockbackObstacle.CollidingObject is Character ? (knockbackObstacle.CollidingObject as Character).Name : knockbackObstacle.CollidingObject.ToString(),
-                                CollisionDistance = (int)Math.Round((knockbackObstacle.CollisionDistance) / 8f, MidpointRounding.AwayFromZero)
-                            }
-                            );
-                    }
-
-                }
-                autoFireAttackRequest.Targets.Add(autoFireTarget);
-
-                Vector3 projectingVector = defender.CurrentPositionVector - left;
-                Vector3 intersectionPoint = Helper.GetIntersectionPointOfPerpendicularProjectionVectorOnAnotherVector(referenceVector, projectingVector);
-                intersectionPointsOfDefenderProjections.Add(intersectionPoint);
-            }
-            var maxDist = Helper.CalculateMaximumDistanceBetweenTwoPointsInASetOfPoints(intersectionPointsOfDefenderProjections.ToArray());
-            autoFireAttackRequest.Width = (int)Math.Round(maxDist / 8f, MidpointRounding.AwayFromZero);
-
+            AutoFireAttackRequest autoFireAttackRequest = GetAutoFireAttackRequest(attack, attacker, defenders);
+            autoFireAttackRequest.Type = Constants.AUTO_FIRE_ATTACK_INITIATION_TYPE_NAME;
+            autoFireAttackRequest.Token = this.currentToken;
             WriteToAbilityActivatedFile(autoFireAttackRequest);
-            GenerateSampleAutoFireAttackResult(autoFireAttackRequest);
+            //GenerateSampleAutoFireAttackResult(autoFireAttackRequest);
+        }
+
+        private void GenerateSampleSweepAttackResult(SweepAttackRequest sweepRequest)
+        {
+            SweepAttackResponse sweepResponse = new SweepAttackResponse();
+            sweepResponse.Attacks = new List<AttackResponseBase>();
+            sweepResponse.Token = sweepRequest.Token;
+            sweepResponse.Type = Constants.SWEEP_ATTACK_RESULT_TYPE_NAME;
+            foreach(var attackRequest in sweepRequest.Attacks)
+            {
+                if(attackRequest is AttackRequest)
+                {
+                    AttackResponse response = GetSampleAttackResponse(attackRequest as AttackRequest);
+                    response.Type = Constants.ATTACK_RESULT_TYPE_NAME;
+                    response.Token = attackRequest.Token;
+                    sweepResponse.Attacks.Add(response);
+                }
+                else if(attackRequest is AreaAttackRequest)
+                {
+                    AreaAttackResponse response = GetSampleAreaAttackResponse(attackRequest as AreaAttackRequest);
+                    response.Type = Constants.AREA_ATTACK_RESULT_TYPE_NAME;
+                    response.Token = attackRequest.Token;
+                    sweepResponse.Attacks.Add(response);
+                }
+            }
+            string pathAttackRes = Path.Combine(EventInfoDirectoryPath, Constants.ATTACK_RESULT_FILE_NAME);
+            JsonSerializer serializer = new JsonSerializer();
+            serializer.NullValueHandling = NullValueHandling.Ignore;
+            serializer.Formatting = Formatting.Indented;
+            using (StreamWriter streamWriter = new StreamWriter(pathAttackRes))
+            {
+                using (JsonWriter jsonWriter = new JsonTextWriter(streamWriter))
+                {
+                    serializer.Serialize(jsonWriter, sweepResponse);
+                    streamWriter.Flush();
+                }
+            }
         }
         private void GenerateSampleAutoFireAttackResult(AutoFireAttackRequest areaAttackRequest)
         {

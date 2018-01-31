@@ -619,6 +619,7 @@ namespace Module.HeroVirtualTabletop.Roster
             hcsIntegrator.ActiveCharacterUpdated += this.HCSIntegrator_ActiveCharacterUpdated;
             hcsIntegrator.SequenceUpdated += this.HCSIntegrator_SequenceUpdated;
             hcsIntegrator.AttackResultsUpdated += this.HCSIntegrator_AttackResultsUpdated;
+            hcsIntegrator.SweepAttackResultsUpdated += this.HCSIntegrator_SweepAttackResultsUpdated;
             hcsIntegrator.EligibleCombatantsUpdated += this.HCSIntegrator_EligibleCombatantsUpdated;
         }
 
@@ -2617,7 +2618,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 if (!dontFireAttack && (this.AttackingCharacters.Contains(character) || character == null))
                 {
-                    if(this.IsSequenceViewActive && this.IsPlayingAreaEffect)
+                    if(this.IsSequenceViewActive && this.currentAttack.AttackInfo != null && this.currentAttack.AttackInfo.AttackType == AttackType.Area)
                     {
                         this.ConfigureAreaAttackThroughCombatSimulator(mousePosition);
                     }
@@ -2633,7 +2634,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 {
                     Action d = delegate ()
                     {
-                        if (!dontFireAttack && this.IsSequenceViewActive && this.IsPlayingAreaEffect)
+                        if (!dontFireAttack && this.IsSequenceViewActive && this.currentAttack.AttackInfo != null && this.currentAttack.AttackInfo.AttackType == AttackType.Area)
                         {
                             this.ConfigureAreaAttackThroughCombatSimulator(mousePosition);
                         }
@@ -2797,6 +2798,8 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (IsPlayingAttack)
                 this.eventAggregator.GetEvent<ConfirmAttacksEvent>().Publish(null);
+            else if(IsSweepAttackInProgress && this.PopupService.IsOpen("AttackConfigurationView"))
+                this.eventAggregator.GetEvent<ConfirmAttacksEvent>().Publish(null);
         }
 
         private void HandleCharacterOptionAddition(ICharacterOption option)
@@ -2818,7 +2821,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 
                 foreach (var defender in defendingCharacters)
                 {
-                    ////** Commenting out followin     l'''''''''''drrrwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwrg as we need the fxs to be persisted across attacks
+                    ////** Commenting out following as we need the fxs to be persisted across attacks
                     //defender.Deactivate(); // restore original costume
                 }
                 
@@ -3049,7 +3052,21 @@ namespace Module.HeroVirtualTabletop.Roster
                 if (this.currentAttack.AttackInfo.TargetSelective)
                     this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Publish(targets);
                 else
-                    ConfigureAttackThroughCombatSimulator();
+                {
+                    if (this.IsSweepAttackInProgress)
+                    {
+                        var attackToStore = this.currentAttack;
+                        if (attackToStore != null)
+                        {
+                            this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(attackToStore, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
+                            this.CancelCurrentAttack();
+                        }
+                    }
+                    else
+                    {
+                        ConfigureAttackThroughCombatSimulator();
+                    }
+                }
             }
         }
         private void ConfigureAutoFireAttack()
@@ -3279,6 +3296,33 @@ namespace Module.HeroVirtualTabletop.Roster
             });
         }
 
+        private void HCSIntegrator_SweepAttackResultsUpdated(object sender, CustomEventArgs<object> e)
+        {
+            Dispatcher.Invoke(() =>
+                {
+                    List<Tuple<Guid, List<Character>>> configuredAttacksFromHCS = e.Value as List<Tuple<Guid, List<Character>>>;
+                    List<Tuple<Attack, List<Character>, Guid>> attacksWithTargets = new List<Tuple<AnimatedAbilities.Attack, List<Characters.Character>, Guid>>();
+                    foreach (var tuple in configuredAttacksFromHCS)
+                    {
+                        Guid configKey = tuple.Item1;
+                        List<Character> defenders = tuple.Item2;
+                        List<Character> attackers = this.attacksInProgress.Where(ap => ap.Item4 == configKey).Select(ap => ap.Item2).First();
+                        Attack attack = this.attacksInProgress.Where(ap => ap.Item4 == configKey).Select(ap => ap.Item1).First();
+                        foreach (var defender in defenders)
+                        {
+                            if (attackers.Count > 0 && (IsGangActive || attackers.All(ac => (ac as CrowdMemberModel).RosterCrowd.IsGangMode)))
+                            {
+                                defender.AttackConfigurationMap[configKey].Item2.AttackResults = new ObservableCollection<AttackResult>();
+                                attackers.ForEach(ac => defender.AttackConfigurationMap[configKey].Item2.AttackResults.Add(new AttackResult { Attacker = ac, IsHit = false, AttackResultOption = AttackResultOption.Miss }));
+                            }
+                        }
+                        attacksWithTargets.Add(new Tuple<Attack, List<Character>, Guid>(attack, defenders, configKey));
+                    }
+                    this.eventAggregator.GetEvent<ConfigureSweepAttackEvent>().Publish(attacksWithTargets);
+                }
+            );
+        }
+
         private void HCSIntegrator_EligibleCombatantsUpdated(object sender, CustomEventArgs<object> e)
         {
             Dispatcher.Invoke(() => 
@@ -3390,9 +3434,36 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void ConfigureAttackThroughCombatSimulator()
         {
-            if (this.ActiveCharacter != null && this.AttackingCharacters.Contains(this.ActiveCharacter as Character) && this.targetCharacters.Count > 0)
+            if (this.IsSweepAttackInProgress)
             {
-                this.hcsIntegrator.ConfigureAttacks(this.attacksInProgress);
+                List<Tuple<Attack, List<Character>, List<Character>, Guid>> adjustedAttacksInProgress = new List<Tuple<Attack, List<Character>, List<Character>, Guid>>();
+                foreach(var tuple in this.attacksInProgress)
+                {
+                    Attack attack = tuple.Item1;
+                    List<Character> attackers = tuple.Item2;
+                    List<Character> defenders = tuple.Item3;
+                    Guid configKey = tuple.Item4;
+                    if (defenders.Count > 1 && !attack.IsAreaEffect && !attack.CanSpread && !attack.IsAutoFire)
+                    {
+                        attackers.ForEach(c => { c.RemoveAttackConfiguration(configKey); });
+                        foreach (Character defender in defenders)
+                        {
+                            Guid newConfigKey = Guid.NewGuid();
+                            attackers.ForEach(c => { c.AddAttackConfiguration(attack, new AttackConfiguration(), newConfigKey); });
+                            defender.RemoveAttackConfiguration(configKey);
+                            defender.AddAttackConfiguration(attack, new AnimatedAbilities.AttackConfiguration(), newConfigKey);
+                            adjustedAttacksInProgress.Add(new Tuple<AnimatedAbilities.Attack, List<Characters.Character>, List<Characters.Character>, Guid>(attack, attackers, new List<Characters.Character> { defender }, newConfigKey));
+                        }
+                    }
+                    else
+                        adjustedAttacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(attack, attackers, defenders, configKey));
+                }
+                this.attacksInProgress = adjustedAttacksInProgress;
+                this.hcsIntegrator.ConfigureAttacks(this.attacksInProgress, true);
+            }
+            else if (this.ActiveCharacter != null && this.AttackingCharacters.Contains(this.ActiveCharacter as Character) && this.targetCharacters.Count > 0)
+            {
+                this.hcsIntegrator.ConfigureAttacks(this.attacksInProgress, false);
             }
         }
 

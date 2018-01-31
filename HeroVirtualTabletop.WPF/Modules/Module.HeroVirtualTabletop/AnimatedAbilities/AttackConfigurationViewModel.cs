@@ -13,12 +13,16 @@ using Module.HeroVirtualTabletop.Library.Events;
 using Microsoft.Practices.Prism.Commands;
 using System.Windows.Input;
 using System.Reflection;
+using Module.HeroVirtualTabletop.Desktop;
+using Module.HeroVirtualTabletop.Library.Utility;
+using Module.Shared;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
     public class AttackConfigurationViewModel : BaseViewModel
     {
         private EventAggregator eventAggregator;
+        private IDesktopKeyEventHandler desktopKeyEventHandler;
 
         private ObservableCollection<ActiveAttackViewModel> attackConfigurations;
         public ObservableCollection<ActiveAttackViewModel> AttackConfigurations
@@ -37,12 +41,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public DelegateCommand<object> ConfirmAttacksCommand { get; private set; }
         public DelegateCommand CancelAttacksCommand { get; private set; }
 
-        public AttackConfigurationViewModel(IBusyService busyService, IUnityContainer container, EventAggregator eventAggregator) : base(busyService, container)
+        public AttackConfigurationViewModel(IBusyService busyService, IUnityContainer container, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator) : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
+            this.desktopKeyEventHandler = keyEventHandler;
             this.eventAggregator.GetEvent<ConfigureAttacksEvent>().Subscribe(this.ConfigureAttacks);
             this.eventAggregator.GetEvent<ConfirmAttacksEvent>().Subscribe(this.ConfirmAttacks);
             InitializeCommands();
+            InitializeDesktopKeyEventHandlers();
         }
 
         private void InitializeCommands()
@@ -50,7 +56,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.ConfirmAttacksCommand = new DelegateCommand<object>(this.ConfirmAttacks);
             this.CancelAttacksCommand = new DelegateCommand(this.CancelAttacks);
         }
-
+        public void InitializeDesktopKeyEventHandlers()
+        {
+            this.desktopKeyEventHandler.AddKeyEventHandler(this.RetrieveEventFromKeyInput);
+        }
         public void ConfigureAttacks(List<Tuple<Attack, List<Character>, Guid>> attacksWithDefenders)
         {
             if (this.AttackConfigurations != null && this.AttackConfigurations.Count > 0)
@@ -96,5 +105,26 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             this.eventAggregator.GetEvent<CloseAttackConfigurationWidgetEvent>().Publish(null);
             this.eventAggregator.GetEvent<CancelAttacksEvent>().Publish(attacksWithDefenders);
         }
+
+        #region Desktop Key Handling
+        public EventMethod RetrieveEventFromKeyInput(System.Windows.Forms.Keys vkCode, System.Windows.Input.Key inputKey)
+        {
+            if (Helper.GlobalVariables_CurrentActiveWindowName == Constants.ACTIVE_ATTACK_WIDGET)
+            {
+                if (inputKey == Key.Enter)
+                {
+                    if (this.ConfirmAttacksCommand.CanExecute(null))
+                        this.ConfirmAttacksCommand.Execute(null);
+                }
+                else if (inputKey == Key.Escape)
+                {
+                    if (this.CancelAttacksCommand.CanExecute())
+                        this.CancelAttacksCommand.Execute();
+                }
+            }
+            return null;
+        }
+
+        #endregion
     }
 }

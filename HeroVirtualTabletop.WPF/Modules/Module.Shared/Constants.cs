@@ -153,8 +153,10 @@ namespace Module.Shared
         public const string ATTACK_INITIATION_TYPE_NAME = "Attack";
         public const string AREA_ATTACK_INITIATION_TYPE_NAME = "AreaEffect";
         public const string AUTO_FIRE_ATTACK_INITIATION_TYPE_NAME = "Autofire";
+        public const string SWEEP_ATTACK_INITIATION_TYPE_NAME = "Sweep";
         public const string ATTACK_RESULT_TYPE_NAME = "AttackResult";
         public const string AREA_ATTACK_RESULT_TYPE_NAME = "AreaAttackResult";
+        public const string SWEEP_ATTACK_RESULT_TYPE_NAME = "SweepAttackResult";
         public const string ATTACK_CONFIRMATION_TYPE_NAME = "ConfirmAttack";
         public const string ATTACK_CONFIRMED_STATUS = "Confirm";
         public const string ATTACK_CANCELLED_STATUS = "Cancel";
