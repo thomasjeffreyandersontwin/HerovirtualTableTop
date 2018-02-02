@@ -1221,6 +1221,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 ToHitModifiers = new HCSIntegration.ToHitModifiers(),
                 TargetingSense = "Normal Hearing",
             };
+            bool attackerInFront = Helper.DetermineIfOneObjectIsInFrontOfAnotherObject(defender.CurrentPositionVector, defender.CurrentFacingVector, attacker.CurrentPositionVector);
+            attackSingleTarget.ToHitModifiers.FromBehind = !attackerInFront;
             attackSingleTarget.Obstructions = new List<string>();
             if (obstructions != null && obstructions.Count > 0)
             {
@@ -1271,6 +1273,9 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 areaEffectTarget.Defender = defender.Name;
                 float range = Vector3.Distance(attacker.CurrentPositionVector, defender.CurrentPositionVector);
                 areaEffectTarget.Range = (int)Math.Round((range) / 8f, MidpointRounding.AwayFromZero);
+                areaEffectTarget.ToHitModifiers = new ToHitModifiers();
+                bool attackerInFront = Helper.DetermineIfOneObjectIsInFrontOfAnotherObject(defender.CurrentPositionVector, defender.CurrentFacingVector, attacker.CurrentPositionVector);
+                areaEffectTarget.ToHitModifiers.FromBehind = !attackerInFront;
                 List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
                 var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, otherCharacters);
                 if (obstructions != null && obstructions.Count > 0)
@@ -1323,6 +1328,9 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 AttackRequest autoFireTarget = new HCSIntegration.AttackRequest();
                 autoFireTarget.Defender = defender.Name;
                 List<Character> otherCharacters = this.InGameCharacters.Where(c => c != attacker && c != defender).ToList();
+                autoFireTarget.ToHitModifiers = new ToHitModifiers();
+                bool attackerInFront = Helper.DetermineIfOneObjectIsInFrontOfAnotherObject(defender.CurrentPositionVector, defender.CurrentFacingVector, attacker.CurrentPositionVector);
+                autoFireTarget.ToHitModifiers.FromBehind = !attackerInFront;
                 var obstructions = collisionEngine.FindObstructingObjects(attacker, defender, otherCharacters);
                 if (obstructions != null && obstructions.Count > 0)
                 {

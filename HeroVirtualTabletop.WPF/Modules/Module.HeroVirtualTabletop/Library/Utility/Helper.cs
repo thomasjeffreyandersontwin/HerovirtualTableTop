@@ -99,7 +99,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             };
             return (System.Windows.Style)resource[styleName];
         }
-        
+
         public static System.Windows.Style GetCustomWindowStyle()
         {
             return GetCustomStyle(Constants.CUSTOM_MODELESS_TRANSPARENT_WINDOW_STYLENAME);
@@ -120,7 +120,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             using (StreamReader sr = new StreamReader(fileName))
             using (JsonReader reader = new JsonTextReader(sr))
             {
-                
+
                 serializer.PreserveReferencesHandling = PreserveReferencesHandling.Objects;
                 serializer.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
                 serializer.Formatting = Formatting.Indented;
@@ -128,7 +128,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
 
                 obj = serializer.Deserialize<T>(reader);
             }
-            return obj;   
+            return obj;
         }
 
         public static void SerializeObjectAsJSONToFile<T>(string fileName, T obj)
@@ -149,7 +149,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             }
             catch (Exception)
             {
-                
+
             }
         }
 
@@ -190,7 +190,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                         dObject = VisualTreeHelper.GetParent(dObject);
                         tvi = dObject as TreeViewItem;
                     }
-                    containingCrowdModel = tvi.DataContext as    CrowdModel;
+                    containingCrowdModel = tvi.DataContext as CrowdModel;
                 }
             }
 
@@ -207,7 +207,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             {
                 DependencyObject dObject = treeView.GetItemFromSelectedObject(treeView.SelectedItem);
                 TreeViewItem tvi = dObject as TreeViewItem; // got the selected treeviewitem
-                if(tvi != null)
+                if (tvi != null)
                     selectedAnimationElement = tvi.DataContext as IAnimationElement;
                 dObject = VisualTreeHelper.GetParent(tvi); // got the immediate parent
                 tvi = dObject as TreeViewItem; // now get first treeview item parent
@@ -302,7 +302,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
         {
             Window win = null;
             string winName = "";
-            
+
             if (element is Window)
             {
                 win = element as Window;
@@ -323,7 +323,7 @@ namespace Module.HeroVirtualTabletop.Library.Utility
                     }
                 }
             }
-                        
+
             return winName;
         }
 
@@ -455,6 +455,18 @@ namespace Module.HeroVirtualTabletop.Library.Utility
             Vector3 directionVector = GetDirectionVector(rotationAngle, direction, facingVector);
             Vector3 destinationVector = GetDestinationVector(directionVector, unitsToAdjacent, currentPositionVector);
             return destinationVector;
+        }
+
+        public static bool DetermineIfOneObjectIsInFrontOfAnotherObject(Vector3 sourceObjectPositionVector, Vector3 sourceObjectFacingVector, Vector3 targetObjectPositionVector)
+        {
+            bool inFront = true;
+            Vector3 directionVectorFromSourceToTarget = targetObjectPositionVector - sourceObjectPositionVector;
+            directionVectorFromSourceToTarget.Normalize();
+            sourceObjectFacingVector.Normalize();
+            float dotProduct = Vector3.Dot(directionVectorFromSourceToTarget, sourceObjectFacingVector);
+            if (dotProduct < 0)
+                inFront = false;
+            return inFront; 
         }
 
         public static Vector3 GetDirectionVector(double rotationAngle, MovementDirection direction, Vector3 facingVector)
