@@ -2828,10 +2828,16 @@ namespace Module.HeroVirtualTabletop.Roster
                         break;
                     }
                 }
+                
                 if (!isWithinRange)
                 {
                     List<Attack> rangedAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsRanged).Cast<Attack>().ToList();
                     activeCharacter.DisableAttacks(rangedAttacks);
+                }
+                else
+                {
+                    List<Attack> hthAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsHandToHand).Cast<Attack>().ToList();
+                    hthAttacks.ForEach(a => a.IsEnabled = true);
                 }
             }
         }
