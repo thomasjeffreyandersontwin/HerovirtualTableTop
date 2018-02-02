@@ -129,6 +129,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public string Token { get; set; }
         public string Type { get; set; }
         public string Ability { get; set; }
+        public int? SpreadDistance { get; set; }
         public List<string> Obstructions { get; set; }
         [JsonProperty("Potential Knockback Collisions")]
         public List<PotentialKnockbackCollision> PotentialKnockbackCollisions { get; set; }

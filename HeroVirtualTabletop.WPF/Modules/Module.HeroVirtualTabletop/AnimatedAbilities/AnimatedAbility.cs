@@ -326,6 +326,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         {
             get; set;
         }
+        [JsonIgnore]
+        public double SpreadDistance { get; set; }
         private static List<Guid> processedConfigs = new List<Guid>();
         public bool IsExecutionCompleteFor(Guid configKey)
         {

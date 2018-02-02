@@ -56,7 +56,8 @@ namespace Module.HeroVirtualTabletop.Desktop
         ClearFromDesktopMenuItemSelected,
         CloneAndLinkMenuItemSelected,
         MoveTargetToCharacterMenuItemSelected,
-        ActivateCharacterOptionMenuItemSelected
+        ActivateCharacterOptionMenuItemSelected,
+        SpreadNumberSelected
     }
     public class DesktopContextMenu
     {
@@ -69,6 +70,7 @@ namespace Module.HeroVirtualTabletop.Desktop
 
         public bool IsSequenceViewActive { get; set; }
         public bool IsSweepAttackInProgress { get; set; }
+        public bool ShowAttackSpreadMenu { get; set; }
         public List<string> AttackingCharacterNames { get; set; }
 
         public event EventHandler<CustomEventArgs<Object>> AttackContextMenuDisplayed;
@@ -91,6 +93,7 @@ namespace Module.HeroVirtualTabletop.Desktop
         public event EventHandler<CustomEventArgs<Object>> CloneAndLinkMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> MoveTargetToCharacterMenuItemSelected;
         public event EventHandler<CustomEventArgs<Object>> ActivateCharacterOptionMenuItemSelected;
+        public event EventHandler<CustomEventArgs<Object>> SpreadNumberSelected;
         private void FireContextMenuEvent(ContextMenuEvent contextMenuEvent, object sender, CustomEventArgs<Object> e)
         {
             switch (contextMenuEvent)
@@ -175,6 +178,10 @@ namespace Module.HeroVirtualTabletop.Desktop
                     if (ActivateCharacterOptionMenuItemSelected != null)
                         ActivateCharacterOptionMenuItemSelected(sender, e);
                     break;
+                case ContextMenuEvent.SpreadNumberSelected:
+                    if (SpreadNumberSelected != null)
+                        SpreadNumberSelected(sender, e);
+                    break;
             }
         }
 
@@ -194,13 +201,14 @@ namespace Module.HeroVirtualTabletop.Desktop
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
 
-        public void GenerateAndDisplay(CrowdMemberModel character, List<string> attackingCharacterNames, bool showAttackMenu, bool isSequenceView = false, bool isSweepAttackInProgress = false)
+        public void GenerateAndDisplay(CrowdMemberModel character, List<string> attackingCharacterNames, bool showAttackMenu, bool isSequenceView = false, bool isSweepAttackInProgress = false, bool showAttackSpreadMenu = false)
         {
             Character = character;
             AttackingCharacterNames = attackingCharacterNames;
             ShowAttackMenu = showAttackMenu;
             IsSequenceViewActive = isSequenceView;
             IsSweepAttackInProgress = isSweepAttackInProgress;
+            ShowAttackSpreadMenu = showAttackSpreadMenu;
             GenerateAndDisplay();
             ContextCommandFileWatcher.EnableRaisingEvents = true;
         }
@@ -274,7 +282,7 @@ namespace Module.HeroVirtualTabletop.Desktop
                     {
                         System.Threading.Thread.Sleep(200); // Delay so that the file write completes before calling the pop menu
                         GenerateAttackMenu();
-                        DisplayAreaEffectMenu();
+                        DisplayAttackMenu();
                         IsDisplayed = true;
                         FireContextMenuEvent(ContextMenuEvent.AreaAttackContextMenuDisplayed, null, new CustomEventArgs<object> { Value = Character });
                     }
@@ -291,7 +299,7 @@ namespace Module.HeroVirtualTabletop.Desktop
 
         private void GenerateAttackMenu()
         {
-            string fileAreaAtackMenu = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME, Constants.GAME_LANGUAGE_FOLDERNAME, Constants.GAME_MENUS_FOLDERNAME, Constants.GAME_CHARACTER_MENU_FILENAME);
+            string fileAreaAtackMenu = Path.Combine(Module.Shared.Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, Constants.GAME_TEXTS_FOLDERNAME, Constants.GAME_LANGUAGE_FOLDERNAME, Constants.GAME_MENUS_FOLDERNAME, Constants.GAME_ATTACK_MENU_FILENAME);
             var assembly = Assembly.GetExecutingAssembly();
 
             var resourceName = "Module.HeroVirtualTabletop.Resources.attack.mnu";
@@ -306,7 +314,7 @@ namespace Module.HeroVirtualTabletop.Desktop
                 }
 
                 StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < menuFileLines.Count; i++)
+                for (int i = 0; i < menuFileLines.Count - 1; i++)
                 {
                     if (menuFileLines[i].StartsWith("Option \"Abort\"") && !IsSequenceViewActive)
                         continue;
@@ -314,7 +322,17 @@ namespace Module.HeroVirtualTabletop.Desktop
                         continue;
                     sb.AppendLine(menuFileLines[i]);
                 }
-                //sb.AppendLine(menuFileLines[menuFileLines.Count - 1]);
+                if (ShowAttackSpreadMenu)
+                {
+                    sb.AppendLine(string.Format("Menu \"Spread to Improve Hitting Chance\""));
+                    sb.AppendLine("{");
+                    for(int i = 1; i < 11; i ++)
+                    {
+                        sb.AppendLine(string.Format("Option \"{0}\" \"bind_save_file {1}{2}{3}.txt\"", i, Constants.SPREAD_NUMBER, Constants.DEFAULT_DELIMITING_CHARACTER, i));
+                    }
+                    sb.AppendLine("}");
+                }
+                sb.AppendLine(menuFileLines[menuFileLines.Count - 1]);
 
                 File.WriteAllText(
                     fileAreaAtackMenu, sb.ToString()
@@ -323,18 +341,11 @@ namespace Module.HeroVirtualTabletop.Desktop
             }
         }
 
-        private void DisplayAreaEffectMenu()
+        private void DisplayAttackMenu()
         {
             KeyBindsGenerator keyBindsGenerator = new KeyBindsGenerator();
-            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "areaattack");
+            keyBindsGenerator.GenerateKeyBindsForEvent(GameEvent.PopMenu, "attack");
             keyBindsGenerator.CompleteEvent();
-            //Action d = delegate ()
-            //{
-            //    //Character.Target();
-            //    keyBindsGenerator.CompleteEvent();
-            //};
-            //AsyncDelegateExecuter adex = new Library.Utility.AsyncDelegateExecuter(d, 20);
-            //adex.ExecuteAsyncDelegate();
         }
 
         private void fileSystemWatcher_Changed(object sender, FileSystemEventArgs e)
@@ -415,11 +426,23 @@ namespace Module.HeroVirtualTabletop.Desktop
                                 int index = e.Name.IndexOf(Constants.DEFAULT_DELIMITING_CHARACTER);
                                 if (index > 0)
                                 {
-                                    string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
-                                    string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
-                                    string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                    string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
-                                    FireContextMenuEvent(ContextMenuEvent.ActivateCharacterOptionMenuItemSelected, null, new CustomEventArgs<object> { Value = new object[] { Character, optionGroupName, optionName } });
+                                    if (e.Name.Contains(Constants.SPREAD_NUMBER))
+                                    {
+                                        string spreadNumberString = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                        int spreadNumber;
+                                        if(Int32.TryParse(spreadNumberString, out spreadNumber))
+                                        {
+                                            FireContextMenuEvent(ContextMenuEvent.SpreadNumberSelected, null, new CustomEventArgs<object> { Value = new object[] { Character, spreadNumber } });
+                                        }
+                                    }
+                                    else
+                                    {
+                                        string whiteSpaceReplacedOptionGroupName = e.Name.Substring(0, index - 1); // The special characters are translated to two characters, so need to subtract one additional character
+                                        string whiteSpceReplacedOptionName = e.Name.Substring(index + 1, e.Name.Length - index - 5); // to get rid of the .txt part
+                                        string optionGroupName = whiteSpaceReplacedOptionGroupName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        string optionName = whiteSpceReplacedOptionName.Replace(Constants.SPACE_REPLACEMENT_CHARACTER_TRANSLATION, " ");
+                                        FireContextMenuEvent(ContextMenuEvent.ActivateCharacterOptionMenuItemSelected, null, new CustomEventArgs<object> { Value = new object[] { Character, optionGroupName, optionName } });
+                                    }
                                 }
                             }
 

@@ -65,7 +65,7 @@ namespace Module.Shared
         public const string GAME_TEXTS_FOLDERNAME = "texts";
         public const string GAME_LANGUAGE_FOLDERNAME = "english";
         public const string GAME_MENUS_FOLDERNAME = "menus";
-        public const string GAME_AREAATTACK_MENU_FILENAME = "areaattack.mnu";
+        public const string GAME_ATTACK_MENU_FILENAME = "attack.mnu";
         public const string GAME_CHARACTER_MENU_FILENAME = "character.mnu";
         public const string GAME_CHARACTER_BINDSAVE_ABORT_FILENAME = "abortaction.txt";
         public const string GAME_CHARACTER_BINDSAVE_SPAWN_FILENAME = "spawn.txt";
@@ -161,6 +161,7 @@ namespace Module.Shared
         public const string ATTACK_CONFIRMED_STATUS = "Confirm";
         public const string ATTACK_CANCELLED_STATUS = "Cancel";
         public const string MOVEMENT_TYPE_NAME = "Movement";
+        public const string SPREAD_NUMBER = "SpreadNumber";
 
         #endregion
     }

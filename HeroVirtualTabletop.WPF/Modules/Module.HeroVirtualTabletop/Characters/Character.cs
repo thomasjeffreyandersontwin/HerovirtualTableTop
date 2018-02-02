@@ -194,6 +194,25 @@ namespace Module.HeroVirtualTabletop.Characters
                 OnPropertyChanged("CurrentDistanceLimit");
             }
         }
+        private float maxDistanceLimit = float.MinValue;
+        [JsonIgnore]
+        public float MaxDistanceLimit
+        {
+            get
+            {
+                if(maxDistanceLimit == float.MinValue)
+                {
+                    var maxMovementDistance = this.Movements.Max(m => m.DistanceLimit);
+                    if (maxMovementDistance != float.MinValue)
+                        maxDistanceLimit = maxMovementDistance + ReachLimit;
+                    if(maxDistanceLimit <= 0f)
+                        maxDistanceLimit = 6f; // default
+                }
+                return maxDistanceLimit;
+            }
+        }
+        [JsonIgnore]
+        public float ReachLimit { get; set; }
 
         [JsonIgnore]
         public string OldName { get; private set; }

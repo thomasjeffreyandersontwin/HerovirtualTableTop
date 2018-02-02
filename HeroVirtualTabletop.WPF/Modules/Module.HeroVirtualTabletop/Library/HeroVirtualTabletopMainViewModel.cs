@@ -451,7 +451,7 @@ namespace Module.HeroVirtualTabletop.Library
             string dirMenus = Path.Combine(dirLanguage, Constants.GAME_MENUS_FOLDERNAME);
             if (!Directory.Exists(dirMenus))
                 Directory.CreateDirectory(dirMenus);
-            string fileAreaAttackMenu = Path.Combine(dirMenus, Constants.GAME_AREAATTACK_MENU_FILENAME);
+            string fileAreaAttackMenu = Path.Combine(dirMenus, Constants.GAME_ATTACK_MENU_FILENAME);
             var assembly = Assembly.GetExecutingAssembly();
             
             if (!File.Exists(fileAreaAttackMenu))

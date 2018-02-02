@@ -111,6 +111,20 @@ namespace Module.HeroVirtualTabletop.Movements
                 OnPropertyChanged("IsNonCombatMovement");
             }
         }
+        private float distanceLimit = float.MinValue;
+        [JsonIgnore]
+        public float DistanceLimit
+        {
+            get
+            {
+                return distanceLimit;
+            }
+            set
+            {
+                distanceLimit = value;
+                OnPropertyChanged("DistanceLimit");
+            }
+        }
 
         private Keys activationKey;
         public Keys ActivationKey

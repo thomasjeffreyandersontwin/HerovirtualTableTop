@@ -246,6 +246,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             foreach(var defender in this.DefendingCharacters)
             {
                 this.DefenderActiveAttackConfigurations.Add(new DefenderActiveAttackConfiguration { Defender = defender, ActiveAttackConfiguration = defender.AttackConfigurationMap[AttackConfigKey].Item2 });
+                if (defender.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget)
+                    this.MoveAttackerToTarget = true;
             }
 
             if (Helper.GlobalVariables_IntegrateWithHCS)

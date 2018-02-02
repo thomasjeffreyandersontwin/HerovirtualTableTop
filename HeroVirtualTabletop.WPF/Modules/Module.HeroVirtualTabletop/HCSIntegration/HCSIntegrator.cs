@@ -1029,10 +1029,10 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                         if (isRangedObj != null && isRangedObj.Count() > 0)
                         {
                             dynamic rangeInfo = isRangedObj.First();
-                            if(rangeInfo != null)
+                            if(rangeInfo != null && rangeInfo.Value != null)
                             {
                                 bool b;
-                                if (Boolean.TryParse(rangeInfo.Value, out b))
+                                if (Boolean.TryParse(rangeInfo.Value.ToString(), out b))
                                     attackInfo.IsRanged = b;
                             }
                         }
@@ -1041,10 +1041,10 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                         if (canSpreadObj != null && canSpreadObj.Count() > 0)
                         {
                             dynamic spreadInfo = canSpreadObj.First();
-                            if (spreadInfo != null)
+                            if (spreadInfo != null && spreadInfo.Value != null)
                             {
                                 bool b;
-                                if (Boolean.TryParse(spreadInfo.Value, out b))
+                                if (Boolean.TryParse(spreadInfo.Value.ToString(), out b))
                                     attackInfo.CanSpread = b;
                             }
                         }
@@ -1450,6 +1450,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             AttackRequest attackSingleTarget = GetVanillaAttackRequest(attack, attacker, defender);
             attackSingleTarget.Token = this.currentToken;
             attackSingleTarget.Type = Constants.ATTACK_INITIATION_TYPE_NAME;
+            if(attack.CanSpread && attack.SpreadDistance > 0)
+                attackSingleTarget.SpreadDistance = (int)Math.Round(attack.SpreadDistance, MidpointRounding.AwayFromZero);
             WriteToAbilityActivatedFile(attackSingleTarget);
         }
 
@@ -1469,6 +1471,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             AreaAttackRequest areaAttackRequest = GetAreaAttackRequest(attack, attacker, defenders);
             areaAttackRequest.Type = Constants.AREA_ATTACK_INITIATION_TYPE_NAME;
             areaAttackRequest.Token = this.currentToken;
+            if (attack.CanSpread && attack.SpreadDistance > 0)
+                areaAttackRequest.SpreadDistance = (int)Math.Round(attack.SpreadDistance, MidpointRounding.AwayFromZero);
             WriteToAbilityActivatedFile(areaAttackRequest);
             //GenerateSampleAreaAttackResult(areaAttackRequest);
         }
@@ -1578,6 +1582,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             AutoFireAttackRequest autoFireAttackRequest = GetAutoFireAttackRequest(attack, attacker, defenders);
             autoFireAttackRequest.Type = Constants.AUTO_FIRE_ATTACK_INITIATION_TYPE_NAME;
             autoFireAttackRequest.Token = this.currentToken;
+            if (attack.CanSpread && attack.SpreadDistance > 0)
+                autoFireAttackRequest.SpreadDistance = (int)Math.Round(attack.SpreadDistance, MidpointRounding.AwayFromZero);
             WriteToAbilityActivatedFile(autoFireAttackRequest);
             //GenerateSampleAutoFireAttackResult(autoFireAttackRequest);
         }

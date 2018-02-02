@@ -474,6 +474,15 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        public bool IsSpreadableAttackInProgress
+        {
+            get
+            {
+                return this.currentAttack != null && this.currentAttack.CanSpread;
+            }
+        }
+
+
         #endregion
 
         #region Commands
@@ -539,7 +548,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<PlayMovementInitiatedEvent>().Subscribe(this.PlayMovement);
             this.eventAggregator.GetEvent<PlayMovementConfirmedEvent>().Subscribe(this.RestartDistanceCountingForHCSActivatedCharacter);
             this.eventAggregator.GetEvent<SpawnToRosterEvent>().Subscribe(this.SpawnToRoster);
-            this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.NotifyCombatSimulatorAboutMovementStop);
+            this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.OnMovementStopped);
             this.eventAggregator.GetEvent<AttackTargetsConfirmedEvent>().Subscribe(ConfigureAreaAttackWithConfirmedTargets);
             this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Subscribe(ConfigureAutoFireAttackThroughCombatSimulator);
 
@@ -608,6 +617,7 @@ namespace Module.HeroVirtualTabletop.Roster
             desktopContextMenu.ResetOrientationMenuItemSelected += desktopContextMenu_ResetOrientationMenuItemSelected;
             desktopContextMenu.SavePositionMenuItemSelected += desktopContextMenu_SavePositionMenuItemSelected;
             desktopContextMenu.SpawnMenuItemSelected += desktopContextMenu_SpawnMenuItemSelected;
+            desktopContextMenu.SpreadNumberSelected += desktopContextMenu_SpreadNumberMenuItemSelected;
         }
         private void InitializeDesktopKeyHanders()
         {
@@ -1006,7 +1016,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 else
                 {
-                    desktopContextMenu.GenerateAndDisplay(character, AttackingCharacters.Select(ac => ac.Name).ToList(), IsPlayingAttack, IsSequenceViewActive, IsSweepAttackInProgress);
+                    desktopContextMenu.GenerateAndDisplay(character, AttackingCharacters.Select(ac => ac.Name).ToList(), IsPlayingAttack, IsSequenceViewActive, IsSweepAttackInProgress, IsSpreadableAttackInProgress);
                     numRetryPopupMenu = 3;
                 }
                 if(this.CurrentDistanceCountingCharacter != null)
@@ -2200,6 +2210,9 @@ namespace Module.HeroVirtualTabletop.Roster
                         if(this.ActiveCharacter != activeChar)
                             this.ToggleActivateCharacter(activeChar);
                         activeChar.RefreshAbilitiesActivationEligibility(activeCharacterInfo.AbilitiesEligibilityCollection);
+                        this.RetrieveAttackInfoFromCombatSimulator();
+                        this.RetrieveMovementDistanceLimitInfoFromCombatSimulator();
+                        this.DisableHTHAttacksOutOfDistanceLimit();
                         if(activeCharacterInfo.CharacterStates != null 
                             && activeCharacterInfo.CharacterStates.IsAbortable.HasValue 
                             && activeCharacterInfo.CharacterStates.IsAbortable.Value
@@ -2580,7 +2593,7 @@ namespace Module.HeroVirtualTabletop.Roster
             if(this.IsSequenceViewActive)
             {
                 this.RestartDistanceCounting();
-                if (this.CurrentDistanceCountingCharacter != null)
+                if (this.CurrentDistanceCountingCharacter != null && tuple.Item1.DistanceLimit == float.MinValue)
                     this.CurrentDistanceCountingCharacter.CurrentDistanceLimit = hcsIntegrator.GetMovementDistanceLimit(tuple.Item1);
             }
         }
@@ -2721,7 +2734,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 OnPropertyChanged("ShowAttackContextMenu");
                 targetObserver.TargetChanged += RosterTargetUpdated;
                 this.currentAttack = attack;
-                this.RetrieveAttackInfoFromCombatSimulator();
+                this.RetrieveAttackInfoFromCombatSimulator(this.currentAttack);
                 Character attacker = this.AttackingCharacters.FirstOrDefault(ac => ac == this.currentAttack.Owner || ac.ActiveAbility == this.currentAttack);
                 if (this.IsSweepAttackInProgress && this.attacksInProgress.Count == 0 && attacker != null)
                 {
@@ -2770,10 +2783,57 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
+        private void RetrieveAttackInfoFromCombatSimulator(Attack attack)
+        {
+            if(this.IsSequenceViewActive && attack.AttackInfo == null)
+                attack.AttackInfo = this.hcsIntegrator.GetAttackInfo(attack.Name);
+        }
+
         private void RetrieveAttackInfoFromCombatSimulator()
         {
-            if(this.IsSequenceViewActive)
-                this.currentAttack.AttackInfo = this.hcsIntegrator.GetAttackInfo(this.currentAttack.Name);
+            if (this.IsSequenceViewActive && this.ActiveCharacter != null)
+            {
+                foreach(var ability in (this.ActiveCharacter as Character).AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).AttackInfo == null))
+                {
+                    Attack attack = ability as Attack;
+                    attack.AttackInfo = this.hcsIntegrator.GetAttackInfo(attack.Name);
+                }
+            }
+                
+        }
+
+        private void RetrieveMovementDistanceLimitInfoFromCombatSimulator()
+        {
+            if(this.IsSequenceViewActive && this.ActiveCharacter != null)
+            {
+                foreach(var characterMovement in (this.ActiveCharacter as Character).Movements.Where(m => m.DistanceLimit == float.MinValue))
+                {
+                    characterMovement.DistanceLimit = this.hcsIntegrator.GetMovementDistanceLimit(characterMovement);
+                }
+            }
+        }
+
+        private void DisableHTHAttacksOutOfDistanceLimit()
+        {
+            if(this.ActiveCharacter != null)
+            {
+                Character activeCharacter = this.ActiveCharacter as Character;
+                bool isWithinRange = false;
+                foreach(Character spawnedParticipant in this.Participants.Where(p => p != activeCharacter &&  (p as Character).HasBeenSpawned))
+                {
+                    float distance = Vector3.Distance(activeCharacter.CurrentPositionVector, spawnedParticipant.CurrentPositionVector)/8f;
+                    if (distance <= activeCharacter.MaxDistanceLimit / 2)
+                    {
+                        isWithinRange = true;
+                        break;
+                    }
+                }
+                if (!isWithinRange)
+                {
+                    List<Attack> rangedAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsRanged).Cast<Attack>().ToList();
+                    activeCharacter.DisableAttacks(rangedAttacks);
+                }
+            }
         }
 
         private void RosterTargetUpdated(object sender, EventArgs e)
@@ -3047,24 +3107,27 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 this.AttackingCharacters.ForEach(ac => ac.AttackConfigurationMap[this.currentAttackConfigKey].Item2.AttackCenterPosition = (attackCenter is Character) ? (attackCenter as Character).CurrentPositionVector : (Vector3)attackCenter);
                 List<Character> targets = this.currentAttack.CalculateAreaAttackTargets(this.AttackingCharacters.First(), this.Participants.Where(p => (p as Character).HasBeenSpawned && !this.AttackingCharacters.Contains(p as Character)).Cast<Character>().ToList(), this.currentAttackConfigKey);
-                foreach (Character target in targets)
-                    AddToAttackTarget(target);
-                if (this.currentAttack.AttackInfo.TargetSelective)
-                    this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Publish(targets);
-                else
+                if(targets.Count > 0)
                 {
-                    if (this.IsSweepAttackInProgress)
+                    foreach (Character target in targets)
+                        AddToAttackTarget(target);
+
+                    if (this.currentAttack != null && !this.attacksInProgress.Any(ap => ap.Item4 == this.currentAttackConfigKey))
                     {
-                        var attackToStore = this.currentAttack;
-                        if (attackToStore != null)
-                        {
-                            this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(attackToStore, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
-                            this.CancelCurrentAttack();
-                        }
+                        this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(this.currentAttack, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
                     }
+                    if (this.currentAttack.AttackInfo.TargetSelective)
+                        this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Publish(targets);
                     else
                     {
-                        ConfigureAttackThroughCombatSimulator();
+                        if (this.IsSweepAttackInProgress)
+                        {
+                            this.CancelCurrentAttack();
+                        }
+                        else
+                        {
+                            ConfigureAttackThroughCombatSimulator();
+                        }
                     }
                 }
             }
@@ -3106,6 +3169,15 @@ namespace Module.HeroVirtualTabletop.Roster
         public void TargetAndExecuteAttack(object state)
         {
             AddAttackTargets();
+            if(this.targetCharacters.Count > 0 && !this.attacksInProgress.Any(t => t.Item4 == this.currentAttackConfigKey))
+                this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(this.currentAttack, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
+            if(this.targetCharacters.Count > 1 && this.currentAttack.CanSpread && this.currentAttack.SpreadDistance == 0d)
+            {
+                var targetPositions = this.targetCharacters.Select(tc => tc.CurrentPositionVector).ToArray();
+                double maxDist = Helper.CalculateMaximumDistanceBetweenTwoPointsInASetOfPoints(targetPositions);
+                this.currentAttack.SpreadDistance = maxDist;
+            }
+
             if (this.IsPlayingAutoFire)
             {
                 ConfigureAutoFireAttack();
@@ -3114,10 +3186,8 @@ namespace Module.HeroVirtualTabletop.Roster
             {
                 if(this.IsSweepAttackInProgress)
                 {
-                    var attackToStore = this.currentAttack;
-                    if (attackToStore != null)
+                    if (this.currentAttack != null)
                     {
-                        this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(attackToStore, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
                         this.CancelCurrentAttack();
                     }
                 }
@@ -3187,16 +3257,35 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             if (!this.AttackingCharacters.Contains(character) && character.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && character.Name != Constants.DEFAULT_CHARACTER_NAME)
             {
-                if (this.targetCharacters.FirstOrDefault(tc => tc.Name == character.Name) == null)
-                    this.targetCharacters.Add(character);
-                //currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
-                AttackConfiguration attackConfig = new AttackConfiguration();
-                attackConfig.AttackMode = AttackMode.Defend;
-                attackConfig.AttackEffectOption = AttackEffectOption.None;
-                if (this.moveAndAttackModeOn)
-                    attackConfig.MoveAttackerToTarget = true;
-
-                character.AddAttackConfiguration(this.currentAttack, attackConfig, this.currentAttackConfigKey);
+                bool canAddCharacterToTargets = true;
+                if (this.currentAttack.IsHandToHand)
+                {
+                    if(!this.AttackingCharacters.All(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 < ac.MaxDistanceLimit / 2))
+                    {
+                        canAddCharacterToTargets = false;
+                    }
+                }
+                if (canAddCharacterToTargets)
+                {
+                    if (this.targetCharacters.FirstOrDefault(tc => tc.Name == character.Name) == null)
+                    {
+                        this.targetCharacters.Add(character);
+                    }
+                    //currentTarget.ChangeCostumeColor(new Framework.WPF.Extensions.ColorExtensions.RGB() { R = 0, G = 51, B = 255 });
+                    AttackConfiguration attackConfig = new AttackConfiguration();
+                    attackConfig.AttackMode = AttackMode.Defend;
+                    attackConfig.AttackEffectOption = AttackEffectOption.None;
+                    if (this.moveAndAttackModeOn)
+                        attackConfig.MoveAttackerToTarget = true;
+                    if (this.currentAttack.IsHandToHand)
+                    {
+                        if (this.AttackingCharacters.Any(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 > 1))
+                        {
+                            attackConfig.MoveAttackerToTarget = true;
+                        }
+                    }
+                    character.AddAttackConfiguration(this.currentAttack, attackConfig, this.currentAttackConfigKey); 
+                }
             }
         }
 
@@ -3244,7 +3333,10 @@ namespace Module.HeroVirtualTabletop.Roster
                     this.AttackingCharacters.ForEach(ac => currentTarget.AttackConfigurationMap[this.currentAttackConfigKey].Item2.AttackResults.Add(new AttackResult { Attacker = ac, IsHit = false, AttackResultOption = AttackResultOption.Miss }));
                 }
             }
-            this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Attack, List<Character>, Guid>(this.currentAttack, this.targetCharacters, this.currentAttackConfigKey));
+            if(targetCharacters.Count > 0)
+            {
+                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Attack, List<Character>, Guid>(this.currentAttack, this.targetCharacters, this.currentAttackConfigKey));
+            }
         }
 
         private void ConfirmAttack(object state)
@@ -3262,6 +3354,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
+        
         #region HCS Integration
 
         private void HCSIntegrator_SequenceUpdated(object sender, CustomEventArgs<object> e)
@@ -3314,6 +3407,13 @@ namespace Module.HeroVirtualTabletop.Roster
                             {
                                 defender.AttackConfigurationMap[configKey].Item2.AttackResults = new ObservableCollection<AttackResult>();
                                 attackers.ForEach(ac => defender.AttackConfigurationMap[configKey].Item2.AttackResults.Add(new AttackResult { Attacker = ac, IsHit = false, AttackResultOption = AttackResultOption.Miss }));
+                            }
+                            if (attack.IsHandToHand)
+                            {
+                                if (attackers.Any(ac => Vector3.Distance(ac.CurrentPositionVector, defender.CurrentPositionVector) / 8 > 1))
+                                {
+                                    defender.AttackConfigurationMap[configKey].Item2.MoveAttackerToTarget = true;
+                                }
                             }
                         }
                         attacksWithTargets.Add(new Tuple<Attack, List<Character>, Guid>(attack, defenders, configKey));
@@ -3477,14 +3577,20 @@ namespace Module.HeroVirtualTabletop.Roster
             this.hcsIntegrator.ActivateHeldCharacter(this.SelectedParticipants[0] as Character);
         }
 
-        private void NotifyCombatSimulatorAboutMovementStop(CharacterMovement characterMovement)
+        private void OnMovementStopped(CharacterMovement characterMovement)
         {
             if (this.IsSequenceViewActive)
             {
-                double distance = Math.Round(this.CurrentDistanceCountingCharacter.CurrentDistanceCount, 2);
-                this.hcsIntegrator.NotifyStopMovement(characterMovement, distance);
-                OnShowNotification(this, new CustomEventArgs<string> { Value = Messages.MOVEMENT_STOPPED_MESSAGE });
+                NotifyCombatSimulatorAboutMovementStop(characterMovement);
+                DisableHTHAttacksOutOfDistanceLimit();
             }
+        }
+
+        private void NotifyCombatSimulatorAboutMovementStop(CharacterMovement characterMovement)
+        {
+            double distance = Math.Round(this.CurrentDistanceCountingCharacter.CurrentDistanceCount, 2);
+            this.hcsIntegrator.NotifyStopMovement(characterMovement, distance);
+            OnShowNotification(this, new CustomEventArgs<string> { Value = Messages.MOVEMENT_STOPPED_MESSAGE });
         }
 
         public bool IsCharacterHolding(Character character)
@@ -3615,6 +3721,18 @@ namespace Module.HeroVirtualTabletop.Roster
                 string optionGroupName = parameters[1] as string;
                 string optionName = parameters[2] as string;
                 this.ToggleActivateCharacter(character, optionGroupName, optionName);
+            }
+        }
+
+        private void desktopContextMenu_SpreadNumberMenuItemSelected(object sender, CustomEventArgs<Object> e)
+        {
+            Object[] parameters = e.Value as Object[];
+            if(parameters != null && parameters.Length == 2)
+            {
+                Character target = parameters[0] as Character;
+                int spreadNumber = (int)parameters[1];
+                this.currentAttack.SpreadDistance = spreadNumber;
+                this.TargetAndExecuteAttack(null);
             }
         }
 
