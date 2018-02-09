@@ -169,12 +169,14 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         [JsonProperty("Collision Object")]
         public string CollisionObject { get; set; }
         [JsonProperty("Collision Distance")]
-        public int CollisionDistance { get; set; }
+        public int CollisionDistance{ get; set; }
     }
 
     public class AreaAttackRequest : AttackRequestBase
     {
+        [JsonProperty("AOE Center")]
         public string Center { get; set; }
+        [JsonProperty("Attack Targets")]
         public List<AttackRequest> Targets { get; set; }
     }
 
@@ -182,6 +184,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     {
         public int Width { get; set; }
         public bool? Spray { get; set; }
+        [JsonProperty("Attack Targets")]
         public List<AttackRequest> Targets { get; set; }
     }
 

@@ -40,6 +40,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         public DelegateCommand<object> ConfirmAttacksCommand { get; private set; }
         public DelegateCommand CancelAttacksCommand { get; private set; }
+        private static List<Tuple<Attack, List<Character>, Guid>> confirmedAttacksWithDefenders = new List<Tuple<Attack, List<Character>, Guid>>();
 
         public AttackConfigurationViewModel(IBusyService busyService, IUnityContainer container, IDesktopKeyEventHandler keyEventHandler, EventAggregator eventAggregator) : base(busyService, container)
         {
@@ -62,18 +63,25 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
         public void ConfigureAttacks(List<Tuple<Attack, List<Character>, Guid>> attacksWithDefenders)
         {
-            if (this.AttackConfigurations != null && this.AttackConfigurations.Count > 0)
-                foreach (var attackConfig in this.AttackConfigurations)
-                    attackConfig.RemoveDesktopKeyEventHandlers();
-            this.AttackConfigurations = new ObservableCollection<ActiveAttackViewModel>();
-            foreach (var tuple in attacksWithDefenders)
+            if(attacksWithDefenders.Any(tuple => confirmedAttacksWithDefenders.Any(t => t.Item3 == tuple.Item3) || tuple.Item3 == Guid.Empty)) // already confirmed attack or erroneous attack, so don't configure
             {
-                Attack attack = tuple.Item1;
-                List<Character> defenders = tuple.Item2;
-                Guid attackConfigKey = tuple.Item3;
-                var activeAttackConfig = this.Container.Resolve<ActiveAttackViewModel>();
-                activeAttackConfig.ConfigureActiveAttack(new Tuple<List<Character>, Attack, Guid>(defenders, attack, attackConfigKey));
-                this.AttackConfigurations.Add(activeAttackConfig);
+                this.eventAggregator.GetEvent<CloseAttackConfigurationWidgetEvent>().Publish(null);
+            }
+            else
+            {
+                if (this.AttackConfigurations != null && this.AttackConfigurations.Count > 0)
+                    foreach (var attackConfig in this.AttackConfigurations)
+                        attackConfig.RemoveDesktopKeyEventHandlers();
+                this.AttackConfigurations = new ObservableCollection<ActiveAttackViewModel>();
+                foreach (var tuple in attacksWithDefenders)
+                {
+                    Attack attack = tuple.Item1;
+                    List<Character> defenders = tuple.Item2;
+                    Guid attackConfigKey = tuple.Item3;
+                    var activeAttackConfig = this.Container.Resolve<ActiveAttackViewModel>();
+                    activeAttackConfig.ConfigureActiveAttack(new Tuple<List<Character>, Attack, Guid>(defenders, attack, attackConfigKey));
+                    this.AttackConfigurations.Add(activeAttackConfig);
+                }
             }
         }
 
@@ -86,6 +94,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 attacksWithDefenders.Add(new Tuple<Attack, List<Character>, Guid>(activeAttackConfig.ActiveAttack, activeAttackConfig.DefendingCharacters.ToList(), activeAttackConfig.AttackConfigKey));
             }
 
+            confirmedAttacksWithDefenders.AddRange(attacksWithDefenders);
             // Change mouse pointer to back to bulls eye
             Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
             Mouse.OverrideCursor = cursor;

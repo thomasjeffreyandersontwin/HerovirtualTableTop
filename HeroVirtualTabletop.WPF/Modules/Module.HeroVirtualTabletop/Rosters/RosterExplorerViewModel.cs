@@ -39,6 +39,7 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.HCSIntegration;
 using Module.Shared.Messages;
 using System.Threading;
+using Module.Shared.Logging;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -2600,7 +2601,7 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #endregion
 
-        #region Attack / Area Attack
+        #region Attacks
         int numRetryHover = 3;
         Character currentTarget = null;
         bool dontFireAttack = false;
@@ -2638,7 +2639,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     else
                     {
                         AttackDirection direction = new AttackDirection(mousePosition);
-                        if (!this.currentAttack.IsExecutionInProgress)
+                        if (!this.currentAttack.IsExecutionInProgressFor(this.currentAttackConfigKey))
                             this.currentAttack.AnimateAttack(direction, AttackingCharacters);
                     }
                     
@@ -2649,7 +2650,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         if (!dontFireAttack && this.IsSequenceViewActive && this.currentAttack.AttackInfo != null && this.currentAttack.AttackInfo.AttackType == AttackType.Area)
                         {
-                            this.ConfigureAreaAttackThroughCombatSimulator(mousePosition);
+                            this.ConfigureAreaAttackThroughCombatSimulator(character);
                         }
                         else
                         {
@@ -2908,6 +2909,11 @@ namespace Module.HeroVirtualTabletop.Roster
         System.Threading.Timer attackSynchronizationTimer;
         public void ExecuteAttacks(List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToExecute)
         {
+            FileLogManager.ForceLog("Attacks to Execute:");
+            foreach (var tuple in attacksToExecute)
+            {
+                FileLogManager.ForceLog("Attack Name: {0}, Attackers: {1}, Defenders: {2}, ConfigKey: {3}", tuple.Item1.Name, string.Join(",", tuple.Item2.Select(ch => ch.Name)), string.Join(",", tuple.Item3.Select(ch => ch.Name)), tuple.Item4);
+            }
             attackSynchronizationTimer = new System.Threading.Timer(attackSynchronizationTimer_Callback, attacksToExecute, Timeout.Infinite, Timeout.Infinite);
             attackSynchronizationTimer.Change(5, Timeout.Infinite);
         }
@@ -2915,9 +2921,9 @@ namespace Module.HeroVirtualTabletop.Roster
         private void attackSynchronizationTimer_Callback(object state)
         {
             List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToExecute = state as List<Tuple<Attack, List<Character>, List<Character>, Guid>>;
-            if (!attacksToExecute.Any(t => t.Item1.IsExecutionInProgress && !t.Item1.IsExecutionCompleteFor(t.Item4)))
+            if (!attacksToExecute.Any(t => t.Item1.IsExecutionInProgressFor(t.Item4) && !t.Item1.IsExecutionCompleteFor(t.Item4)))
             {
-                Tuple<Attack, List<Character>, List<Character>, Guid> attackTuple = attacksToExecute.Where(t => !t.Item1.IsExecutionInProgress && !t.Item1.IsExecutionCompleteFor(t.Item4)).FirstOrDefault();
+                Tuple<Attack, List<Character>, List<Character>, Guid> attackTuple = attacksToExecute.Where(t => !t.Item1.IsExecutionInProgressFor(t.Item4) && !t.Item1.IsExecutionCompleteFor(t.Item4)).FirstOrDefault();
                 if (attackTuple != null)
                 {
                     Guid configKey = attackTuple.Item4;
@@ -3022,6 +3028,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.Commands_RaiseCanExecuteChanged();
                 this.eventAggregator.GetEvent<CloseAttackConfigurationWidgetEvent>().Publish(null);
                 this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Publish(null);
+                FileLogManager.ForceLog("All attacks were reset");
             };
             Dispatcher.Invoke(d);
         }
@@ -3055,7 +3062,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     defender.RefreshAttackConfigurationParameters();
                     defender.ScanAndFixMemoryPointer();
                 }
-
+                FileLogManager.ForceLog("Resetting attack {0} for {1} with config key {2}", attack.Name, string.Join(",", defenders.Select(ch => ch.Name)), configKey);
                 var tuple = this.attacksInProgress.FirstOrDefault(a => a.Item1 == attack);
                 if (tuple != null)
                     this.attacksInProgress.Remove(tuple);
@@ -3116,7 +3123,11 @@ namespace Module.HeroVirtualTabletop.Roster
                 if(targets.Count > 0)
                 {
                     foreach (Character target in targets)
+                    {
                         AddToAttackTarget(target);
+                        if (target.AttackConfigurationMap.ContainsKey(this.currentAttackConfigKey))
+                            target.AttackConfigurationMap[this.currentAttackConfigKey].Item2.IsCenterTarget = target == attackCenter;
+                    }
 
                     if (this.currentAttack != null && !this.attacksInProgress.Any(ap => ap.Item4 == this.currentAttackConfigKey))
                     {
@@ -3140,7 +3151,16 @@ namespace Module.HeroVirtualTabletop.Roster
         }
         private void ConfigureAutoFireAttack()
         {
-            this.eventAggregator.GetEvent<LoadAutoFireAttackConfigurationWidgetEvent>().Publish(new Tuple<AnimatedAbilities.Attack, List<Characters.Character>, Guid>(this.currentAttack, this.targetCharacters, this.currentAttackConfigKey));
+            if (this.IsGangModeActive)
+            {
+                this.DistributeAutoFireShotsAmongGangMembers();
+                this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Publish(this.targetCharacters.ToList());
+            }
+            else
+            {
+                if(this.targetCharacters.Count > 0)
+                    this.eventAggregator.GetEvent<LoadAutoFireAttackConfigurationWidgetEvent>().Publish(new Tuple<AnimatedAbilities.Attack, List<Characters.Character>, Guid>(this.currentAttack, this.targetCharacters, this.currentAttackConfigKey));
+            }
         }
         private void ConfigureAutoFireAttackThroughCombatSimulator(List<Character> targets)
         {
@@ -3151,6 +3171,24 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             this.targetCharacters = confirmedTargets;
             this.ConfigureAttackThroughCombatSimulator();
+        }
+
+        private void DistributeAutoFireShotsAmongGangMembers()
+        {
+            CrowdModel selectedCrowd = (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd as CrowdModel;
+            int maxNumberOfShots = this.currentAttack.AttackInfo.AutoFireMaxShots;
+            int remainingNumberOfShots = maxNumberOfShots;
+            foreach (Character dc in this.targetCharacters)
+                dc.AttackConfigurationMap[currentAttackConfigKey].Item2.NumberOfShotsAssigned = 0;
+            for (int i = 0; i < this.targetCharacters.Count; i++)
+            {
+                if (remainingNumberOfShots == 0)
+                    break;
+                this.targetCharacters[i].AttackConfigurationMap[currentAttackConfigKey].Item2.NumberOfShotsAssigned += 1;
+                remainingNumberOfShots--;
+                if (i == targetCharacters.Count - 1 && remainingNumberOfShots > 0)
+                    i = -1;
+            }
         }
 
         public void TargetCharacterForAttack(object state)
@@ -3183,7 +3221,10 @@ namespace Module.HeroVirtualTabletop.Roster
                 double maxDist = Helper.CalculateMaximumDistanceBetweenTwoPointsInASetOfPoints(targetPositions);
                 this.currentAttack.SpreadDistance = maxDist;
             }
-
+            if(targetCharacters.Count > 0 && this.IsSequenceViewActive && !(this.currentAttack.CanSpread || this.currentAttack.IsAutoFire || this.currentAttack.IsAreaEffect))
+            {
+                // split targets into sweep attack
+            }
             if (this.IsPlayingAutoFire)
             {
                 ConfigureAutoFireAttack();
@@ -3224,8 +3265,7 @@ namespace Module.HeroVirtualTabletop.Roster
             if (this.IsPlayingAttack)
             {
                 AddAttackTargets();
-                var attackToStore = this.currentAttack;
-                this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(attackToStore, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
+                this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(this.currentAttack, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
             }
             this.eventAggregator.GetEvent<ExecuteSweepAttackEvent>().Publish(null);
         }
@@ -3264,13 +3304,13 @@ namespace Module.HeroVirtualTabletop.Roster
             if (!this.AttackingCharacters.Contains(character) && character.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && character.Name != Constants.DEFAULT_CHARACTER_NAME)
             {
                 bool canAddCharacterToTargets = true;
-                if (this.currentAttack.IsHandToHand)
-                {
-                    if(!this.AttackingCharacters.All(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 < ac.MaxDistanceLimit / 2))
-                    {
-                        canAddCharacterToTargets = false;
-                    }
-                }
+                //if (this.currentAttack.IsHandToHand)
+                //{
+                //    if(!this.AttackingCharacters.All(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 < ac.MaxDistanceLimit / 2))
+                //    {
+                //        canAddCharacterToTargets = false;
+                //    }
+                //}
                 if (canAddCharacterToTargets)
                 {
                     if (this.targetCharacters.FirstOrDefault(tc => tc.Name == character.Name) == null)
@@ -3283,7 +3323,7 @@ namespace Module.HeroVirtualTabletop.Roster
                     attackConfig.AttackEffectOption = AttackEffectOption.None;
                     if (this.moveAndAttackModeOn)
                         attackConfig.MoveAttackerToTarget = true;
-                    if (this.currentAttack.IsHandToHand)
+                    if (this.IsSequenceViewActive && this.currentAttack.IsHandToHand)
                     {
                         if (this.AttackingCharacters.Any(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 > 1))
                         {
@@ -3391,7 +3431,8 @@ namespace Module.HeroVirtualTabletop.Roster
                     if (targets.All(t => !t.AttackConfigurationMap[this.currentAttackConfigKey].Item2.IsCenterTarget && t.AttackConfigurationMap[this.currentAttackConfigKey].Item2.MoveAttackerToTarget))
                         this.AttackingCharacters.ForEach(ac => ac.AttackConfigurationMap[this.currentAttackConfigKey].Item2.AttackCenterPosition = Vector3.Zero);
                 }
-                this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Attack, List<Character>, Guid>(this.currentAttack, targets, currentAttackConfigKey));
+                if(targets.Count > 0)
+                    this.eventAggregator.GetEvent<AttackTargetUpdatedEvent>().Publish(new Tuple<Attack, List<Character>, Guid>(this.currentAttack, targets, currentAttackConfigKey));
             });
         }
 
@@ -3679,13 +3720,19 @@ namespace Module.HeroVirtualTabletop.Roster
             this.ClearFromDesktop();
         }
 
-        void desktopContextMenu_AttackTargetMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_AttackTargetMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.TargetCharacterForAttack(null);
         }
 
-        void desktopContextMenu_AttackTargetAndExecuteMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_AttackTargetAndExecuteMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.TargetAndExecuteAttack(null);
         }
 

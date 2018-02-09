@@ -9,6 +9,7 @@ using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using Module.Shared.Events;
+using Module.Shared.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -220,7 +221,9 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public event EventHandler<CustomEventArgs<Tuple<Attack, List<Character>, Guid>>> AttackCompleted;
         public void OnAttackCompleted(object sender, CustomEventArgs<Tuple<Attack, List<Character>, Guid>> e)
         {
-            this.IsExecutionInProgress = false;
+            //this.IsExecutionInProgress = false;
+            Guid configKey = e.Value.Item3;
+            this.ResetExecutionInProgressFor(configKey);
             if (AttackCompleted != null)
                 AttackCompleted(sender, e);
         }
@@ -321,11 +324,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 return this.AttackInfo != null && this.AttackInfo.CanSpread;
             }
         }
-        [JsonIgnore]
-        public bool IsExecutionInProgress
-        {
-            get; set;
-        }
+        //[JsonIgnore]
+        //public bool IsExecutionInProgress
+        //{
+        //    get; set;
+        //}
         [JsonIgnore]
         public double SpreadDistance { get; set; }
         private static List<Guid> processedConfigs = new List<Guid>();
@@ -336,6 +339,19 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public void SetExecutionCompleteFor(Guid configKey)
         {
             processedConfigs.Add(configKey);
+        }
+        private static List<Guid> processingConfigs = new List<Guid>();
+        public bool IsExecutionInProgressFor(Guid configKey)
+        {
+            return processingConfigs.Contains(configKey);
+        }
+        public void SetExecutionInProgressFor(Guid configKey)
+        {
+            processingConfigs.Add(configKey);
+        }
+        public void ResetExecutionInProgressFor(Guid configKey)
+        {
+            processingConfigs.Remove(configKey);
         }
         public override void Stop(Character Target = null, bool useMemoryTargeting = false)
         {
@@ -551,7 +567,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 IntPtr winHandle = WindowsUtilities.FindWindow("CrypticWindow", null);
                 WindowsUtilities.SetForegroundWindow(winHandle);
 
-                this.IsExecutionInProgress = true;
+                this.SetExecutionInProgressFor(configurationKey);
                 this.defendersForThisAttack = defendingCharacters;
                 if (defendingCharacters.Any(dc => dc.AttackConfigurationMap[configurationKey].Item2.KnockBackOption == KnockBackOption.KnockBack))
                     charactersWithIncompleteKnockback = defendingCharacters.Where(dc => dc.AttackConfigurationMap[configurationKey].Item2.KnockBackOption == KnockBackOption.KnockBack).ToList();
@@ -659,7 +675,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     if (this.IsAreaEffect || this.IsAutoFire)
                     {
-                        AnimateAttackSequenceWithoutMovement(attackingCharacters, defendingCharacters, configurationKey);
+                                                                                                                                    AnimateAttackSequenceWithoutMovement(attackingCharacters, defendingCharacters, configurationKey);
                     }
                     else
                     {
@@ -883,7 +899,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         if (obstacleHitPeriod < 800)
                             obstacleHitPeriod = 800;
 
-                        var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget }, Timeout.Infinite, Timeout.Infinite);
+                        var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget, configurationKey }, Timeout.Infinite, Timeout.Infinite);
                         this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
                         timerObstructionAnimation.Change(obstacleHitPeriod, Timeout.Infinite);
                     }
@@ -1458,6 +1474,15 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             && t.AttackConfigurationMap[configurationKey].Item2.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
             )
             ).ToList();
+            List<Character> destroyedTargets = defendingCharacters.Where(t =>
+           ((t.AttackConfigurationMap[configurationKey].Item2.IsDestroyed || t.AttackConfigurationMap[configurationKey].Item2.IsPartiallyDestryoed) && t.AttackConfigurationMap[configurationKey].Item2.AttackResults == null)
+           ||
+           ((t.AttackConfigurationMap[configurationKey].Item2.IsDestroyed || t.AttackConfigurationMap[configurationKey].Item2.IsPartiallyDestryoed)
+           && t.AttackConfigurationMap[configurationKey].Item2.AttackResults != null
+           && t.AttackConfigurationMap[configurationKey].Item2.AttackResults.LastOrDefault(ar => ar.IsHit) != null
+           && t.AttackConfigurationMap[configurationKey].Item2.AttackResults.LastOrDefault(ar => ar.IsHit).Attacker == attackingCharacter
+           )
+           ).ToList();
 
             if (deadTargets.Count > 0 && globalDeadAbility != null)
             {
@@ -1488,6 +1513,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 foreach (Character stunned in stunnedTargets)
                 {
                     globalStunnedAbility.Play(false, stunned, false, true);
+                }
+            }
+
+            if (destroyedTargets.Count > 0)
+            {
+                foreach (var destroyedTarget in destroyedTargets)
+                {
+                    var destroyedAbility = destroyedTarget.AnimatedAbilities.FirstOrDefault(aa => aa.Name == "Explode" || aa.Name == "Dead" || aa.Name == "Destroy");
+                    if (destroyedAbility != null)
+                    {
+                        destroyedAbility.Play(false, destroyedTarget, false, true);
+                    }
                 }
             }
         }
@@ -1546,13 +1583,14 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private void OnKnockbackCompleted(object sender, CustomEventArgs<Tuple<Character, Guid>> e)
-        {
+       private void OnKnockbackCompleted(object sender, CustomEventArgs<Tuple<Character, Guid>> e)
+       {
             Character character = e.Value.Item1;
             Guid configKey = e.Value.Item2;
-            if(charactersWithIncompleteKnockback.Contains(character))
+            FileLogManager.ForceLog("Knockback completed for {0} with configKey {1}, character has knockback option as {2}", character.Name, configKey.ToString(), character.AttackConfigurationMap[configKey].Item2.KnockBackOption);
+            if(charactersWithIncompleteKnockback.Contains(character)) 
                 charactersWithIncompleteKnockback.Remove(character);
-            if(charactersWithIncompleteKnockback.Count == 0 && character.AttackConfigurationMap.Any(m => m.Key == configKey && m.Value.Item2.KnockBackOption == KnockBackOption.KnockBack))
+            if(charactersWithIncompleteKnockback.Count == 0)
                 OnAttackCompleted(null, new CustomEventArgs<Tuple<Attack, List<Character>, Guid>> { Value = new Tuple<Attack, List<Character>, Guid>(this, this.defendersForThisAttack.ToList(), configKey) });
         }
         public override void Play(bool persistent = false, Character target = null, bool playAsSequence = false, bool useMemoryTargeting = false)
@@ -1995,6 +2033,36 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 targeted = value;
                 OnPropertyChanged("Targeted");
+            }
+        }
+    }
+
+    public class DefenderActiveAttackConfiguration : NotifyPropertyChanged
+    {
+        private Character defender;
+        public Character Defender
+        {
+            get
+            {
+                return defender;
+            }
+            set
+            {
+                defender = value;
+                OnPropertyChanged("Defender");
+            }
+        }
+        public AttackConfiguration attackConfiguration;
+        public AttackConfiguration ActiveAttackConfiguration
+        {
+            get
+            {
+                return attackConfiguration;
+            }
+            set
+            {
+                attackConfiguration = value;
+                OnPropertyChanged("ActiveAttackConfiguration");
             }
         }
     }

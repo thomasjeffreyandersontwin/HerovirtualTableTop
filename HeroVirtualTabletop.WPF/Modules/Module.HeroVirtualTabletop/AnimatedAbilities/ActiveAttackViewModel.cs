@@ -10,6 +10,7 @@ using Module.HeroVirtualTabletop.Library.Events;
 using Module.HeroVirtualTabletop.Library.Utility;
 using Module.Shared;
 using Module.Shared.Events;
+using Module.Shared.Logging;
 using Prism.Events;
 using System;
 using System.Collections.Generic;
@@ -22,36 +23,6 @@ using System.Windows.Input;
 
 namespace Module.HeroVirtualTabletop.AnimatedAbilities
 {
-    public class DefenderActiveAttackConfiguration : NotifyPropertyChanged
-    {
-        private Character defender;
-        public Character Defender
-        {
-            get
-            {
-                return defender;
-            }
-            set
-            {
-                defender = value;
-                OnPropertyChanged("Defender");
-            }
-        }
-        public AttackConfiguration attackConfiguration;
-        public AttackConfiguration ActiveAttackConfiguration
-        {
-            get
-            {
-                return attackConfiguration;
-            }
-            set
-            {
-                attackConfiguration = value;
-                OnPropertyChanged("ActiveAttackConfiguration");
-            }
-        }
-    }
-
     public class ActiveAttackViewModel : BaseViewModel
     {
         #region Private Fields
@@ -271,11 +242,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 SetAttackParameters(ch);
             }
             //if (this.DefendingCharacters.Any(dc => dc.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget))
-            if(this.MoveAttackerToTarget)
-            {
-                foreach (Character dc in this.DefendingCharacters)
-                    dc.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget = true;
-            }
+            foreach (Character dc in this.DefendingCharacters)
+                dc.AttackConfigurationMap[AttackConfigKey].Item2.MoveAttackerToTarget = this.MoveAttackerToTarget;
 
             //// Change mouse pointer to back to bulls eye
             //Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
@@ -315,7 +283,10 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (ch.AttackConfigurationMap[AttackConfigKey].Item2.IsKnockedBack)
                 ch.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackOption = KnockBackOption.KnockBack;
             else
+            {
                 ch.AttackConfigurationMap[AttackConfigKey].Item2.KnockBackOption = KnockBackOption.None;
+                FileLogManager.ForceLog("Setting None as Knockback option for {0}", ch.Name);
+            }
 
             ch.RefreshAttackConfigurationParameters();
         }

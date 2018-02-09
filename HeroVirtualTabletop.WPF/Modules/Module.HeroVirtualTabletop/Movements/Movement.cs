@@ -717,7 +717,15 @@ namespace Module.HeroVirtualTabletop.Movements
         {
             if(configKey == default(Guid))
             {
-                configKey = target.AttackConfigurationMap.Where(ac => ac.Value.Item1.IsExecutionInProgress).Select(ac => ac.Key).FirstOrDefault();
+                //configKey = target.AttackConfigurationMap.Where(ac => ac.Value.Item1.IsExecutionInProgress).Select(ac => ac.Key).FirstOrDefault();
+                foreach (var key in target.AttackConfigurationMap.Keys)
+                {
+                    if (target.AttackConfigurationMap[key].Item1.IsExecutionInProgressFor(key))
+                    {
+                        configKey = key;
+                        break;
+                    }
+                }
             }
             this.currentConfigKey = configKey;
             if (target.CurrentPositionVector == destinationVector)

@@ -34,8 +34,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             }
         }
 
-        private ObservableCollection<Character> defendingCharacters;
-        public ObservableCollection<Character> DefendingCharacters
+        private List<Character> defendingCharacters;
+        public List<Character> DefendingCharacters
         {
             get
             {
@@ -45,6 +45,20 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 defendingCharacters = value;
                 OnPropertyChanged("DefendingCharacters");
+            }
+        }
+
+        private ObservableCollection<DefenderActiveAttackConfiguration> defenderActiveAttackConfigurations;
+        public ObservableCollection<DefenderActiveAttackConfiguration> DefenderActiveAttackConfigurations
+        {
+            get
+            {
+                return defenderActiveAttackConfigurations;
+            }
+            set
+            {
+                defenderActiveAttackConfigurations = value;
+                OnPropertyChanged("DefenderActiveAttackConfigurations");
                 this.DistributeNumberOfShotsCommand.RaiseCanExecuteChanged();
             }
         }
@@ -65,8 +79,13 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         private void LoadAttackTargets(Tuple<Attack, List<Character>, Guid> tuple)
         {
             this.CurrentAttack = tuple.Item1;
-            this.DefendingCharacters = new ObservableCollection<Character>(tuple.Item2);
+            this.DefendingCharacters = new List<Character>(tuple.Item2);
             this.attackConfigKey = tuple.Item3;
+            this.DefenderActiveAttackConfigurations = new ObservableCollection<DefenderActiveAttackConfiguration>();
+            foreach (var defender in this.DefendingCharacters)
+            {
+                this.DefenderActiveAttackConfigurations.Add(new DefenderActiveAttackConfiguration { Defender = defender, ActiveAttackConfiguration = defender.AttackConfigurationMap[attackConfigKey].Item2 });
+            }
             DistributeNumberOfShots((Character)null);
             Dispatcher.Invoke(() => {
                 Mouse.OverrideCursor = Cursors.Arrow;
@@ -100,18 +119,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             if (lastUpdatedCharacter != null)
                 lastAssignment = lastUpdatedCharacter.AttackConfigurationMap[attackConfigKey].Item2.NumberOfShotsAssigned;
             int remainingNumberOfShots = maxNumberOfShots - lastAssignment;
-            foreach (var dc in this.DefendingCharacters.Where(dc => dc != lastUpdatedCharacter))
-                dc.AttackConfigurationMap[attackConfigKey].Item2.NumberOfShotsAssigned = 0;
-            for(int i = 0; i < this.DefendingCharacters.Count; i++)
+            foreach (var dc in this.DefenderActiveAttackConfigurations.Where(dc => dc.Defender != lastUpdatedCharacter))
+                dc.ActiveAttackConfiguration.NumberOfShotsAssigned = 0;
+            for(int i = 0; i < this.DefenderActiveAttackConfigurations.Count; i++)
             {
-                if (this.DefendingCharacters[i] != lastUpdatedCharacter)
+                if (this.DefenderActiveAttackConfigurations[i].Defender != lastUpdatedCharacter)
                 {
                     if (remainingNumberOfShots == 0)
                         break;
-                    this.DefendingCharacters[i].AttackConfigurationMap[attackConfigKey].Item2.NumberOfShotsAssigned += 1;
+                    this.DefenderActiveAttackConfigurations[i].ActiveAttackConfiguration.NumberOfShotsAssigned += 1;
                     remainingNumberOfShots--;
                 }
-                if (i == DefendingCharacters.Count - 1 && remainingNumberOfShots > 0)
+                if (i == DefenderActiveAttackConfigurations.Count - 1 && remainingNumberOfShots > 0)
                     i = -1;
             }
             isUpdating = false;

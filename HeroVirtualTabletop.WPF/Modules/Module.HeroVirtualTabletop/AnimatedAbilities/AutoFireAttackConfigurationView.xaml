@@ -32,17 +32,17 @@
                     <RowDefinition/>
                 </Grid.RowDefinitions>
 
-                <ListView Margin="1" Name="lvAttackTargets" ItemsSource="{Binding DefendingCharacters}" Background="Transparent" BorderBrush="Transparent" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}">
+                <ListView Margin="1" Name="lvAttackTargets" ItemsSource="{Binding DefenderActiveAttackConfigurations}" Background="Transparent" BorderBrush="Transparent" ItemContainerStyle="{StaticResource ListBoxtemStyleNoHighlighting}">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <WrapPanel>
                                 <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="{Binding Name}" Foreground="White"/>
+                                    <TextBlock Text="{Binding Defender.Name}" Foreground="White"/>
                                     <xctk:IntegerUpDown Increment="1" DefaultValue="0" Minimum="0" 
                                                         Maximum="{Binding DataContext.CurrentAttack.AttackInfo.AutoFireMaxShots, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type abilities:AutoFireAttackConfigurationView}}}" 
                                                         Value="{Binding ActiveAttackConfiguration.NumberOfShotsAssigned}"
                                                         behaviors:CommandBehavior.Event="ValueChanged" behaviors:CommandBehavior.Command="{Binding DataContext.DistributeNumberOfShotsCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type abilities:AutoFireAttackConfigurationView}}}"
-                                                        behaviors:CommandBehavior.CommandParameter="{Binding}"
+                                                        behaviors:CommandBehavior.CommandParameter="{Binding Defender}"
                                                         ToolTip="Enter a number"/>
                                 </StackPanel>
                             </WrapPanel>

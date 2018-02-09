@@ -27,11 +27,11 @@ namespace Module.Shared.Logging
         /// <summary>
         /// Hack method to forcefully write log from anywhere
         /// </summary>
-        /// <param name="text"></param>
-        public static void ForceLog(string text)
+        /// <param name="forematString"></param>
+        public static void ForceLog(string formatString, params object[] arguments)
         {
             var logger = LogManager.GetLogger("");
-            logger.Info(text);
+            logger.Info(string.Format(formatString, arguments));
         }
 
         public FileLogManager(Type logClass)

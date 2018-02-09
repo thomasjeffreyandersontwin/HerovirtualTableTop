@@ -162,6 +162,7 @@ namespace Module.Shared
         public const string ATTACK_CANCELLED_STATUS = "Cancel";
         public const string MOVEMENT_TYPE_NAME = "Movement";
         public const string SPREAD_NUMBER = "SpreadNumber";
+        public const string HEX = "Hex";
 
         #endregion
     }
