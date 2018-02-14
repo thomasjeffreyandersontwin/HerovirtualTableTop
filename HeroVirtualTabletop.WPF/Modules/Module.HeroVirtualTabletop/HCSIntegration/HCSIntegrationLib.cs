@@ -183,35 +183,17 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     public class AutoFireAttackRequest : AttackRequestBase
     {
         public int Width { get; set; }
+        [JsonProperty("Spray Fire")]
         public bool? Spray { get; set; }
+        public int? Shots { get; set; }
         [JsonProperty("Attack Targets")]
         public List<AttackRequest> Targets { get; set; }
     }
 
     public class SweepAttackRequest : AttackRequestBase
     {
+        [JsonProperty("Attack Targets")]
         public List<AttackRequestBase> Attacks { get; set; }
-    }
-
-    public class KnockbackCollisionSingleTarget
-    {
-        public string Type { get; set; }
-        [JsonProperty("Knockback Target")]
-        public string KnockbackTarget { get; set; }
-    }
-
-    public class KnockbackCollisionMultiTarget
-    {
-        public string Type { get; set; }
-        [JsonProperty("Targets")]
-        public List<KnockbackTargetObstruction> TargetObstructions { get; set; }
-    }
-
-    public class KnockbackTargetObstruction
-    {
-        public string Target { get; set; }
-        [JsonProperty("Knockback Target")]
-        public string ObstructingTarget { get; set; }
     }
 
     public class AttackResponseBase
@@ -222,7 +204,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         [JsonProperty("Hit")]
         public bool IsHit { get; set; }
         [JsonProperty("Move Before Attack Required")]
-        public bool MoveBeforeAttackRequired { get; set; }
+        public bool? MoveBeforeAttackRequired { get; set; }
     }
 
     public class AttackResponse : AttackResponseBase
@@ -269,26 +251,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
     }
 
 
-    public class AttackAreaTargetResponse : AttackResponseBase
-    {
-        public string Center { get; set; }
-        [JsonProperty("Obstruction Result")]
-        public List<ObstructionDamageResult> ObstructionDamageResults { get; set; }
-        public List<AttackAreaTarget> Targets { get; set; }
-    }
-
-    public class AttackAreaTarget
-    {
-        public AttackAreaTargetIndividual Target { get; set; }
-    }
-
-    public class AttackAreaTargetIndividual
-    {
-        public string Name { get; set; }
-        public string Crowd { get; set; }
-        public Statistics Stats { get; set; }
-        public Results Result { get; set; }
-    }
+   
     public class KnockbackResult
     {
         public List<KnockbackCollision> Collisions { get; set; }
@@ -302,14 +265,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         [JsonProperty("Collision Damage Results")]
         public DamageResults CollisionDamageResults { get; set; }
     }
-    public class ObstacleCollision
-    {
-        public string Name { get; set; }
-        [JsonProperty("Obstacle Damage Results")]
-        public ObstacleDamageResults ObstacleDamageResults { get; set; }
-        [JsonProperty("BODY")]
-        public HealthMeasures Body { get; set; }
-    }
+
     public class HealthMeasures
     {
         public double? Max { get; set; }
@@ -326,33 +282,6 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         public double? Body { get; set; }
         [JsonProperty("END")]
         public double? Endurance { get; set; }
-    }
-    public class ObstacleDamageResults
-    {
-        public List<string> Effects { get; set; }
-    }
-
-    public class ObstructionDamageResult
-    {
-        [JsonProperty("Obstruction Name")]
-        public string ObstructionName { get; set; }
-        public List<string> Effects { get; set; }
-    }
-
-    public class Statistics
-    {
-        public HealthMeasures Stun { get; set; }
-        public HealthMeasures Body { get; set; }
-        [JsonProperty("End")]
-        public HealthMeasures Endurance { get; set; }
-    }
-
-    public class Results
-    {
-        public bool Hit { get; set; }
-        public KnockbackResult Knockback { get; set; }
-        public List<string> Effects { get; set; }
-        public DamageResults DamageResults { get; set; }
     }
 
     public class AttackConfirmation

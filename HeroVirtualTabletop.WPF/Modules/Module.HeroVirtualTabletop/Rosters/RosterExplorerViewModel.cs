@@ -39,7 +39,6 @@ using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.HCSIntegration;
 using Module.Shared.Messages;
 using System.Threading;
-using Module.Shared.Logging;
 
 namespace Module.HeroVirtualTabletop.Roster
 {
@@ -551,7 +550,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.eventAggregator.GetEvent<SpawnToRosterEvent>().Subscribe(this.SpawnToRoster);
             this.eventAggregator.GetEvent<StopMovementEvent>().Subscribe(this.OnMovementStopped);
             this.eventAggregator.GetEvent<AttackTargetsConfirmedEvent>().Subscribe(ConfigureAreaAttackWithConfirmedTargets);
-            this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Subscribe(ConfigureAutoFireAttackThroughCombatSimulator);
+            this.eventAggregator.GetEvent<AutoFireAttackShotsAssignedEvent>().Subscribe(ConfigureAutoFireAttack);
 
             timer_RespondToDesktop.AutoReset = false;
             timer_RespondToDesktop.Interval = 50;
@@ -2909,11 +2908,6 @@ namespace Module.HeroVirtualTabletop.Roster
         System.Threading.Timer attackSynchronizationTimer;
         public void ExecuteAttacks(List<Tuple<Attack, List<Character>, List<Character>, Guid>> attacksToExecute)
         {
-            FileLogManager.ForceLog("Attacks to Execute:");
-            foreach (var tuple in attacksToExecute)
-            {
-                FileLogManager.ForceLog("Attack Name: {0}, Attackers: {1}, Defenders: {2}, ConfigKey: {3}", tuple.Item1.Name, string.Join(",", tuple.Item2.Select(ch => ch.Name)), string.Join(",", tuple.Item3.Select(ch => ch.Name)), tuple.Item4);
-            }
             attackSynchronizationTimer = new System.Threading.Timer(attackSynchronizationTimer_Callback, attacksToExecute, Timeout.Infinite, Timeout.Infinite);
             attackSynchronizationTimer.Change(5, Timeout.Infinite);
         }
@@ -3010,6 +3004,7 @@ namespace Module.HeroVirtualTabletop.Roster
             this.Commands_RaiseCanExecuteChanged();
             this.eventAggregator.GetEvent<CloseAttackConfigurationWidgetEvent>().Publish(null);
             this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Publish(null);
+            this.eventAggregator.GetEvent<CloseAutoFireAttackShotSelectionWidgetEvent>().Publish(null);
         }
 
         private void ResetAllAttacks()
@@ -3028,7 +3023,7 @@ namespace Module.HeroVirtualTabletop.Roster
                 this.Commands_RaiseCanExecuteChanged();
                 this.eventAggregator.GetEvent<CloseAttackConfigurationWidgetEvent>().Publish(null);
                 this.eventAggregator.GetEvent<AttackExecutionsFinishedEvent>().Publish(null);
-                FileLogManager.ForceLog("All attacks were reset");
+                this.eventAggregator.GetEvent<CloseAutoFireAttackShotSelectionWidgetEvent>().Publish(null);
             };
             Dispatcher.Invoke(d);
         }
@@ -3062,7 +3057,6 @@ namespace Module.HeroVirtualTabletop.Roster
                     defender.RefreshAttackConfigurationParameters();
                     defender.ScanAndFixMemoryPointer();
                 }
-                FileLogManager.ForceLog("Resetting attack {0} for {1} with config key {2}", attack.Name, string.Join(",", defenders.Select(ch => ch.Name)), configKey);
                 var tuple = this.attacksInProgress.FirstOrDefault(a => a.Item1 == attack);
                 if (tuple != null)
                     this.attacksInProgress.Remove(tuple);
@@ -3154,18 +3148,18 @@ namespace Module.HeroVirtualTabletop.Roster
             if (this.IsGangModeActive)
             {
                 this.DistributeAutoFireShotsAmongGangMembers();
-                this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Publish(this.targetCharacters.ToList());
+                this.eventAggregator.GetEvent<AutoFireAttackShotsAssignedEvent>().Publish(this.targetCharacters.ToList());
             }
             else
             {
                 if(this.targetCharacters.Count > 0)
-                    this.eventAggregator.GetEvent<LoadAutoFireAttackConfigurationWidgetEvent>().Publish(new Tuple<AnimatedAbilities.Attack, List<Characters.Character>, Guid>(this.currentAttack, this.targetCharacters, this.currentAttackConfigKey));
+                    this.eventAggregator.GetEvent<LoadAutoFireAttackShotSelectionWidgetEvent>().Publish(new Tuple<AnimatedAbilities.Attack, List<Characters.Character>, Guid>(this.currentAttack, this.targetCharacters, this.currentAttackConfigKey));
             }
         }
-        private void ConfigureAutoFireAttackThroughCombatSimulator(List<Character> targets)
+        private void ConfigureAutoFireAttack(List<Character> targets)
         {
             this.targetCharacters = targets;
-            this.ConfigureAttackThroughCombatSimulator();
+            this.ConfigureAttack();
         }
         private void ConfigureAreaAttackWithConfirmedTargets(List<Character> confirmedTargets)
         {
@@ -3252,9 +3246,15 @@ namespace Module.HeroVirtualTabletop.Roster
         {
             CrowdModel selectedCrowd = (SelectedParticipants[0] as CrowdMemberModel).RosterCrowd as CrowdModel;
             AddToAttackTarget(selectedCrowd);
+            if (this.targetCharacters.Count > 0 && !this.attacksInProgress.Any(t => t.Item4 == this.currentAttackConfigKey))
+                this.attacksInProgress.Add(new Tuple<Attack, List<Character>, List<Character>, Guid>(this.currentAttack, this.AttackingCharacters.ToList(), this.targetCharacters.ToList(), this.currentAttackConfigKey));
             if (this.IsSweepAttackInProgress)
             {
                 TargetAndExecuteAttack(null);
+            }
+            else if (this.IsPlayingAutoFire)
+            {
+                ConfigureAutoFireAttack();
             }
             else
                 ConfigureAttack();
@@ -3327,7 +3327,12 @@ namespace Module.HeroVirtualTabletop.Roster
                     {
                         if (this.AttackingCharacters.Any(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 > 1))
                         {
-                            attackConfig.MoveAttackerToTarget = true;
+                            if(this.currentAttack.AttackInfo != null && this.currentAttack.AttackInfo.AttackType == AttackType.Area)
+                            {
+                                
+                            }
+                            else
+                                attackConfig.MoveAttackerToTarget = true;
                         }
                     }
                     character.AddAttackConfiguration(this.currentAttack, attackConfig, this.currentAttackConfigKey); 
@@ -3340,6 +3345,10 @@ namespace Module.HeroVirtualTabletop.Roster
             if (IsSequenceViewActive)
             {
                 ConfigureAttackThroughCombatSimulator();
+                Dispatcher.Invoke(() => {
+                    Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
+                    Mouse.OverrideCursor = cursor;
+                });
             }
             else
             {
@@ -3649,27 +3658,42 @@ namespace Module.HeroVirtualTabletop.Roster
 
         #region Desktop Context Menu Handlers
 
-        private void desktopContextMenu_AbortMenuItemSelected(object sender, EventArgs e)
+        private void desktopContextMenu_AbortMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.AbortAction();
         }
-        void desktopContextMenu_SpawnMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_SpawnMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.Spawn();
         }
 
-        void desktopContextMenu_SavePositionMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_SavePositionMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.SavePosition();
         }
 
-        void desktopContextMenu_ResetOrientationMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_ResetOrientationMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.ResetOrientation();
         }
 
-        void desktopContextMenu_PlaceMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_PlaceMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.Place();
         }
 
@@ -3687,17 +3711,23 @@ namespace Module.HeroVirtualTabletop.Roster
             }
         }
 
-        void desktopContextMenu_MoveTargetToCameraMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_MoveTargetToCameraMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.MoveTargetToCamera();
         }
 
-        void desktopContextMenu_MoveCameraToTargetMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_MoveCameraToTargetMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.TargetAndFollow(true);
         }
 
-        void desktopContextMenu_ManueverWithCameraMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_ManueverWithCameraMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
             this.ToggleManeuverWithCamera();
         }

@@ -9,7 +9,6 @@ using Module.HeroVirtualTabletop.Movements;
 using Module.HeroVirtualTabletop.OptionGroups;
 using Module.Shared;
 using Module.Shared.Events;
-using Module.Shared.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -768,7 +767,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 //}
                 //else
                 {
-                    List<Character> restOfTheDefendingCharacters = defendingCharacters.Where(dc => dc != centerTarget).ToList();
+                    List<Character> restOfTheDefendingCharacters = defendingCharacters.Where(dc => dc != centerTarget && !dc.AttackConfigurationMap[configurationKey].Item2.IsSecondaryTarget).ToList();
                     if (restOfTheDefendingCharacters.Count > 0)
                     {
                         List<Character> defenders = restOfTheDefendingCharacters.Where(dc => dc.AttackConfigurationMap[configurationKey].Item2.IsSecondaryTarget && dc.AttackConfigurationMap[configurationKey].Item2.PrimaryTargetCharacter == centerTarget).ToList();
@@ -784,7 +783,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                         if (defendersForThisAttack.Any(dc => dc.IsMoving))
                         {
                             waitingForMovementToFinish = true;
-                            timerMoveThenAttack = new System.Threading.Timer(timerMoveThenAttack_Callback, new object[] { attackingCharacters, restOfTheDefendingCharacters, centerTarget }, Timeout.Infinite, Timeout.Infinite);
+                            timerMoveThenAttack = new System.Threading.Timer(timerMoveThenAttack_Callback, new object[] { attackingCharacters, restOfTheDefendingCharacters, centerTarget, configurationKey }, Timeout.Infinite, Timeout.Infinite);
                             timerMoveThenAttack.Change(50, Timeout.Infinite);
                         }
                         else
@@ -827,15 +826,18 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 foreach(var secondaryTarget in defendingCharacters.Where(dc => dc.AttackConfigurationMap[configurationKey].Item2.IsSecondaryTarget))
                 {
-                    var primaryTarget = defendingCharacters.First(dc => dc == secondaryTarget.AttackConfigurationMap[configurationKey].Item2.PrimaryTargetCharacter);
-                    var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
-                    var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
-                    if (distanceForSecondary < distanceForPrimary)
+                    var primaryTarget = defendingCharacters.FirstOrDefault(dc => dc == secondaryTarget.AttackConfigurationMap[configurationKey].Item2.PrimaryTargetCharacter);
+                    if(primaryTarget != null)
                     {
-                        int delayForSecondayTarget = (int)(delayForPrimaryTarget * distanceForSecondary / distanceForPrimary);
-                        var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget, configurationKey }, Timeout.Infinite, Timeout.Infinite);
-                        this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
-                        timerObstructionAnimation.Change(delayForSecondayTarget, Timeout.Infinite);
+                        var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
+                        var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                        if (distanceForSecondary < distanceForPrimary)
+                        {
+                            int delayForSecondayTarget = (int)(delayForPrimaryTarget * distanceForSecondary / distanceForPrimary);
+                            var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget, configurationKey }, Timeout.Infinite, Timeout.Infinite);
+                            this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
+                            timerObstructionAnimation.Change(delayForSecondayTarget, Timeout.Infinite);
+                        }
                     }
                 }
             }
@@ -873,35 +875,38 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             {
                 foreach(var secondaryTarget in defendingCharacters.Where(dc => dc.AttackConfigurationMap[configurationKey].Item2.IsSecondaryTarget))
                 {
-                    var primaryTarget = defendingCharacters.First(dc => dc == secondaryTarget.AttackConfigurationMap[configurationKey].Item2.PrimaryTargetCharacter);
-                    var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
-                    var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
-                    if (distanceForSecondary > distanceForPrimary)
+                    var primaryTarget = defendingCharacters.FirstOrDefault(dc => dc == secondaryTarget.AttackConfigurationMap[configurationKey].Item2.PrimaryTargetCharacter);
+                    if(primaryTarget != null)
                     {
-                        int obstacleHitPeriod = 0;
-                        int knockbackDistance = primaryTarget.AttackConfigurationMap[configurationKey].Item2.KnockBackDistance;
-                        int knockbackDistanceInVectorUnits = knockbackDistance * 8 + 5;
-                        var distanceFromPrimaryToSecondary = Vector3.Distance(primaryTarget.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
-                        //distanceFromPrimaryToSecondary = (distanceFromPrimaryToSecondary - 5) / 8f;
-                        if (knockbackDistanceInVectorUnits < 50) // 1 to 5 blocks - 1 sec
+                        var distanceForPrimary = Vector3.Distance(attackingCharacter.CurrentPositionVector, primaryTarget.CurrentPositionVector);
+                        var distanceForSecondary = Vector3.Distance(attackingCharacter.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                        if (distanceForSecondary > distanceForPrimary)
                         {
-                            obstacleHitPeriod = 800;// (int)((distanceFromPrimaryToSecondary / knockbackDistance) * 1000);
-                        }
-                        else if (knockbackDistanceInVectorUnits < 150) // 6 o 18 blocks - 2 sec
-                        {
-                            obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 2000);
-                        }
-                        else // >18 blocks - 3 sec
-                        {
-                            obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 3000);
-                        }
+                            int obstacleHitPeriod = 0;
+                            int knockbackDistance = primaryTarget.AttackConfigurationMap[configurationKey].Item2.KnockBackDistance;
+                            int knockbackDistanceInVectorUnits = knockbackDistance * 8 + 5;
+                            var distanceFromPrimaryToSecondary = Vector3.Distance(primaryTarget.CurrentPositionVector, secondaryTarget.CurrentPositionVector);
+                            //distanceFromPrimaryToSecondary = (distanceFromPrimaryToSecondary - 5) / 8f;
+                            if (knockbackDistanceInVectorUnits < 50) // 1 to 5 blocks - 1 sec
+                            {
+                                obstacleHitPeriod = 800;// (int)((distanceFromPrimaryToSecondary / knockbackDistance) * 1000);
+                            }
+                            else if (knockbackDistanceInVectorUnits < 150) // 6 o 18 blocks - 2 sec
+                            {
+                                obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 2000);
+                            }
+                            else // >18 blocks - 3 sec
+                            {
+                                obstacleHitPeriod = (int)((distanceFromPrimaryToSecondary / knockbackDistanceInVectorUnits) * 3000);
+                            }
 
-                        if (obstacleHitPeriod < 800)
-                            obstacleHitPeriod = 800;
+                            if (obstacleHitPeriod < 800)
+                                obstacleHitPeriod = 800;
 
-                        var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget, configurationKey }, Timeout.Infinite, Timeout.Infinite);
-                        this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
-                        timerObstructionAnimation.Change(obstacleHitPeriod, Timeout.Infinite);
+                            var timerObstructionAnimation = new System.Threading.Timer(timerObstructionAnimation_Callback, new object[] { attackingCharacter, secondaryTarget, configurationKey }, Timeout.Infinite, Timeout.Infinite);
+                            this.AddToAnimationTimerDictionary(secondaryTarget, timerObstructionAnimation);
+                            timerObstructionAnimation.Change(obstacleHitPeriod, Timeout.Infinite);
+                        }
                     }
                 }
             }
@@ -1587,7 +1592,6 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
        {
             Character character = e.Value.Item1;
             Guid configKey = e.Value.Item2;
-            FileLogManager.ForceLog("Knockback completed for {0} with configKey {1}, character has knockback option as {2}", character.Name, configKey.ToString(), character.AttackConfigurationMap[configKey].Item2.KnockBackOption);
             if(charactersWithIncompleteKnockback.Contains(character)) 
                 charactersWithIncompleteKnockback.Remove(character);
             if(charactersWithIncompleteKnockback.Count == 0)

@@ -48,7 +48,7 @@ namespace ApplicationShell
 
         void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
         {
-
+           logService.Error("Unhandled Exception");
         }
 
         void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)

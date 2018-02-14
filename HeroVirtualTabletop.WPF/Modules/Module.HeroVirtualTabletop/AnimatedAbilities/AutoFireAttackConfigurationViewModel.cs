@@ -71,7 +71,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             : base(busyService, container)
         {
             this.eventAggregator = eventAggregator;
-            this.eventAggregator.GetEvent<ConfigureAutoFireAttackEvent>().Subscribe(this.LoadAttackTargets);
+            this.eventAggregator.GetEvent<AssignAutoFireAttackShotsEvent>().Subscribe(this.LoadAttackTargets);
             this.ConfirmAutoFireAttackCommand = new DelegateCommand(ConfirmAutoFireAttack);
             this.DistributeNumberOfShotsCommand = new DelegateCommand<object>(this.DistributeNumberOfShots, CanDistributeNumberOfShots);
         }
@@ -94,11 +94,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private void ConfirmAutoFireAttack()
         {
-            this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Publish(this.DefendingCharacters.ToList());
-            Dispatcher.Invoke(() => {
-                Cursor cursor = new Cursor(Assembly.GetExecutingAssembly().GetManifestResourceStream("Module.HeroVirtualTabletop.Resources.Bullseye.cur"));
-                Mouse.OverrideCursor = cursor;
-            });
+            this.eventAggregator.GetEvent<AutoFireAttackShotsAssignedEvent>().Publish(this.DefendingCharacters.ToList());
         }
 
         private bool CanDistributeNumberOfShots(object state)

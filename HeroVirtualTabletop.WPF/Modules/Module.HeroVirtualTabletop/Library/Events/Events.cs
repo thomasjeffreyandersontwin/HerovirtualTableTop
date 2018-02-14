@@ -66,9 +66,10 @@ namespace Module.HeroVirtualTabletop.Library.Events
     public class LoadAttackTargetsSelectionWidgetEvent : PubSubEvent<List<Character>> { }
     public class AttackTargetsSelectionRequiredEvent : PubSubEvent<List<Character>> { }
     public class AttackTargetsConfirmedEvent : PubSubEvent<List<Character>> { }
-    public class LoadAutoFireAttackConfigurationWidgetEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
-    public class ConfigureAutoFireAttackEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
-    public class AutoFireAttackConfiguredEvent : PubSubEvent<List<Character>> { }
+    public class LoadAutoFireAttackShotSelectionWidgetEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
+    public class CloseAutoFireAttackShotSelectionWidgetEvent : PubSubEvent<Object> { }
+    public class AssignAutoFireAttackShotsEvent : PubSubEvent<Tuple<Attack, List<Character>, Guid>> { }
+    public class AutoFireAttackShotsAssignedEvent : PubSubEvent<List<Character>> { }
 
     #endregion
 

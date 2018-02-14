@@ -77,8 +77,9 @@ namespace Module.HeroVirtualTabletop.Library
             this.eventAggregator.GetEvent<LoadAttackTargetsSelectionWidgetEvent>().Subscribe(this.LoadTargetSelectionWidget);
             this.eventAggregator.GetEvent<AttackTargetsConfirmedEvent>().Subscribe(this.CloseAttackTargetSelectionWidget);
             this.eventAggregator.GetEvent<ConfigureSweepAttackEvent>().Subscribe(this.ConfigureAttacks);
-            this.eventAggregator.GetEvent<LoadAutoFireAttackConfigurationWidgetEvent>().Subscribe(this.LoadAutoFireAttackConfigurationWidget);
-            this.eventAggregator.GetEvent<AutoFireAttackConfiguredEvent>().Subscribe(this.CloseAutoFireAttackConfigurationWidget);
+            this.eventAggregator.GetEvent<LoadAutoFireAttackShotSelectionWidgetEvent>().Subscribe(this.LoadAutoFireAttackConfigurationWidget);
+            this.eventAggregator.GetEvent<AutoFireAttackShotsAssignedEvent>().Subscribe(this.CloseAutoFireAttackConfigurationWidget);
+            this.eventAggregator.GetEvent<CloseAutoFireAttackShotSelectionWidgetEvent>().Subscribe(this.CloseAutoFireAttackConfigurationWidget);
         }
 
         #endregion
@@ -240,7 +241,11 @@ namespace Module.HeroVirtualTabletop.Library
                 AutoFireAttackConfigurationViewModel viewModel = this.Container.Resolve<AutoFireAttackConfigurationViewModel>();
                 PopupService.ShowDialog("AutoFireAttackConfigurationView", viewModel, "", false, null, new SolidColorBrush(Colors.Transparent), style);
             }
-            this.eventAggregator.GetEvent<ConfigureAutoFireAttackEvent>().Publish(tuple);
+            this.eventAggregator.GetEvent<AssignAutoFireAttackShotsEvent>().Publish(tuple);
+        }
+        private void CloseAutoFireAttackConfigurationWidget(Object state)
+        {
+            PopupService.CloseDialog("AutoFireAttackConfigurationView");
         }
 
         private void CloseAutoFireAttackConfigurationWidget(List<Character> confirmedTargets)
