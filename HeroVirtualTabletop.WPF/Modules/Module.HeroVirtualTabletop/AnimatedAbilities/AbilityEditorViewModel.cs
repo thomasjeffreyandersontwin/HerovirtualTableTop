@@ -760,8 +760,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                     Object selectedAnimationElement = Helper.GetCurrentSelectedAnimationInAnimationCollection(state, out parentAnimationElement);
                     if (selectedAnimationElement != null && selectedAnimationElement is IAnimationElement) // Only update if something is selected
                     {
-                        this.SelectedAnimationElement = selectedAnimationElement as IAnimationElement;
                         this.SelectedAnimationParent = parentAnimationElement;
+                        this.SelectedAnimationElement = selectedAnimationElement as IAnimationElement;
                         this.SetCurrentSequenceAnimation();
                         this.SetCurrentReferenceAbility();
                         this.SetCurrentPauseElement();
@@ -1561,9 +1561,22 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
 
         private IAnimationElement GetNextAnimationElement(IAnimationElement selectedAnimationElement)
         {
-            if (selectedAnimationElement.Order == currentAbility.LastOrder)
-                return null;
-            return currentAbility.AnimationElements.Where(x => { return x.Order == selectedAnimationElement.Order + 1; }).FirstOrDefault();
+            IAnimationElement nextElement = null;
+            if (SelectedAnimationParent != null && SelectedAnimationParent is SequenceElement)
+            {
+                SequenceElement seqElement = this.SelectedAnimationParent as SequenceElement;
+                if(seqElement.SequenceType == AnimationSequenceType.And)
+                {
+                    if (selectedAnimationElement.Order != seqElement.LastOrder)
+                        nextElement = seqElement.AnimationElements.Where(x => { return x.Order == selectedAnimationElement.Order + 1; }).FirstOrDefault();
+                }
+            }
+            else
+            {
+                if (selectedAnimationElement.Order != currentAbility.LastOrder)
+                    nextElement = currentAbility.AnimationElements.Where(x => { return x.Order == selectedAnimationElement.Order + 1; }).FirstOrDefault();
+            }
+            return nextElement;
         }
         #endregion
 
@@ -1654,7 +1667,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
             Character target = targetCharacter ?? ability.Owner;
             if (target != null && ability != null)
             {
-                if (Helper.GlobalVariables_IntegrateWithHCS && !ability.IsAttack)
+                if (Helper.GlobalVariables_IntegrateWithHCS && !ability.IsAttack && ability.Name != Constants.SWEEP_ABILITY_NAME)
                     this.hcsIntegrator.PlaySimpleAbility(target, ability);
                 ability.Play(Target: target);
                 if (ability.Name == Constants.SWEEP_ABILITY_NAME)

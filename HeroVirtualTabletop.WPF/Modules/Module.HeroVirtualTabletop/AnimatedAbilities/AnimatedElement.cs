@@ -232,6 +232,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         public virtual void DeActivate(Character Target = null)
         {
             this.IsActive = false;
+            if(this.Resource != null && this.Resource.Reference != null)
+                this.Resource.Reference.DeActivate();
         }
         protected virtual AnimationResource GetResource()
         {
@@ -1424,6 +1426,11 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 {
                     item.IsActive = false;
                 }
+            }
+            if(this.AnimationElements != null)
+            {
+                foreach (var animationElement in this.AnimationElements)
+                    animationElement.DeActivate();
             }
             OnPropertyChanged("IsActive");
         }

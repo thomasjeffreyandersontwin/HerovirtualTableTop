@@ -301,7 +301,7 @@
                 <RowDefinition />
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid x:Name="resourcesGrid" Grid.Row="0">
+            <Grid x:Name="resourcesGrid" Grid.Row="0" Margin="0,-1,0.4,0.8">
                 <DataGrid x:Name="dataGridMOVResources" 
                           MaxWidth="400"
                           Background="Transparent" RowBackground="Transparent" Margin="5" BorderBrush="#FF1144FF"
@@ -327,7 +327,7 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Tags" Binding="{Binding TagLine}"></DataGridTextColumn>
-                        <DataGridTemplateColumn Width="200" Header="Name">
+                        <DataGridTemplateColumn Width="200" Header="Name" SortMemberPath="Name">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
