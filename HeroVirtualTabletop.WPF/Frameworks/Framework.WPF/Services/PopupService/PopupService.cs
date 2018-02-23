@@ -177,6 +177,7 @@ namespace Framework.WPF.Services.PopupService
                 //else
                 {
                     win.SizeToContent = SizeToContent.WidthAndHeight;
+                    win.MaxHeight = 700;
                     //win.ResizeMode = ResizeMode.CanResizeWithGrip; // To be able to resize even with windowstyle none and allowtransparency true
                 }
 

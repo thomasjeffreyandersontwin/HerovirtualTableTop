@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna. Framework;
 using Module.HeroVirtualTabletop.AnimatedAbilities;
 using Module.HeroVirtualTabletop.Characters;
 using Module.HeroVirtualTabletop.Library.Enumerations;
@@ -55,6 +55,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         private bool eligibleCombatantsUpdatePending = false;
         private bool attackInfoUpdatedForCurrentAttack = false;
         public List<Character> InGameCharacters { get; set; }
+        public CombatantsCollection CurrentOnDeckCombatants { get; set; }
         public HCSIntegrationAction LastIntegrationAction { get; set; }
         public ActiveCharacterInfo CurrentActiveCharacterInfo { get; set; }
         public AttackResponseBase CurrentAttackResult { get; set; }
@@ -272,6 +273,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             this.CurrentOnDeckCombatantsFileContents = json;
             if (json != null)
                 onDeckCombatants = JsonConvert.DeserializeObject<CombatantsCollection>(json);
+            this.CurrentOnDeckCombatants = onDeckCombatants;
             return onDeckCombatants;
         }
 
@@ -474,25 +476,28 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
         {
             AttackResponseBase attackResult = null;
             string json = GetAttackResultsFileContents();
-            if (json != this.CurrentAttackResultFileContents)
-                this.attackInfoUpdatedForCurrentAttack = true;
-            this.CurrentAttackResultFileContents = json;
-            switch (this.CurrentAttackType)
+            if(!string.IsNullOrEmpty(json))
             {
-                case HCSAttackType.Area:
-                    attackResult = JsonConvert.DeserializeObject<AreaAttackResponse>(json);
-                    break;
-                case HCSAttackType.Vanilla:
-                    attackResult = JsonConvert.DeserializeObject<AttackResponse>(json);
-                    break;
-                case HCSAttackType.AutoFire:
-                    attackResult = JsonConvert.DeserializeObject<AutoFireAttackResponse>(json);
-                    break;
-                case HCSAttackType.Sweep:
-                    attackResult = GetSweepAttackResults(json);
-                    break;
-                default:
-                    break;
+                if (json != this.CurrentAttackResultFileContents)
+                    this.attackInfoUpdatedForCurrentAttack = true;
+                this.CurrentAttackResultFileContents = json;
+                switch (this.CurrentAttackType)
+                {
+                    case HCSAttackType.Area:
+                        attackResult = JsonConvert.DeserializeObject<AreaAttackResponse>(json);
+                        break;
+                    case HCSAttackType.Vanilla:
+                        attackResult = JsonConvert.DeserializeObject<AttackResponse>(json);
+                        break;
+                    case HCSAttackType.AutoFire:
+                        attackResult = JsonConvert.DeserializeObject<AutoFireAttackResponse>(json);
+                        break;
+                    case HCSAttackType.Sweep:
+                        attackResult = GetSweepAttackResults(json);
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return attackResult;
@@ -504,23 +509,23 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             sweepResponse.Attacks = new List<AttackResponseBase>();
             dynamic sweepResponseObj = JsonConvert.DeserializeObject(json);
             sweepResponse.Token = sweepResponseObj.Token;
-            dynamic attacks = sweepResponseObj.Attacks;
+            JToken responseToekn = JToken.Parse(json);
+            var targetsToken = responseToekn.Children().Where(t => t is JProperty && (t as JProperty).Name == "Affected Targets").FirstOrDefault();
+            JProperty targetsProperty = targetsToken.Value<JProperty>();
+            var value = targetsProperty.Value;
+            JArray attacks = value.Value<JArray>();
+            //dynamic attacks = sweepResponseObj.Attacks;
             if(attacks != null)
             {
                 foreach(var attack in attacks)
                 {
                     AttackResponseBase attackResponse = null;
                     var jsonString = JsonConvert.SerializeObject(attack);
-                    if (attack.Type == Constants.ATTACK_RESULT_TYPE_NAME)
-                    {
-                        attackResponse = JsonConvert.DeserializeObject<AttackResponse>(jsonString);
-                    }
-                    else if(attack.Type == Constants.AREA_ATTACK_RESULT_TYPE_NAME)
-                    {
-                        attackResponse = JsonConvert.DeserializeObject<AreaAttackResponse>(jsonString);
-                    }
+                    //AttackResponse[] attackResponses = JsonConvert.DeserializeObject<AttackResponse[]>(jsonString);
+                    //attackResponse = attackResponses.FirstOrDefault();
+                    attackResponse = JsonConvert.DeserializeObject<AttackResponse>(jsonString);
 
-                    if(attackResponse != null)
+                    if (attackResponse != null)
                     {
                         sweepResponse.Attacks.Add(attackResponse);
                     }
@@ -965,7 +970,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                     JObject detailsObj = d.Details;
                     if(detailsObj != null)
                     {
-                        var isRangedObj = detailsObj.Properties().Where(p => p.Name == "Ability.ISRANGED").Select(p => p.Value);
+                        var isRangedObj = detailsObj.Properties().Where(p => p.Name == "IsRanged").Select(p => p.Value);
                         if (isRangedObj != null && isRangedObj.Count() > 0)
                         {
                             dynamic rangeInfo = isRangedObj.First();
@@ -977,7 +982,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                             }
                         }
 
-                        var canSpreadObj = detailsObj.Properties().Where(p => p.Name == "Ability.CANSPREAD").Select(p => p.Value);
+                        var canSpreadObj = detailsObj.Properties().Where(p => p.Name == "CanSpread").Select(p => p.Value);
                         if (canSpreadObj != null && canSpreadObj.Count() > 0)
                         {
                             dynamic spreadInfo = canSpreadObj.First();
@@ -988,6 +993,18 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                                     attackInfo.CanSpread = b;
                             }
                         }
+                    }
+                    if (d.IsRanged != null)
+                    {
+                        bool b;
+                        if (Boolean.TryParse(d.IsRanged.ToString(), out b))
+                            attackInfo.IsRanged = b;
+                    }
+                    if (d.CanSpread != null)
+                    {
+                        bool b;
+                        if (Boolean.TryParse(d.CanSpread.ToString(), out b))
+                            attackInfo.CanSpread = b;
                     }
                 }
             }
@@ -1081,7 +1098,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
             WriteToAbilityActivatedFile(sweepAttackRequest);
             this.LastIntegrationAction = HCSIntegrationAction.AttackInitiated;
-            GenerateSampleSweepAttackResult(sweepAttackRequest);
+            //GenerateSampleSweepAttackResult(sweepAttackRequest);
         }
         private void ConfigureVanillaAttack(Attack attack, Character attacker, Character defender, Guid configKey)
         {
@@ -1169,6 +1186,15 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             foreach (Character defender in defenders)
             {
                 AttackRequest areaEffectTarget = GetAttackRequest(attack, attacker, defender);
+                foreach(Character def in defenders.Where(d => areaEffectTarget.Obstructions.Contains(d.Name) && this.CurrentOnDeckCombatants.Combatants.Any(c => c.CharacterName == d.Name)))
+                {
+                    areaEffectTarget.Obstructions.Remove(def.Name);
+                }
+                foreach (Character def in defenders.Where(d => areaEffectTarget.PotentialKnockbackCollisions.Any(c => c.CollisionObject == d.Name) && this.CurrentOnDeckCombatants.Combatants.Any(c => c.CharacterName == d.Name)))
+                {
+                    PotentialKnockbackCollision pkc = areaEffectTarget.PotentialKnockbackCollisions.First(c => c.CollisionObject == def.Name);
+                    areaEffectTarget.PotentialKnockbackCollisions.Remove(pkc);
+                }
                 areaAttackRequest.Targets.Add(areaEffectTarget);
             }
             if (defenders.Any(d => d.AttackConfigurationMap[configKey].Item2.IsCenterTarget))
@@ -1196,6 +1222,15 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
                 for(int i = 0; i < assignedShots; i++)
                 {
                     AttackRequest autoFireTarget = GetAttackRequest(attack, attacker, defender);
+                    foreach (Character def in defenders.Where(d => autoFireTarget.Obstructions.Contains(d.Name) && this.CurrentOnDeckCombatants.Combatants.Any(c => c.CharacterName == d.Name)))
+                    {
+                        autoFireTarget.Obstructions.Remove(def.Name);
+                    }
+                    foreach (Character def in defenders.Where(d => autoFireTarget.PotentialKnockbackCollisions.Any(c => c.CollisionObject == d.Name)))
+                    {
+                        PotentialKnockbackCollision pkc = autoFireTarget.PotentialKnockbackCollisions.First(c => c.CollisionObject == def.Name);
+                        autoFireTarget.PotentialKnockbackCollisions.Remove(pkc);
+                    }
                     autoFireAttackRequest.Targets.Add(autoFireTarget);
                 }
                 
@@ -1206,6 +1241,8 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
             var maxDist = Helper.CalculateMaximumDistanceBetweenTwoPointsInASetOfPoints(intersectionPointsOfDefenderProjections.ToArray());
             autoFireAttackRequest.Width = (int)Math.Round(maxDist / 8f, MidpointRounding.AwayFromZero);
             autoFireAttackRequest.Shots = attack.AttackInfo.AutoFireMaxShots;
+            if(defenders.Count > 1)
+                autoFireAttackRequest.Spray = true;
 
             return autoFireAttackRequest;
         }

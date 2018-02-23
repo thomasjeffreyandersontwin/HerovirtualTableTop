@@ -389,7 +389,8 @@ namespace Module.HeroVirtualTabletop.Roster
                 }
                 return false;
             }
-        }
+                    
+        }                
 
         public CrowdModel SelectedCrowd
         {
@@ -3766,8 +3767,11 @@ namespace Module.HeroVirtualTabletop.Roster
             this.TargetAndExecuteAttack(null);
         }
 
-        void desktopContextMenu_AttackTargetAndExecuteCrowdMenuItemSelected(object sender, EventArgs e)
+        void desktopContextMenu_AttackTargetAndExecuteCrowdMenuItemSelected(object sender, CustomEventArgs<Object> e)
         {
+            Character character = e.Value as Character;
+            if (character != null)
+                AddDesktopTargetToRosterSelection(character);
             this.TargetAndExecuteCrowd();
         }
         void desktopContextMenu_ExecuteSweepAttackMenuItemSelected(object sender, EventArgs e)

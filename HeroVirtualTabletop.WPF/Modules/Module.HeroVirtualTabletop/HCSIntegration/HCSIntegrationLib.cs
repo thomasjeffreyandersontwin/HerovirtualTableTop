@@ -247,6 +247,7 @@ namespace Module.HeroVirtualTabletop.HCSIntegration
 
     public class SweepAttackResponse : AttackResponseBase
     {
+        [JsonProperty("Affected Targets")]
         public List<AttackResponseBase> Attacks { get; set; }
     }
 

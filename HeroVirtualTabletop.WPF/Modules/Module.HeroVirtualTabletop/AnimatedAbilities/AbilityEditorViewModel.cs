@@ -1673,8 +1673,8 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
                 if (ability.Name == Constants.SWEEP_ABILITY_NAME)
                 {
                     target.DisableSimpleAbilities(new List<AnimatedAbility> { Helper.GlobalDefaultSweepAbility });
-                    List<Attack> nonAutoFireAttacks = target.AnimatedAbilities.Where(aa => aa.IsAttack && !(aa as Attack).IsAutoFire).Cast<Attack>().ToList();
-                    target.DisableAttacks(nonAutoFireAttacks);
+                    List<Attack> attacksToExclude = target.AnimatedAbilities.Where(aa => aa.IsAttack && !(aa as Attack).IsAutoFire && !(aa as Attack).IsAreaEffect).Cast<Attack>().ToList();
+                    target.DisableAttacks(attacksToExclude);
                     this.currentSweeper = target; 
                 }
             }

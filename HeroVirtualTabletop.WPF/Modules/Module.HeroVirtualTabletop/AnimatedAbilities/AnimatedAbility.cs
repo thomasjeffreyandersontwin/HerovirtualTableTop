@@ -254,6 +254,7 @@ namespace Module.HeroVirtualTabletop.AnimatedAbilities
         }
 
         private AttackInfo attackInfo;
+        [JsonIgnore]
         public AttackInfo AttackInfo
         {
             get

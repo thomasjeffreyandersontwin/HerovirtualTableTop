@@ -18,34 +18,38 @@
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </UserControl.Resources>
-    <Grid >
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition/>
-        </Grid.RowDefinitions>
-
-        <Grid HorizontalAlignment="Right" Margin="1" Grid.Row="0">
-            <ListView Grid.Row="1" x:Name="listViewOptionGroup"
+    
+        <Grid >
+            <Grid.RowDefinitions>
+                <RowDefinition MaxHeight="700"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+        <ScrollViewer>
+            <Grid HorizontalAlignment="Right" Margin="1" Grid.Row="0">
+                <ListView Grid.Row="1" x:Name="listViewOptionGroup"
                     ItemsSource="{Binding AttackConfigurations, Mode=OneWay}"
                     AllowDrop="True"
                     ItemContainerStyle="{StaticResource ListViewtemStyleNoHighlighting}">
-                <ListView.Style>
-                    <Style TargetType="ListView">
-                        <Setter Property="Background" Value="Transparent"></Setter>
-                        <Setter Property="BorderThickness" Value="0"></Setter>
-                    </Style>
-                </ListView.Style>
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <abilities:ActiveAttackView/>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+                    <ListView.Style>
+                        <Style TargetType="ListView">
+                            <Setter Property="Background" Value="Transparent"></Setter>
+                            <Setter Property="BorderThickness" Value="0"></Setter>
+                        </Style>
+                    </ListView.Style>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <abilities:ActiveAttackView/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+    </ScrollViewer>
+
+    <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2">
+                <Button x:Name="btnOk"  Margin="2" Content="OK" Command="{Binding ConfirmAttacksCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
+                <Button x:Name="btnCancel"  Margin="2"  Content="Cancel" Command="{Binding CancelAttacksCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
+            </StackPanel>
         </Grid>
-        
-        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" Grid.Row="1" Grid.ColumnSpan="2">
-            <Button x:Name="btnOk"  Margin="2" Content="OK" Command="{Binding ConfirmAttacksCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
-            <Button x:Name="btnCancel"  Margin="2"  Content="Cancel" Command="{Binding CancelAttacksCommand}" Style="{StaticResource ButtonDefaultStyle}"/>
-        </StackPanel>
-    </Grid>
+
 </UserControl>
