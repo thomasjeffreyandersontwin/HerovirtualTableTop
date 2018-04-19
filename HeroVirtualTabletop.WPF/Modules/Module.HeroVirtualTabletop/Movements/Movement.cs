@@ -1025,7 +1025,8 @@ namespace Module.HeroVirtualTabletop.Movements
 
         #region Movement Calculations - Get Unit, Rot Angle, Speed, Collision Vector, Allowable Dest Vector etc.
 
-        private bool IsNan(Vector3 vector)
+        private bool IsNan(
+            Vector3 vector)
         {
             return float.IsNaN(vector.X) || float.IsNaN(vector.Y) || float.IsNaN(vector.Z);
         }
@@ -1686,7 +1687,7 @@ namespace Module.HeroVirtualTabletop.Movements
                 if (HasCollision(collisionVector))
                 {
                     foundCollision = true;
-                    target.MovementInstruction.CharacterBodyCollisionOffsetVector = bottomOffsetVector;
+                    target.MovementInstruction. CharacterBodyCollisionOffsetVector = bottomOffsetVector;
                 }
 
             }
@@ -2224,15 +2225,7 @@ namespace Module.HeroVirtualTabletop.Movements
                     {
                         if (!target.MovementInstruction.IsInCollision)
                         {
-                            //if ((DateTime.UtcNow - target.MovementInstruction.MovementStartTime).Seconds > 15)
-                            //{
-                            //    target.CurrentPositionVector = target.MovementInstruction.OriginalDestinationVector;
-                            //    this.ResetMovement(target);
-                            //    this.StopMovement(target);
-                            //    OnMovementFinished(this, new CustomEventArgs<Characters.Character> { Value = target });
-                            //}
-                            //else
-                                await Move(target); //
+                            await Move(target); //
                         }
                         else
                         {

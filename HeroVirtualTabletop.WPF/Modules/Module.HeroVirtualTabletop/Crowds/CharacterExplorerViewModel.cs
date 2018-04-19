@@ -1,4 +1,5 @@
-﻿using Framework.WPF.Behaviors;
+﻿extern alias HVTRefactored;
+using Framework.WPF.Behaviors;
 using Framework.WPF.Library;
 using Framework.WPF.Services.BusyService;
 using Microsoft.Practices.Prism.Commands;
@@ -32,6 +33,12 @@ using Module.HeroVirtualTabletop.OptionGroups;
 using Module.HeroVirtualTabletop.Identities;
 using Module.HeroVirtualTabletop.Library.Converters;
 using Module.HeroVirtualTabletop.Desktop;
+using MigratedCrowds = HVTRefactored::HeroVirtualTabletop.Crowd;
+using MigratedCharacters = HVTRefactored::HeroVirtualTabletop.ManagedCharacter;
+using MigratedAbilities = HVTRefactored::HeroVirtualTabletop.AnimatedAbility;
+using MigratedAttacks = HVTRefactored::HeroVirtualTabletop.Attack;
+using MigratedMovements = HVTRefactored::HeroVirtualTabletop.Movement;
+using MigratedDesktop = HVTRefactored::HeroVirtualTabletop.Desktop;
 
 namespace Module.HeroVirtualTabletop.Crowds
 {
@@ -289,6 +296,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         public DelegateCommand<object> PasteActionsAsReferencesCommand { get; private set; }
         public DelegateCommand<object> RemoveAllActionsCommand { get; private set; }
         public DelegateCommand<object> CheckRosterConsistencyCommand { get; private set; }
+        public DelegateCommand MigrateRepositoryCommand { get; private set; }
 
         #endregion
 
@@ -346,6 +354,7 @@ namespace Module.HeroVirtualTabletop.Crowds
             this.PasteActionsAsReferencesCommand = new DelegateCommand<object>(this.PasteActionsAsReferences, this.CanPasteActionsAsReferences);
             this.RemoveAllActionsCommand = new DelegateCommand<object>(this.RemoveAllActions, this.CanRemoveAllActions);
             this.CloneMembershipsCommand = new DelegateCommand(this.CloneMemberships, this.CanCloneMemberships);
+            this.MigrateRepositoryCommand = new DelegateCommand(this.MigrateRepository);
             UpdateSelectedCrowdMemberCommand = new SimpleCommand
             {
                 ExecuteDelegate = x =>
@@ -525,6 +534,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                    else
                        this.BusyService.HideBusy();
                    //this.AddCrowdsFromFile(); // Add models for Jeff
+                   //this.MigrateToRefactoredRepo();
                };
             Application.Current.Dispatcher.BeginInvoke(d);
             
@@ -654,6 +664,419 @@ namespace Module.HeroVirtualTabletop.Crowds
                 this.lastCharacterCrowdStateToUpdate = null;
             }
         }
+        #endregion
+
+
+        #region Migrate to refactored Repo
+
+        HVTRefactored::HeroVirtualTabletop.Crowd.CrowdRepositoryImpl migratedRepo = new HVTRefactored::HeroVirtualTabletop.Crowd.CrowdRepositoryImpl();
+
+        private async void MigrateRepository()
+        {
+            this.BusyService.ShowBusy();
+            await MigrateToRefactoredRepo();
+            this.BusyService.HideBusy();
+        }
+        private async Task MigrateToRefactoredRepo()
+        {
+            await Task.Run(() =>
+            {
+                migratedRepo.CrowdRepositoryPath = Path.Combine(Settings.Default.CityOfHeroesGameDirectory, Constants.GAME_DATA_FOLDERNAME, "MigratedRepo.data");
+                foreach (CrowdModel cm in this.CrowdCollection)
+                {
+                    MigrateCrowd(cm, null);
+                }
+                foreach (var legacyCharacter in this.AllCharactersCrowd.Where(c => c is Character && c.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME))
+                {
+
+                    try
+                    {
+                        var migratedCharacter = migratedRepo.Characters.FirstOrDefault(mc => mc.Name == legacyCharacter.Name);
+                        if(legacyCharacter.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME)
+                            migratedCharacter = migratedRepo.Characters.FirstOrDefault(mc => mc.Name == Constants.DEFAULT_CHARACTER_NAME);
+                        if (migratedCharacter != null)
+                        {
+                            MigratePowers(legacyCharacter as CrowdMemberModel, migratedCharacter as MigratedCrowds.CharacterCrowdMember);
+                            MigrateIdentities(legacyCharacter as CrowdMemberModel, migratedCharacter as MigratedCrowds.CharacterCrowdMember);
+                            MigrateMovements(legacyCharacter as CrowdMemberModel, migratedCharacter as MigratedCrowds.CharacterCrowdMember);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Module.Shared.Logging.FileLogManager.ForceLog("Migration error encountered for {0}", legacyCharacter.Name);
+                    }
+                }
+                foreach (var legacyCharacter in this.AllCharactersCrowd.Where(c => c is Character && c.Name == Constants.COMBAT_EFFECTS_CHARACTER_NAME))
+                {
+
+                    try
+                    {
+                        var migratedCharacter = migratedRepo.Characters.FirstOrDefault(mc => mc.Name == Constants.DEFAULT_CHARACTER_NAME);
+                        if (migratedCharacter != null)
+                        {
+                            MigratePowers(legacyCharacter as CrowdMemberModel, migratedCharacter as MigratedCrowds.CharacterCrowdMember);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Module.Shared.Logging.FileLogManager.ForceLog("Migration error encountered for {0}", legacyCharacter.Name);
+                    }
+                }
+            }
+            );
+            await migratedRepo.SaveCrowdsAsync();
+        }
+
+        private void MigrateCharacter(CrowdMemberModel legacyCharacter, HVTRefactored::HeroVirtualTabletop.Crowd.Crowd parent)
+        {
+            HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter = migratedRepo.NewCharacterCrowdMember(parent, legacyCharacter.Name);
+
+            // Custom option groups
+
+            //foreach (var customGroup in this.OptionGroups.Where(og => og.Type == HeroVirtualTabletop.OptionGroups.OptionType.Mixed))
+            //{
+            //    OptionGroup<CharacterOption> optGroup = new OptionGroup<CharacterOption>(customGroup.Name);
+            //    crowdMemberModel.AddOptionGroup(optGroup);
+            //    foreach (var customOption in customGroup.Options)
+            //    {
+            //        if (customOption is Identity)
+            //        {
+            //            Identity id = customOption as Identity;
+            //            Identity identityToRefer = crowdMemberModel.AvailableIdentities.FirstOrDefault(i => i.Name == id.Name);
+            //            if (identityToRefer != null)
+            //                optGroup.Add(identityToRefer);
+            //        }
+            //        else if (customOption is AnimatedAbility)
+            //        {
+            //            AnimatedAbility ab = customOption as AnimatedAbility;
+            //            AnimatedAbility abilityToRefer = crowdMemberModel.AnimatedAbilities.FirstOrDefault(aa => aa.Name == ab.Name);
+            //            if (abilityToRefer != null)
+            //                optGroup.Add(abilityToRefer);
+            //        }
+            //        else if (customOption is CharacterMovement)
+            //        {
+            //            CharacterMovement mv = customOption as CharacterMovement;
+            //            CharacterMovement characterMovementToRefer = crowdMemberModel.Movements.FirstOrDefault(m => m.Name == mv.Name);
+            //            if (characterMovementToRefer != null)
+            //                optGroup.Add(characterMovementToRefer);
+            //        }
+            //    }
+            //}
+        }
+
+        private void MigrateCrowd(CrowdModel legacyCrowd, HVTRefactored::HeroVirtualTabletop.Crowd.Crowd parent)
+        {
+            HVTRefactored::HeroVirtualTabletop.Crowd.Crowd migratedCrowd = migratedRepo.NewCrowd(parent, legacyCrowd.Name);
+            if(parent == null)
+                migratedRepo.AddCrowd(migratedCrowd);
+            foreach(var c in legacyCrowd.CrowdMemberCollection)
+            {
+                if(c is CrowdModel)
+                {
+                    MigrateCrowd(c as CrowdModel, migratedCrowd);
+                }
+                else
+                {
+                    if(c.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME)
+                        MigrateCharacter(c as CrowdMemberModel, migratedCrowd);
+                }
+            }
+        }
+        private void MigrateIdentities(CrowdMemberModel legacyCharacter, HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter)
+        {
+            foreach (Identity legacyIdentity in legacyCharacter.AvailableIdentities)
+            {
+                HVTRefactored::HeroVirtualTabletop.ManagedCharacter.IdentityImpl migratedIdentity = new HVTRefactored::HeroVirtualTabletop.ManagedCharacter.IdentityImpl();
+                migratedIdentity.Name = legacyIdentity.Name == "Base" ? legacyCharacter.Name : legacyIdentity.Name;
+                migratedIdentity.Type = legacyIdentity.Type == IdentityType.Costume ? HVTRefactored::HeroVirtualTabletop.ManagedCharacter.SurfaceType.Costume : HVTRefactored::HeroVirtualTabletop.ManagedCharacter.SurfaceType.Model;
+                migratedIdentity.Surface = legacyIdentity.Surface;
+                if (legacyIdentity.AnimationOnLoad != null)
+                {
+                    HVTRefactored::HeroVirtualTabletop.AnimatedAbility.AnimatedAbility migratedAnimationOnLoad = migratedCharacter.Abilities.Where(aa => aa.Name == legacyIdentity.AnimationOnLoad.Name).FirstOrDefault();
+                    migratedIdentity.AnimationOnLoad = migratedAnimationOnLoad;
+                }
+                if(migratedCharacter.Identities.Any(i => i.Name == migratedIdentity.Name))
+                {
+                    MigratedCharacters.Identity idToRemove = migratedCharacter.Identities.First(i => i.Name == migratedIdentity.Name);
+                    migratedCharacter.Identities.RemoveAction(idToRemove);
+                }
+                migratedCharacter.Identities.InsertAction(migratedIdentity);
+            }
+            if (legacyCharacter.DefaultIdentity != null)
+            {
+                HVTRefactored::HeroVirtualTabletop.ManagedCharacter.Identity migratedDefaultIdentity = migratedCharacter.Identities.Where(i => i.Name == legacyCharacter.DefaultIdentity.Name).FirstOrDefault();
+                migratedCharacter.Identities.Default = migratedDefaultIdentity;
+            }
+            if (legacyCharacter.ActiveIdentity != null)
+            {
+                HVTRefactored::HeroVirtualTabletop.ManagedCharacter.Identity migratedActiveIdentity = migratedCharacter.Identities.Where(i => i.Name == legacyCharacter.ActiveIdentity.Name).FirstOrDefault();
+                migratedCharacter.Identities.Active = migratedActiveIdentity;
+            }
+        }
+        private void MigratePowers(CrowdMemberModel legacyCharacter, HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter)
+        {
+            foreach (AnimatedAbility legacyAbility in legacyCharacter.AnimatedAbilities)
+            {
+                if (!legacyAbility.IsAttack)
+                {
+                    var migratedAbility = GetMigratedAbility(legacyAbility, migratedCharacter) as MigratedAbilities.AnimatedAbility;
+                    if (!migratedAbility.Name.EndsWith("OnHit") && !migratedCharacter.Abilities.Any(a => a.Name == migratedAbility.Name))
+                        migratedCharacter.Abilities.InsertAction(migratedAbility); 
+                }
+                else
+                {
+                    var migratedAbility = GetMigratedAttack(legacyAbility as Attack, migratedCharacter) as MigratedAbilities.AnimatedAbility;
+                    if (!migratedAbility.Name.EndsWith("OnHit") && !migratedCharacter.Abilities.Any(a => a.Name == migratedAbility.Name))
+                        migratedCharacter.Abilities.InsertAction(migratedAbility);
+                }
+            }
+        }
+        private MigratedAbilities.AnimationSequencer GetMigratedAttack(Attack legacyAttack, MigratedCrowds.CharacterCrowdMember migratedCharacter)
+        {
+            if (migratedCharacter.Abilities.Any(a => a.Name == legacyAttack.Name))
+                return migratedCharacter.Abilities.First(a => a.Name == legacyAttack.Name);
+            MigratedAttacks.AnimatedAttack migratedAttack = null;
+            if (legacyAttack.IsAreaEffect)
+            {
+                migratedAttack = new MigratedAttacks.AreaEffectAttackImpl();
+            }
+            else
+            {
+                migratedAttack = new MigratedAttacks.AnimatedAttackImpl();
+            }
+            migratedAttack.Name = legacyAttack.Name;
+            migratedAttack.Owner = migratedCharacter;
+            migratedAttack.Persistent = legacyAttack.Persistent;
+            migratedAttack.Type = legacyAttack.SequenceType == AnimationSequenceType.And ? HVTRefactored::HeroVirtualTabletop.AnimatedAbility.SequenceType.And : HVTRefactored::HeroVirtualTabletop.AnimatedAbility.SequenceType.Or;
+            foreach (var legacyAnimationElement in legacyAttack.AnimationElements)
+            {
+                MigrateAnimationElements(legacyAnimationElement, migratedAttack, migratedCharacter);
+            }
+            if (legacyAttack.OnHitAnimation != null)
+                migratedAttack.OnHitAnimation = GetMigratedAbility(legacyAttack.OnHitAnimation, migratedCharacter);
+
+            return migratedAttack;
+        }
+
+        private List<MigratedAbilities.AnimatedAbility> migratedAbilitiesCollection = new List<MigratedAbilities.AnimatedAbility>();
+
+        private MigratedAbilities.AnimatedAbility GetMigratedAbility(AnimatedAbility legacyAbility, MigratedCrowds.CharacterCrowdMember migratedCharacter)
+        {
+            if (migratedCharacter.Abilities.Any(a => a.Name == legacyAbility.Name))
+                return migratedCharacter.Abilities.First(a => a.Name == legacyAbility.Name);
+
+            HVTRefactored::HeroVirtualTabletop.AnimatedAbility.AnimatedAbility migratedAbility = new HVTRefactored::HeroVirtualTabletop.AnimatedAbility.AnimatedAbilityImpl();
+            migratedAbility.Name = legacyAbility.Name;
+            migratedAbility.Owner = migratedCharacter;
+            migratedAbility.Persistent = legacyAbility.Persistent;
+            migratedAbility.Type = legacyAbility.SequenceType == AnimationSequenceType.And ? HVTRefactored::HeroVirtualTabletop.AnimatedAbility.SequenceType.And : HVTRefactored::HeroVirtualTabletop.AnimatedAbility.SequenceType.Or;
+            foreach (var legacyAnimationElement in legacyAbility.AnimationElements)
+            {
+                MigrateAnimationElements(legacyAnimationElement, migratedAbility, migratedCharacter);
+            }
+
+            return migratedAbility;
+        }
+
+        private void MigrateAnimationElements(AnimationElement legacyElement, HVTRefactored::HeroVirtualTabletop.AnimatedAbility.AnimationSequencer migratedParentSequencer, MigratedCrowds.CharacterCrowdMember migratedCharacter)
+        {
+            MigratedAbilities.AnimationElement migratedElement = null;
+            switch (legacyElement.Type)
+            {
+                case AnimationElementType.Movement:
+                    MOVElement legacyMOVElement = legacyElement as MOVElement;
+                    MigratedAbilities.MovElement migratedMovElement = new MigratedAbilities.MovElementImpl();
+                    
+                    migratedMovElement.Mov = new MigratedAbilities.MovResourceImpl();
+                    migratedMovElement.Mov.Name = legacyElement.Resource.Name;
+                    migratedMovElement.Mov.Tag = legacyElement.Resource.TagLine;
+                    migratedMovElement.Mov.FullResourcePath = legacyElement.Resource.Value;
+
+                    migratedElement = migratedMovElement;
+                    break;
+                case AnimationElementType.Pause:
+                    PauseElement legacyPauseElement = legacyElement as PauseElement;
+                    MigratedAbilities.PauseElement migratedPauseElement = new MigratedAbilities.PauseElementImpl();
+
+                    migratedPauseElement.Duration = legacyPauseElement.Time;
+                    migratedPauseElement.IsUnitPause = legacyPauseElement.IsUnitPause;
+                    migratedPauseElement.CloseDistanceDelay = legacyPauseElement.CloseDistanceDelay;
+                    migratedPauseElement.ShortDistanceDelay = legacyPauseElement.ShortDistanceDelay;
+                    migratedPauseElement.MediumDistanceDelay = legacyPauseElement.MediumDistanceDelay;
+                    migratedPauseElement.LongDistanceDelay = legacyPauseElement.LongDistanceDelay;
+
+                    migratedElement = migratedPauseElement;
+                    break;
+                case AnimationElementType.FX:
+                    FXEffectElement legacyFXElement = legacyElement as FXEffectElement;
+                    MigratedAbilities.FXElement migratedFXElement = new MigratedAbilities.FXElementImpl();
+
+                    migratedFXElement.Color1 = legacyFXElement.Colors[0];
+                    migratedFXElement.Color2 = legacyFXElement.Colors[1];
+                    migratedFXElement.Color3 = legacyFXElement.Colors[2];
+                    migratedFXElement.Color4 = legacyFXElement.Colors[3];
+                    migratedFXElement.FX = new MigratedAbilities.FXResourceImpl();
+                    migratedFXElement.FX.Name = legacyFXElement.Resource.Name;
+                    migratedFXElement.FX.Tag = legacyFXElement.Resource.TagLine;
+                    migratedFXElement.FX.FullResourcePath = legacyFXElement.Resource.Value;
+                    migratedFXElement.IsDirectional = !legacyFXElement.IsNonDirectional;
+
+                    migratedElement = migratedFXElement;
+                    break;
+                case AnimationElementType.Sound:
+                    SoundElement legacySoundElement = legacyElement as SoundElement;
+                    MigratedAbilities.SoundElement migratedSoundElement = new MigratedAbilities.SoundElementImpl();
+
+                    migratedSoundElement.Sound = new MigratedAbilities.SoundResourceImpl();
+                    migratedSoundElement.Sound.Name = legacyElement.Resource.Name;
+                    migratedSoundElement.Sound.Tag = legacyElement.Resource.TagLine;
+                    migratedSoundElement.Sound.FullResourcePath = legacyElement.Resource.Value;
+
+                    migratedElement = migratedSoundElement;
+                    break;
+                case AnimationElementType.Sequence:
+                    SequenceElement legacySequenceElement = legacyElement as SequenceElement;
+                    MigratedAbilities.SequenceElement migratedSequenceElement = new MigratedAbilities.SequenceElementImpl();
+                    migratedSequenceElement.Type = legacySequenceElement.SequenceType == AnimationSequenceType.And ? MigratedAbilities.SequenceType.And : MigratedAbilities.SequenceType.Or;
+                    foreach (var legacyAnimationElement in legacySequenceElement.AnimationElements)
+                    {
+                        MigrateAnimationElements(legacyAnimationElement, migratedSequenceElement, migratedCharacter);
+                    }
+
+                    migratedElement = migratedSequenceElement;
+                    break;
+                case AnimationElementType.Reference:
+                    ReferenceAbility legacyRefElement = legacyElement as ReferenceAbility;
+                    if(legacyRefElement.Reference != null)
+                    {
+                        MigratedAbilities.ReferenceElement migratedRefElement = new MigratedAbilities.ReferenceElementImpl();
+
+                        migratedRefElement.Reference = new MigratedAbilities.ReferenceResourceImpl();
+                        var refOwner = migratedRepo.Characters.FirstOrDefault(c => c.Name == legacyRefElement.Reference.Owner.Name);
+                        if (refOwner == null)
+                        {
+                            refOwner = migratedRepo.Characters.FirstOrDefault(c => c.Name == Constants.DEFAULT_CHARACTER_NAME);
+                        }
+                        if (legacyRefElement.Reference.IsAttack)
+                            migratedRefElement.Reference.Ability = GetMigratedAttack(legacyRefElement.Reference as Attack, refOwner as MigratedCrowds.CharacterCrowdMember) as MigratedAttacks.AnimatedAttack;
+                        else
+                            migratedRefElement.Reference.Ability = GetMigratedAbility(legacyRefElement.Reference, refOwner as MigratedCrowds.CharacterCrowdMember);
+
+                        if (!migratedRefElement.Reference.Ability.Name.EndsWith("OnHit") && !refOwner.Abilities.Any(a => a.Name == migratedRefElement.Reference.Ability.Name))
+                            refOwner.Abilities.InsertAction(migratedRefElement.Reference.Ability);
+                        migratedRefElement.Reference.Character = refOwner;
+
+                        migratedElement = migratedRefElement;
+                    }
+                    
+                    break;
+                case AnimationElementType.LoadIdentity:
+                    break; 
+            }
+            if(migratedElement != null)
+            {
+                migratedElement.Name = string.IsNullOrEmpty(legacyElement.DisplayName) ? legacyElement.Name : legacyElement.DisplayName;
+                migratedElement.Persistent = legacyElement.Persistent;
+                migratedElement.PlayWithNext = legacyElement.PlayWithNext;
+
+                migratedParentSequencer.InsertElement(migratedElement);
+            }
+        }
+        private void MigrateMovements(CrowdMemberModel legacyCharacter, HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter)
+        {
+            foreach (CharacterMovement legacyCharacterMovement in legacyCharacter.Movements.Where(m => m.Movement != null))
+            {
+                var migratedCharacterMovement = GetMigratedCharacterMovement(legacyCharacterMovement, migratedCharacter);
+                if(!migratedCharacter.Movements.Any(m => m.Name == legacyCharacterMovement.Name))
+                {
+                    migratedCharacter.Movements.InsertAction(migratedCharacterMovement);
+                }
+            }
+
+            if (legacyCharacter.DefaultMovement != null)
+            {
+                MigratedMovements.CharacterMovement migratedDefaultMovement = migratedCharacter.Movements.Where(m => m.Name == legacyCharacter.DefaultMovement.Name).FirstOrDefault();
+                migratedCharacter.Movements.Default = migratedDefaultMovement;
+            }
+        }
+
+        private MigratedMovements.CharacterMovement GetMigratedCharacterMovement(CharacterMovement legacyCharacterMovement, MigratedCrowds.CharacterCrowdMember migratedCharacter)
+        {
+            MigratedMovements.CharacterMovement migratedCharacterMovement = null;
+            if (migratedCharacter.Movements.Any(m => m.Name == legacyCharacterMovement.Name))
+                migratedCharacterMovement = migratedCharacter.Movements.First(m => m.Name == legacyCharacterMovement.Name);
+            else
+            {
+                migratedCharacterMovement = new MigratedMovements.CharacterMovementImpl();
+                migratedCharacterMovement.Name = legacyCharacterMovement.Name;
+                migratedCharacterMovement.Owner = migratedCharacter;
+                migratedCharacterMovement.Speed = legacyCharacterMovement.MovementSpeed;
+                migratedCharacterMovement.Owner = migratedCharacter;
+                MigrateElementaryMovements(legacyCharacterMovement.Movement, migratedCharacterMovement);
+            }
+
+            return migratedCharacterMovement;
+        }
+
+        private void MigrateElementaryMovements(Movement legacyMovement, MigratedMovements.CharacterMovement migratedCharacterMovement)
+        {
+            MigratedCrowds.CharacterCrowdMember migratedDefaultCharacter = migratedRepo.Characters.FirstOrDefault(c => c.Name == Constants.DEFAULT_CHARACTER_NAME) as MigratedCrowds.CharacterCrowdMember;
+            MigratedMovements.Movement migratedMovement = new MigratedMovements.MovementImpl();
+            migratedMovement.HasGravity = legacyMovement.HasGravity;
+            migratedMovement.Name = legacyMovement.Name;
+            foreach(var legacyMember in legacyMovement.MovementMembers.Where(m => m.MemberAbility != null && m.MemberAbility.Reference != null && m.MemberAbility.Reference.Owner != null))
+            {
+                MigratedMovements.MovementMember migratedMovementMember = new MigratedMovements.MovementMemberImpl();
+                migratedMovementMember.Name = legacyMember.MemberName;
+                migratedMovementMember.Direction = GetMigratedDirection(legacyMember.MovementDirection);
+
+                var migratedRefAbilityOwner = migratedRepo.Characters.FirstOrDefault(c => c.Name == legacyMember.MemberAbility.Reference.Owner.Name);
+                var migratedRefAbility = migratedRefAbilityOwner.Abilities.FirstOrDefault(a => a.Name == legacyMember.MemberAbility.Reference.Name);
+                migratedRefAbility.Owner = migratedRefAbilityOwner;
+                migratedMovementMember.Ability = migratedRefAbility;
+                migratedMovementMember.AbilityReference = new MigratedAbilities.ReferenceResourceImpl();
+                migratedMovementMember.AbilityReference.Ability = migratedRefAbility;
+                migratedMovementMember.AbilityReference.Character = migratedRefAbilityOwner;
+
+                migratedMovement.MovementMembers.Add(migratedMovementMember);
+                //migratedMovement.AddMovementMember(migratedMovementMember.Direction, migratedRefAbility);
+            }
+
+            migratedCharacterMovement.Movement = migratedMovement;
+        }
+
+        private MigratedDesktop.Direction GetMigratedDirection(MovementDirection legacyDirection)
+        {
+            MigratedDesktop.Direction migratedDirection = MigratedDesktop.Direction.None;
+
+            switch (legacyDirection)
+            {
+                case MovementDirection.Left:
+                    migratedDirection = MigratedDesktop.Direction.Left;
+                    break;
+                case MovementDirection.Right:
+                    migratedDirection = MigratedDesktop.Direction.Right;
+                    break;
+                case MovementDirection.Forward:
+                    migratedDirection = MigratedDesktop.Direction.Forward;
+                    break;
+                case MovementDirection.Backward:
+                    migratedDirection = MigratedDesktop.Direction.Backward;
+                    break;
+                case MovementDirection.Upward:
+                    migratedDirection = MigratedDesktop.Direction.Upward;
+                    break;
+                case MovementDirection.Downward:
+                    migratedDirection = MigratedDesktop.Direction.Downward;
+                    break;
+                case MovementDirection.Still:
+                    migratedDirection = MigratedDesktop.Direction.Still;
+                    break;
+            }
+
+            return migratedDirection;
+        }
+
         #endregion
 
         #region Add Crowd

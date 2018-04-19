@@ -2816,32 +2816,34 @@ namespace Module.HeroVirtualTabletop.Roster
 
         private void DisableHTHAttacksOutOfDistanceLimit()
         {
-            if(this.ActiveCharacter != null)
+            if (this.ActiveCharacter != null)
             {
                 Character activeCharacter = this.ActiveCharacter as Character;
                 bool isWithinRange = false;
-                foreach(Character spawnedParticipant in this.Participants.Where(p => p != activeCharacter &&  (p as Character).HasBeenSpawned))
+                foreach (Character spawnedParticipant in this.Participants.Where(p => p != activeCharacter && (p as Character).HasBeenSpawned))
                 {
-                    float distance = Vector3.Distance(activeCharacter.CurrentPositionVector, spawnedParticipant.CurrentPositionVector)/8f;
+                    float distance = Vector3.Distance(activeCharacter.CurrentPositionVector, spawnedParticipant.CurrentPositionVector) / 8f;
                     if (distance <= activeCharacter.MaxDistanceLimit / 2)
                     {
                         isWithinRange = true;
                         break;
+
+
+                        if (!isWithinRange)
+                        {
+                            List<Attack> rangedAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsRanged).Cast<Attack>().ToList();
+                            activeCharacter.DisableAttacks(rangedAttacks);
+                        }
+                        else
+                        {
+                            List<Attack> hthAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsHandToHand).Cast<Attack>().ToList();
+                            hthAttacks.ForEach(a => a.IsEnabled = true);
+                        }
                     }
-                }
-                
-                if (!isWithinRange)
-                {
-                    List<Attack> rangedAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsRanged).Cast<Attack>().ToList();
-                    activeCharacter.DisableAttacks(rangedAttacks);
-                }
-                else
-                {
-                    List<Attack> hthAttacks = activeCharacter.AnimatedAbilities.Where(a => a.IsAttack && (a as Attack).IsHandToHand).Cast<Attack>().ToList();
-                    hthAttacks.ForEach(a => a.IsEnabled = true);
                 }
             }
         }
+            
 
         private void RosterTargetUpdated(object sender, EventArgs e)
         {
@@ -3305,13 +3307,13 @@ namespace Module.HeroVirtualTabletop.Roster
             if (!this.AttackingCharacters.Contains(character) && character.Name != Constants.COMBAT_EFFECTS_CHARACTER_NAME && character.Name != Constants.DEFAULT_CHARACTER_NAME)
             {
                 bool canAddCharacterToTargets = true;
-                //if (this.currentAttack.IsHandToHand)
-                //{
-                //    if(!this.AttackingCharacters.All(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 < ac.MaxDistanceLimit / 2))
-                //    {
-                //        canAddCharacterToTargets = false;
-                //    }
-                //}
+                if (this.currentAttack.IsHandToHand)
+                {
+                    if (!this.AttackingCharacters.All(ac => Vector3.Distance(ac.CurrentPositionVector, character.CurrentPositionVector) / 8 < ac.MaxDistanceLimit / 2))
+                    {
+                        canAddCharacterToTargets = false;
+                    }
+                }
                 if (canAddCharacterToTargets)
                 {
                     if (this.targetCharacters.FirstOrDefault(tc => tc.Name == character.Name) == null)

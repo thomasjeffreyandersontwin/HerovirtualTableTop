@@ -33,8 +33,9 @@
             <Button x:Name="btAddCharacter" Content="&#xf234;" ToolTip="Add Character (Ctrl+Plus)" Command="{Binding AddCharacterCommand}"/>
             <Button x:Name="btRemove" Content="&#xf235;" ToolTip="Remove (Ctrl+Minus/Del)" Command="{Binding DeleteCharacterCrowdCommand}" />
             <Button x:Name="btEdit" Content="&#xf044;" ToolTip="Edit (Ctrl+E)" Command="{Binding EditCharacterCommand}"/>
-            <Button x:Name="btAddToRoster" Content="&#xf090;" ToolTip="Add to Roster (Ctrl+R)" Command="{Binding AddToRosterCommand}" />
+            <Button x:Name="btAddToRoster" Content="&#xf090;" ToolTip="Add to Roster (Ctrl+R)" Command="{Binding AddToRosterCommand}" /> 
             <Button x:Name="btSave" Content="&#xf0c7;" ToolTip="Save (Ctrl+S)" Command="{Binding SaveCommand}" />
+            <Button x:Name="btMigrate" Content="&#xf04e;" ToolTip="Migrate Repository" Command="{Binding MigrateRepositoryCommand}" />
         </StackPanel>
     </Grid>
 </UserControl>
