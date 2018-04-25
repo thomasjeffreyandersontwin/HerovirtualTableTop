@@ -729,39 +729,16 @@ namespace Module.HeroVirtualTabletop.Crowds
 
         private void MigrateCharacter(CrowdMemberModel legacyCharacter, HVTRefactored::HeroVirtualTabletop.Crowd.Crowd parent)
         {
-            HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter = migratedRepo.NewCharacterCrowdMember(parent, legacyCharacter.Name);
-
-            // Custom option groups
-
-            //foreach (var customGroup in this.OptionGroups.Where(og => og.Type == HeroVirtualTabletop.OptionGroups.OptionType.Mixed))
-            //{
-            //    OptionGroup<CharacterOption> optGroup = new OptionGroup<CharacterOption>(customGroup.Name);
-            //    crowdMemberModel.AddOptionGroup(optGroup);
-            //    foreach (var customOption in customGroup.Options)
-            //    {
-            //        if (customOption is Identity)
-            //        {
-            //            Identity id = customOption as Identity;
-            //            Identity identityToRefer = crowdMemberModel.AvailableIdentities.FirstOrDefault(i => i.Name == id.Name);
-            //            if (identityToRefer != null)
-            //                optGroup.Add(identityToRefer);
-            //        }
-            //        else if (customOption is AnimatedAbility)
-            //        {
-            //            AnimatedAbility ab = customOption as AnimatedAbility;
-            //            AnimatedAbility abilityToRefer = crowdMemberModel.AnimatedAbilities.FirstOrDefault(aa => aa.Name == ab.Name);
-            //            if (abilityToRefer != null)
-            //                optGroup.Add(abilityToRefer);
-            //        }
-            //        else if (customOption is CharacterMovement)
-            //        {
-            //            CharacterMovement mv = customOption as CharacterMovement;
-            //            CharacterMovement characterMovementToRefer = crowdMemberModel.Movements.FirstOrDefault(m => m.Name == mv.Name);
-            //            if (characterMovementToRefer != null)
-            //                optGroup.Add(characterMovementToRefer);
-            //        }
-            //    }
-            //}
+            if (!migratedRepo.Characters.Any(c => c.Name == legacyCharacter.Name))
+            {
+                HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter = migratedRepo.NewCharacterCrowdMember(parent, legacyCharacter.Name);
+            }
+            else
+            {
+                HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember migratedCharacter = migratedRepo.Characters.FirstOrDefault(c => c.Name == legacyCharacter.Name) as HVTRefactored::HeroVirtualTabletop.Crowd.CharacterCrowdMember;
+                if (migratedCharacter != null)
+                    parent.AddCrowdMember(migratedCharacter);
+            }
         }
 
         private void MigrateCrowd(CrowdModel legacyCrowd, HVTRefactored::HeroVirtualTabletop.Crowd.Crowd parent)
@@ -962,7 +939,7 @@ namespace Module.HeroVirtualTabletop.Crowds
                         else
                             migratedRefElement.Reference.Ability = GetMigratedAbility(legacyRefElement.Reference, refOwner as MigratedCrowds.CharacterCrowdMember);
 
-                        if (!migratedRefElement.Reference.Ability.Name.EndsWith("OnHit") && !refOwner.Abilities.Any(a => a.Name == migratedRefElement.Reference.Ability.Name))
+                        if (!migratedRefElement.Reference.Ability.Name.EndsWith("OnHit") && migratedRefElement.Reference.Ability != null && !refOwner.Abilities.Any(a => a.Name == migratedRefElement.Reference.Ability.Name))
                             refOwner.Abilities.InsertAction(migratedRefElement.Reference.Ability);
                         migratedRefElement.Reference.Character = refOwner;
 
@@ -1741,7 +1718,7 @@ namespace Module.HeroVirtualTabletop.Crowds
         }
         #endregion
 
-        #region Flatten Copy Crowd
+        #region Numbered Flatten Copy Crowd
         public void NumberedFlattenCopyCrowd(object state)
         {
             this.ClipboardObject = this.SelectedCrowdModel;

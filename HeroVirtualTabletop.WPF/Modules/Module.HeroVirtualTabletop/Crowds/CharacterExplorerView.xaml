@@ -148,7 +148,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Image Grid.Column="0" Source="pack://application:,,,/Module.Shared;Component/Resources/Images/Search.png"/>
+                <Image Grid.Column="0" Source="pack://application:,,,/Module.Shared;Component/Resources/Images/Search.png" Height="24" VerticalAlignment="Bottom"/>
                 <!--The following text binding won't work, will need to modify it later-->
                 <TextBox Name="txtFilter" Grid.Column="1"                           
                          Text="{Binding Path=Filter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>

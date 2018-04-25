@@ -23,7 +23,7 @@
             <Button x:Name="btClone" Content="&#xf0c5;" ToolTip="Clone (Ctrl+C)" Command="{Binding CloneCharacterCrowdCommand}"/>
             <Button x:Name="btCut" Content="&#xf0c4;" ToolTip="Cut (Ctrl+X)" Command="{Binding CutCharacterCrowdCommand}"/>
             <Button x:Name="btLink" Content="&#xf0c1;" ToolTip="Link (Ctrl+L)" Command="{Binding LinkCharacterCrowdCommand}"/>
-            <Button x:Name="btCloneMemberships" Content="&#xf14c;" ToolTip="Clone Memberships (Ctrl+M)" Command="{Binding CloneMembershipsCommand}"/>
+            <Button x:Name="btCloneMemberships" Content="&#xf24d;" ToolTip="Clone Memberships (Ctrl+M)" Command="{Binding CloneMembershipsCommand}"/>
             <Button x:Name="btFlatten" Content="&#xf0ca;" ToolTip="Flatten and Copy (Ctrl+F)" Command="{Binding FlattenCrowdCopyCommand}"/>
             <Button x:Name="btNumberedFlatten" Content="&#xf0cb;" ToolTip="Numbered Flatten and Copy (Ctrl+N)" Command="{Binding NumberedFlattenCrowdCopyCommand}"/>
             <Button x:Name="btPaste" Content="&#xf0ea;" ToolTip="Paste (Ctrl+V)" Command="{Binding PasteCharacterCrowdCommand}"/>
